@@ -41,12 +41,22 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
   naive O(N²) reference DFT, impulse → flat spectrum, constant → DC spike,
   sinusoid → single bin spike, linearity, no-mutation.
 
-## Phase 1 — real-optimized RFFT
+## Phase 1 — real-optimized RFFT — DONE
 
-- `RFFT(x []float64) []complex128` returning only the non-redundant
-  `N/2+1` bins, and `IRFFT` back to `[]float64`.
-- Pack two real transforms into one complex transform (the classic
-  even/odd split) for ~2× throughput over `FFTReal`.
+- `RFFT(x []float64) []complex128` returns only the non-redundant `N/2+1`
+  bins (`numpy.fft.rfft` convention); `IRFFT(spectrum, n) []float64`
+  reconstructs the length-`n` real signal (`numpy.fft.irfft`), normalized
+  by `n` so `IRFFT(RFFT(x), len(x)) ≈ x`.
+- Even lengths use the half-length complex packing trick: pack the real
+  signal into a length-`N/2` complex array, take one size-`N/2` FFT, then
+  untangle — ~2× throughput over `FFTReal`. Odd lengths fall back to the
+  full complex transform and slice the kept bins.
+- First benchmark suite added (`FFT`/`RFFT`/`FFTReal`/`IRFFT` vs the naive
+  `O(N²)` DFT baseline) to anchor the Phase 4 SIMD work.
+- Tests: cross-check against the full complex spectrum and the naive DFT,
+  conjugate symmetry of the dropped half, real DC/Nyquist bins, an analytic
+  cosine spike, round-trip for even and odd `N`, explicit Hermitian-mirror
+  reconstruction, edge cases, and no-mutation.
 
 ## Phase 2 — multi-dimensional transforms
 
