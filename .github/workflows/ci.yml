@@ -21,8 +21,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version: stable
       - run: go version
@@ -52,8 +52,8 @@ jobs:
           - { os: ubuntu-latest,    label: amd64 }
           - { os: ubuntu-24.04-arm, label: arm64 }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version: stable
       - run: go env GOARCH && go test ./...
@@ -70,8 +70,8 @@ jobs:
           - { goarch: ppc64le, qemu: qemu-ppc64le-static }
           - { goarch: s390x,   qemu: qemu-s390x-static }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version: stable
       - run: sudo apt-get update && sudo apt-get install -y qemu-user-static
