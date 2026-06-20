@@ -58,11 +58,26 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
   cosine spike, round-trip for even and odd `N`, explicit Hermitian-mirror
   reconstruction, edge cases, and no-mutation.
 
-## Phase 2 — multi-dimensional transforms
+## Phase 2 — multi-dimensional transforms — DONE
 
-- `FFT2`/`IFFT2` and an N-dimensional `FFTN` over row-major data (transform
-  along each axis in turn).
-- Real 2D variants for image-style workloads.
+- `FFTN(data, shape)`/`IFFTN(data, shape)` over a flat row-major (C-order)
+  `[]complex128` paired with an explicit `[]int` shape: the separable
+  N-dimensional DFT, applying the 1-D FFT along each axis in turn
+  (`numpy.fft.fftn`/`ifftn`). Forward is unnormalized; the inverse divides by the
+  product of the transformed axis lengths so `IFFTN(FFTN(x)) ≈ x`. A mismatched
+  or non-positive shape panics, mirroring numpy.
+- `FFT2(data, [2]int)`/`IFFT2(data, [2]int)` — the 2-D specialization
+  (`numpy.fft.fft2`/`ifft2`), a thin wrapper over `FFTN`.
+- Real 2-D variants `RFFT2(data, [2]int)`/`IRFFT2(spectrum, [2]int)` for
+  image-style workloads (`numpy.fft.rfft2`/`irfft2`): the real transform runs
+  along the last axis (keeping `cols/2+1` bins per row), the full complex
+  transform down the columns; `IRFFT2` inverts and is normalized by
+  `rows*cols`. The caller passes the target shape explicitly.
+- None of these mutate the caller's input.
+- Tests: a separable naive-DFT N-D oracle, round-trip, FFT2≡FFTN, explicit
+  row-then-column separability, impulse→flat, constant→DC spike, linearity,
+  RFFT2 vs the kept bins of FFT2, RFFT2/IRFFT2 round-trip, zero-padded short
+  spectra, empty/length-1 shapes, shape-validation panics, and no-mutation.
 
 ## Phase 3 — windowing and spectral helpers
 
