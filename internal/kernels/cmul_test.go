@@ -98,9 +98,17 @@ func TestCMulMismatchedLengths(t *testing.T) {
 
 // checkCMulEqualsScalar asserts that both the dispatched CMul and the per-arch
 // cmulSIMD are bit-for-bit identical to the scalar oracle on the given input.
-// On amd64 cmulSIMD is the generated SSE2 kernel; on the other targets it
-// aliases the scalar path (so the assertion trivially holds there). This is the
-// per-arch SIMD==scalar proof the CI execution jobs rely on.
+// On amd64/arm64/s390x cmulSIMD is the generated SIMD kernel; on loong64/ppc64le
+// it aliases the scalar path (so the assertion trivially holds there); on
+// riscv64 it runs the RVV kernel only when the V extension is present at run
+// time. This is the per-arch SIMD==scalar proof the CI execution jobs rely on.
+//
+// When the SIMD kernel is NOT active on this run — the only such case is riscv64
+// without the V extension (e.g. CI's non-V qemu-riscv64) — the cmulSIMD
+// comparison is SKIPPED with an explicit, logged reason, because calling the RVV
+// kernel there would SIGILL and a scalar-fallback comparison would only fake a
+// trivial scalar==scalar pass. On real RVV hardware (cfarm95) simdKernelActive
+// is true, so the comparison RUNS and proves bit-identity.
 func checkCMulEqualsScalar(t *testing.T, a, b []complex128) {
 	t.Helper()
 	want := append([]complex128(nil), a...)
@@ -109,6 +117,10 @@ func checkCMulEqualsScalar(t *testing.T, a, b []complex128) {
 	gotDispatch := append([]complex128(nil), a...)
 	CMul(gotDispatch, b)
 	assertBitEqual(t, "CMul", a, b, gotDispatch, want)
+
+	// On riscv64 without the V extension, skip the RVV comparison with an
+	// explicit logged reason (see cmul_simdactive*.go); a no-op elsewhere.
+	skipIfNoSIMD(t)
 
 	gotSIMD := append([]complex128(nil), a...)
 	cmulSIMD(gotSIMD, b)

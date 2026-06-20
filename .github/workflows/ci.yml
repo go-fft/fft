@@ -14,9 +14,10 @@ permissions:
 # A single `go test -coverpkg` run cannot reach 100% statement coverage over a
 # SIMD-dispatched package: each arch's cmulSIMD wrapper only exists and runs on
 # that arch — the amd64 SSE2 wrapper (cmul_amd64.go → cmul_amd64.s), the arm64
-# NEON wrapper (cmul_arm64.go → cmul_arm64.s), and the scalar-fallback wrapper
-# (cmul_generic.go, the four qemu-only targets). No single build sees more than
-# one of them, so no single run covers them all.
+# NEON wrapper (cmul_arm64.go → cmul_arm64.s), the riscv64 RVV wrapper
+# (cmul_riscv64.go → cmul_riscv64.s, run-time V-gated), and the scalar-fallback
+# wrapper (cmul_generic.go, loong64/ppc64le). No single build sees more than one
+# of them, so no single run covers them all.
 #
 # The honest fix, used here:
 #   * The pure-Go scalar CORE (CMulScalar, CMul, BitReverse, Radix2, …) is held
@@ -45,11 +46,17 @@ permissions:
 # avoided. s390x — the only big-endian target — also ships one: its vector
 # facility (VFMDB/VFMSDB/VFMADB, 2-wide double) reproduces the oracle's fused
 # FMSUB/FMADD, and the qemu-s390x job proves it bit-identical with correct
-# big-endian lane order. riscv64/loong64/ppc64le keep the validated scalar path,
-# each for a concrete reason (riscv64 RVV SIGILLs under the default qemu CPU;
-# loong64 LSX and ppc64le VSX expose no vector double arithmetic in the Go
-# assembler — see cmul_generic.go). Shipping even a 1-ULP-different kernel is a
-# correctness divergence the project rejects. See docs/plan-fft.md (Phase 4).
+# big-endian lane order. riscv64 ships an RVV 1.0 kernel (VLSEG2E64V deinterleave
+# + VFMUL.VV/VFNMSAC.VV/VFMACC.VV reproducing the oracle's fused FNMSUBD/FMADDD),
+# HARDWARE-VALIDATED bit-identical on cfarm95 (a SpacemiT X60, RVA22 + RVV 1.0,
+# GCC Compile Farm). Because the V extension is OPTIONAL and ABSENT from this
+# job's default qemu-riscv64 CPU (VSETVLI would SIGILL), cmul_riscv64.go detects
+# V at RUN TIME and runs the SCALAR path here, and the SIMD-vs-scalar test SKIPs
+# its RVV comparison ("no RVV") — so this qemu job stays green while the RVV
+# proof is supplied by cfarm95. loong64/ppc64le keep the validated scalar path
+# (LSX/VSX expose no vector double arithmetic in the Go assembler — see
+# cmul_generic.go). Shipping even a 1-ULP-different kernel is a correctness
+# divergence the project rejects. See docs/plan-fft.md (Phase 4).
 jobs:
   # Pure-Go coverage gate: build, vet, race-test, enforce 100% statement
   # coverage of the portable core. Runs on amd64 (ubuntu/windows) and arm64
@@ -116,10 +123,13 @@ jobs:
 
   # qemu-user execution for the targets without a hosted runner. s390x ships a
   # vector-facility SIMD kernel (regen-checked below, then the qemu run asserts
-  # SIMD == scalar bit-for-bit on the project's only big-endian target).
-  # riscv64/loong64/ppc64le ship no SIMD kernel (validated scalar path; see
-  # cmul_generic.go for the concrete per-arch reason), so for them this job is the
-  # endianness/word-size guard and the trivially-scalar==scalar SIMD test.
+  # SIMD == scalar bit-for-bit on the project's only big-endian target). riscv64
+  # ships an RVV kernel whose .s is regen-checked here too, but its V extension is
+  # absent from this default qemu CPU, so cmul_riscv64.go runs SCALAR and the
+  # SIMD-vs-scalar test SKIPs ("no RVV") — green here; the RVV bit-identity proof
+  # is run on real hardware (cfarm95, RVV 1.0). loong64/ppc64le ship no SIMD
+  # kernel (validated scalar path; see cmul_generic.go), so for them this job is
+  # the endianness/word-size guard and the trivially-scalar==scalar SIMD test.
   arch-qemu:
     name: arch ${{ matrix.goarch }} (qemu)
     runs-on: ubuntu-latest
@@ -127,7 +137,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { goarch: riscv64, qemu: qemu-riscv64-static }
+          - { goarch: riscv64, qemu: qemu-riscv64-static, regen: riscv64 }
           - { goarch: loong64, qemu: qemu-loongarch64-static }
           - { goarch: ppc64le, qemu: qemu-ppc64le-static }
           - { goarch: s390x,   qemu: qemu-s390x-static, regen: s390x }

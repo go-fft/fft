@@ -109,7 +109,7 @@ The scalar `CMulScalar` is the portable correctness oracle; `CMul` is the stable
 dispatch seam the FFT core calls; per-arch `cmulSIMD` wrappers (over go-asmgen
 assembly) are validated bit-for-bit against the oracle.
 
-### Generated kernels — amd64 (SSE2), arm64 (NEON), s390x (vector), all bit-identical
+### Generated kernels — amd64 (SSE2), arm64 (NEON), s390x (vector), riscv64 (RVV), all bit-identical
 
 - `internal/kernels/asmgen/amd64/gen.go` drives go-asmgen to emit
   `cmul_amd64.s`: an SSE2 loop, one `complex128` per iteration, computing
@@ -132,6 +132,16 @@ assembly) are validated bit-for-bit against the oracle.
   `VMRHG`/`VMRLG` + `VST` re-interleave on store; an odd final element is handled
   by a scalar tail. It is **bit-for-bit identical** to the scalar oracle on the
   project's only **big-endian** target — see the fusion note below.
+- `internal/kernels/asmgen/riscv64/gen.go` drives go-asmgen to emit
+  `cmul_riscv64.s`: a **strip-mined RVV 1.0** loop. Each iteration asks the
+  hardware for `vl = min(remaining, VLMAX)` via `VSETVLI` (E64, M1), then
+  `VLSEG2E64V` deinterleaves a run of `{re, im}` pairs into a vector of reals and
+  a vector of imaginaries, the fused arithmetic runs `vl`-wide
+  (`VFMUL.VV`/`VFNMSAC.VV`/`VFMACC.VV`), and `VSSEG2E64V` re-interleaves on store.
+  Strip-mining folds the tail (the last iteration just gets a smaller `vl`), so
+  there is **no separate scalar tail**. It is **bit-for-bit identical** to the
+  scalar oracle, **hardware-validated on cfarm95** — see the fusion and soundness
+  notes below.
 - The generators live in a **separate Go module**
   (`internal/kernels/asmgen/go.mod`, requiring `go-asmgen`), so the FFT library
   itself keeps **zero third-party dependencies**. `go generate` (or the per-arch
@@ -166,16 +176,25 @@ floating-point form the gc compiler gives the oracle differs by arch**:
   s390x is the project's **only big-endian** target, so its per-arch qemu job
   proving the kernel bit-identical (correct lane order included) is the
   highest-value validation in the suite. **Ships a kernel.** ✅
-- **riscv64 / loong64 / ppc64le**: keep the **validated scalar path**, each for a
+- **riscv64**: FMA is baseline, so the gc compiler **fuses the oracle**
+  (`FMULD` then `FNMSUBD` for `ar·br − ai·bi`; `FMULD` then `FMADDD` for
+  `ar·bi + ai·br`; verified by disassembling `CMulScalar` with
+  `GOARCH=riscv64 -gcflags=-S`). The **RVV 1.0** kernel reproduces that fusion
+  `vl`-wide — `VFMUL.VV` for each exactly-rounded product, then `VFNMSAC.VV`
+  (`vd = −(vs1·vs2)+vd`) and `VFMACC.VV` (`vd = +(vs1·vs2)+vd`) for the fused
+  subtract/add — the precise RVV analogue of the arm64 NEON kernel. **Crucially,
+  the V extension is OPTIONAL on riscv64**, so unlike the other three SIMD arches
+  `cmulSIMD` **detects V at run time** (parsing `/proc/cpuinfo`'s isa string) and
+  calls the RVV kernel only when V is present; on a non-V CPU it falls back to
+  scalar (calling `VSETVLI` there would SIGILL). The kernel is
+  **hardware-validated bit-identical on cfarm95** (GCC Compile Farm: a SpacemiT
+  X60, RVA22 + RVV 1.0), where the SIMD-vs-scalar test **runs and passes** on
+  structured and random inputs across a length sweep. Under CI's **non-V**
+  `qemu-riscv64` the scalar path is taken and the SIMD test **skips** its RVV
+  comparison (`t.Skip("no RVV")`), so CI stays green and the RVV instructions
+  never execute there. **Ships a kernel (hardware-validated).** ✅
+- **loong64 / ppc64le**: keep the **validated scalar path**, each for a
   concrete, checked reason — NOT for lack of trying:
-  - **riscv64**: a genuine RVV kernel (`VLSEG2E64V` deinterleave + `VFMACC.VV`/
-    `VFNMSAC.VV` fused FMA, the exact analogue of the arm64 NEON kernel) was
-    written and **assembles cleanly**, but the **V extension is absent from the
-    default `qemu-riscv64` CPU** the CI's `arch-qemu` job runs (`VSETVLI` raises
-    SIGILL), and `qemu`'s `-cpu max` RVV faults on the segment load. A kernel that
-    cannot even run under the validating qemu cannot be proven bit-identical and
-    would turn CI red, so riscv64 stays scalar until the CI gains an RVV-capable
-    execution environment.
   - **loong64**: the Go loong64 assembler exposes LSX vector **floating-point
     only as unary ops** (`VFSQRTD`, `VFRINTD`, `VFRECIPD`, …) — there is no vector
     float add/multiply/FMA to build a complex product from, so a bit-identical
@@ -217,7 +236,9 @@ mirroring the go-asmgen org:
   cross-checks `name+offset(FP)`), build (`cmd/asm` encodes the mnemonics), and
   **runs** the suite whose `TestCMul*` assert SIMD == scalar bit-for-bit;
   `arch-qemu` runs riscv64/loong64/ppc64le/s390x under qemu-user (s390x is the
-  big-endian guard).
+  big-endian guard; riscv64's RVV `.s` is regen-checked there but runs scalar,
+  since that qemu CPU lacks V — the RVV bit-identity proof is run on real
+  hardware, cfarm95).
 
 Every line is either statement-covered by the gate or executed by a per-arch
 job; the gate is never lowered and there is no coverage-gaming knob.
@@ -230,17 +251,22 @@ job; the gate is never lowered and there is no coverage-gaming knob.
 - **s390x (vector facility)** — bit-identical 2-wide SIMD kernel
   (`VFMDB`/`VFMSDB`/`VFMADB` reproducing the oracle's fused `FMSUB`/`FMADD`),
   validated by the qemu-s390x job on the project's only **big-endian** target. ✅
-- **riscv64 / loong64 / ppc64le** — validated scalar fallback (qemu jobs); no
-  SIMD kernel, each for a concrete checked reason (riscv64 RVV unrunnable under
-  CI qemu; loong64/ppc64le have no assemblable vector double arithmetic — see
-  above). 🔒
+- **riscv64 (RVV 1.0)** — bit-identical strip-mined SIMD kernel (`VLSEG2E64V` +
+  `VFMUL.VV`/`VFNMSAC.VV`/`VFMACC.VV` reproducing the oracle's fused
+  `FNMSUBD`/`FMADDD`), with **run-time V detection**, **hardware-validated on
+  cfarm95** (SpacemiT X60, RVV 1.0); under CI's non-V qemu it runs scalar and the
+  SIMD test skips. ✅
+- **loong64 / ppc64le** — validated scalar fallback (qemu jobs); no SIMD kernel,
+  each for a concrete checked reason (no assemblable vector double arithmetic in
+  the Go assembler — see above). 🔒
 
 ### Remaining
 
-- riscv64 SIMD once the CI gains an RVV-capable execution environment (the RVV
-  kernel is written and assembles; it only lacks a qemu/runner that implements the
-  V extension). loong64/ppc64le SIMD await Go-assembler support for vector double
-  arithmetic (or a different, still bit-identical formulation).
+- loong64/ppc64le SIMD await Go-assembler support for vector double arithmetic
+  (or a different, still bit-identical formulation). riscv64 RVV is **done** —
+  hardware-validated on cfarm95; a future improvement would be an RVV-capable CI
+  runner so the bit-identity proof also runs in CI (today it runs scalar there
+  and the proof is on real hardware).
 - Wider kernels (amd64 AVX2/AVX-512, arm64 SVE / unrolled NEON, multiple complex
   per iteration) and a measurement to decide if/when to route `CMul` through SIMD
   on the hot path.
