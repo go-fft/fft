@@ -2,10 +2,11 @@
 // numpy.fft / scipy.fft equivalent for Go.
 //
 // It computes the discrete Fourier transform (DFT) of complex and real signals
-// of any length, with no dependency on the native FFTW3 C library. Lengths
-// whose prime factors are all small use mixed-radix Cooley–Tukey (radix-2/3/4/5
-// straight-line butterflies plus a general radix-p butterfly for the small
-// primes 7/11/13); a large prime length uses Rader's algorithm (above a size
+// of any length, with no dependency on the native FFTW3 C library. A power-of-two
+// length uses a split-radix kernel (≈⅓ fewer real multiplies than radix-4);
+// other lengths whose prime factors are all small use mixed-radix Cooley–Tukey
+// (radix-2/3/4/5 straight-line butterflies plus a general radix-p butterfly for
+// the small primes 7/11/13); a prime length uses Rader's algorithm (above a size
 // threshold) or Bluestein's chirp-z algorithm, so any length transforms
 // correctly and fast. Twiddle factors are precomputed and cached per length
 // (see Plan / NewPlan), so repeated transforms of one length recompute no
