@@ -273,8 +273,16 @@ job; the gate is never lowered and there is no coverage-gaming knob.
 - A bit-identical vectorized butterfly (`Radix2` inner loop) once the pointwise
   multiply is solid across arches.
 
-## Phase 5 — Ruby binding
+## Phase 5 — Ruby binding — DONE
 
-- Expose the API through
-  [go-embedded-ruby](https://github.com/go-embedded-ruby/ruby) so Ruby gets a
-  cgo-free FFT, matching the `numpy.fft` / `scipy.fft` surface.
+- Exposed through
+  [go-embedded-ruby](https://github.com/go-embedded-ruby/ruby) as an `FFT`
+  module, so Ruby gets a cgo-free FFT matching the `numpy.fft` / `scipy.fft`
+  surface: `fft`/`ifft`/`rfft`/`irfft`, the N-D and 2-D transforms
+  (`fftn`/`ifftn`/`fft2`/`ifft2`), the bin-frequency helpers
+  (`fftfreq`/`rfftfreq`), the window functions
+  (`hann`/`hamming`/`blackman`/`blackman_harris`/`bartlett`), and the spectral
+  helpers (`psd`/`spectrogram`). Spectra are returned as Ruby `Complex` values.
+  The binding required a Ruby `Complex` type and the `::` scope operator, both
+  added to go-embedded-ruby; it is differentially validated against the
+  `numpy.fft` conventions and held to the same 100%-coverage gate.
