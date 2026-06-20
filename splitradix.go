@@ -47,10 +47,18 @@ func (p *srPlan) roots(inverse bool) []complex128 {
 // the conjugate roots are used (the caller applies 1/N). dst may alias src; the
 // recursion reads src through an index map and never writes src.
 func (p *srPlan) transform(dst, src []complex128, inverse bool) {
-	n := p.n
-	scratch := make([]complex128, n)
+	scratch := make([]complex128, p.n)
 	copy(scratch, src)
-	p.rec(dst, scratch, n, 0, 1, p.roots(inverse), inverse)
+	p.transformScratch(dst, scratch, inverse)
+}
+
+// transformScratch is transform with a caller-supplied read-only source buffer
+// (len n) it may consume freely: the recursion reads it through an index map and
+// never writes it, so a caller that already owns a private length-n buffer (e.g.
+// the real-FFT packer) avoids the internal copy and one allocation. dst must not
+// alias scratch.
+func (p *srPlan) transformScratch(dst, scratch []complex128, inverse bool) {
+	p.rec(dst, scratch, p.n, 0, 1, p.roots(inverse), inverse)
 }
 
 // rec computes a length-len split-radix DFT of the sub-sequence that starts at
