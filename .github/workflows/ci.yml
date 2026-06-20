@@ -42,10 +42,14 @@ permissions:
 # oracle. On arm64 FMA is baseline, so the gc compiler fuses the oracle itself
 # (FMSUBD/FMADDD); the NEON kernel reproduces that exact fusion (VLD2/VST2 +
 # VFMLA/VFMLS) and is therefore bit-identical too — fusion is matched, not
-# avoided. The remaining qemu-only targets (riscv64/loong64/ppc64le/s390x) keep
-# the validated scalar path until a kernel is proven bit-identical by their
-# per-arch job; shipping even a 1-ULP-different kernel is a correctness
-# divergence the project rejects. See docs/plan-fft.md (Phase 4).
+# avoided. s390x — the only big-endian target — also ships one: its vector
+# facility (VFMDB/VFMSDB/VFMADB, 2-wide double) reproduces the oracle's fused
+# FMSUB/FMADD, and the qemu-s390x job proves it bit-identical with correct
+# big-endian lane order. riscv64/loong64/ppc64le keep the validated scalar path,
+# each for a concrete reason (riscv64 RVV SIGILLs under the default qemu CPU;
+# loong64 LSX and ppc64le VSX expose no vector double arithmetic in the Go
+# assembler — see cmul_generic.go). Shipping even a 1-ULP-different kernel is a
+# correctness divergence the project rejects. See docs/plan-fft.md (Phase 4).
 jobs:
   # Pure-Go coverage gate: build, vet, race-test, enforce 100% statement
   # coverage of the portable core. Runs on amd64 (ubuntu/windows) and arm64
@@ -110,10 +114,12 @@ jobs:
           go build ./...
           go test ./...
 
-  # qemu-user execution for the targets without a hosted runner. These currently
-  # ship no SIMD kernel (scalar path), so this job is the endianness/word-size
-  # guard for the scalar core AND the SIMD-vs-scalar test (trivially scalar ==
-  # scalar there). s390x exercises the big-endian path.
+  # qemu-user execution for the targets without a hosted runner. s390x ships a
+  # vector-facility SIMD kernel (regen-checked below, then the qemu run asserts
+  # SIMD == scalar bit-for-bit on the project's only big-endian target).
+  # riscv64/loong64/ppc64le ship no SIMD kernel (validated scalar path; see
+  # cmul_generic.go for the concrete per-arch reason), so for them this job is the
+  # endianness/word-size guard and the trivially-scalar==scalar SIMD test.
   arch-qemu:
     name: arch ${{ matrix.goarch }} (qemu)
     runs-on: ubuntu-latest
@@ -124,13 +130,21 @@ jobs:
           - { goarch: riscv64, qemu: qemu-riscv64-static }
           - { goarch: loong64, qemu: qemu-loongarch64-static }
           - { goarch: ppc64le, qemu: qemu-ppc64le-static }
-          - { goarch: s390x,   qemu: qemu-s390x-static }
+          - { goarch: s390x,   qemu: qemu-s390x-static, regen: s390x }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version: stable
       - run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      - name: Regenerate committed assembly and check it is current
+        if: matrix.regen != ''
+        run: |
+          ( cd internal/kernels/asmgen/${{ matrix.regen }} && GOFLAGS=-mod=mod go run gen.go )
+          mv internal/kernels/asmgen/${{ matrix.regen }}/cmul_${{ matrix.regen }}.s \
+             internal/kernels/cmul_${{ matrix.regen }}.s
+          git diff --exit-code -- internal/kernels/cmul_${{ matrix.regen }}.s || {
+            echo "::error::generated ${{ matrix.regen }} assembly is stale; run go generate and commit"; exit 1; }
       - name: Vet + test under qemu (${{ matrix.goarch }})
         run: |
           GOOS=linux GOARCH=${{ matrix.goarch }} go vet ./...

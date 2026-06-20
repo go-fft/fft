@@ -109,7 +109,7 @@ The scalar `CMulScalar` is the portable correctness oracle; `CMul` is the stable
 dispatch seam the FFT core calls; per-arch `cmulSIMD` wrappers (over go-asmgen
 assembly) are validated bit-for-bit against the oracle.
 
-### Generated kernels — amd64 (SSE2) and arm64 (NEON), both bit-identical
+### Generated kernels — amd64 (SSE2), arm64 (NEON), s390x (vector), all bit-identical
 
 - `internal/kernels/asmgen/amd64/gen.go` drives go-asmgen to emit
   `cmul_amd64.s`: an SSE2 loop, one `complex128` per iteration, computing
@@ -124,6 +124,14 @@ assembly) are validated bit-for-bit against the oracle.
   imaginaries, the arithmetic runs two-lane, and `VST2` re-interleaves on store;
   an odd final element is handled by a scalar tail. It is **bit-for-bit
   identical** to the scalar oracle — see the fusion note below.
+- `internal/kernels/asmgen/s390x/gen.go` drives go-asmgen to emit
+  `cmul_s390x.s`: a **2-wide z/Architecture vector-facility** loop processing
+  **two** `complex128` per iteration. `VL` loads the pairs, `VMRHG`/`VMRLG`
+  deinterleave them into a vector of reals and a vector of imaginaries (big-endian
+  lane order), `VFMDB`/`VFMSDB`/`VFMADB` run the fused arithmetic two-lane, and
+  `VMRHG`/`VMRLG` + `VST` re-interleave on store; an odd final element is handled
+  by a scalar tail. It is **bit-for-bit identical** to the scalar oracle on the
+  project's only **big-endian** target — see the fusion note below.
 - The generators live in a **separate Go module**
   (`internal/kernels/asmgen/go.mod`, requiring `go-asmgen`), so the FFT library
   itself keeps **zero third-party dependencies**. `go generate` (or the per-arch
@@ -149,11 +157,37 @@ floating-point form the gc compiler gives the oracle differs by arch**:
   by the random SIMD-vs-scalar test (Go's arm64 assembler exposes no non-fused
   vector multiply — there is no `VFMUL` — so matching the fused form is the only
   sound option anyway).
-- **riscv64 / loong64 / ppc64le / s390x**: keep the **validated scalar path**
-  until a kernel is built and **proven** bit-identical by their per-arch job. Per
-  "on n'a pas le droit de se tromper", a 1-ULP-different kernel is a correctness
-  divergence the project rejects; partial-arch SIMD with identical results beats
-  full-arch SIMD with a divergence.
+- **s390x**: FMA is baseline and — uniquely among the four qemu-only targets —
+  the Go assembler exposes 2-wide double-precision vector FMA. The gc compiler
+  fuses the oracle (`FMUL` then `FMSUB`/`FMADD`; verified by disassembly), and the
+  **vector-facility** kernel reproduces that fusion two-lane (`VFMDB` for the
+  exactly-rounded product, `VFMSDB`/`VFMADB` for the fused subtract/add), with
+  `VL`/`VMRHG`/`VMRLG`/`VST` deinterleaving and re-interleaving the complex pairs.
+  s390x is the project's **only big-endian** target, so its per-arch qemu job
+  proving the kernel bit-identical (correct lane order included) is the
+  highest-value validation in the suite. **Ships a kernel.** ✅
+- **riscv64 / loong64 / ppc64le**: keep the **validated scalar path**, each for a
+  concrete, checked reason — NOT for lack of trying:
+  - **riscv64**: a genuine RVV kernel (`VLSEG2E64V` deinterleave + `VFMACC.VV`/
+    `VFNMSAC.VV` fused FMA, the exact analogue of the arm64 NEON kernel) was
+    written and **assembles cleanly**, but the **V extension is absent from the
+    default `qemu-riscv64` CPU** the CI's `arch-qemu` job runs (`VSETVLI` raises
+    SIGILL), and `qemu`'s `-cpu max` RVV faults on the segment load. A kernel that
+    cannot even run under the validating qemu cannot be proven bit-identical and
+    would turn CI red, so riscv64 stays scalar until the CI gains an RVV-capable
+    execution environment.
+  - **loong64**: the Go loong64 assembler exposes LSX vector **floating-point
+    only as unary ops** (`VFSQRTD`, `VFRINTD`, `VFRECIPD`, …) — there is no vector
+    float add/multiply/FMA to build a complex product from, so a bit-identical
+    vector kernel is **not expressible**.
+  - **ppc64le**: the Go ppc64 assembler exposes **no vector double arithmetic**
+    (the VSX surface is loads/stores, logicals, permutes, conversions —
+    `XVMADDDP`/`XVMULDP`/`XVADDDP` are not assemblable), so likewise no
+    bit-identical vector kernel is expressible.
+
+  Per "on n'a pas le droit de se tromper", a 1-ULP-different kernel is a
+  correctness divergence the project rejects; partial-arch SIMD with identical
+  results beats full-arch SIMD with a divergence.
 
 ### Measured perf (honest delta)
 
@@ -193,14 +227,20 @@ job; the gate is never lowered and there is no coverage-gaming knob.
 - **amd64 (SSE2)** — bit-identical SIMD kernel, validated by the native job. ✅
 - **arm64 (NEON)** — bit-identical 2-wide SIMD kernel, validated by the native
   job (reproduces the oracle's `FMSUBD`/`FMADDD` fusion). ✅
-- **riscv64 / loong64 / ppc64le / s390x** — validated scalar fallback (qemu
-  jobs, s390x big-endian); no SIMD kernel yet (see correctness rule above). 🔜
+- **s390x (vector facility)** — bit-identical 2-wide SIMD kernel
+  (`VFMDB`/`VFMSDB`/`VFMADB` reproducing the oracle's fused `FMSUB`/`FMADD`),
+  validated by the qemu-s390x job on the project's only **big-endian** target. ✅
+- **riscv64 / loong64 / ppc64le** — validated scalar fallback (qemu jobs); no
+  SIMD kernel, each for a concrete checked reason (riscv64 RVV unrunnable under
+  CI qemu; loong64/ppc64le have no assemblable vector double arithmetic — see
+  above). 🔒
 
 ### Remaining
 
-- Bit-identical SIMD kernels for the four qemu-only targets, each gated on its
-  per-arch job proving bit-equality (matching whatever fused/non-fused form the
-  gc oracle takes on that target, exactly as arm64 did).
+- riscv64 SIMD once the CI gains an RVV-capable execution environment (the RVV
+  kernel is written and assembles; it only lacks a qemu/runner that implements the
+  V extension). loong64/ppc64le SIMD await Go-assembler support for vector double
+  arithmetic (or a different, still bit-identical formulation).
 - Wider kernels (amd64 AVX2/AVX-512, arm64 SVE / unrolled NEON, multiple complex
   per iteration) and a measurement to decide if/when to route `CMul` through SIMD
   on the hot path.
