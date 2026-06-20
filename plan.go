@@ -26,6 +26,7 @@ type Plan struct {
 	bluestein *bluesteinPlan // non-nil iff this length uses Bluestein
 	ct        *ctPlan        // non-nil iff this length uses mixed-radix CT
 	rader     *raderPlan     // non-nil iff this length uses Rader
+	sr        *srPlan        // non-nil iff this length uses split-radix (pow2)
 }
 
 // maxRadix bounds the largest prime factor handled by a direct radix-p
@@ -41,6 +42,12 @@ const maxRadix = 13
 func NewPlan(n int) *Plan {
 	p := &Plan{n: n}
 	if n <= 1 {
+		return p
+	}
+	if n&(n-1) == 0 {
+		// Pure power of two: the split-radix kernel (≈⅓ fewer real multiplies
+		// than radix-4) wins the mid-range; route it here.
+		p.sr = newSRPlan(n)
 		return p
 	}
 	if factorsAreSmall(n) {
@@ -103,6 +110,8 @@ func (p *Plan) execute(dst, src []complex128, inverse bool) {
 		return
 	}
 	switch {
+	case p.sr != nil:
+		p.sr.transform(dst, src, inverse)
 	case p.ct != nil:
 		p.ct.transform(dst, src, inverse)
 	case p.rader != nil:
