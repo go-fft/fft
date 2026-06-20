@@ -87,14 +87,21 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	}
 
 	// Untangle. The k=0 and k=m bins wrap on Z (indices 0 and 0) and are both
-	// purely real, so they are handled outside the loop; the interior k in
-	// [1,m-1] reads Z[k] and Z[m-k] with no modulo. The even/odd split and the
-	// twiddle recombination are expanded into real arithmetic to avoid the
-	// per-bin complex-multiply helper calls.
+	// purely real, so they are handled outside the loop. The interior bins are
+	// produced in conjugate pairs (k, m-k): both read the same Z[k], Z[m-k] and
+	// the same twiddle W_n^k, and satisfy
+	//   dst[k]   = xe + W_n^k·xo,
+	//   dst[m-k] = conj(xe − W_n^k·xo),
+	// because xe(m-k)=conj(xe(k)), xo(m-k)=conj(xo(k)), and W_n^{m-k}=−conj(W_n^k)
+	// (W_n^m = −1 for n = 2m). Computing the pair together halves the Z reads and
+	// twiddle lookups of the per-bin loop. The even/odd split and the twiddle
+	// recombination are expanded into real arithmetic to avoid the per-bin
+	// complex-multiply helper calls. When m is even the self-paired middle bin
+	// k = m/2 (xo there is purely handled by the same formula) is done once.
 	z0r, z0i := real(Z[0]), imag(Z[0])
 	dst[0] = complex(z0r+z0i, 0)
 	dst[m] = complex(z0r-z0i, 0)
-	for k := 1; k < m; k++ {
+	for k := 1; k <= m-k; k++ {
 		zk := Z[k]
 		zmk := Z[m-k]
 		// xe = (zk + conj(zmk))/2, xo = (zk - conj(zmk))·(-i/2).
@@ -102,13 +109,18 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 		xei := (imag(zk) - imag(zmk)) * 0.5
 		// (zk - conj(zmk)) = (real(zk)-real(zmk)) + i(imag(zk)+imag(zmk));
 		// times -i/2 swaps and scales: xo = (imag-sum)/2 - i(real-diff)/2.
-		sumI := (imag(zk) + imag(zmk)) * 0.5
-		difR := (real(zk) - real(zmk)) * 0.5
-		xor := sumI
-		xoi := -difR
-		// dst[k] = xe + tw[k]·xo.
+		xor := (imag(zk) + imag(zmk)) * 0.5
+		xoi := -(real(zk) - real(zmk)) * 0.5
+		// t = W_n^k · xo.
 		wr, wi := real(p.tw[k]), imag(p.tw[k])
-		dst[k] = complex(xer+wr*xor-wi*xoi, xei+wr*xoi+wi*xor)
+		tr := wr*xor - wi*xoi
+		ti := wr*xoi + wi*xor
+		// dst[k] = xe + t.
+		dst[k] = complex(xer+tr, xei+ti)
+		// dst[m-k] = conj(xe - t) (skipped when k == m-k, the self-paired bin).
+		if k != m-k {
+			dst[m-k] = complex(xer-tr, -(xei - ti))
+		}
 	}
 	return dst[:m+1]
 }

@@ -140,6 +140,33 @@ func factorsAreSmall(n int) bool {
 	return n == 1
 }
 
+// nextSmoothConv returns the smallest integer >= lo whose only prime factors are
+// 2, 3 and 5. Such a length is handled entirely by the mixed-radix engine's
+// specialized radix-2/3/4/5 butterflies (no slow general radix-p step) and is
+// substantially smaller than the next power of two for the convolution sizes the
+// prime engines pad to (~0.6× at N≈10⁴), so it is the cheapest linear-convolution
+// length. lo >= 1.
+func nextSmoothConv(lo int) int {
+	if lo < 1 {
+		lo = 1
+	}
+	for m := lo; ; m++ {
+		x := m
+		for x%2 == 0 {
+			x /= 2
+		}
+		for x%3 == 0 {
+			x /= 3
+		}
+		for x%5 == 0 {
+			x /= 5
+		}
+		if x == 1 {
+			return m
+		}
+	}
+}
+
 // factorize splits n into an ordered list of radices, preferring 4 over 2·2 (a
 // radix-4 butterfly needs fewer multiplies than two radix-2 stages) and pulling
 // out small primes in ascending order. Every returned factor is <= maxRadix and
@@ -173,11 +200,25 @@ var (
 
 // cachedPlan returns a shared plan for length n, building and memoizing it on
 // first use. The returned plan is immutable and safe for concurrent transforms.
+//
+// The plan is built *outside* the cache lock: NewPlan for a prime length itself
+// re-enters cachedPlan to build the power-of-two/smooth convolution sub-plan its
+// Rader/Bluestein engine uses, so holding the lock across NewPlan would
+// self-deadlock. Building unlocked admits a benign race where two goroutines
+// construct the same length concurrently; plans are immutable and identical, so
+// either may win the store with no observable difference.
 func cachedPlan(n int) *Plan {
 	planMu.Lock()
 	p, ok := planCache[n]
-	if !ok {
-		p = NewPlan(n)
+	planMu.Unlock()
+	if ok {
+		return p
+	}
+	p = NewPlan(n)
+	planMu.Lock()
+	if existing, ok := planCache[n]; ok {
+		p = existing
+	} else {
 		planCache[n] = p
 	}
 	planMu.Unlock()

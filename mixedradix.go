@@ -111,6 +111,8 @@ func (p *ctPlan) butterfly(out []complex128, length, r, m, stride int, tw []comp
 		p.radix4(out, m, step, tw, inverse)
 	case 5:
 		p.radix5(out, m, step, tw, inverse)
+	case 7:
+		p.radix7(out, m, step, tw, inverse)
 	default:
 		p.radixP(out, length, r, m, step, tw)
 	}
@@ -239,6 +241,62 @@ func (p *ctPlan) radix5(out []complex128, m, step int, tw []complex128, inverse 
 	}
 }
 
+// radix7 recombines seven length-m sub-transforms into the length-7m result in
+// place with a straight-line radix-7 butterfly. It exploits the three conjugate
+// root pairs (1,6),(2,5),(3,4) the way radix5 exploits (1,4),(2,3): forming the
+// symmetric sums/differences once and weighting them by the three distinct
+// cosines/sines of 2πk/7, k=1..3. This replaces the O(7²)=49-multiply general
+// radixP path (the single largest cost of e.g. N=2017, whose Rader convolution
+// length 2016 = 2⁵·3²·7 has a radix-7 stage).
+func (p *ctPlan) radix7(out []complex128, m, step int, tw []complex128, inverse bool) {
+	const (
+		c1 = 0.6234898018587335305250048840042398106322747308237  // cos(2π/7)
+		s1 = 0.7818314824680298087084445266740577502323345187493  // sin(2π/7)
+		c2 = -0.2225209339563144042889025644967948758319743752712 // cos(4π/7)
+		s2 = 0.9749279121818236070181316829939312172327858006199  // sin(4π/7)
+		c3 = -0.9009688679024191262361023195074450511659191621318 // cos(6π/7)
+		s3 = 0.4338837391175581204757683328483587546099907277859  // sin(6π/7)
+	)
+	sg := -1.0
+	if inverse {
+		sg = 1.0
+	}
+	for k := 0; k < m; k++ {
+		ks := k * step
+		a := out[k]
+		b := out[k+m] * tw[ks]
+		c := out[k+2*m] * tw[2*ks]
+		d := out[k+3*m] * tw[3*ks]
+		e := out[k+4*m] * tw[4*ks]
+		f := out[k+5*m] * tw[5*ks]
+		g := out[k+6*m] * tw[6*ks]
+
+		// Conjugate-pair sums/differences: (1,6),(2,5),(3,4).
+		s16 := b + g
+		d16 := b - g
+		s25 := c + f
+		d25 := c - f
+		s34 := d + e
+		d34 := d - e
+
+		out[k] = a + s16 + s25 + s34
+		// Real (cosine-weighted) combinations for each output pair.
+		r1 := a + complex(c1*real(s16)+c2*real(s25)+c3*real(s34), c1*imag(s16)+c2*imag(s25)+c3*imag(s34))
+		r2 := a + complex(c2*real(s16)+c3*real(s25)+c1*real(s34), c2*imag(s16)+c3*imag(s25)+c1*imag(s34))
+		r3 := a + complex(c3*real(s16)+c1*real(s25)+c2*real(s34), c3*imag(s16)+c1*imag(s25)+c2*imag(s34))
+		// Imaginary (sine-weighted) combinations; rotI multiplies by i.
+		i1 := rotI(complex(sg*(s1*real(d16)+s2*real(d25)+s3*real(d34)), sg*(s1*imag(d16)+s2*imag(d25)+s3*imag(d34))))
+		i2 := rotI(complex(sg*(s2*real(d16)-s3*real(d25)-s1*real(d34)), sg*(s2*imag(d16)-s3*imag(d25)-s1*imag(d34))))
+		i3 := rotI(complex(sg*(s3*real(d16)-s1*real(d25)+s2*real(d34)), sg*(s3*imag(d16)-s1*imag(d25)+s2*imag(d34))))
+		out[k+m] = r1 + i1
+		out[k+6*m] = r1 - i1
+		out[k+2*m] = r2 + i2
+		out[k+5*m] = r2 - i2
+		out[k+3*m] = r3 + i3
+		out[k+4*m] = r3 - i3
+	}
+}
+
 // rotI multiplies z by i (90° counter-clockwise).
 func rotI(z complex128) complex128 {
 	return complex(-imag(z), real(z))
@@ -251,7 +309,12 @@ func rotI(z complex128) complex128 {
 // every prime.
 func (p *ctPlan) radixP(out []complex128, length, r, m, step int, tw []complex128) {
 	n := p.n
-	buf := make([]complex128, r)
+	// The general radix bound is maxRadix, so a fixed-size stack array holds the
+	// r twiddled inputs with no per-call heap allocation (the previous make([]…,r)
+	// here dominated the alloc count of prime/composite transforms — e.g. ~580
+	// allocs/op at N=2017, whose Rader convolution length 2016 has a radix-7 stage).
+	var bufArr [maxRadix]complex128
+	buf := bufArr[:r]
 	rstep := n / r
 	for k := 0; k < m; k++ {
 		// Twiddle the r inputs: in[i] = sub_i[k] · W_n^{i·k·step}. Here i·k·step
