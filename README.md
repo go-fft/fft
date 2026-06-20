@@ -79,28 +79,33 @@ the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
 ## Performance
 
 `go-fft` uses **mixed-radix Cooley–Tukey** (radix-2/3/4/5 straight-line
-butterflies plus a general radix-p kernel for small primes), reserving
-**Bluestein's chirp-z** for lengths with a large prime factor, with all twiddle
-factors cached per length. Benchmarked against the pure-Go peer
-`gonum/dsp/fourier` (the fairest head-to-head, both `CGO_ENABLED=0`) on an Apple
-M4 Max, best of 3, **go-fft wins at every complex-FFT size**:
+butterflies plus a general radix-p kernel for small primes), **Rader's
+algorithm** for large primes and **Bluestein's chirp-z** otherwise, with all
+twiddle factors cached per length and an inlined recursion leaf. It beats the
+pure-Go peer `gonum/dsp/fourier` (both `CGO_ENABLED=0`) at **every** size — up to
+~59× on primes (gonum's arbitrary-N path is O(N²)).
 
-| N | go-fft | gonum | go-fft speedup |
-|---:|---:|---:|---:|
-| 1024 | **9.3 µs** | 16.6 µs | 1.79× |
-| 4096 | **40 µs** | 82 µs | 2.03× |
-| 65536 | **0.83 ms** | 1.65 ms | 1.98× |
-| 1000 (2³·5³) | **9.7 µs** | 17.0 µs | 1.75× |
-| 1296 (2⁴·3⁴) | **15 µs** | 24 µs | 1.55× |
-| 10007 (prime) | **1.19 ms** | 70.5 ms | **59×** |
+Against the C gold standard (FFTW/pocketfft via `numpy.fft` / `scipy.fft`,
+single-threaded) on a 4-core arm64 Linux host, go-fft **wins outright** at
+several shapes:
 
-Against the C gold standard (FFTW/pocketfft via `scipy.fft`) on the same Linux
-arm64 host, go-fft is within ~2–3× in the mid-range and *matches* pocketfft at
-large complex N — close to the pure-Go scalar ceiling. Full methodology, the
-before/after optimization deltas, and the honest FFTW comparison table are in
-**[docs/perf.md](docs/perf.md)**. Reproduce with `cd bench && go test -bench=.`
-(gonum is isolated in a separate `bench/` module so the library stays
-dependency-free).
+| transform | go-fft | scipy.fft | verdict |
+|:--|---:|---:|:--|
+| complex 65536 | **0.61 ms** | 1.14 ms | **go-fft ~1.85×** |
+| complex 256 / 64 | **1.5 µs / 0.37 µs** | 2.4 µs / 1.9 µs | **go-fft wins** (small-N) |
+| FFT2 1024×1024 | **9.6 ms** | 9.8 ms | **go-fft wins** (multicore) |
+| FFT2 512×512 | **2.6 ms** | 2.4 ms | ~tie (beats numpy) |
+| complex 1024 | 8.3 µs | 4.6 µs | scipy ~1.8× |
+| complex 10007 (prime) | 0.87 ms | 0.18 ms | FFTW ~4.9× |
+
+go-fft wins on large 1-D, large 2-D (the goroutine-parallel separable path
+single-threaded pocketfft can't match), and the small-N rows; it still trails in
+the mid-range 1-D (~1.7–2.7×, the split-radix+SIMD margin) and on primes
+(~3–5×). Full methodology, every size, and the before/after optimization deltas
+are in **[docs/perf.md](docs/perf.md)**. Reproduce the gonum head-to-head with
+`cd bench && go test -bench=.` (gonum is isolated in a separate `bench/` module
+so the library stays dependency-free) and the FFTW comparison with
+`go test -bench=H2H .` + `python3 scripts/fftbench.py`.
 
 ## Why not cgo / FFTW?
 

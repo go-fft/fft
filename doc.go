@@ -5,10 +5,17 @@
 // of any length, with no dependency on the native FFTW3 C library. Lengths
 // whose prime factors are all small use mixed-radix Cooley–Tukey (radix-2/3/4/5
 // straight-line butterflies plus a general radix-p butterfly for the small
-// primes 7/11/13); a length with a larger prime factor is handled by
-// Bluestein's chirp-z algorithm, so any length transforms correctly. Twiddle
-// factors are precomputed and cached per length (see Plan / NewPlan), so
-// repeated transforms of one length recompute no sin/cos.
+// primes 7/11/13); a large prime length uses Rader's algorithm (above a size
+// threshold) or Bluestein's chirp-z algorithm, so any length transforms
+// correctly and fast. Twiddle factors are precomputed and cached per length
+// (see Plan / NewPlan), so repeated transforms of one length recompute no
+// sin/cos.
+//
+// The multi-dimensional transforms (FFT2/FFTN and their real and inverse forms)
+// are separable: they apply a 1-D transform along each axis, and the
+// independent lines of a large axis run in parallel across goroutines — a
+// multicore path single-threaded references such as pocketfft cannot take. See
+// docs/perf.md for the head-to-head benchmarks.
 //
 // The forward transform follows the unnormalized convention
 //
