@@ -5,7 +5,7 @@
 [![Docs](https://img.shields.io/badge/docs-mkdocs--material-9B1C2E)](https://go-fft.github.io/docs/)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 [![Go](https://img.shields.io/badge/go-1.26.4%2B-00ADD8)](https://go.dev/dl/)
-[![Status](https://img.shields.io/badge/status-phase%203-9a6700)](docs/plan-fft.md)
+[![Status](https://img.shields.io/badge/status-phase%204-9a6700)](docs/plan-fft.md)
 
 **A pure-Go (no cgo) FFT library** — the `numpy.fft` / `scipy.fft` equivalent for
 Go. It computes the discrete Fourier transform of complex and real signals of
@@ -13,15 +13,17 @@ Go. It computes the discrete Fourier transform of complex and real signals of
 
 Ruby has no cgo-free FFT (every option wraps FFTW3); `gonum/dsp/fourier` is pure
 Go but its optimized assembly is amd64-only. This module is a fully portable
-scalar core today, with SIMD kernels planned across all six 64-bit Go targets
+scalar core, with SIMD kernels generated across the six 64-bit Go targets
 (amd64, arm64, riscv64, loong64, ppc64le, s390x) via
 [go-asmgen](https://github.com/go-asmgen).
 
-> Status: **Phase 3** — a correct pure-Go complex FFT (radix-2 Cooley–Tukey for
+> Status: **Phase 4** — a correct pure-Go complex FFT (radix-2 Cooley–Tukey for
 > power-of-two lengths, Bluestein's chirp-z for arbitrary lengths), the
 > real-optimized `RFFT`/`IRFFT`, the multi-dimensional transforms
-> (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`), and the windowing /
-> spectral helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`). See
+> (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`), the windowing / spectral
+> helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`), and the first
+> go-asmgen SIMD kernel (a bit-identical SSE2 pointwise complex multiply on
+> amd64) behind a validated per-arch split CI. See
 > **[docs/plan-fft.md](docs/plan-fft.md)** for the phased roadmap.
 
 ## API

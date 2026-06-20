@@ -111,9 +111,7 @@ func bluestein(x []complex128, inverse bool) []complex128 {
 	kernels.Radix2(a, false)
 	kernels.BitReverse(b)
 	kernels.Radix2(b, false)
-	for i := 0; i < m; i++ {
-		a[i] *= b[i]
-	}
+	kernels.CMul(a, b) // pointwise spectral product (SIMD where available)
 	kernels.BitReverse(a)
 	kernels.Radix2(a, true)
 	invM := complex(1/float64(m), 0)

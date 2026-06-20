@@ -101,12 +101,81 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
   framing against an independent per-segment PSD, edge cases, validation panics,
   and no-mutation.
 
-## Phase 4 — SIMD kernels via go-asmgen
+## Phase 4 — SIMD kernels via go-asmgen — IN PROGRESS
 
-- Generate vectorized butterfly and complex-multiply kernels for all six
-  64-bit targets through [go-asmgen](https://github.com/go-asmgen), selected at
-  runtime behind the existing `internal/kernels` interface.
-- Keep the scalar path as the correctness oracle and the portable fallback.
+The hot kernel chosen first is the **pointwise (Hadamard) complex multiply**,
+`a[i] *= b[i]` over `[]complex128`, which drives Bluestein's spectral product.
+The scalar `CMulScalar` is the portable correctness oracle; `CMul` is the stable
+dispatch seam the FFT core calls; per-arch `cmulSIMD` wrappers (over go-asmgen
+assembly) are validated bit-for-bit against the oracle.
+
+### Generated kernel — amd64 (SSE2), bit-identical
+
+- `internal/kernels/asmgen/amd64/gen.go` drives go-asmgen to emit
+  `cmul_amd64.s`: an SSE2 loop, one `complex128` per iteration, computing
+  `(ar·br − ai·bi, ar·bi + ai·br)` with `MULPD`/`SHUFPD`/`XORPD`/`ADDPD` and a
+  low-lane sign mask built in-register (no read-only data table). It is
+  **bit-for-bit identical** to the scalar oracle because every product and the
+  final add are separately rounded exactly as the scalar code rounds them — no
+  fused multiply-add.
+- The generators live in a **separate Go module**
+  (`internal/kernels/asmgen/go.mod`, requiring `go-asmgen`), so the FFT library
+  itself keeps **zero third-party dependencies**. `go generate` (or the per-arch
+  CI job) regenerates the committed `.s` and CI fails if it is stale.
+
+### Why only amd64 ships a SIMD kernel (correctness over coverage)
+
+Bit-for-bit equality with the scalar oracle requires **non-fused** vector
+floating point (separately rounded multiplies, then a rounded add/sub). amd64
+SSE2 `MULPD`/`ADDPD` qualify. Go's **arm64** assembler exposes only **fused**
+vector float (`VFMLA`/`VFMLS`); a NEON complex multiply therefore fuses a
+multiply-add and diverges from the oracle by up to **1 ULP** — caught by the
+random SIMD-vs-scalar test, not assumed. Per "on n'a pas le droit de se
+tromper", arm64 (and the similarly FMA-centric riscv64/loong64/ppc64le/s390x)
+keep the **validated scalar path** rather than ship a numerically divergent
+kernel. Partial-arch SIMD with identical results beats full-arch SIMD with a
+divergence.
+
+### Measured perf (honest delta)
+
+On Apple-silicon arm64 the Go compiler's scalar loop reaches ~48 GB/s (L1) and
+**out-runs** hand-written NEON at this width (the de-interleaving `VLD2`/`VST2`
+kernel measured ~3× slower). So even where a kernel could be made bit-identical,
+the scalar default is not a regression to keep. The dispatch (`CMul`) therefore
+keeps the scalar implementation on the hot path; the SIMD kernel is retained as
+a per-arch-validated artifact and the reference for future **wider** kernels
+(AVX2/AVX-512 processing multiple complex per iteration), where a win is
+plausible. Benchmarks: `BenchmarkCMulScalar*` vs `BenchmarkCMulSIMD*`.
+
+### Split CI + coverage policy
+
+CI is split into a **pure-Go coverage gate** and **per-arch execution jobs**,
+mirroring the go-asmgen org:
+
+- The `test` gate builds, vets, race-tests, and enforces **100% statement
+  coverage** of the portable core. It runs on amd64 (ubuntu/windows) and arm64
+  (macos); on each host exactly one `cmulSIMD` wrapper compiles and is exercised
+  by the SIMD-vs-scalar test, so the gate reaches 100% without excluding any
+  reachable line.
+- The generated `.s` carries **no Go statements** (it cannot be statement-
+  covered), so it is validated by the per-arch jobs: `arch-native` (amd64/arm64)
+  regenerates the committed assembly and fails if stale, then vet (asmdecl
+  cross-checks `name+offset(FP)`), build (`cmd/asm` encodes the mnemonics), and
+  **runs** the suite whose `TestCMul*` assert SIMD == scalar bit-for-bit;
+  `arch-qemu` runs riscv64/loong64/ppc64le/s390x under qemu-user (s390x is the
+  big-endian guard).
+
+Every line is either statement-covered by the gate or executed by a per-arch
+job; the gate is never lowered and there is no coverage-gaming knob.
+
+### Remaining
+
+- Wider amd64 kernels (AVX2/AVX-512, multiple complex per iteration) and a
+  measurement to decide if/when to route `CMul` through SIMD on the hot path.
+- A bit-identical vectorized butterfly (`Radix2` inner loop) if a non-fused
+  formulation can beat the autovectorized scalar.
+- SIMD kernels for the other arches only if/when a bit-identical, non-fused
+  vector form is expressible and measured to win.
 
 ## Phase 5 — Ruby binding
 
