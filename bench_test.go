@@ -6,13 +6,10 @@ import (
 	"testing"
 )
 
-// Benchmarks compare the O(N log N) transforms against the naive O(N²) DFT
-// baseline and exercise the real-input path. The complex butterfly inner loop
-// in internal/kernels.Radix2 (and the per-element complex multiplies in the
-// Bluestein and RFFT untangle steps) are the hot spots that go-asmgen SIMD
-// kernels (amd64/arm64/riscv64/loong64/ppc64le/s390x) will accelerate; see the
-// Phase 4 TODO in docs/plan-fft.md. These benchmarks are the before/after
-// yardstick for that work.
+// In-package benchmarks compare the O(N log N) transforms against the naive
+// O(N²) DFT baseline and exercise the real-input path. The head-to-head
+// comparison against gonum and FFTW/pocketfft lives in the separate bench/
+// module (so gonum never enters the library go.mod); see docs/perf.md.
 
 func benchComplex(n int) []complex128 {
 	x := make([]complex128, n)

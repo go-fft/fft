@@ -55,6 +55,16 @@ f  := fft.FFTFreq(n, d)       // bin frequencies (numpy.fft.fftfreq)
 rf := fft.RFFTFreq(n, d)      // real-FFT bin frequencies (numpy.fft.rfftfreq)
 p  := fft.PSD(sig, d)         // one-sided power spectral density (periodogram)
 S  := fft.Spectrogram(sig, segment, overlap, fft.Hann(segment), d) // PSD frames
+
+// Reusable plans — precompute the twiddle tables once, amortize across calls
+// (no per-call sin/cos). The convenience FFT/RFFT functions above use an
+// internal per-length plan cache, so they get this for free too.
+p   := fft.NewPlan(n)          // complex transform plan of length n
+p.FFT(dst, src)               // dst and src are []complex128 of length n (may alias)
+p.IFFT(dst, src)              // normalized inverse
+rp  := fft.NewRealPlan(n)      // real-input transform plan
+rp.RFFT(dst, src)             // src []float64 (len n), dst []complex128 (len n/2+1)
+rp.IRFFT(out, spec)           // out []float64 (len n), spec the half spectrum
 ```
 
 The multi-dimensional transforms are separable: the 1-D FFT is applied along
@@ -65,6 +75,32 @@ its product must equal `len(data)`, else the call panics (numpy semantics).
 Empty input returns an empty slice; length 1 returns a copy. `RFFT` keeps only
 the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
 (`X[N-k] = conj(X[k])`); `IRFFT` takes the target length `n` explicitly.
+
+## Performance
+
+`go-fft` uses **mixed-radix Cooley–Tukey** (radix-2/3/4/5 straight-line
+butterflies plus a general radix-p kernel for small primes), reserving
+**Bluestein's chirp-z** for lengths with a large prime factor, with all twiddle
+factors cached per length. Benchmarked against the pure-Go peer
+`gonum/dsp/fourier` (the fairest head-to-head, both `CGO_ENABLED=0`) on an Apple
+M4 Max, best of 3, **go-fft wins at every complex-FFT size**:
+
+| N | go-fft | gonum | go-fft speedup |
+|---:|---:|---:|---:|
+| 1024 | **9.3 µs** | 16.6 µs | 1.79× |
+| 4096 | **40 µs** | 82 µs | 2.03× |
+| 65536 | **0.83 ms** | 1.65 ms | 1.98× |
+| 1000 (2³·5³) | **9.7 µs** | 17.0 µs | 1.75× |
+| 1296 (2⁴·3⁴) | **15 µs** | 24 µs | 1.55× |
+| 10007 (prime) | **1.19 ms** | 70.5 ms | **59×** |
+
+Against the C gold standard (FFTW/pocketfft via `scipy.fft`) on the same Linux
+arm64 host, go-fft is within ~2–3× in the mid-range and *matches* pocketfft at
+large complex N — close to the pure-Go scalar ceiling. Full methodology, the
+before/after optimization deltas, and the honest FFTW comparison table are in
+**[docs/perf.md](docs/perf.md)**. Reproduce with `cd bench && go test -bench=.`
+(gonum is isolated in a separate `bench/` module so the library stays
+dependency-free).
 
 ## Why not cgo / FFTW?
 

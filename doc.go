@@ -2,10 +2,13 @@
 // numpy.fft / scipy.fft equivalent for Go.
 //
 // It computes the discrete Fourier transform (DFT) of complex and real signals
-// of any length, with no dependency on the native FFTW3 C library. Power-of-two
-// lengths use an iterative radix-2 Cooley–Tukey algorithm with a bit-reversal
-// permutation; all other lengths are handled by Bluestein's chirp-z algorithm,
-// so any length transforms correctly.
+// of any length, with no dependency on the native FFTW3 C library. Lengths
+// whose prime factors are all small use mixed-radix Cooley–Tukey (radix-2/3/4/5
+// straight-line butterflies plus a general radix-p butterfly for the small
+// primes 7/11/13); a length with a larger prime factor is handled by
+// Bluestein's chirp-z algorithm, so any length transforms correctly. Twiddle
+// factors are precomputed and cached per length (see Plan / NewPlan), so
+// repeated transforms of one length recompute no sin/cos.
 //
 // The forward transform follows the unnormalized convention
 //
