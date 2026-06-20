@@ -77,11 +77,11 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 		z[j] = complex(src[2*j], src[2*j+1])
 	}
 	Z := make([]complex128, m)
-	if p.half.sr != nil {
+	if p.half.it != nil {
 		// m is a power of two: feed the freshly packed buffer straight to the
-		// split-radix kernel as its scratch, skipping the engine's internal copy
-		// (and its allocation). z is local, so consuming it here is safe.
-		p.half.sr.transformScratch(Z, z, false)
+		// iterative kernel's scratch entry point, skipping the engine's internal
+		// gather buffer (and its allocation). z is local, so consuming it is safe.
+		p.half.it.transformScratch(Z, z, false)
 	} else {
 		p.half.FFT(Z, z)
 	}

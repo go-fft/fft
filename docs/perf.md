@@ -61,8 +61,8 @@ python3 scripts/fftbench.py                # numpy.fft + scipy.fft
 |---:|---:|---:|---:|:--|
 | 64 | **291** | 2 274 | 1 824 | **go-fft wins ~6.3×** (small-N) |
 | 256 | **1 363** | 2 863 | 2 325 | **go-fft wins** (small-N) |
-| 1024 | 7 249 | 5 478 | 4 421 | pocketfft ~1.6× (was ~1.8×) |
-| 4096 | 30 612 | 17 462 | 14 188 | pocketfft ~2.2× |
+| 1024 | 7 249 | 5 478 | 4 421 | pocketfft ~1.6× → **go-fft now wins**, see iterative round |
+| 4096 | 30 612 | 17 462 | 14 188 | pocketfft ~2.2× → **tie**, see iterative round |
 | 65536 | **540 292** | 1 348 290 | 1 204 171 | **go-fft wins ~2.2×** |
 | 1000 (2³·5³) | 5 784 | 5 662 | 4 511 | pocketfft ~1.3× |
 | 1296 (2⁴·3⁴) | 9 735 | 6 847 | 5 664 | pocketfft ~1.7× |
@@ -97,21 +97,23 @@ This is where a pure-Go library can decisively beat single-threaded C.
 | 1024×1024 | **9 622 944** | 12 050 524 | 9 837 828 | **go-fft wins both** |
 
 **Honest read.** go-fft now **wins outright** at: every small-N row (where the
-Python FFI tax dominates the C kernels), large 1-D complex N = 65536 (~2.2×
-faster than scipy on the same core), and large 2-D (1024×1024 beats both numpy
-and scipy; 512×512 beats numpy and ties scipy) thanks to the multicore path. The
-split-radix round (below) shrank the remaining gaps: the **mid-range complex**
-gap narrowed (1024: ~1.8×→~1.6×; 4096 stays ~2.2×, the hand-tuned-C
-split-radix + SIMD margin), the **real mid-range** gap roughly halved (1024:
+Python FFI tax dominates the C kernels), large 1-D complex N = 65536 (~2.2–2.9×
+faster than scipy on the same core), large 2-D (1024×1024 beats both numpy
+and scipy; 512×512 beats numpy and ties scipy) thanks to the multicore path, and
+— after the **iterative round** (see below) — the **mid-range complex** band that
+was the last loss: N=1024 now wins (~1.48×) and N=2048/4096 tie pocketfft on the
+same core. The split-radix round (below) shrank the remaining gaps before that:
+the **mid-range complex** gap narrowed (1024: ~1.8×→~1.6×; 4096 stayed ~2.2×
+until the iterative round closed it), the **real mid-range** gap roughly halved (1024:
 ~1.9×→~1.2×; 4096: ~2.7×→~1.9×; 65536: ~2.1×→~1.3×) because the real path's
 half-length complex FFT now rides the split-radix kernel and skips a copy, and
 the **prime** gap fell from ~2.9–4.9× to ~2.4–2.9× (the prime engines convolve
 with the now-faster pow2 FFTs, and the Bluestein→Rader crossover dropped from
-N=4500 to N=700). The honest residual losses are: mid-range complex 1024/4096
-(still ~1.6–2.2× — pocketfft's hand-SIMD butterflies over a cache-blocked
-iterative kernel), and primes (~2.4–2.9× — FFTW's specially tuned Rader). Where
-go-fft already wins (small-N, large 1-D, large 2-D, and now the real mid-range
-is within ~1.2–1.9×) the tables above show it.
+N=4500 to N=700). The honest residual loss is now just primes (~2.4–2.9× — FFTW's specially tuned
+Rader); the mid-range complex 1024/4096 loss was closed by the iterative round
+(win at 1024, tie at 2048/4096). Where go-fft already wins (small-N, mid-range
+complex, large 1-D, large 2-D, and the real mid-range within ~1.2–1.9×) the
+tables above show it.
 
 ## What made go-fft fast (split-radix round, before → after)
 
@@ -160,6 +162,59 @@ ppc64le and riscv64/loong64 under qemu).
    | 2017 | 114 977 | **86 771** |
    | 5003 | 624 952 | **361 171** |
    | 9973 | 1 405 512 | **657 107** |
+
+## What made go-fft fast (iterative round, the mid-range frontier)
+
+The split-radix round closed the *operation-count* gap but left a *memory-schedule*
+gap: a recursive kernel revisits the data through a deep call tree, so the working
+set is never resident across frames. pocketfft instead runs an **iterative**
+kernel — one bit-reversal permutation, then log-N butterfly stages, each a single
+linear pass over the array, twiddles streamed in consumption order. This round
+ports that schedule to pure Go (`iterative.go`):
+
+* **Bit-reversal once, then radix-4 DIT stages.** log₂(N) is decomposed into
+  radix-4 stages (plus one leading radix-2 when log₂N is odd). Radix-4 halves the
+  number of passes over memory versus radix-2 — the dominant cost on a
+  memory-bound kernel.
+* **Per-stage twiddles laid out for sequential reads.** Each stage stores its
+  twiddles (radix-4: the triple W^k, W^{2k}, W^{3k}) contiguously in exactly the
+  order the stage consumes them, so the twiddle read is a linear scan, not a
+  strided gather into the size-N root table.
+* **No manual blocking — the compiler wins the long loop.** An explicit
+  cache-blocked inner loop (sweeping butterfly positions in L1-sized chunks across
+  groups) was implemented and measured, and it *lost* to leaving each stage as one
+  contiguous inner loop, most at the large sizes (N=65536: ~450 µs unblocked vs
+  ~480 µs blocked). The gc autovectorizer extracts more from the simple long loop
+  than from the fragmented blocked one — the same lesson the SIMD round taught. So
+  the win is the iterative *schedule*, not hand-blocking.
+
+The iterative kernel measured faster than the recursive split-radix engine at
+**every** power-of-two length, so `NewPlan` now routes all powers of two here
+(the split-radix engine stays as an independent, fully-tested validation oracle).
+Re-measured on the iterative-round host (4-core arm64 Linux, Go 1.26.4 — a
+slower box than the split-radix-round host above, so this section's numbers are
+internally consistent same-host before/after and *not* comparable cell-for-cell
+to the table above):
+
+A/B, split-radix → iterative, through the public plan path (ns/op, best-of-4):
+
+| N | split-radix | iterative | scipy.fft (same host) | verdict |
+|---:|---:|---:|---:|:--|
+| 1024 | 6 009 | **3 472** | 5 138 | **go-fft wins ~1.48×** (was scipy ~1.2×) |
+| 2048 | 12 744 | **8 692** | 8 481 | **tie** (was scipy ~1.5×) |
+| 4096 | 33 992 | **17 173** | 16 988 | **tie** (was scipy ~2.0×) |
+| 8192 | 70 918 | **48 993** | — | −31% |
+| 16384 | 132 806 | **93 481** | — | −30% |
+| 65536 | 567 421 | **398 962** | 1 173 917 | **go-fft wins ~2.9×** |
+
+The mid-range complex frontier documented as the last loss (~1.6–2.2× behind
+pocketfft) is **closed**: go-fft now wins outright at N=1024 and ties pocketfft at
+N=2048 and N=4096 on the same single core. The pow2 small-N rows (64, 256) and the
+real-input path (whose even-N transform packs into a half-length pow2 complex FFT)
+ride the same kernel and improved for free. This was a pure *schedule* win:
+identical operation count, no wider vectors — confirming the standing lesson that
+on this µ-arch the lever is memory layout the gc compiler can autovectorize, not
+hand-emitted SIMD.
 
 The earlier round's optimizations (still in force) follow.
 
@@ -222,17 +277,18 @@ per-arch CI jobs) and the reference for any future widening.
 
 ## Remaining gap
 
-The split-radix round closed the documented mid-range and prime losses
-substantially: the real mid-range gap roughly halved (now ~1.2–1.9×), the
-complex mid-range narrowed (1024 ~1.6×; 4096 ~2.2×), and the prime gap fell from
-~3–5× to ~2.4–2.9×. What is left:
+The split-radix round shrank the documented mid-range and prime losses, and the
+iterative round (above) then *closed* the complex mid-range entirely: go-fft now
+wins N=1024 and ties pocketfft at N=2048/4096 on the same core. The real mid-range
+is ~1.2–1.9× and the prime gap is ~2.4–2.9×. What is left:
 
-* **Complex mid-range 1024/4096 (~1.6–2.2×).** The recursive split-radix now
-  matches pocketfft's *operation count* but not its *memory schedule*: pocketfft
-  runs a cache-blocked iterative kernel with hand-written SIMD butterflies. A
-  measured SIMD complex-multiply still loses to the gc autovectorizer (see the
-  SIMD note), so the next lever is a cache-blocked iterative split-radix layout,
-  not wider vectors — the same lesson the SIMD round taught.
+* **Complex mid-range 1024/4096 — CLOSED.** This was the last documented loss
+  (~1.6–2.2× behind pocketfft). The iterative round (above) ported pocketfft's
+  memory schedule — bit-reversal + iterative radix-4 DIT stages with twiddles laid
+  out for sequential reads — and go-fft now **wins** at N=1024 (~1.48×) and
+  **ties** pocketfft at N=2048 and N=4096 on the same single core. It was a pure
+  schedule win at identical operation count; manual cache-blocking was tried and
+  lost to the gc autovectorizer over a long contiguous loop, so it was not shipped.
 * **Primes (~2.4–2.9×).** FFTW's specially tuned Rader/Bluestein. go-fft's Rader
   now wins from N=700 and convolves with the faster split-radix FFTs; the
   residual is the chirp/permutation bookkeeping vs FFTW's codelet-fused version.

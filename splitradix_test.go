@@ -36,16 +36,17 @@ func TestSplitRadixAgainstNaive(t *testing.T) {
 
 // TestSplitRadixVsMixedRadix cross-checks the split-radix engine against the
 // independent mixed-radix engine on the mid-range power-of-two sizes, where the
-// naive oracle is too slow. Building a ctPlan directly bypasses the pow2 router
-// (which now sends these lengths to split-radix).
+// naive oracle is too slow. Both engines are built directly: the pow2 router in
+// NewPlan now sends these lengths to the iterative kernel, so split-radix and
+// mixed-radix are exercised here as independent reference implementations.
 func TestSplitRadixVsMixedRadix(t *testing.T) {
 	for _, n := range srLargeSizes {
 		x := cmplxSignal(n)
-		sr := &Plan{n: n, sr: newSRPlan(n)}
+		sr := newSRPlan(n)
 		ct := &Plan{n: n, ct: newCTPlan(n)}
 		a := make([]complex128, n)
 		b := make([]complex128, n)
-		sr.FFT(a, x)
+		sr.transform(a, x, false)
 		ct.FFT(b, x)
 		// Two correct FFTs of the same data differ only by rounding; allow an
 		// N-scaled tolerance as the Rader/Bluestein tests do.
@@ -59,17 +60,27 @@ func TestSplitRadixVsMixedRadix(t *testing.T) {
 }
 
 // TestSplitRadixRoundTrip checks IFFT(FFT(x)) ≈ x through the split-radix engine
-// across the full and mid-range size sets.
+// directly across the full and mid-range size sets. It builds the srPlan itself
+// (NewPlan now routes power-of-two lengths to the iterative kernel) so the
+// split-radix reference engine — including its conjugate-roots inverse path and
+// the transformScratch entry point — stays exercised, and it normalizes the
+// inverse by N as the public IFFT does.
 func TestSplitRadixRoundTrip(t *testing.T) {
 	for _, n := range append(append([]int{}, srSizes...), srLargeSizes...) {
 		x := cmplxSignal(n)
-		p := NewPlan(n)
+		sr := newSRPlan(n)
 		fwd := make([]complex128, n)
 		back := make([]complex128, n)
-		p.FFT(fwd, x)
-		p.IFFT(back, fwd)
+		// Forward via the scratch entry point (caller-owned read-only buffer).
+		scr := make([]complex128, n)
+		copy(scr, x)
+		sr.transformScratch(fwd, scr, false)
+		// Inverse uses the conjugate roots; normalize by N.
+		sr.transform(back, fwd, true)
+		inv := complex(1/float64(n), 0)
 		tolN := 1e-12 * float64(n)
 		for i := range back {
+			back[i] *= inv
 			if d := cmplx.Abs(back[i] - x[i]); d > tolN {
 				t.Fatalf("n=%d index %d: round-trip %v vs %v (|diff|=%g)", n, i, back[i], x[i], d)
 			}

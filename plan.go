@@ -26,7 +26,7 @@ type Plan struct {
 	bluestein *bluesteinPlan // non-nil iff this length uses Bluestein
 	ct        *ctPlan        // non-nil iff this length uses mixed-radix CT
 	rader     *raderPlan     // non-nil iff this length uses Rader
-	sr        *srPlan        // non-nil iff this length uses split-radix (pow2)
+	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
 }
 
 // maxRadix bounds the largest prime factor handled by a direct radix-p
@@ -45,9 +45,13 @@ func NewPlan(n int) *Plan {
 		return p
 	}
 	if n&(n-1) == 0 {
-		// Pure power of two: the split-radix kernel (≈⅓ fewer real multiplies
-		// than radix-4) wins the mid-range; route it here.
-		p.sr = newSRPlan(n)
+		// Pure power of two: the iterative cache-friendly kernel (one bit-reversal
+		// + radix-4 DIT stages, twiddles laid out for sequential reads) measured
+		// faster than the recursive split-radix engine at every power-of-two length
+		// on the benchmark host — it matches the operation count but wins the memory
+		// schedule, which is the documented mid-range gap vs pocketfft (see
+		// docs/perf.md and iterative.go). Route every power of two here.
+		p.it = newITPlan(n)
 		return p
 	}
 	if factorsAreSmall(n) {
@@ -113,8 +117,8 @@ func (p *Plan) execute(dst, src []complex128, inverse bool) {
 		return
 	}
 	switch {
-	case p.sr != nil:
-		p.sr.transform(dst, src, inverse)
+	case p.it != nil:
+		p.it.transform(dst, src, inverse)
 	case p.ct != nil:
 		p.ct.transform(dst, src, inverse)
 	case p.rader != nil:
