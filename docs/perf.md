@@ -68,9 +68,9 @@ python3 scripts/fftbench.py                # numpy.fft + scipy.fft
 | 1296 (2⁴·3⁴) | 9 735 | 6 847 | 5 664 | pocketfft ~1.7× |
 | 769 (prime) | 14 510 | — | 12 978 | **~1.12×** (was ~3.1×) — Rader round |
 | 2017 (prime) | **37 775** | 59 663 | 37 244 | **~parity (1.01×)** (was ~2.4×) — Rader round |
-| 5003 (prime) | 194 392 | — | 83 422 | FFTW ~2.33× (was ~3.1×) |
-| 9973 (prime) | 359 100 | 353 154 | 222 076 | FFTW ~1.62× (was ~2.9×) |
-| 10007 (prime) | 371 383 | 282 924 | 225 605 | FFTW ~1.65× (was ~2.8×) |
+| 5003 (prime) | 194 392 | — | 83 422 | FFTW ~2.3× — conv pad 10125→10080 (picker round) |
+| 9973 (prime) | 359 100 | 353 154 | 222 076 | FFTW ~1.6× — conv pad 20000 (unchanged) |
+| 10007 (prime) | 371 383 | 282 924 | 225 605 | FFTW ~1.6× — conv pad 20250→20160 (picker round) |
 
 ### Real RFFT
 
@@ -280,6 +280,52 @@ F. **Plan-cache deadlock fix (correctness).** Building a Rader/Bluestein plan
    Rader-routed prime self-deadlocked. The cache now builds plans outside the lock
    with a double-checked store (a benign race builds an identical immutable plan).
 
+## What made go-fft fast (convolution-length picker round)
+
+This round attacked the *non-smooth-N−1* primes' last documented residual (5003,
+9973, 10007), where the Rader convolution is a linear one padded to ≥ 2(N−1). The
+prior rule padded to the **smallest 2·3·5-smooth** length ≥ 2(N−1). Two measured
+inefficiencies:
+
+* It never used the engine's fast straight-line **radix-7** butterfly — a 7-smooth
+  pad was off the table even when one is cheaper.
+* "Smallest smooth" can land on a **pathological factorization**. N=10007's pick
+  was 20250 = 2·3⁴·5³ (one radix-2, four radix-3, three radix-5 — a long chain of
+  the costlier odd butterflies).
+
+`bestConvLen` now searches the 7-smooth candidates in [2(N−1), ⌈1.4·2(N−1)⌉] and
+returns the one minimizing `convCost`, a per-radix cost model (weights {4,2: 2.0,
+3: 2.0, 5: 2.8, 7: 2.6}) calibrated against **controlled** back-to-back FFT-pair
+timings — one process, the candidates interleaved, best-of-4 — so the calibration
+is immune to the cross-run thermal drift that makes whole-transform A/B unreliable
+on this host. The window is provably non-empty (consecutive 7-smooth integers
+differ by < 1.4× for every lower bound, verified exhaustively past any
+convolution length the prime engines produce).
+
+Controlled A/B of the convolution FFT-pair cost (forward + pointwise + inverse),
+old pad → new pad, same process, best-of-4 (ns/op):
+
+| N | old pad | new pad | conv-pair before | conv-pair after | delta |
+|---:|---:|---:|---:|---:|---:|
+| 5003 | 10125 = 2·3⁴·5³ | 10080 = 2⁵·3²·5·7 | 177 105 | **167 926** | −5% |
+| 9973 | 20000 = 2⁵·5⁴ | 20000 (unchanged) | 310 365 | 310 365 | 0% |
+| 10007 | 20250 = 2·3⁴·5³ | 20160 = 2⁶·3²·5·7 | 327 110 | **297 482** | −9% |
+
+The picker is calibrated to **never regress** versus the old rule and to take the
+clean wins; it leaves a small residual versus the *true* per-prime optimum
+(5003's measured-cheapest 7-smooth pad is 10290 = 2·3·5·7³ at ~149 µs, which no
+multiplicative per-radix cost model can select — three radix-7 stages beat a
+denser radix-4 chain by a margin that is not separable per factor). The
+remaining large-prime gap to FFTW (~1.6–2.3×) is unchanged in character: it is
+the structural ≈2× linear-vs-cyclic pad penalty plus FFTW's codelet-fused
+length-(N−1) convolution, the documented pure-Go ceiling (see **Remaining gap**).
+Every cyclic-at-q substitute was re-measured this round and lost: a length-q
+Bluestein recursion (q's large factor pads it to a bigger power of two), an
+O(p²) large-radix leaf, a naive and a tight PFA with cached small-prime sub-FFTs,
+and an Agarwal–Cooley axis-matmul — all slower than the smooth pad, because the
+medium/large prime factors (41, 61, 277, 5003) have no cheap length-p DFT in
+pure Go without FFTW's hand-written prime codelets.
+
 The earlier round's optimizations (still in force) follow.
 
 1. **Multicore N-dimensional transforms.** FFTN/FFT2/RFFT2/IRFFT2 reuse one
@@ -353,16 +399,23 @@ unexplored lever:
   directly at length q and reaches parity (above). When q is *not* smooth (9972 =
   2²·3²·277; 10006 = 2·5003) the convolution must be a *linear* one padded to
   ≥ 2q, because a direct length-q transform of a non-smooth q is itself a
-  Bluestein call at the same padded size. The smallest 2·3·5-smooth pad (≈0.61× a
-  power-of-two pad) is already used, but two convolution FFTs at ≈20000 points on
-  the recursive mixed-radix engine still cost ~360 µs vs FFTW's ~220 µs. FFTW
-  convolves at *exactly* q via codelet-fused mixed-radix that handles the medium
-  prime factor as a nested sub-DFT — measured here to need a length-q FFT that the
-  recursive engine runs ~1.5× slower than its operation count (the "recursion
-  tax", ~18% pure call overhead at N=769). An iterative mixed-radix engine for the
-  smooth convolution lengths is the identified lever to close the last ~1.6× but
-  was out of scope for this round; the residual is FFTW's codelet-fused
-  length-(N−1) convolution, not a missing algorithm.
+  Bluestein call at the same padded size. The cheapest **7-smooth** pad is now
+  chosen by a calibrated cost model (picker round above) — taking 5003's pad to
+  10080 and 10007's off the pathological 20250 = 2·3⁴·5³ to 20160 = 2⁶·3²·5·7 —
+  but two convolution FFTs at ≈20000 points on the recursive mixed-radix engine
+  still cost ~360 µs vs FFTW's ~220 µs. FFTW convolves at *exactly* q via
+  codelet-fused mixed-radix that handles the medium prime factor as a nested
+  sub-DFT. This round re-measured every pure-Go substitute for the 2q pad and all
+  lost: a length-q Bluestein recursion, an O(p²) large-radix leaf, naive and tight
+  PFA with cached sub-FFTs, and Agarwal–Cooley axis-matmul — because 41/61/277/5003
+  have no cheap length-p DFT without hand-written prime codelets, so the recursive
+  engine runs a length-q FFT ~1.5× slower than its operation count (the "recursion
+  tax", ~18% pure call overhead at N=769). An **iterative** mixed-radix engine for
+  the smooth convolution lengths is the identified lever to close the last ~1.6×
+  (it cut the same gap for the power-of-two band in the iterative round) but is a
+  substantial new engine left for a future round; the residual is FFTW's
+  codelet-fused length-(N−1) convolution plus the structural ≈2× linear-vs-cyclic
+  pad penalty, not a missing one-line lever.
 * **Real mid-range (2048 ~1.40×, 4096 ~1.62×).** The even-N real transform packs
   into a half-length *complex* FFT and untangles. pocketfft instead runs a
   *dedicated real kernel* that exploits Hermitian symmetry at every butterfly
