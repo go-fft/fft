@@ -70,10 +70,13 @@ func NewPlan(n int) *Plan {
 
 // raderThreshold is the smallest prime routed to Rader instead of Bluestein.
 // Below it the two share a convolution size and Bluestein's contiguous chirp
-// passes beat Rader's permuted gather/scatter; at and above it Rader's two
-// fewer length-N passes win. The crossover was measured on the arm64 benchmark
-// host (Bluestein faster at N=4001, Rader faster at N=5003).
-const raderThreshold = 4500
+// passes beat Rader's permuted gather/scatter; at and above it Rader's lack of
+// a chirp pre/post-multiply and its direct length-(N−1) convolution win. The
+// crossover dropped sharply once the split-radix engine sped up the pow2 FFTs
+// both algorithms convolve with: re-measured on the 4-core arm64 benchmark host
+// it is now ~700 (Bluestein still faster at N=641, Rader faster from N=769 up;
+// e.g. 9973: Bluestein 1.41ms vs Rader 0.66ms — Rader is ~2× ahead at N≈10⁴).
+const raderThreshold = 700
 
 // Len reports the transform length the plan was built for.
 func (p *Plan) Len() int { return p.n }

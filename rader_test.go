@@ -14,7 +14,7 @@ var smallRaderPrimes = []int{17, 23, 31, 97, 101, 257, 521, 1009}
 // actually sends to Rader and where the FFTW gap was largest. They are validated
 // by round-trip and by agreement with the (already-naive-validated) Bluestein
 // engine, avoiding a multi-second O(N²) oracle at N≈10⁴.
-var largeRaderPrimes = []int{4507, 5003, 6007, 8009, 9973, 10007}
+var largeRaderPrimes = []int{769, 1009, 2017, 3001, 4507, 5003, 6007, 8009, 9973, 10007}
 
 // scaledTol grows the differential tolerance with N: an O(N) reduction over
 // magnitudes ~N accumulates rounding a fixed 1e-9 floor would wrongly flag. The
@@ -163,14 +163,18 @@ func TestIsPrime(t *testing.T) {
 
 // TestRaderThresholdRouting confirms the Bluestein/Rader split at raderThreshold.
 func TestRaderThresholdRouting(t *testing.T) {
-	below := 4421 // prime just under raderThreshold
+	below := 641 // prime just under raderThreshold
 	if !isPrime(below) || below >= raderThreshold {
 		t.Fatalf("test setup: %d should be a prime below %d", below, raderThreshold)
 	}
 	if pl := NewPlan(below); pl.bluestein == nil || pl.rader != nil {
 		t.Errorf("n=%d should route to Bluestein", below)
 	}
-	if pl := NewPlan(4507); pl.rader == nil || pl.bluestein != nil {
-		t.Errorf("n=4507 should route to Rader")
+	above := 769 // prime just above raderThreshold
+	if !isPrime(above) || above < raderThreshold {
+		t.Fatalf("test setup: %d should be a prime at/above %d", above, raderThreshold)
+	}
+	if pl := NewPlan(above); pl.rader == nil || pl.bluestein != nil {
+		t.Errorf("n=%d should route to Rader", above)
 	}
 }
