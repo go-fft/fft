@@ -79,11 +79,27 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
   RFFT2 vs the kept bins of FFT2, RFFT2/IRFFT2 round-trip, zero-padded short
   spectra, empty/length-1 shapes, shape-validation panics, and no-mutation.
 
-## Phase 3 — windowing and spectral helpers
+## Phase 3 — windowing and spectral helpers — DONE
 
-- Window functions (Hann, Hamming, Blackman, …) and `FFTFreq`/`RFFTFreq` bin
-  helpers mirroring `numpy.fft`.
-- Convenience power-spectral-density / spectrogram helpers.
+- Symmetric window functions returning `[]float64` of a given length:
+  `Hann`, `Hamming`, `Blackman` (matching `numpy.hanning`/`hamming`/`blackman`),
+  `Bartlett` (`numpy.bartlett`), and the 4-term `BlackmanHarris`
+  (`scipy.signal.windows.blackmanharris`). `n <= 0` returns an empty slice,
+  `n == 1` returns `[1]`.
+- `FFTFreq(n, d)` and `RFFTFreq(n, d)` bin-frequency helpers matching
+  `numpy.fft.fftfreq`/`rfftfreq` exactly — including the
+  `[0, …, (n-1)//2, -(n//2), …, -1] / (d·n)` ordering for `fftfreq` and the
+  `n//2+1` non-negative bins for `rfftfreq`.
+- `PSD(x, d)` one-sided power spectral density (periodogram, density scaling
+  with the negative-half folding, matching `scipy.signal.periodogram`), and
+  `Spectrogram(x, segment, overlap, window, d)` which windows successive
+  overlapping segments and returns a slice of one-sided PSD frames (STFT
+  convention: trailing partial segments dropped).
+- Tests assert the EXACT numpy/scipy window and frequency values computed by
+  hand, window symmetry, a Parseval check tying PSD back to the signal mean
+  square (even and odd N, exercising the Nyquist-doubling branch), spectrogram
+  framing against an independent per-segment PSD, edge cases, validation panics,
+  and no-mutation.
 
 ## Phase 4 — SIMD kernels via go-asmgen
 

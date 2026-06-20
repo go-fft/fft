@@ -1,9 +1,11 @@
+<p align="center"><img src="https://raw.githubusercontent.com/go-fft/brand/main/social/go-fft.png" alt="go-fft/fft" width="720"></p>
+
 # fft — go-fft
 
 [![Docs](https://img.shields.io/badge/docs-mkdocs--material-9B1C2E)](https://go-fft.github.io/docs/)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 [![Go](https://img.shields.io/badge/go-1.26.4%2B-00ADD8)](https://go.dev/dl/)
-[![Status](https://img.shields.io/badge/status-phase%202-9a6700)](docs/plan-fft.md)
+[![Status](https://img.shields.io/badge/status-phase%203-9a6700)](docs/plan-fft.md)
 
 **A pure-Go (no cgo) FFT library** — the `numpy.fft` / `scipy.fft` equivalent for
 Go. It computes the discrete Fourier transform of complex and real signals of
@@ -15,10 +17,11 @@ scalar core today, with SIMD kernels planned across all six 64-bit Go targets
 (amd64, arm64, riscv64, loong64, ppc64le, s390x) via
 [go-asmgen](https://github.com/go-asmgen).
 
-> Status: **Phase 2** — a correct pure-Go complex FFT (radix-2 Cooley–Tukey for
+> Status: **Phase 3** — a correct pure-Go complex FFT (radix-2 Cooley–Tukey for
 > power-of-two lengths, Bluestein's chirp-z for arbitrary lengths), the
-> real-optimized `RFFT`/`IRFFT`, and the multi-dimensional transforms
-> (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`). See
+> real-optimized `RFFT`/`IRFFT`, the multi-dimensional transforms
+> (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`), and the windowing /
+> spectral helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`). See
 > **[docs/plan-fft.md](docs/plan-fft.md)** for the phased roadmap.
 
 ## API
@@ -42,6 +45,13 @@ dN := fft.IFFTN(FN, shape)                 // inverse N-D DFT (numpy.fft.ifftn)
 // Real image-style 2-D transforms (last axis keeps cols/2+1 bins per row):
 RG := fft.RFFT2(img, [2]int{rows, cols})   // numpy.fft.rfft2
 zG := fft.IRFFT2(RG, [2]int{rows, cols})   // numpy.fft.irfft2
+
+// Windowing and spectral helpers:
+w  := fft.Hann(n)             // also Hamming, Blackman, BlackmanHarris, Bartlett
+f  := fft.FFTFreq(n, d)       // bin frequencies (numpy.fft.fftfreq)
+rf := fft.RFFTFreq(n, d)      // real-FFT bin frequencies (numpy.fft.rfftfreq)
+p  := fft.PSD(sig, d)         // one-sided power spectral density (periodogram)
+S  := fft.Spectrogram(sig, segment, overlap, fft.Hann(segment), d) // PSD frames
 ```
 
 The multi-dimensional transforms are separable: the 1-D FFT is applied along
