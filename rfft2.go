@@ -31,24 +31,44 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 	rcols := cols/2 + 1
 
 	// Step 1: real FFT along each row, producing a rows×rcols complex matrix.
+	// One row plan is reused across all rows, and the independent rows run across
+	// goroutines when the matrix is large enough.
 	half := make([]complex128, rows*rcols)
-	row := make([]float64, cols)
-	for r := 0; r < rows; r++ {
-		copy(row, data[r*cols:(r+1)*cols])
-		rr := RFFT(row)
-		copy(half[r*rcols:(r+1)*rcols], rr)
+	rp := cachedRealPlan(cols)
+	rowWork := func(lo, hi int) {
+		row := make([]float64, cols)
+		dst := make([]complex128, rcols)
+		for r := lo; r < hi; r++ {
+			copy(row, data[r*cols:(r+1)*cols])
+			rp.RFFT(dst, row)
+			copy(half[r*rcols:(r+1)*rcols], dst)
+		}
+	}
+	if parallelizeLines(rows, cols) {
+		parChunks(rows, rowWork)
+	} else {
+		rowWork(0, rows)
 	}
 
 	// Step 2: full complex FFT down each column of the rows×rcols matrix.
-	col := make([]complex128, rows)
-	for c := 0; c < rcols; c++ {
-		for r := 0; r < rows; r++ {
-			col[r] = half[r*rcols+c]
+	cp := cachedPlan(rows)
+	colWork := func(lo, hi int) {
+		col := make([]complex128, rows)
+		dst := make([]complex128, rows)
+		for c := lo; c < hi; c++ {
+			for r := 0; r < rows; r++ {
+				col[r] = half[r*rcols+c]
+			}
+			cp.FFT(dst, col)
+			for r := 0; r < rows; r++ {
+				half[r*rcols+c] = dst[r]
+			}
 		}
-		cc := FFT(col)
-		for r := 0; r < rows; r++ {
-			half[r*rcols+c] = cc[r]
-		}
+	}
+	if parallelizeLines(rcols, rows) {
+		parChunks(rcols, colWork)
+	} else {
+		colWork(0, rcols)
 	}
 	return half
 }
@@ -79,22 +99,40 @@ func IRFFT2(data []complex128, shape [2]int) []float64 {
 	}
 
 	// Step 1: complex inverse FFT down each column.
-	col := make([]complex128, rows)
-	for c := 0; c < rcols; c++ {
-		for r := 0; r < rows; r++ {
-			col[r] = half[r*rcols+c]
+	cp := cachedPlan(rows)
+	colWork := func(lo, hi int) {
+		col := make([]complex128, rows)
+		dst := make([]complex128, rows)
+		for c := lo; c < hi; c++ {
+			for r := 0; r < rows; r++ {
+				col[r] = half[r*rcols+c]
+			}
+			cp.IFFT(dst, col)
+			for r := 0; r < rows; r++ {
+				half[r*rcols+c] = dst[r]
+			}
 		}
-		cc := IFFT(col)
-		for r := 0; r < rows; r++ {
-			half[r*rcols+c] = cc[r]
-		}
+	}
+	if parallelizeLines(rcols, rows) {
+		parChunks(rcols, colWork)
+	} else {
+		colWork(0, rcols)
 	}
 
 	// Step 2: real inverse (irfft) along each row back to length cols.
 	out := make([]float64, rows*cols)
-	for r := 0; r < rows; r++ {
-		rr := IRFFT(half[r*rcols:(r+1)*rcols], cols)
-		copy(out[r*cols:(r+1)*cols], rr)
+	rp := cachedRealPlan(cols)
+	rowWork := func(lo, hi int) {
+		dst := make([]float64, cols)
+		for r := lo; r < hi; r++ {
+			rp.IRFFT(dst, half[r*rcols:(r+1)*rcols])
+			copy(out[r*cols:(r+1)*cols], dst)
+		}
+	}
+	if parallelizeLines(rows, cols) {
+		parChunks(rows, rowWork)
+	} else {
+		rowWork(0, rows)
 	}
 	return out
 }

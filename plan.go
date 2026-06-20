@@ -19,11 +19,13 @@ import (
 type Plan struct {
 	n int
 
-	// kind selects the engine. A length is either resolved by mixed-radix
-	// Cooley–Tukey (factors small enough) or by Bluestein (a large prime
-	// factor remains). n <= 1 is the trivial copy.
+	// kind selects the engine. A length is resolved by mixed-radix Cooley–Tukey
+	// (factors small enough), by Rader's algorithm (a large prime), or by
+	// Bluestein (any other length with a too-large prime factor). n <= 1 is the
+	// trivial copy.
 	bluestein *bluesteinPlan // non-nil iff this length uses Bluestein
 	ct        *ctPlan        // non-nil iff this length uses mixed-radix CT
+	rader     *raderPlan     // non-nil iff this length uses Rader
 }
 
 // maxRadix bounds the largest prime factor handled by a direct radix-p
@@ -45,9 +47,26 @@ func NewPlan(n int) *Plan {
 		p.ct = newCTPlan(n)
 		return p
 	}
+	// A large prime goes to Rader once it is big enough that Rader's lack of a
+	// chirp pre/post-multiply outweighs its index-permutation overhead;
+	// otherwise (and for non-prime lengths with a large prime factor) Bluestein.
+	// Both reduce the prime to the same power-of-two convolution, but measured
+	// head-to-head on the benchmark host Bluestein wins below raderThreshold and
+	// Rader wins above it (see docs/perf.md), so the engine is picked per length.
+	if n >= raderThreshold && isPrime(n) {
+		p.rader = newRaderPlan(n)
+		return p
+	}
 	p.bluestein = newBluesteinPlan(n)
 	return p
 }
+
+// raderThreshold is the smallest prime routed to Rader instead of Bluestein.
+// Below it the two share a convolution size and Bluestein's contiguous chirp
+// passes beat Rader's permuted gather/scatter; at and above it Rader's two
+// fewer length-N passes win. The crossover was measured on the arm64 benchmark
+// host (Bluestein faster at N=4001, Rader faster at N=5003).
+const raderThreshold = 4500
 
 // Len reports the transform length the plan was built for.
 func (p *Plan) Len() int { return p.n }
@@ -86,6 +105,8 @@ func (p *Plan) execute(dst, src []complex128, inverse bool) {
 	switch {
 	case p.ct != nil:
 		p.ct.transform(dst, src, inverse)
+	case p.rader != nil:
+		p.rader.transform(dst, src, inverse)
 	default:
 		p.bluestein.transform(dst, src, inverse)
 	}

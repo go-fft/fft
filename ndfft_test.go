@@ -24,13 +24,9 @@ func naiveDFTN(data []complex128, shape []int) []complex128 {
 		}
 		st := stride[ax]
 		lineCount := len(out) / n
-		idx := make([]int, len(shape))
 		buf := make([]complex128, n)
 		for c := 0; c < lineCount; c++ {
-			base := 0
-			for a, s := range stride {
-				base += idx[a] * s
-			}
+			base := lineBase(c, shape, stride, ax)
 			for i := 0; i < n; i++ {
 				buf[i] = out[base+i*st]
 			}
@@ -38,7 +34,6 @@ func naiveDFTN(data []complex128, shape []int) []complex128 {
 			for i := 0; i < n; i++ {
 				out[base+i*st] = res[i]
 			}
-			advanceIndex(idx, shape, ax)
 		}
 	}
 	return out

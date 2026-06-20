@@ -93,6 +93,12 @@ func transformN(data []complex128, shape []int, inverse bool) []complex128 {
 // is the set of elements obtained by fixing every other index and sweeping the
 // index of axis ax from 0 to shape[ax]-1. Each line is gathered into a temporary
 // buffer, transformed, and scattered back.
+//
+// The length-n plan is built once and reused across every line of this axis (no
+// per-line twiddle lookup or plan allocation), and the independent lines are
+// distributed across goroutines when the axis is large enough — the multicore
+// lever single-threaded pocketfft cannot pull. Each goroutine owns private
+// gather/result scratch so the transforms never share mutable state.
 func transformAxis(out []complex128, shape, stride []int, ax int, inverse bool) {
 	n := shape[ax]
 	if n == 1 {
@@ -100,45 +106,50 @@ func transformAxis(out []complex128, shape, stride []int, ax int, inverse bool) 
 		return
 	}
 	st := stride[ax]
-	buf := make([]complex128, n)
+	plan := cachedPlan(n)
+	lineCount := len(out) / n // number of lines along axis ax = total / n
 
-	// Iterate over the base offset of every line along axis ax. lineCount is the
-	// number of such lines = total / n.
-	lineCount := len(out) / n
-	idx := make([]int, len(shape)) // multi-index with axis ax held at 0
-	for c := 0; c < lineCount; c++ {
-		base := 0
-		for a, s := range stride {
-			base += idx[a] * s
+	work := func(lo, hi int) {
+		buf := make([]complex128, n)
+		res := make([]complex128, n)
+		for c := lo; c < hi; c++ {
+			base := lineBase(c, shape, stride, ax)
+			for i := 0; i < n; i++ {
+				buf[i] = out[base+i*st]
+			}
+			if inverse {
+				plan.IFFT(res, buf)
+			} else {
+				plan.FFT(res, buf)
+			}
+			for i := 0; i < n; i++ {
+				out[base+i*st] = res[i]
+			}
 		}
-		for i := 0; i < n; i++ {
-			buf[i] = out[base+i*st]
-		}
-		var res []complex128
-		if inverse {
-			res = IFFT(buf)
-		} else {
-			res = FFT(buf)
-		}
-		for i := 0; i < n; i++ {
-			out[base+i*st] = res[i]
-		}
-		advanceIndex(idx, shape, ax)
+	}
+
+	if parallelizeLines(lineCount, n) {
+		parChunks(lineCount, work)
+	} else {
+		work(0, lineCount)
 	}
 }
 
-// advanceIndex increments the row-major multi-index idx by one, skipping axis
-// skip (whose component is held at 0). It is the odometer that enumerates every
-// line offset exactly once.
-func advanceIndex(idx, shape []int, skip int) {
+// lineBase maps a linear line index c (0 <= c < total/shape[ax]) to the flat
+// base offset of that line in a row-major array, with axis ax held at index 0.
+// It decodes c as a mixed-radix number over the axes other than ax (least
+// significant = last axis) and accumulates each digit times its stride, so any
+// line can be located directly without a sequential odometer — the property the
+// parallel chunking relies on.
+func lineBase(c int, shape, stride []int, ax int) int {
+	base := 0
 	for a := len(shape) - 1; a >= 0; a-- {
-		if a == skip {
+		if a == ax {
 			continue
 		}
-		idx[a]++
-		if idx[a] < shape[a] {
-			return
-		}
-		idx[a] = 0
+		s := shape[a]
+		base += (c % s) * stride[a]
+		c /= s
 	}
+	return base
 }
