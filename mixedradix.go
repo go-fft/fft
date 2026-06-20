@@ -18,15 +18,35 @@ type ctPlan struct {
 	n       int          // transform length
 	factors []int        // ordered radices, product == n
 	tw      []complex128 // forward roots exp(-2πi·k/n), k = 0 .. n-1
+	twConj  []complex128 // conjugate (inverse) roots, precomputed once
 }
 
-// newCTPlan factors n and precomputes the size-n twiddle table.
+// newCTPlan factors n and precomputes the size-n forward and conjugate twiddle
+// tables. Holding the conjugate table too lets every butterfly index the active
+// table directly — no per-element conjugate branch, and no modulo, since the
+// specialized radix-2/3/4/5 kernels only ever form indices < n.
 func newCTPlan(n int) *ctPlan {
+	tw := twiddleTable(n)
+	conj := make([]complex128, n)
+	for i, w := range tw {
+		conj[i] = complex(real(w), -imag(w))
+	}
 	return &ctPlan{
 		n:       n,
 		factors: factorize(n),
-		tw:      twiddleTable(n),
+		tw:      tw,
+		twConj:  conj,
 	}
+}
+
+// roots returns the forward or conjugate twiddle table for the requested
+// direction, so the butterflies pick once per call instead of branching per
+// element.
+func (p *ctPlan) roots(inverse bool) []complex128 {
+	if inverse {
+		return p.twConj
+	}
+	return p.tw
 }
 
 // transform writes the unnormalized DFT of src into dst. When inverse is true
@@ -38,7 +58,7 @@ func (p *ctPlan) transform(dst, src []complex128, inverse bool) {
 	// Copy src so aliasing dst==src is safe and the recursion has a stable
 	// read-only source.
 	copy(scratch, src)
-	p.rec(dst, scratch, n, 1, p.factors, inverse)
+	p.rec(dst, scratch, n, 1, p.factors, p.roots(inverse), inverse)
 }
 
 // rec computes a length-len DFT of the sub-sequence src[0], src[stride],
@@ -46,63 +66,63 @@ func (p *ctPlan) transform(dst, src []complex128, inverse bool) {
 // the remaining radices whose product is len (factors[0] is applied at this
 // level). The size-n twiddle table is indexed with the global step len/n
 // scaled appropriately at each level via the stride/len relationship.
-func (p *ctPlan) rec(out, src []complex128, length, stride int, factors []int, inverse bool) {
-	if length == 1 {
-		out[0] = src[0]
-		return
-	}
+func (p *ctPlan) rec(out, src []complex128, length, stride int, factors []int, tw []complex128, inverse bool) {
+	// length is always > 1 here: the top-level call passes n > 1, and the
+	// recursion only descends with length = m when m > 1 (the m == 1 leaf is
+	// handled inline below), so a length-1 sub-DFT is never reached.
 	r := factors[0]
 	m := length / r
 
-	// Transform the r interleaved sub-sequences of length m. Sub-sequence i
-	// starts at offset i·stride and has step r·stride within src; its result
-	// lands in out[i·m : (i+1)·m].
-	for i := 0; i < r; i++ {
-		p.rec(out[i*m:(i+1)*m], src[i*stride:], m, r*stride, factors[1:], inverse)
+	if m == 1 {
+		// Leaf level: the r sub-transforms are single samples, so gather the
+		// strided inputs straight into out and let the butterfly do the size-r
+		// DFT. This saves the r trivial length-1 recursive calls that dominate
+		// the call count of a deep power-of-two factorization.
+		for i := 0; i < r; i++ {
+			out[i] = src[i*stride]
+		}
+	} else {
+		// Transform the r interleaved sub-sequences of length m. Sub-sequence i
+		// starts at offset i·stride and has step r·stride within src; its result
+		// lands in out[i·m : (i+1)·m].
+		for i := 0; i < r; i++ {
+			p.rec(out[i*m:(i+1)*m], src[i*stride:], m, r*stride, factors[1:], tw, inverse)
+		}
 	}
 
 	// Combine: a radix-r butterfly over the m groups. The twiddle for the
 	// (j, i) term is the size-len root raised to (i·j); since the plan holds
 	// size-n roots, index it with step n/len.
-	p.butterfly(out, length, r, m, stride, inverse)
+	p.butterfly(out, length, r, m, stride, tw, inverse)
 }
 
 // butterfly applies the radix-r recombination in place on out[0:length], where
 // out currently holds the r sub-transforms laid out as r contiguous blocks of
 // length m. step = n/length maps a size-len exponent to the size-n twiddle
 // table. Dispatch picks a specialized kernel for r in {2,3,4,5}.
-func (p *ctPlan) butterfly(out []complex128, length, r, m, stride int, inverse bool) {
+func (p *ctPlan) butterfly(out []complex128, length, r, m, stride int, tw []complex128, inverse bool) {
 	step := p.n / length
 	switch r {
 	case 2:
-		p.radix2(out, m, step, inverse)
+		p.radix2(out, m, step, tw)
 	case 3:
-		p.radix3(out, m, step, inverse)
+		p.radix3(out, m, step, tw, inverse)
 	case 4:
-		p.radix4(out, m, step, inverse)
+		p.radix4(out, m, step, tw, inverse)
 	case 5:
-		p.radix5(out, m, step, inverse)
+		p.radix5(out, m, step, tw, inverse)
 	default:
-		p.radixP(out, length, r, m, step, inverse)
+		p.radixP(out, length, r, m, step, tw)
 	}
-}
-
-// tw returns the size-n forward (or, when inverse, conjugate) root at table
-// index idx mod n.
-func (p *ctPlan) twiddle(idx int, inverse bool) complex128 {
-	idx %= p.n
-	w := p.tw[idx]
-	if inverse {
-		return complex(real(w), -imag(w))
-	}
-	return w
 }
 
 // radix2 recombines two length-m sub-transforms stored as out[0:m] and
-// out[m:2m] into the length-2m result, in place.
-func (p *ctPlan) radix2(out []complex128, m, step int, inverse bool) {
+// out[m:2m] into the length-2m result, in place. tw is the active (forward or
+// conjugate) size-n root table; the index k·step is always < n here, so it is
+// read directly with no modulo or per-element conjugate branch.
+func (p *ctPlan) radix2(out []complex128, m, step int, tw []complex128) {
 	for k := 0; k < m; k++ {
-		w := p.twiddle(k*step, inverse)
+		w := tw[k*step]
 		a := out[k]
 		b := out[k+m] * w
 		out[k] = a + b
@@ -112,12 +132,13 @@ func (p *ctPlan) radix2(out []complex128, m, step int, inverse bool) {
 
 // radix4 recombines four length-m sub-transforms into the length-4m result, in
 // place, using a straight-line radix-4 butterfly (the i factor is applied by a
-// 90° rotation rather than a complex multiply).
-func (p *ctPlan) radix4(out []complex128, m, step int, inverse bool) {
+// 90° rotation rather than a complex multiply). tw is the active root table.
+func (p *ctPlan) radix4(out []complex128, m, step int, tw []complex128, inverse bool) {
 	for k := 0; k < m; k++ {
-		w1 := p.twiddle(k*step, inverse)
-		w2 := p.twiddle(2*k*step, inverse)
-		w3 := p.twiddle(3*k*step, inverse)
+		ks := k * step
+		w1 := tw[ks]
+		w2 := tw[2*ks]
+		w3 := tw[3*ks]
 		a := out[k]
 		b := out[k+m] * w1
 		c := out[k+2*m] * w2
@@ -152,15 +173,16 @@ const sin120 = 0.8660254037844386467637231707529361834714026269051903140279
 // radix3 recombines three length-m sub-transforms into the length-3m result in
 // place, with a straight-line radix-3 butterfly (no inner DFT loop): the cube
 // roots of unity collapse to one real add and one imaginary rotation.
-func (p *ctPlan) radix3(out []complex128, m, step int, inverse bool) {
+func (p *ctPlan) radix3(out []complex128, m, step int, tw []complex128, inverse bool) {
 	// Rotation sign: forward uses -2π/3 roots, inverse uses +.
 	s := -sin120
 	if inverse {
 		s = sin120
 	}
 	for k := 0; k < m; k++ {
-		w1 := p.twiddle(k*step, inverse)
-		w2 := p.twiddle(2*k*step, inverse)
+		ks := k * step
+		w1 := tw[ks]
+		w2 := tw[2*ks]
 		a := out[k]
 		b := out[k+m] * w1
 		c := out[k+2*m] * w2
@@ -178,7 +200,7 @@ func (p *ctPlan) radix3(out []complex128, m, step int, inverse bool) {
 // radix5 recombines five length-m sub-transforms into the length-5m result in
 // place with a straight-line radix-5 butterfly using the standard four real
 // constants (cos/sin of 2π/5 and 4π/5).
-func (p *ctPlan) radix5(out []complex128, m, step int, inverse bool) {
+func (p *ctPlan) radix5(out []complex128, m, step int, tw []complex128, inverse bool) {
 	// W_5^1 = c1 + i·s1, W_5^2 = c2 + i·s2 (forward: negative angles).
 	const (
 		c1 = 0.30901699437494742410229341718281905886015458990288  // cos(2π/5)
@@ -191,11 +213,12 @@ func (p *ctPlan) radix5(out []complex128, m, step int, inverse bool) {
 		sg = 1.0
 	}
 	for k := 0; k < m; k++ {
+		ks := k * step
 		a := out[k]
-		b := out[k+m] * p.twiddle(k*step, inverse)
-		c := out[k+2*m] * p.twiddle(2*k*step, inverse)
-		d := out[k+3*m] * p.twiddle(3*k*step, inverse)
-		e := out[k+4*m] * p.twiddle(4*k*step, inverse)
+		b := out[k+m] * tw[ks]
+		c := out[k+2*m] * tw[2*ks]
+		d := out[k+3*m] * tw[3*ks]
+		e := out[k+4*m] * tw[4*ks]
 
 		// Symmetric sums/differences for the conjugate root pairs (1,4) and (2,3).
 		t1 := b + e
@@ -226,20 +249,22 @@ func rotI(z complex128) complex128 {
 // k in [0,m) and output digit q in [0,r), the size-r DFT of the twiddled inputs
 // — O(r^2) per group, which is cheap for small r and avoids special-casing
 // every prime.
-func (p *ctPlan) radixP(out []complex128, length, r, m, step int, inverse bool) {
+func (p *ctPlan) radixP(out []complex128, length, r, m, step int, tw []complex128) {
+	n := p.n
 	buf := make([]complex128, r)
+	rstep := n / r
 	for k := 0; k < m; k++ {
-		// Twiddle the r inputs: in[i] = sub_i[k] · W_n^{i·k·step}.
+		// Twiddle the r inputs: in[i] = sub_i[k] · W_n^{i·k·step}. Here i·k·step
+		// can reach (r-1)·(m-1)·step < n, but the product is formed modulo n for
+		// safety since the general path is not on the pow2 fast lane.
 		for i := 0; i < r; i++ {
-			w := p.twiddle(i*k*step, inverse)
-			buf[i] = out[k+i*m] * w
+			buf[i] = out[k+i*m] * tw[i*k*step%n]
 		}
 		// Output q: sum_i in[i] · W_r^{i·q} = sum_i in[i] · W_n^{i·q·(n/r)}.
-		rstep := p.n / r
 		for q := 0; q < r; q++ {
 			var sum complex128
 			for i := 0; i < r; i++ {
-				sum += buf[i] * p.twiddle(i*q*rstep, inverse)
+				sum += buf[i] * tw[i*q*rstep%n]
 			}
 			out[k+q*m] = sum
 		}
