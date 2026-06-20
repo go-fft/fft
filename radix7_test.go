@@ -114,7 +114,8 @@ func TestRaderConvLengthSelection(t *testing.T) {
 			t.Errorf("n=%d expected cyclic conv at q=%d, got cyclic=%v cl=%d", n, n-1, rp.cyclic, rp.cl)
 		}
 	}
-	// 9973: q=9972=2²·3²·277 not smooth → padded linear, cl 2·3·5-smooth >= 2q.
+	// 9973: q=9972=2²·3²·277 not smooth → padded linear, cl 7-smooth >= 2q chosen
+	// by the cost model.
 	for _, n := range []int{5003, 9973, 10007} {
 		rp := newRaderPlan(n)
 		if rp.cyclic {
@@ -123,5 +124,61 @@ func TestRaderConvLengthSelection(t *testing.T) {
 		if rp.cl < 2*(n-1) {
 			t.Errorf("n=%d conv length %d below 2q=%d", n, rp.cl, 2*(n-1))
 		}
+		if _, ok := convCost(rp.cl); !ok {
+			t.Errorf("n=%d conv length %d is not 7-smooth", n, rp.cl)
+		}
+	}
+}
+
+// TestConvCost checks the convolution-length cost model: it reports ok only for
+// 7-smooth lengths, is monotone in the obvious cases, and orders radix-4 below a
+// pure power-of-two of larger magnitude consistently with its weights.
+func TestConvCost(t *testing.T) {
+	// Non-7-smooth lengths are rejected.
+	for _, m := range []int{11, 22, 121, 2 * 277, 5003, 10006} {
+		if _, ok := convCost(m); ok {
+			t.Errorf("convCost(%d) reported ok, but %d has a prime factor > 7", m, m)
+		}
+	}
+	// 7-smooth lengths are accepted with a positive cost.
+	for _, m := range []int{1, 2, 4, 8, 7, 10080, 20580, 21952} {
+		c, ok := convCost(m)
+		if !ok {
+			t.Errorf("convCost(%d) reported not-ok, but %d is 7-smooth", m, m)
+		}
+		if m > 1 && c <= 0 {
+			t.Errorf("convCost(%d)=%g, want positive", m, c)
+		}
+	}
+}
+
+// TestBestConvLen checks the convolution-length picker: the result is >= lo,
+// 7-smooth, within the search window, and no cheaper 7-smooth length exists in
+// that window (i.e. it is the argmin of convCost).
+func TestBestConvLen(t *testing.T) {
+	for _, lo := range []int{1, 2, 16, 10004, 19944, 20012, 100000} {
+		g := bestConvLen(lo)
+		want := lo
+		if want < 1 {
+			want = 1
+		}
+		if g < want {
+			t.Errorf("bestConvLen(%d)=%d < %d", lo, g, want)
+		}
+		gc, ok := convCost(g)
+		if !ok {
+			t.Errorf("bestConvLen(%d)=%d not 7-smooth", lo, g)
+			continue
+		}
+		hi := want + (want*4+9)/10
+		for m := want; m <= hi; m++ {
+			if c, ok := convCost(m); ok && c < gc {
+				t.Errorf("bestConvLen(%d)=%d (cost %g) but %d is cheaper (cost %g)", lo, g, gc, m, c)
+			}
+		}
+	}
+	// lo<=0 clamps to 1, returning a small smooth length.
+	if g := bestConvLen(0); g < 1 {
+		t.Errorf("bestConvLen(0)=%d, want >= 1", g)
 	}
 }

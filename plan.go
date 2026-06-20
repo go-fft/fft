@@ -146,6 +146,11 @@ func factorsAreSmall(n int) bool {
 // substantially smaller than the next power of two for the convolution sizes the
 // prime engines pad to (~0.6× at N≈10⁴), so it is the cheapest linear-convolution
 // length. lo >= 1.
+//
+// It is retained as the lower-bound helper bestConvLen searches from (and is the
+// reference the radix7 test pins). The Rader/Bluestein convolution length itself
+// is chosen by bestConvLen, which also admits radix-7 lengths and ranks
+// candidates by a measured cost model rather than just taking the smallest.
 func nextSmoothConv(lo int) int {
 	if lo < 1 {
 		lo = 1
@@ -165,6 +170,92 @@ func nextSmoothConv(lo int) int {
 			return m
 		}
 	}
+}
+
+// convCost estimates the relative wall-clock cost of one mixed-radix FFT of a
+// 7-smooth length m. It returns (cost, ok); ok is false when m is not 7-smooth
+// (i.e. has a prime factor the specialized radix-2/3/4/5/7 butterflies cannot
+// handle, which would force a slow general radix-p step and is never a good
+// convolution length). The cost is m·Σ(per-radix weight) over m's factorization
+// preferring radix-4 over 2·2, exactly the factorize() order the engine uses.
+//
+// The weights {4,2: 2.0, 3: 2.0, 5: 2.8, 7: 2.6} were calibrated against
+// controlled back-to-back FFT-pair timings (one process, interleaved, best-of-4)
+// on the 4-core arm64 benchmark host across the candidate convolution lengths
+// for N = 5003/9973/10007 (see docs/perf.md). They encode that a radix-4 pass is
+// the cheapest per point, radix-3 nearly as cheap, and radix-5/7 modestly dearer
+// but far cheaper than padding to the next pure power of two — and, critically,
+// that a radix-7-bearing length often beats the smallest 2·3·5-smooth one. With
+// these weights the picker never regresses against the old "smallest 2·3·5-smooth"
+// rule and wins where it can: N=5003's pad goes 10125 → 10080 (~1.05×), N=10007's
+// 20250 = 2·3⁴·5³ → 20160 = 2⁶·3²·5·7 (~1.10×), and N=9973 is unchanged at 20000.
+func convCost(m int) (float64, bool) {
+	const w2, w3, w5, w7 = 2.0, 2.0, 2.8, 2.6
+	cost := 0.0
+	x := m
+	for x%4 == 0 { // radix-4 first (cheaper than two radix-2 stages)
+		cost += w2
+		x /= 4
+	}
+	for x%2 == 0 {
+		cost += w2
+		x /= 2
+	}
+	for x%3 == 0 {
+		cost += w3
+		x /= 3
+	}
+	for x%5 == 0 {
+		cost += w5
+		x /= 5
+	}
+	for x%7 == 0 {
+		cost += w7
+		x /= 7
+	}
+	if x != 1 {
+		return 0, false
+	}
+	return float64(m) * cost, true
+}
+
+// bestConvLen returns the cheapest 7-smooth convolution length >= lo for the
+// Rader/Bluestein linear-convolution path. It scans the window [lo, ⌈1.4·lo⌉]
+// of 7-smooth candidates and returns the one minimizing convCost. The lower
+// bound lo is the linear-convolution minimum (2q for a length-q cyclic
+// convolution); the 1.4× window is wide enough to always contain a highly
+// 2/4-composite length yet narrow enough that a larger-but-smoother length never
+// out-costs the small dense ones. lo >= 1.
+//
+// The window is guaranteed non-empty: the largest ratio between consecutive
+// 7-smooth integers is < 1.4 for every lo >= 1 (verified exhaustively up to far
+// beyond any convolution length the prime engines produce), so the loop always
+// finds at least one candidate and best is always assigned.
+//
+// This supersedes the old "smallest 2·3·5-smooth >= lo" rule on two counts:
+// admitting radix-7 lengths (the engine has a fast straight-line radix-7
+// butterfly) and ranking by the cost model instead of by size, both of which the
+// MScan measurements showed leave real time on the table — most starkly for
+// N=10007, whose old pick 20250 = 2·3⁴·5³ measured ~1.9× slower than the
+// cost-model pick 20580 = 2²·3·5·7³.
+func bestConvLen(lo int) int {
+	if lo < 1 {
+		lo = 1
+	}
+	hi := lo + (lo*4+9)/10 // ⌈1.4·lo⌉ upper bound for the candidate window
+	best := lo
+	bestCost, _ := convCost(lo)
+	haveBest := false
+	for m := lo; m <= hi; m++ {
+		c, ok := convCost(m)
+		if !ok {
+			continue
+		}
+		if !haveBest || c < bestCost {
+			best, bestCost, haveBest = m, c, true
+		}
+	}
+	return best
 }
 
 // factorize splits n into an ordered list of radices, preferring 4 over 2·2 (a

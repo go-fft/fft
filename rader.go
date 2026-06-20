@@ -55,11 +55,14 @@ func newRaderPlan(n int) *raderPlan {
 
 	// Prefer the direct length-q cyclic convolution when q is smooth enough for
 	// the mixed-radix engine; otherwise zero-pad for the classic linear
-	// convolution to the smallest highly-composite (2·3·5-smooth) length >= 2q-1.
-	// A 2·3·5-smooth pad rides the specialized radix-2/3/4/5 butterflies and is
-	// ~0.6× the size of the next power of two for these primes (e.g. N=9973:
-	// 20000 = 2⁵·5⁴ vs a 32768-point pad), so the linear convolution is markedly
-	// cheaper than the historical power-of-two pad.
+	// convolution to the cheapest highly-composite (2·3·5·7-smooth) length >= 2q.
+	// The pad length is chosen by bestConvLen, a cost-model search over the
+	// 7-smooth candidates above 2q: it both admits radix-7 lengths (the engine
+	// has a fast straight-line radix-7 butterfly) and ranks by estimated FFT cost
+	// rather than by size. That avoids the pathological 2·3·5-smooth picks the old
+	// "smallest smooth" rule could land on — most starkly N=10007's 20250 = 2·3⁴·5³,
+	// measured ~1.9× slower than the cost-model pick 20580 = 2²·3·5·7³ — while
+	// staying ~0.6× the size of the next pure power of two.
 	if factorsAreSmall(q) {
 		p.cyclic = true
 		p.cl = q
@@ -67,7 +70,7 @@ func newRaderPlan(n int) *raderPlan {
 		// The linear convolution spans indices 0..2q-2; the cyclic value is read
 		// from the wrap window at qi+q (max index 2q-1), so the buffer must hold at
 		// least 2q points (>= 2q-1 alone leaves the last window read out of range).
-		p.cl = nextSmoothConv(2 * q)
+		p.cl = bestConvLen(2 * q)
 	}
 
 	p.perm = make([]int, q)

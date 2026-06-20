@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var h2hSizes = []int{64, 256, 1024, 4096, 65536, 1000, 1296, 10007, 9973, 2017}
+var h2hSizes = []int{64, 256, 1024, 4096, 65536, 1000, 1296, 10007, 9973, 5003, 2017}
 
 func h2hComplex(n int) []complex128 {
 	x := make([]complex128, n)
