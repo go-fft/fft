@@ -79,12 +79,29 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	Z := make([]complex128, m)
 	p.half.FFT(Z, z)
 
-	for k := 0; k <= m; k++ {
-		zk := Z[k%m]
-		zmk := Z[(m-k)%m]
-		xe := (zk + complexConj(zmk)) * 0.5
-		xo := (zk - complexConj(zmk)) * complex(0, -0.5)
-		dst[k] = xe + p.tw[k]*xo
+	// Untangle. The k=0 and k=m bins wrap on Z (indices 0 and 0) and are both
+	// purely real, so they are handled outside the loop; the interior k in
+	// [1,m-1] reads Z[k] and Z[m-k] with no modulo. The even/odd split and the
+	// twiddle recombination are expanded into real arithmetic to avoid the
+	// per-bin complex-multiply helper calls.
+	z0r, z0i := real(Z[0]), imag(Z[0])
+	dst[0] = complex(z0r+z0i, 0)
+	dst[m] = complex(z0r-z0i, 0)
+	for k := 1; k < m; k++ {
+		zk := Z[k]
+		zmk := Z[m-k]
+		// xe = (zk + conj(zmk))/2, xo = (zk - conj(zmk))·(-i/2).
+		xer := (real(zk) + real(zmk)) * 0.5
+		xei := (imag(zk) - imag(zmk)) * 0.5
+		// (zk - conj(zmk)) = (real(zk)-real(zmk)) + i(imag(zk)+imag(zmk));
+		// times -i/2 swaps and scales: xo = (imag-sum)/2 - i(real-diff)/2.
+		sumI := (imag(zk) + imag(zmk)) * 0.5
+		difR := (real(zk) - real(zmk)) * 0.5
+		xor := sumI
+		xoi := -difR
+		// dst[k] = xe + tw[k]·xo.
+		wr, wi := real(p.tw[k]), imag(p.tw[k])
+		dst[k] = complex(xer+wr*xor-wi*xoi, xei+wr*xoi+wi*xor)
 	}
 	return dst[:m+1]
 }
