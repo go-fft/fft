@@ -12,18 +12,20 @@ permissions:
 # Split-CI coverage policy (Phase 4, mirroring the go-asmgen org).
 #
 # A single `go test -coverpkg` run cannot reach 100% statement coverage over a
-# SIMD-dispatched package: the amd64 SSE2 kernel wrapper (cmulSIMD in
-# cmul_amd64.go, calling the generated cmul_amd64.s) only exists and runs on
-# amd64, while the scalar-fallback wrapper (cmul_generic.go) only exists off
-# amd64. Neither is reachable in the other's build, so no single run sees both.
+# SIMD-dispatched package: each arch's cmulSIMD wrapper only exists and runs on
+# that arch — the amd64 SSE2 wrapper (cmul_amd64.go → cmul_amd64.s), the arm64
+# NEON wrapper (cmul_arm64.go → cmul_arm64.s), and the scalar-fallback wrapper
+# (cmul_generic.go, the four qemu-only targets). No single build sees more than
+# one of them, so no single run covers them all.
 #
 # The honest fix, used here:
 #   * The pure-Go scalar CORE (CMulScalar, CMul, BitReverse, Radix2, …) is held
 #     to 100% statement coverage by the `test` gate below. That gate runs on the
 #     GitHub-hosted amd64 AND arm64 runners; on each, exactly one cmulSIMD
-#     wrapper is compiled and it IS exercised by the SIMD-vs-scalar test, so the
-#     gate legitimately reaches 100% on every OS it runs on — nothing is excluded
-#     that a per-arch job does not run.
+#     wrapper is compiled (the amd64 SSE2 wrapper or the arm64 NEON wrapper) and
+#     it IS exercised by the SIMD-vs-scalar test, so the gate legitimately
+#     reaches 100% on every OS it runs on — nothing is excluded that a per-arch
+#     job does not run.
 #   * The generated Plan 9 assembly carries no Go statements, so it cannot be
 #     "covered" by the statement gate. It is instead validated by the per-arch
 #     execution jobs (arch-native / arch-qemu): each regenerates the committed
@@ -35,12 +37,15 @@ permissions:
 # So every line is either statement-covered by the gate or executed by a
 # per-arch job; the gate is never lowered and there is no coverage-gaming knob.
 #
-# Why only amd64 has a SIMD kernel: bit-for-bit equality with the scalar oracle
-# (separately-rounded multiplies + a rounded add) requires non-fused vector
-# floating point. amd64 SSE2 (MULPD/ADDPD) qualifies. Go's arm64 assembler
-# exposes only FUSED vector float (VFMLA/VFMLS), which diverges by up to 1 ULP,
-# so arm64 (and the other FMA-centric targets) keep the validated scalar path
-# rather than ship a divergent kernel. See docs/plan-fft.md (Phase 4).
+# Which arches ship a SIMD kernel, and why bit-for-bit identity decides it.
+# amd64 SSE2 (MULPD/ADDPD, separately rounded) matches its non-fused GOAMD64=v1
+# oracle. On arm64 FMA is baseline, so the gc compiler fuses the oracle itself
+# (FMSUBD/FMADDD); the NEON kernel reproduces that exact fusion (VLD2/VST2 +
+# VFMLA/VFMLS) and is therefore bit-identical too — fusion is matched, not
+# avoided. The remaining qemu-only targets (riscv64/loong64/ppc64le/s390x) keep
+# the validated scalar path until a kernel is proven bit-identical by their
+# per-arch job; shipping even a 1-ULP-different kernel is a correctness
+# divergence the project rejects. See docs/plan-fft.md (Phase 4).
 jobs:
   # Pure-Go coverage gate: build, vet, race-test, enforce 100% statement
   # coverage of the portable core. Runs on amd64 (ubuntu/windows) and arm64
@@ -84,7 +89,7 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-latest,    label: amd64, regen: amd64 }
-          - { os: ubuntu-24.04-arm, label: arm64, regen: "" }
+          - { os: ubuntu-24.04-arm, label: arm64, regen: arm64 }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v6

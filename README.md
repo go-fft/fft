@@ -21,9 +21,10 @@ scalar core, with SIMD kernels generated across the six 64-bit Go targets
 > power-of-two lengths, Bluestein's chirp-z for arbitrary lengths), the
 > real-optimized `RFFT`/`IRFFT`, the multi-dimensional transforms
 > (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`), the windowing / spectral
-> helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`), and the first
-> go-asmgen SIMD kernel (a bit-identical SSE2 pointwise complex multiply on
-> amd64) behind a validated per-arch split CI. See
+> helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`), and go-asmgen
+> SIMD kernels (bit-identical pointwise complex multiply: SSE2 on amd64, 2-wide
+> NEON on arm64) behind a validated per-arch split CI; the other four 64-bit
+> targets (riscv64/loong64/ppc64le/s390x) run the validated scalar path. See
 > **[docs/plan-fft.md](docs/plan-fft.md)** for the phased roadmap.
 
 ## API
