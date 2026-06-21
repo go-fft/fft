@@ -5,7 +5,7 @@
 [![Docs](https://img.shields.io/badge/docs-mkdocs--material-9B1C2E)](https://go-fft.github.io/docs/)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 [![Go](https://img.shields.io/badge/go-1.26.4%2B-00ADD8)](https://go.dev/dl/)
-[![Status](https://img.shields.io/badge/status-phase%204-9a6700)](docs/plan-fft.md)
+[![Status](https://img.shields.io/badge/status-phase%205-1a7f37)](docs/plan-fft.md)
 
 **A pure-Go (no cgo) FFT library** — the `numpy.fft` / `scipy.fft` equivalent for
 Go. It computes the discrete Fourier transform of complex and real signals of
@@ -17,15 +17,18 @@ scalar core, with SIMD kernels generated across the six 64-bit Go targets
 (amd64, arm64, riscv64, loong64, ppc64le, s390x) via
 [go-asmgen](https://github.com/go-asmgen).
 
-> Status: **Phase 4** — a correct pure-Go complex FFT (radix-2 Cooley–Tukey for
+> Status: **Phase 5** — a correct pure-Go complex FFT (radix-2 Cooley–Tukey for
 > power-of-two lengths, Bluestein's chirp-z for arbitrary lengths), the
 > real-optimized `RFFT`/`IRFFT`, the multi-dimensional transforms
 > (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`), the windowing / spectral
 > helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`), and go-asmgen
-> SIMD kernels (bit-identical pointwise complex multiply: SSE2 on amd64, 2-wide
-> NEON on arm64) behind a validated per-arch split CI; the other four 64-bit
-> targets (riscv64/loong64/ppc64le/s390x) run the validated scalar path. See
-> **[docs/plan-fft.md](docs/plan-fft.md)** for the phased roadmap.
+> SIMD kernels (bit-identical pointwise complex multiply: SSE2 on amd64, NEON on
+> arm64, RVV on riscv64, the vector facility on s390x — **four of the six
+> targets**) behind a validated per-arch split CI, with loong64 and ppc64le on
+> the validated scalar path (the Go assembler lacks the vector-double ops they
+> need). The transform is also exposed to Ruby through the
+> [go-embedded-ruby](https://github.com/go-embedded-ruby/ruby) `FFT` module
+> (Phase 5). See **[docs/plan-fft.md](docs/plan-fft.md)** for the phased roadmap.
 
 ## API
 
