@@ -1,0 +1,3 @@
+# Compiled benchmark binaries (run.sh builds the FFTW harness into /tmp).
+/fftw_bench
+*.o

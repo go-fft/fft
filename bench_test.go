@@ -8,8 +8,9 @@ import (
 
 // In-package benchmarks compare the O(N log N) transforms against the naive
 // O(N²) DFT baseline and exercise the real-input path. The head-to-head
-// comparison against gonum and FFTW/pocketfft lives in the separate bench/
-// module (so gonum never enters the library go.mod); see docs/perf.md.
+// comparison against gonum and FFTW/numpy/scipy lives in the separate
+// benchmarks/ module (so gonum never enters the library go.mod); see
+// BENCHMARKS.md and benchmarks/run.sh.
 
 func benchComplex(n int) []complex128 {
 	x := make([]complex128, n)

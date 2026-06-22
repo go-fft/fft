@@ -89,31 +89,32 @@ and **Bluestein's chirp-z** otherwise, with all twiddle factors cached per
 length. It beats the pure-Go peer `gonum/dsp/fourier` (both `CGO_ENABLED=0`) at
 **every** size — up to ~59× on primes (gonum's arbitrary-N path is O(N²)).
 
-Against the C gold standard (FFTW/pocketfft via `numpy.fft` / `scipy.fft`,
-single-threaded) on a 4-core arm64 Linux host, go-fft **wins outright** at
-several shapes:
+Against the C gold standard — native **FFTW 3.3.11** plus pocketfft via
+`numpy.fft` / `scipy.fft`, all single-threaded — on an **Apple M4 Max** (macOS
+26.5), go-fft **wins outright** at several shapes:
 
-| transform | go-fft | scipy.fft | verdict |
-|:--|---:|---:|:--|
-| complex 65536 | **0.54 ms** | 1.20 ms | **go-fft ~2.2×** |
-| complex 256 / 64 | **1.4 µs / 0.29 µs** | 2.3 µs / 1.8 µs | **go-fft wins** (small-N) |
-| real 64 / 256 | **0.25 µs / 1.0 µs** | 1.9 µs / 2.3 µs | **go-fft wins** (small-N) |
-| FFT2 1024×1024 | **9.6 ms** | 9.8 ms | **go-fft wins** (multicore) |
-| FFT2 512×512 | **2.6 ms** | 2.4 ms | ~tie (beats numpy) |
-| real 1024 | 4.5 µs | 3.7 µs | scipy ~1.2× |
-| complex 1024 | 7.2 µs | 4.4 µs | scipy ~1.6× |
-| complex 10007 (prime) | 0.68 ms | 0.24 ms | FFTW ~2.8× |
+| transform | go-fft | FFTW | scipy.fft | verdict |
+|:--|---:|---:|---:|:--|
+| complex 256 | **0.79 µs** | 0.42 µs | 2.3 µs | **beats pocketfft ~2.9×** |
+| complex 1009 (prime) | **16.9 µs** | 25.1 µs | 19.0 µs | **beats FFTW ~1.5×** |
+| FFT2 1024×1024 | **2.72 ms** | 9.55 ms | 5.32 ms | **beats all** (multicore) |
+| FFT2 512×512 | **0.62 ms** | 1.41 ms | 0.96 ms | **beats all** |
+| real 1048576 | 5.54 ms | 5.14 ms | 6.37 ms | **~parity** (1.08×) |
+| complex 1024 | 3.44 µs | 2.06 µs | 4.47 µs | FFTW ~1.7×, beats pocketfft |
+| real 1024 | 4.31 µs | 1.49 µs | 3.73 µs | FFTW ~2.9× |
+| complex 10007 (prime) | 0.41 ms | 0.26 ms | 0.28 ms | FFTW ~1.6× |
 
-go-fft wins on large 1-D, large 2-D (the goroutine-parallel separable path
-single-threaded pocketfft can't match), and the small-N rows. A split-radix
-power-of-two engine (≈⅓ fewer real multiplies) plus a lowered Bluestein→Rader
-prime crossover narrowed the rest: the real mid-range gap roughly halved (now
-~1.2–1.9×), complex mid-range to ~1.6–2.2×, and primes from ~3–5× to ~2.4–2.9×.
-Full methodology, every size, and the before/after optimization deltas are in
-**[docs/perf.md](docs/perf.md)**. Reproduce the gonum head-to-head with
-`cd bench && go test -bench=.` (gonum is isolated in a separate `bench/` module
-so the library stays dependency-free) and the FFTW comparison with
-`go test -bench=H2H .` + `python3 scripts/fftbench.py`.
+go-fft wins on the large 2-D shapes (the goroutine-parallel separable path
+single-threaded FFTW/pocketfft can't match), the small-N rows, and the
+large-prime rows relative to FFTW's own cost. FFTW still leads the single-core
+power-of-two and smooth-composite mid-range — hand-written NEON SIMD codelets a
+scalar pure-Go library can't match on one core (the identified lever is
+go-asmgen SIMD butterflies). Full methodology, every size, GFLOP/s, and the
+per-op action items are in **[BENCHMARKS.md](BENCHMARKS.md)**. Reproduce the
+whole sweep with `benchmarks/run.sh` (go-fft + gonum via `go test -bench`, native
+FFTW via a C harness, numpy/scipy via Python; correctness-gated; gonum is
+isolated in the separate `benchmarks/` module so the library stays
+dependency-free).
 
 ## Why not cgo / FFTW?
 

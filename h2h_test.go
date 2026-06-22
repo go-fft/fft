@@ -1,9 +1,10 @@
 package fft
 
-// Head-to-head benchmark matrix mirrored by scripts/fftbench.py so go-fft and
-// numpy/scipy are compared on identical transforms and sizes on the same host.
-// Run with: go test -run=^$ -bench=H2H -count=3 . The matching Python numbers
-// come from scripts/fftbench.py.
+// Head-to-head benchmark matrix kept in-package for a quick
+// `go test -run=^$ -bench=H2H -count=3 .` check. The full, standardized
+// parity sweep against FFTW / numpy / scipy / gonum (same host, same inputs,
+// GFLOP/s, correctness-gated) lives in the self-contained benchmarks/ module
+// and is reported in BENCHMARKS.md; run it with benchmarks/run.sh.
 
 import (
 	"strconv"
