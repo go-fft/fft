@@ -113,7 +113,14 @@ jobs:
           ( cd internal/kernels/asmgen/${{ matrix.regen }} && GOFLAGS=-mod=mod go run gen.go )
           mv internal/kernels/asmgen/${{ matrix.regen }}/cmul_${{ matrix.regen }}.s \
              internal/kernels/cmul_${{ matrix.regen }}.s
-          git diff --exit-code -- internal/kernels/cmul_${{ matrix.regen }}.s || {
+          # amd64 also generates the SSE2 butterfly STAGE kernels (the routed FFT
+          # hot loop); arm64 does not (it uses the gc-autovectorized Go loop).
+          if [ -f internal/kernels/asmgen/${{ matrix.regen }}/butterfly_${{ matrix.regen }}.s ]; then
+            mv internal/kernels/asmgen/${{ matrix.regen }}/butterfly_${{ matrix.regen }}.s \
+               internal/kernels/butterfly_${{ matrix.regen }}.s
+          fi
+          git diff --exit-code -- internal/kernels/cmul_${{ matrix.regen }}.s \
+             internal/kernels/butterfly_${{ matrix.regen }}.s 2>/dev/null || {
             echo "::error::generated ${{ matrix.regen }} assembly is stale; run go generate and commit"; exit 1; }
       - name: Vet (asmdecl) + build + run (SIMD == scalar)
         run: |

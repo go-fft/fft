@@ -1,5 +1,7 @@
 package fft
 
+import "github.com/go-fft/fft/internal/kernels"
+
 // Iterative, cache-friendly power-of-two FFT engine.
 //
 // The split-radix engine (splitradix.go) already matches pocketfft's *operation
@@ -122,7 +124,10 @@ func buildStages(n int, radices []int) []stagePlan {
 			}
 		case 4:
 			// Three twiddles per butterfly position k: W^k, W^{2k}, W^{3k} over the
-			// length-next transform, stored as consecutive triples for a linear read.
+			// length-next transform, stored as THREE contiguous span-long planes
+			// (w1[0:span] | w2[0:span] | w3[0:span]) so each twiddle stream is a
+			// unit-stride run the SIMD stage kernel streams directly; the scalar
+			// inline path reads the same planes by index.
 			st.tw = make([]complex128, span*3)
 			st.twC = make([]complex128, span*3)
 			step := n / next
@@ -130,12 +135,12 @@ func buildStages(n int, radices []int) []stagePlan {
 				w1 := root[(k*step)%n]
 				w2 := root[(2*k*step)%n]
 				w3 := root[(3*k*step)%n]
-				st.tw[k*3+0] = w1
-				st.tw[k*3+1] = w2
-				st.tw[k*3+2] = w3
-				st.twC[k*3+0] = complex(real(w1), -imag(w1))
-				st.twC[k*3+1] = complex(real(w2), -imag(w2))
-				st.twC[k*3+2] = complex(real(w3), -imag(w3))
+				st.tw[k] = w1
+				st.tw[span+k] = w2
+				st.tw[2*span+k] = w3
+				st.twC[k] = complex(real(w1), -imag(w1))
+				st.twC[span+k] = complex(real(w2), -imag(w2))
+				st.twC[2*span+k] = complex(real(w3), -imag(w3))
 			}
 		}
 		stages = append(stages, st)
@@ -197,48 +202,26 @@ func (p *itPlan) run(a []complex128, inverse bool) {
 // radix2Stage runs one radix-2 DIT pass in place. span is the sub-transform
 // length entering the stage; groups of 2*span are combined, each butterfly k in
 // [0, span) using tw[k] = W_{2*span}^k.
+//
+// The whole pass runs in one kernels.Radix2Stage call. That seam dispatches per
+// arch: amd64 runs the SSE2 stage kernel (real packed ADDPD/SUBPD, which beats
+// the autovectorized loop GOAMD64=v1 does not vectorize); every other arch runs
+// an inlinable Go loop the gc autovectorizer optimizes in place (the Go vector
+// assemblers off amd64 lack a vector FP add/sub, so a hand kernel only ties the
+// compiler there — see kernels/butterfly_scalaralias.go and BENCHMARKS.md). Both
+// are bit-identical to the scalar oracle.
 func radix2Stage(a []complex128, n, span int, tw []complex128) {
-	step := 2 * span
-	for base := 0; base < n; base += step {
-		for k := 0; k < span; k++ {
-			i := base + k
-			j := i + span
-			t := a[j] * tw[k]
-			u := a[i]
-			a[i] = u + t
-			a[j] = u - t
-		}
-	}
+	kernels.Radix2Stage(a, n, span, tw)
 }
 
 // radix4Stage runs one radix-4 DIT pass in place. span is the sub-transform
-// length entering the stage; groups of 4*span are combined. tw holds the
-// per-position twiddle triples (W^k, W^{2k}, W^{3k}). Each group is a single
-// contiguous inner loop over the butterfly positions, which the gc autovectorizer
-// schedules better than a manually blocked variant (measured — see the file
-// header).
+// length entering the stage; groups of 4*span are combined. tw holds the three
+// contiguous span-long twiddle planes (W^k | W^{2k} | W^{3k}). The whole pass
+// runs in one kernels.Radix4Stage call (SSE2 on amd64; autovectorized Go loop
+// elsewhere — see radix2Stage and the kernels package).
 func radix4Stage(a []complex128, n, span int, tw []complex128, inverse bool) {
-	step := 4 * span
-	for base := 0; base < n; base += step {
-		for k := 0; k < span; k++ {
-			i0 := base + k
-			i1 := i0 + span
-			i2 := i1 + span
-			i3 := i2 + span
-			ti := k * 3
-			b1 := a[i1] * tw[ti]
-			b2 := a[i2] * tw[ti+1]
-			b3 := a[i3] * tw[ti+2]
-			a0 := a[i0]
-			// Radix-4 butterfly (DIT). t0,t1 even half; t2,t3 odd half rotated ∓i.
-			t0 := a0 + b2
-			t1 := a0 - b2
-			t2 := b1 + b3
-			t3 := rotNeg90(b1-b3, inverse)
-			a[i0] = t0 + t2
-			a[i1] = t1 + t3
-			a[i2] = t0 - t2
-			a[i3] = t1 - t3
-		}
-	}
+	w1 := tw[0:span:span]
+	w2 := tw[span : 2*span : 2*span]
+	w3 := tw[2*span : 3*span : 3*span]
+	kernels.Radix4Stage(a, n, span, w1, w2, w3, inverse)
 }
