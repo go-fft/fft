@@ -107,6 +107,29 @@ int main(void) {
         fftw_destroy_plan(p); fftw_free(in); fftw_free(out);
     }
 
+    /* ---- real inverse 1-D (c2r) ---- */
+    printf("],\"creal\":[");
+    fprintf(stderr, "\n## Real inverse IRFFT c2r (ns/op | GFLOP/s | plan ns)\n");
+    for (size_t s = 0; s < sizeof(RSIZES) / sizeof(*RSIZES); s++) {
+        long n = RSIZES[s];
+        fftw_complex *in = fftw_malloc(sizeof(fftw_complex) * (n / 2 + 1));
+        double *out = fftw_malloc(sizeof(double) * n);
+        double p0 = now_s();
+        /* c2r destroys its input; FFTW_PRESERVE_INPUT keeps the timing loop's
+         * spectrum valid across reuse, matching go-fft's non-mutating IRFFT. */
+        fftw_plan p = fftw_plan_dft_c2r_1d(n, in, out,
+                                           FFTW_MEASURE | FFTW_PRESERVE_INPUT);
+        double plan_ns = (now_s() - p0) * 1e9;
+        for (long i = 0; i < n / 2 + 1; i++)
+            in[i] = ((i * 7 + 1) % 13) * 0.1 + I * (((i * 3 + 2) % 11) * 0.1);
+        ctx_t c = {p};
+        double ns = bench_ns(run_plan, &c, 0.2);
+        printf("%s{\"n\":%ld,\"fftw_ns\":%.1f,\"fftw_gflops\":%.3f,\"fftw_plan_ns\":%.1f}",
+               s ? "," : "", n, ns, gflops(n, ns, 1), plan_ns);
+        fprintf(stderr, "%9ld  %12.0f  %7.2f  %12.0f\n", n, ns, gflops(n, ns, 1), plan_ns);
+        fftw_destroy_plan(p); fftw_free(in); fftw_free(out);
+    }
+
     /* ---- 2-D complex ---- */
     printf("],\"fft2\":[");
     fprintf(stderr, "\n## 2-D FFT2 (ns/op | GFLOP/s | plan ns)\n");

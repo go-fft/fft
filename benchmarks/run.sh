@@ -26,7 +26,7 @@ echo "==> [1/5] correctness gate: go-fft vs numpy.fft"
 go run ./verify | "$PY" verify_correctness.py
 
 echo "==> [2/5] Go benchmarks: go-fft + gonum (steady state, best-of-3)"
-go test -run='^$' -bench='Benchmark(Complex|Real|FFT2)_' -benchtime=1s -count=3 . \
+go test -run='^$' -bench='Benchmark(Complex|Real|CReal|FFT2)_' -benchtime=1s -count=3 . \
     | tee go_bench.txt
 
 echo "==> [3/5] Go benchmarks: plan/setup cost"

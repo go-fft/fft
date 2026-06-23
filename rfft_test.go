@@ -123,6 +123,51 @@ func TestIRFFTHermitianMirror(t *testing.T) {
 	}
 }
 
+// TestIRFFTPackedMatchesFullInverse pins the even-N packed c2r inverse against
+// the explicit conjugate-mirror full-length inverse (the prior implementation,
+// kept as irfftFull) for a valid Hermitian spectrum — the spectrum RFFT of a
+// real signal actually produces. It sweeps even lengths whose half size m is
+// itself even, odd, a power of two, and a Bluestein length, exercising the
+// self-paired-middle-bin branch and both half-plan engines, and explicitly
+// checks the DC and Nyquist bins reconstruct correctly (the classic real-FFT
+// bug). Tolerance is the round-trip tolerance against the original signal.
+func TestIRFFTPackedMatchesFullInverse(t *testing.T) {
+	for _, n := range []int{2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 36, 64, 100, 128} {
+		x := realSignal(n)
+		spec := RFFT(x) // a genuine Hermitian spectrum (real DC + Nyquist)
+
+		// Reference: the conjugate-mirror full-length inverse on the same spectrum.
+		full := make([]complex128, n)
+		for k := 0; k < len(spec); k++ {
+			full[k] = spec[k]
+			if k > 0 && k < n-k {
+				full[n-k] = cmplx.Conj(spec[k])
+			}
+		}
+		ref := IFFT(full)
+
+		got := IRFFT(spec, n)
+		for i := range got {
+			if d := math.Abs(got[i] - real(ref[i])); d > tol {
+				t.Fatalf("n=%d index %d: packed=%g full=%g |diff|=%g", n, i, got[i], real(ref[i]), d)
+			}
+			// And the round trip must recover the original real signal.
+			if d := math.Abs(got[i] - x[i]); d > tol {
+				t.Fatalf("n=%d round-trip index %d: got %g want %g |diff|=%g", n, i, got[i], x[i], d)
+			}
+		}
+		// DC bin: sum of samples / n. Nyquist bin (even n): alternating sum / n.
+		// Both are reconstructed implicitly above, but verify the spectrum's DC and
+		// Nyquist are real (the precondition the packed inverse relies on).
+		if math.Abs(imag(spec[0])) > tol {
+			t.Fatalf("n=%d DC bin not real: %v", n, spec[0])
+		}
+		if math.Abs(imag(spec[n/2])) > tol {
+			t.Fatalf("n=%d Nyquist bin not real: %v", n, spec[n/2])
+		}
+	}
+}
+
 func TestRFFTEdgeCases(t *testing.T) {
 	if got := RFFT([]float64{}); got == nil || len(got) != 0 {
 		t.Fatalf("RFFT empty: got %v", got)

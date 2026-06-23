@@ -180,6 +180,28 @@ def main():
           f"| {verdict(gns, fns)} |")
     w("")
 
+    # ---------------- Real inverse 1-D (c2r) ----------------
+    fftw_cr = {r["n"]: r for r in fftw.get("creal", [])}
+    if fftw_cr:
+        w("## Real inverse 1-D IRFFT (`complex128` N/2+1 bins → `float64`)\n")
+        w("The c2r inverse mirrors the forward packing: an N/2-point inverse "
+          "complex FFT plus an untangle pass, half the work of a full length-N "
+          "conjugate-symmetric inverse. ns/op (GFLOP/s). Ratio = go-fft ÷ FFTW.\n")
+        w("| N | go-fft | FFTW | go/FFTW | verdict |")
+        w("|---:|---:|---:|---:|:--|")
+        gI = go.get("CReal_GoFFT", {})
+        for n in [256, 1024, 4096, 65536, 1048576, 1000, 1080, 1920]:
+            k = str(n)
+            gns = gI.get(k)
+            fr = fftw_cr.get(n, {})
+            fns = fr.get("fftw_ns")
+            tag = label_c(n)
+            w(f"| {n:,}{tag} | {fmt_ns(gns)} ({gflops(n, gns, True):.1f}) "
+              f"| {fmt_ns(fns)} ({fmt_g(fr.get('fftw_gflops'))}) "
+              f"| {(gns/fns if gns and fns else float('nan')):.2f}× "
+              f"| {verdict(gns, fns)} |")
+        w("")
+
     # ---------------- 2-D ----------------
     w("## 2-D complex FFT2 (`complex128`)\n")
     w("go-fft fans the independent 1-D row/column transforms across goroutines "

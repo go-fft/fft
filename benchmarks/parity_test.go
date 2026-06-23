@@ -91,6 +91,32 @@ func BenchmarkReal_GoFFT(b *testing.B) {
 	}
 }
 
+// halfSpectrum builds the n/2+1-bin complex half spectrum the c2r inverse
+// consumes, bit-identical to the FFTW c2r harness input generator
+// (((i*7+1)%13)*0.1 + i·((i*3+2)%11)*0.1 for i = 0 .. n/2).
+func halfSpectrum(n int) []complex128 {
+	x := make([]complex128, n/2+1)
+	for i := range x {
+		x[i] = complex(float64((i*7+1)%13)*0.1, float64((i*3+2)%11)*0.1)
+	}
+	return x
+}
+
+// BenchmarkCReal_GoFFT times the real inverse (c2r) IRFFT through the cached
+// RealPlan, matching the FFTW c2r row in the report.
+func BenchmarkCReal_GoFFT(b *testing.B) {
+	for _, n := range realSizes {
+		spec := halfSpectrum(n)
+		p := gofft.NewRealPlan(n)
+		dst := make([]float64, n)
+		b.Run(strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.IRFFT(dst, spec)
+			}
+		})
+	}
+}
+
 func BenchmarkReal_Gonum(b *testing.B) {
 	for _, n := range realSizes {
 		x := realv(n)

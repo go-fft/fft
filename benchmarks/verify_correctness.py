@@ -27,6 +27,11 @@ def realv(n):
     return (((i * 7 + 1) % 13) * 0.1).astype(np.float64)
 
 
+def halfspec(n):
+    i = np.arange(n // 2 + 1)
+    return (((i * 7 + 1) % 13) * 0.1 + 1j * (((i * 3 + 2) % 11) * 0.1)).astype(np.complex128)
+
+
 def to_np(pairs):
     return np.array([p["Re"] + 1j * p["Im"] for p in pairs], dtype=np.complex128)
 
@@ -57,6 +62,20 @@ def main():
             failures += 1
             err = np.max(np.abs(got - ref))
             print(f"FAIL  rfft N={n}  max|err|={err:.3e}", file=sys.stderr)
+
+    for k, vals in data.get("ireal", {}).items():
+        n = int(k)
+        got = np.asarray(vals, dtype=np.float64)
+        # numpy.fft.irfft of the same half spectrum the FFTW c2r harness inverts;
+        # numpy discards the imaginary part of the DC/Nyquist bins, exactly as the
+        # packed inverse does, so the two agree to tolerance for any half spectrum.
+        ref = np.fft.irfft(halfspec(n), n)
+        ok = np.allclose(got, ref, rtol=RTOL, atol=ATOL)
+        checked += 1
+        if not ok:
+            failures += 1
+            err = np.max(np.abs(got - ref))
+            print(f"FAIL  irfft N={n}  max|err|={err:.3e}", file=sys.stderr)
 
     for k, pairs in data["fft2"].items():
         a, b = (int(v) for v in k.split("x"))

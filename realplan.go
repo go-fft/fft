@@ -129,11 +129,30 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 // spectrum src into dst and returns dst. dst must have length Len(); src is
 // read up to min(len(src), Len()/2+1) bins. The result is normalized by N. src
 // is not modified.
+//
+// For even N the inverse mirrors the forward packing: the half spectrum is
+// pre-processed into an N/2-point complex spectrum, run through one N/2-point
+// inverse complex FFT, and unpacked — half the arithmetic and memory traffic of
+// promoting to a full conjugate-symmetric length-N inverse transform. For odd N
+// (and the trivial N<=1) it falls back to the full conjugate-mirror inverse.
 func (p *RealPlan) IRFFT(dst []float64, src []complex128) []float64 {
 	n := p.n
 	if n <= 0 {
 		return dst[:0]
 	}
+	if p.half == nil {
+		// Odd length (and the trivial n==1, whose plan has no half): full
+		// conjugate-symmetric inverse of size n.
+		return p.irfftFull(dst, src)
+	}
+	return p.irfftPacked(dst, src)
+}
+
+// irfftFull is the size-n conjugate-mirror inverse used for odd lengths (which
+// cannot be packed into a half-length transform). It builds the full Hermitian
+// spectrum and runs one length-n inverse complex FFT.
+func (p *RealPlan) irfftFull(dst []float64, src []complex128) []float64 {
+	n := p.n
 	full := make([]complex128, n)
 	half := n/2 + 1
 	for k := 0; k < half && k < len(src); k++ {
@@ -146,6 +165,87 @@ func (p *RealPlan) IRFFT(dst []float64, src []complex128) []float64 {
 	cachedPlan(n).IFFT(inv, full)
 	for i := 0; i < n; i++ {
 		dst[i] = real(inv[i])
+	}
+	return dst
+}
+
+// irfftPacked is the half-length (even-n) inverse. It reverses the forward
+// untangle to recover the N/2-point packed spectrum Z[k], runs one N/2-point
+// inverse complex FFT (normalized by m = N/2), and unpacks z[j] into the two
+// real samples src[2j], src[2j+1] it carried. Missing input bins (len(src) <
+// N/2+1) and the imaginary parts of the DC/Nyquist bins are treated as zero,
+// matching the full conjugate-mirror inverse for a valid Hermitian spectrum.
+func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
+	n := p.n
+	m := n / 2
+
+	// bin returns src[k] (the kept half spectrum), or 0 past its end so a short
+	// or partially-specified spectrum behaves exactly like the zero-filled
+	// conjugate-mirror inverse.
+	bin := func(k int) complex128 {
+		if k < len(src) {
+			return src[k]
+		}
+		return 0
+	}
+
+	// Build the packed N/2-point spectrum Z. The forward produced, for each pair
+	// (k, m-k) with k in 1..m-1:
+	//   xe = (Z[k] + conj(Z[m-k]))/2,  xo = (Z[k] - conj(Z[m-k]))·(-i/2)
+	//   X[k]   = xe + W_n^k·xo,        X[m-k] = conj(xe - W_n^k·xo).
+	// Inverting that pair:
+	//   xe = (X[k] + conj(X[m-k]))/2,  W_n^k·xo = (X[k] - conj(X[m-k]))/2,
+	//   xo = conj(W_n^k)·(X[k] - conj(X[m-k]))/2,
+	//   Z[k]   = xe + i·xo,            Z[m-k] = conj(xe - i·xo).
+	// The k=0 / k=m DC and Nyquist bins are purely real for a real signal and map
+	// to Z[0] = (X[0]+X[m]) + i·(X[0]-X[m]) (the inverse of X[0]=Z0.r+Z0.i,
+	// X[m]=Z0.r-Z0.i); only the real parts are used, discarding any imaginary
+	// component just as the full inverse's real() projection does.
+	Z := make([]complex128, m)
+	x0 := real(bin(0))
+	xm := real(bin(m))
+	Z[0] = complex((x0+xm)*0.5, (x0-xm)*0.5)
+	for k := 1; k <= m-k; k++ {
+		xk := bin(k)
+		xmk := bin(m - k)
+		cmk := complexConj(xmk) // conj(X[m-k])
+		// xe = (X[k] + conj(X[m-k]))/2.
+		xer := (real(xk) + real(cmk)) * 0.5
+		xei := (imag(xk) + imag(cmk)) * 0.5
+		// d = (X[k] - conj(X[m-k]))/2  (= W_n^k·xo).
+		dr := (real(xk) - real(cmk)) * 0.5
+		di := (imag(xk) - imag(cmk)) * 0.5
+		// xo = conj(W_n^k)·d = (wr - i·wi)·(dr + i·di).
+		wr, wi := real(p.tw[k]), imag(p.tw[k])
+		xor := wr*dr + wi*di
+		xoi := wr*di - wi*dr
+		// Z[k] = xe + i·xo = (xer - xoi) + i·(xei + xor).
+		Z[k] = complex(xer-xoi, xei+xor)
+		// Z[m-k] = conj(xe - i·xo) = (xer - xoi) - i·... wait, compute directly:
+		// xe - i·xo = (xer + xoi) + i·(xei - xor); its conjugate is the next line.
+		if k != m-k {
+			Z[m-k] = complex(xer+xoi, -(xei - xor))
+		}
+	}
+
+	// One m-point inverse complex FFT (normalized by m), then unpack:
+	// z[j] = x[2j] + i·x[2j+1].
+	z := make([]complex128, m)
+	if p.half.it != nil {
+		// m is a power of two: run the unnormalized inverse on a private scratch
+		// buffer (Z is local, safe to consume) and normalize on unpack.
+		p.half.it.transformScratch(z, Z, true)
+		inv := 1 / float64(m)
+		for j := 0; j < m; j++ {
+			dst[2*j] = real(z[j]) * inv
+			dst[2*j+1] = imag(z[j]) * inv
+		}
+		return dst
+	}
+	p.half.IFFT(z, Z) // already normalized by m
+	for j := 0; j < m; j++ {
+		dst[2*j] = real(z[j])
+		dst[2*j+1] = imag(z[j])
 	}
 	return dst
 }

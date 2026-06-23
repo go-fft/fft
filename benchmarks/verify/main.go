@@ -30,6 +30,16 @@ func realv(n int) []float64 {
 	return x
 }
 
+// halfSpectrum is the c2r inverse input, bit-identical to the FFTW c2r harness
+// and verify_correctness.py's halfspec generator: an N/2+1-bin complex spectrum.
+func halfSpectrum(n int) []complex128 {
+	x := make([]complex128, n/2+1)
+	for i := range x {
+		x[i] = complex(float64((i*7+1)%13)*0.1, float64((i*3+2)%11)*0.1)
+	}
+	return x
+}
+
 type pair struct{ Re, Im float64 }
 
 func toPairs(z []complex128) []pair {
@@ -46,11 +56,13 @@ func main() {
 
 	cplx := map[string][]pair{}
 	rfft := map[string][]pair{}
+	irfft := map[string][]float64{}
 	for _, n := range sizes {
 		cplx[itoa(n)] = toPairs(fft.FFT(cmplx(n)))
 	}
 	for _, n := range []int{256, 1024, 4096, 1000, 1080, 1920} {
 		rfft[itoa(n)] = toPairs(fft.RFFT(realv(n)))
+		irfft[itoa(n)] = fft.IRFFT(halfSpectrum(n), n)
 	}
 	// 2-D
 	fft2 := map[string][]pair{}
@@ -59,6 +71,7 @@ func main() {
 	}
 	out["complex"] = cplx
 	out["real"] = rfft
+	out["ireal"] = irfft
 	out["fft2"] = fft2
 
 	enc := json.NewEncoder(os.Stdout)
