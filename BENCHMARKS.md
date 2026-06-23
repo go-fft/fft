@@ -39,14 +39,38 @@ ns/op (GFLOP/s). Ratio = go-fft ÷ FFTW (lower is better; ≤1.05 = parity).
 
 | N | go-fft | FFTW | numpy.rfft | scipy.rfft | gonum | go/FFTW | verdict |
 |---:|---:|---:|---:|---:|---:|---:|:--|
-| 256 (2⁸) | 868 (5.9) | 220 (23.3) | 2,432 | 2,422 | 1,882 | 3.94× | lags FFTW 3.94× |
-| 1,024 (2¹⁰) | 3,711 (6.9) | 1,000 (25.6) | 4,180 | 3,726 | 8,998 | 3.71× | lags FFTW 3.71× |
-| 4,096 (2¹²) | 15,879 (7.7) | 4,890 (25.1) | 11,742 | 10,416 | 39,264 | 3.25× | lags FFTW 3.25× |
-| 65,536 (2¹⁶) | 265,465 (9.9) | 143,040 (18.3) | 230,189 | 254,964 | 896,439 | 1.86× | lags FFTW 1.86× |
-| 1,048,576 (2²⁰) | 4,761,128 (11.0) | 2,958,859 (17.7) | 4,392,782 | 6,365,402 | 18,259,818 | 1.61× | lags FFTW 1.61× |
-| 1,000 (2³·5³) | 3,949 (6.3) | 1,176 (21.2) | 4,289 | 3,663 | 8,604 | 3.36× | lags FFTW 3.36× |
-| 1,080 (2³·3³·5) | 4,333 (6.3) | 1,131 (24.1) | 4,426 | 4,196 | 9,933 | 3.83× | lags FFTW 3.83× |
-| 1,920 (2⁷·3·5) | 8,490 (6.2) | 2,189 (23.9) | 6,188 | 5,657 | 17,156 | 3.88× | lags FFTW 3.88× |
+| 256 (2⁸) | 525 (9.8) | 220 (23.3) | 2,432 | 2,422 | 1,882 | 2.39× | lags FFTW 2.39× |
+| 1,024 (2¹⁰) | 2,289 (11.2) | 1,000 (25.6) | 4,180 | 3,726 | 8,998 | 2.29× | lags FFTW 2.29× |
+| 4,096 (2¹²) | 10,320 (11.9) | 4,890 (25.1) | 11,742 | 10,416 | 39,264 | 2.11× | lags FFTW 2.11× |
+| 65,536 (2¹⁶) | 230,167 (11.4) | 143,040 (18.3) | 230,189 | 254,964 | 896,439 | 1.61× | lags FFTW 1.61× |
+| 1,048,576 (2²⁰) | 4,465,650 (11.7) | 2,958,859 (17.7) | 4,392,782 | 6,365,402 | 18,259,818 | 1.51× | lags FFTW 1.51× |
+| 1,000 (2³·5³) | 3,144 (7.9) | 1,176 (21.2) | 4,289 | 3,663 | 8,604 | 2.67× | lags FFTW 2.67× |
+| 1,080 (2³·3³·5) | 3,616 (7.5) | 1,131 (24.1) | 4,426 | 4,196 | 9,933 | 3.20× | lags FFTW 3.20× |
+| 1,920 (2⁷·3·5) | 6,555 (8.0) | 2,189 (23.9) | 6,188 | 5,657 | 17,156 | 2.99× | lags FFTW 2.99× |
+
+### Forward RFFT (r2c) — before→after (pack/untangle round, same machine state)
+
+The forward r2c already packed N reals into an N/2-point complex FFT and untangled the result. Profiling that path showed the **pack + untangle pass** — everything outside the core complex FFT — was a large share of the time at the lagging mid-range (≈48% at N=256, ≈44% at N=1024, ≈37% at N=4096, falling to ≈24% at N=65536 where the O(N·logN) core dominates). Two changes attacked exactly that pass:
+
+1. **Allocation-free working set.** RFFT (and the symmetric c2r inverse) allocated two N/2-length `complex128` buffers (`z` for packing, `Z` for the spectrum) on **every call** — 16 KB / 2 allocs per call at N=1024. They now borrow one pooled `2·(N/2)` buffer per concurrent caller from the immutable, concurrent-safe plan (`sync.Pool`), so the steady-state RFFT is **0 alloc/op** on the power-of-two path.
+2. **Branchless, vectorizable untangle.** The conjugate-pair recombination loop carried a data-dependent `if k != m-k` branch in its body (the self-paired middle bin), which stalls the gc autovectorizer. The loop is now hoisted into `rfftUntangle`, runs `k = 1 .. (m-1)/2` with **no branch** (writing both `dst[k]` and `dst[m-k]` every iteration), and finishes the single self-paired bin once after the loop.
+
+Measured back-to-back on the same host against the same native FFTW r2c plan (best/median of 5, ns/op; ratio = go-fft ÷ FFTW r2c):
+
+| N | go-fft before | go-fft after | speed-up | FFTW r2c | ratio before→after |
+|---:|---:|---:|---:|---:|---:|
+| 256 (2⁸) | 868 | 525 | 1.65× | 220 | 3.94× → **2.39×** |
+| 1,024 (2¹⁰) | 3,711 | 2,289 | 1.62× | 1,000 | 3.71× → **2.29×** |
+| 4,096 (2¹²) | 15,879 | 10,320 | 1.54× | 4,890 | 3.25× → **2.11×** |
+| 65,536 (2¹⁶) | 265,465 | 230,167 | 1.15× | 143,040 | 1.86× → **1.61×** |
+| 1,048,576 (2²⁰) | 4,761,128 | 4,465,650 | 1.07× | 2,958,859 | 1.61× → **1.51×** |
+| 1,000 (2³·5³) | 3,949 | 3,144 | 1.26× | 1,176 | 3.36× → **2.67×** |
+| 1,080 (2³·3³·5) | 4,333 | 3,616 | 1.20× | 1,131 | 3.83× → **3.20×** |
+| 1,920 (2⁷·3·5) | 8,490 | 6,555 | 1.30× | 2,189 | 3.88× → **2.99×** |
+
+The win is largest exactly where the report flagged the worst lag — the power-of-two mid-range — because that is where the pack/untangle pass was the biggest fraction of the call: **1.5–1.65× at N=256…4096**, narrowing as N grows and the FFT core (already SIMD) takes over. The FFTW gap on the lagging mid-range drops from ~3.3–3.9× to ~2.1–2.4×. Correctness is held: r2c matches the full-spectrum oracle and `numpy.fft.rfft`, `IRFFT(RFFT(x))≈x` round-trips, and the DC/Nyquist bins stay exact (the classic real-FFT bug, guarded by the conjugate-symmetry and DC/Nyquist oracle tests). The same pooling also helped the c2r inverse (carried in the c2r table below).
+
+**Tried and reverted / not pursued.** A native split-radix *real* first-stage butterfly schedule (FFTW's approach, item 3) would attack the remaining gap — the residual is FFTW's per-stage Hermitian-symmetric real codelets — but it is a large rewrite that the profile does not yet justify against the now-much-cheaper pack/untangle, and it risks the DC/Nyquist exactness the oracle tests pin. The cheap, measured wins (kill the allocations, de-branch the recombination) were taken; the codelet-generator-grade real kernel is the honest remaining residual and is left as the next lever.
 
 ## Real inverse 1-D IRFFT (`complex128` N/2+1 bins → `float64`)
 
@@ -128,7 +152,7 @@ At-or-above parity (≤ 1.05× the reference's ns/op) across all complex-1-D + r
 Honest read of where go-fft trails FFTW, with the concrete lever to close each gap:
 
 1. **Power-of-two & smooth-composite mid-range (256 … 4096, 1000/1080/1296/1920).** *Root cause*: scalar Go butterflies vs FFTW's hand-written NEON SIMD codelets — the kernel is the same Cooley–Tukey schedule, FFTW just does 2 complex muls per instruction. *Action taken (SIMD-butterfly round)*: the radix-2/radix-4 decimation-in-time butterfly inner loops were lifted into stage-granularity kernels (`internal/kernels/butterfly*.go`) behind a stable seam, with go-asmgen generating a routed **SSE2 stage kernel on amd64** (real packed ADDPD/SUBPD — measured **1.34–1.43× faster** than the scalar stage there, since GOAMD64=v1 does not autovectorize). On **arm64/s390x** the Go assembler exposes vector floating-point only as the fused multiply-add family — there is **no vector `VFADD`/`VFSUB`** — so a hand kernel must emulate every add/sub as a copy + FMA-by-one and pay a `VLD2`/`VST2` deinterleave; built and benchmarked, that **only ties** the gc autovectorizer, which already extracts the NEON throughput from the simple loop (the same lesson the SIMD complex-multiply round taught). So off amd64 the hot path stays the **autovectorized Go loop**, and the SIMD kernels remain validated bit-identical artifacts. See the before→after below. *(Remaining gap to FFTW on arm64 is its real-FFT Hermitian kernel and codelet scheduling — items 2–3 — not raw complex-mul SIMD, which the compiler already vectorizes.)*
-2. **Real mid-range (1024 … 65536).** *Root cause*: go-fft packs a real signal into a half-length complex FFT and untangles once; FFTW runs a **dedicated real (r2c) kernel** that exploits Hermitian symmetry at every stage (~2× less arithmetic). *Action taken (real-inverse round)*: the **inverse (c2r) IRFFT was promoting the half spectrum to a full length-N inverse complex FFT** — ~2× the work the symmetry needs — and now packs symmetrically (reverse-untangle → N/2-point inverse FFT → unpack), which **roughly halves the c2r time at every size** (1.74–2.66×; see the c2r before→after table above) and cuts the FFTW c2r gap from ~3.6–8.3× to ~1.5–3.9×. The forward r2c already packs to a half-length FFT; the residual forward gap to FFTW is its codelet-scheduled real kernel — the next lever is a native split-radix real butterfly schedule plus item 1's SIMD.
+2. **Real mid-range (1024 … 65536).** *Root cause*: go-fft packs a real signal into a half-length complex FFT and untangles once; FFTW runs a **dedicated real (r2c) kernel** that exploits Hermitian symmetry at every stage (~2× less arithmetic). *Action taken (real-inverse round)*: the **inverse (c2r) IRFFT was promoting the half spectrum to a full length-N inverse complex FFT** — ~2× the work the symmetry needs — and now packs symmetrically (reverse-untangle → N/2-point inverse FFT → unpack), which **roughly halves the c2r time at every size** (1.74–2.66×; see the c2r before→after table above) and cuts the FFTW c2r gap from ~3.6–8.3× to ~1.5–3.9×. The forward r2c already packs to a half-length FFT; the **pack/untangle round** then made that pass allocation-free (pooled working set) and branchless/vectorizable, cutting the forward mid-range time **1.5–1.65×** and the FFTW gap from ~3.3–3.9× to ~2.1–2.4× (see the forward-RFFT before→after table above). The residual forward gap to FFTW is its codelet-scheduled Hermitian-symmetric real kernel — the next lever is a native split-radix real first-stage butterfly schedule, deliberately deferred this round (large rewrite, risks DC/Nyquist exactness) until it measures clearly ahead of the now-much-cheaper pack/untangle.
 3. **Large primes (1009, 10007).** *Root cause*: Rader/Bluestein convolve at length ≈N−1 on the recursive mixed-radix engine, which pays a ~1.5× recursion tax; FFTW convolves at exactly N−1 with codelet-fused mixed-radix. *Note*: go-fft is already **2–2.5× faster than gonum** here and within ~1.6× of FFTW (vs ~30× gap for gonum's naive Bluestein). *Action*: an **iterative mixed-radix engine** for the smooth convolution lengths (the same lever that closed the pow2 band) — a substantial new engine, lower priority than items 1–2.
 4. **Small 2-D (64×64, 128×128).** *Root cause*: below the parallel threshold, so they run the serial per-line path while FFTW uses fused 2-D codelets. *Action*: SIMD (item 1) lifts the per-line 1-D cost directly; the multicore path already makes go-fft win at 512×512 and 1024×1024 (beats numpy, ties/leads scipy).
 
