@@ -98,16 +98,16 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	// Even length N = 2m: pack z[j] = src[2j] + i·src[2j+1], one m-point FFT.
 	m := n / 2
 	buf, z, Z := p.getScratch()
-	for j := 0; j < m; j++ {
-		z[j] = complex(src[2*j], src[2*j+1])
-	}
 	if p.half.it != nil {
-		// m is a power of two: feed the freshly packed buffer straight to the
-		// iterative kernel's scratch entry point, skipping the engine's internal
-		// gather buffer (and its allocation). z is private to this call, so the
-		// permutation consuming it is safe.
-		p.half.it.transformScratch(Z, z, false)
+		// m is a power of two: fuse the real-pair packing into the iterative
+		// kernel's bit-reversal gather (transformRealPacked reads src directly into
+		// the bit-reversed Z), removing the separate pack pass and the z buffer
+		// write/read entirely — one gather instead of pack + gather.
+		p.half.it.transformRealPacked(Z, src)
 	} else {
+		for j := 0; j < m; j++ {
+			z[j] = complex(src[2*j], src[2*j+1])
+		}
 		p.half.FFT(Z, z)
 	}
 	rfftUntangle(dst, Z, p.tw, m)

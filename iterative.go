@@ -182,6 +182,20 @@ func (p *itPlan) transformScratch(dst, scratch []complex128, inverse bool) {
 	p.run(dst, inverse)
 }
 
+// transformRealPacked is the forward (DIT) transform for the real-FFT packer: it
+// fuses the even/odd real-pair packing z[j] = src[2j] + i·src[2j+1] directly into
+// the bit-reversal gather, so dst[i] = complex(src[2·revPos[i]], src[2·revPos[i]+1]).
+// src has length 2·n (n = this plan's length); dst has length n. This removes the
+// separate pack pass and the intermediate z buffer the packer would otherwise
+// write then re-read — one gather over src instead of a pack pass plus a gather.
+func (p *itPlan) transformRealPacked(dst []complex128, src []float64) {
+	rev := p.revPos
+	for i, j := range rev {
+		dst[i] = complex(src[2*j], src[2*j+1])
+	}
+	p.run(dst, false)
+}
+
 // run applies the DIT stages in place on a bit-reversed buffer a.
 func (p *itPlan) run(a []complex128, inverse bool) {
 	n := p.n
