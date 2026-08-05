@@ -87,30 +87,38 @@ highly-composite lengths (radix-2/3/4/5 straight-line butterflies plus a general
 radix-p kernel for small primes), **Rader's algorithm** for primes (from N=700)
 and **Bluestein's chirp-z** otherwise, with all twiddle factors cached per
 length. It beats the pure-Go peer `gonum/dsp/fourier` (both `CGO_ENABLED=0`) at
-**every** size — up to ~59× on primes (gonum's arbitrary-N path is O(N²)).
+**every** size measured — typically 3–5× on composite N and ~30×–200× on
+primes (gonum's arbitrary-N path is a naive Bluestein with no Rader path).
 
 Against the C gold standard — native **FFTW 3.3.11** plus pocketfft via
 `numpy.fft` / `scipy.fft`, all single-threaded — on an **Apple M4 Max** (macOS
-26.5), go-fft **wins outright** at several shapes:
+26.5), go-fft **wins outright** at the large 2-D shapes and the small-N rows,
+and is at-or-near parity on very large 1-D transforms:
 
 | transform | go-fft | FFTW | scipy.fft | verdict |
 |:--|---:|---:|---:|:--|
-| complex 256 | **0.79 µs** | 0.42 µs | 2.3 µs | **beats pocketfft ~2.9×** |
-| complex 1009 (prime) | **16.9 µs** | 25.1 µs | 19.0 µs | **beats FFTW ~1.5×** |
-| FFT2 1024×1024 | **2.72 ms** | 9.55 ms | 5.32 ms | **beats all** (multicore) |
-| FFT2 512×512 | **0.62 ms** | 1.41 ms | 0.96 ms | **beats all** |
-| real 1048576 | 5.54 ms | 5.14 ms | 6.37 ms | **~parity** (1.08×) |
-| complex 1024 | 3.44 µs | 2.06 µs | 4.47 µs | FFTW ~1.7×, beats pocketfft |
-| real 1024 | 4.31 µs | 1.49 µs | 3.73 µs | FFTW ~2.9× |
-| complex 10007 (prime) | 0.41 ms | 0.26 ms | 0.28 ms | FFTW ~1.6× |
+| complex 256 | **0.72 µs** | 0.42 µs | 2.30 µs | **beats pocketfft ~3.2×** |
+| FFT2 1024×1024 | **2.78 ms** | 6.30 ms | 5.32 ms | **beats all** (multicore) |
+| FFT2 512×512 | **0.63 ms** | 1.25 ms | 0.96 ms | **beats all** (multicore) |
+| complex 65,536 | 0.38 ms | 0.32 ms | 0.50 ms | **near parity with FFTW** (1.17×), beats scipy |
+| real 1,048,576 | 4.47 ms | 2.96 ms | 6.37 ms | beats scipy ~1.4×, lags FFTW ~1.5× |
+| complex 1024 | 3.40 µs | 2.13 µs | 4.47 µs | lags FFTW ~1.6×, beats scipy ~1.3× |
+| complex 1009 (prime) | 17.2 µs | 13.7 µs | 19.0 µs | lags FFTW ~1.3×, near parity with scipy |
+| complex 10007 (prime) | 0.37 ms | 0.17 ms | 0.28 ms | lags FFTW ~2.2× |
 
-go-fft wins on the large 2-D shapes (the goroutine-parallel separable path
-single-threaded FFTW/pocketfft can't match), the small-N rows, and the
-large-prime rows relative to FFTW's own cost. FFTW still leads the single-core
-power-of-two and smooth-composite mid-range — hand-written NEON SIMD codelets a
-scalar pure-Go library can't match on one core (the identified lever is
-go-asmgen SIMD butterflies). Full methodology, every size, GFLOP/s, and the
-per-op action items are in **[BENCHMARKS.md](BENCHMARKS.md)**. Reproduce the
+go-fft wins outright on the large 2-D shapes (the goroutine-parallel separable
+path single-threaded FFTW/pocketfft can't match) and the small-N rows (the
+Python FFI tax dominates pocketfft there), and is at-or-near parity with FFTW
+on very large 1-D transforms. FFTW still leads the single-core power-of-two and
+smooth-composite mid-range with its hand-written NEON SIMD codelets and
+dedicated Hermitian real kernel; go-fft's own SIMD butterfly kernels
+(go-asmgen, amd64/arm64/s390x/riscv64) are built and validated bit-identical
+but are *not* routed on the hot path off amd64 — measured to only tie or lose
+to the gc autovectorizer there (see `docs/plan-fft.md` Phase 4). The remaining
+identified levers are a SIMD/cache-blocked real (r2c) kernel and an iterative
+mixed-radix engine for the large-prime convolution — see **[BENCHMARKS.md](BENCHMARKS.md)**'s
+"Lagging ops" section for the full, per-op root-cause breakdown. Full
+methodology, every size, and GFLOP/s are also in BENCHMARKS.md. Reproduce the
 whole sweep with `benchmarks/run.sh` (go-fft + gonum via `go test -bench`, native
 FFTW via a C harness, numpy/scipy via Python; correctness-gated; gonum is
 isolated in the separate `benchmarks/` module so the library stays
