@@ -1,0 +1,40 @@
+goos: windows
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Core(TM) i5-14600K
+BenchmarkRealPlanRFFT/64         	 5037307	        95.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/64         	 5162260	        95.57 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/64         	 4940563	        95.99 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/64         	 4932622	        96.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/64         	 5012263	        96.30 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/256        	 1000000	       402.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/256        	 1000000	       403.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/256        	 1236922	       392.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/256        	 1215288	       393.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/256        	 1000000	       404.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/512        	  516006	       919.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/512        	  481734	       896.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/512        	  528388	       929.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/512        	  505693	       900.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/512        	  531014	       921.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/1024       	  286909	      1772 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/1024       	  287053	      1734 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/1024       	  283563	      1688 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/1024       	  280422	      1753 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/1024       	  280204	      1687 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/2048       	  124936	      3906 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/2048       	  125358	      5015 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/2048       	   77348	      5843 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/2048       	  109021	      4256 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/2048       	  124994	      3962 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/4096       	   65553	      7398 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/4096       	   65376	      7483 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/4096       	   64479	      7332 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/4096       	   66483	      7243 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/4096       	   62712	      7799 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/16384      	   15106	     31786 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/16384      	   14217	     33337 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/16384      	   14385	     32992 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/16384      	   14596	     32676 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRealPlanRFFT/16384      	   15194	     31668 ns/op	       0 B/op	       0 allocs/op
+PASS

@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-22",
+  "cpu": "Intel Core i5-14600K",
+  "os": "Windows",
+  "goarch": "amd64",
+  "go_version": "go1.26.4",
+  "goamd64": "v1",
+  "gomaxprocs": 1,
+  "process_affinity_mask": 1,
+  "repetitions": 5,
+  "benchtime": "400ms",
+  "baseline_commit": "598cacbd5c9ae460e42a702c820d6e5865be8729",
+  "baseline": "Original SSE2 kernels plus the reusable-plan benchmark",
+  "candidate": "Paired AVX2 radix-4 and radix-2 leaf kernels in this change",
+  "result_files": ["baseline.txt", "candidate.txt"],
+  "test_binary_arguments": ["-test.run=^$", "-test.bench=BenchmarkRealPlanRFFT", "-test.benchmem", "-test.benchtime=400ms", "-test.count=5", "-test.cpu=1"],
+  "notes": [
+    "Measurements predate relocation of the benchmark from the root fft package into the benchmarks module; the input generation and measured transform loop are unchanged.",
+    "The stored matrix ran candidate then baseline; earlier baseline RFFT1024 runs also bracket the candidate measurements.",
+    "Use benchmarks/rfft_plan_test.go in both source revisions when reproducing the comparison, because the baseline commit does not contain this benchmark.",
+    "The candidate's 2048-point measurements include substantial variation. Preserve all samples rather than treating the median as a low-variance result.",
+    "No measurements on other CPUs or conclusions about end-to-end wall-time or frequency effects are implied."
+  ]
+}

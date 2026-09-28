@@ -2,7 +2,7 @@
 
 // Command gen produces, via go-asmgen:
 //   - cmul_amd64.s      : SSE2 pointwise complex multiply (a[i] *= b[i]).
-//   - butterfly_amd64.s : SSE2 radix-2 and radix-4 decimation-in-time butterfly
+//   - butterfly_amd64.s : SSE2/AVX2 radix-2 and radix-4 decimation-in-time butterfly
 //     STAGE kernels — the FFT hot loop (the whole pass, both the loop over groups
 //     and the loop over butterfly positions, runs inside one call).
 //
@@ -11,6 +11,8 @@
 // A complex128 is two contiguous float64 {re, im} (16 bytes). SSE2 packed double
 // processes one complex128 per register with no horizontal (SSE3) instruction,
 // so these kernels run on the entire amd64 baseline with no CPU-feature branch.
+// AVX2 variants below process two independent butterflies in each YMM register;
+// the Go wrapper checks CPU/OS support and shape before selecting them.
 // The packed ADDPD/SUBPD do re and im in one instruction (2× the scalar amd64
 // throughput, since GOAMD64=v1 Go does not autovectorize the scalar loop), and
 // MULPD/ADDPD are SEPARATELY rounded — matching the non-fused GOAMD64=v1 scalar
@@ -277,7 +279,102 @@ func main() {
 	genRadix2(fb)
 	genRadix4(fb, "radix4StageSSE2Fwd", false)
 	genRadix4(fb, "radix4StageSSE2Inv", true)
+	genRadix4AVX2(fb, "radix4StageAVX2Fwd", false)
+	genRadix4AVX2(fb, "radix4StageAVX2Inv", true)
+	genRadix2LeafAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
+}
+
+// genRadix2LeafAVX2 pairs two span-one groups. Keep the twiddle multiply even
+// when it is unity: eliding it would change signed-zero/non-finite behavior.
+func genRadix2LeafAVX2(f *emit.File) {
+	sig := amd64.Layout([]string{"a", "n", "tw"},
+		[]amd64.Type{amd64.Ptr, amd64.Int64, amd64.Ptr}, nil, nil)
+	b := amd64.NewFunc("radix2LeafAVX2", sig, 0)
+	b.LoadArg("a", "AX").LoadArg("n", "CX").LoadArg("tw", "DX")
+	b.Raw("MOVQ $0x8000000000000000, BX").
+		Raw("VMOVQ BX, X7").Raw("VINSERTF128 $1, X7, Y7, Y7").
+		Raw("VBROADCASTF128 (DX), Y1").Raw("VPERMILPD $5, Y1, Y4").
+		Raw("loop:").Raw("TESTQ CX, CX").Raw("JZ done").
+		Raw("VMOVUPD (AX), Y8").Raw("VMOVUPD 32(AX), Y9").
+		Raw("VPERM2F128 $32, Y9, Y8, Y5"). // [a0, a1]
+		Raw("VPERM2F128 $49, Y9, Y8, Y0"). // [b0, b1]
+		Raw("VPERMILPD $0, Y0, Y2").Raw("VPERMILPD $15, Y0, Y3").
+		Raw("VMULPD Y1, Y2, Y2").Raw("VMULPD Y4, Y3, Y3").
+		Raw("VXORPD Y7, Y3, Y3").Raw("VADDPD Y3, Y2, Y2").
+		Raw("VADDPD Y2, Y5, Y8").Raw("VSUBPD Y2, Y5, Y9").
+		Raw("VPERM2F128 $32, Y9, Y8, Y0").
+		Raw("VPERM2F128 $49, Y9, Y8, Y10").
+		Raw("VMOVUPD Y0, (AX)").Raw("VMOVUPD Y10, 32(AX)").
+		Raw("ADDQ $64, AX").Raw("SUBQ $4, CX").Raw("JMP loop").
+		Raw("done:").Raw("VZEROUPPER").Ret()
+	f.Add(b.Func())
+}
+
+// genRadix4AVX2 processes two adjacent complex values in each YMM register.
+// span must be even. The arithmetic and rounding order match SSE2; shuffles
+// stay within 128-bit lanes, so the two butterflies are independent.
+func genRadix4AVX2(f *emit.File, name string, inverse bool) {
+	sig := amd64.Layout(
+		[]string{"a", "n", "span", "w1", "w2", "w3"},
+		[]amd64.Type{amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Ptr, amd64.Ptr, amd64.Ptr}, nil, nil,
+	)
+	b := amd64.NewFunc(name, sig, 0)
+	b.LoadArg("n", "CX").LoadArg("span", "R15")
+	// Construct [sign,0,sign,0], then the rotation's [0,sign,0,sign].
+	b.Raw("MOVQ $0x8000000000000000, AX").
+		Raw("VMOVQ AX, X7").
+		Raw("VINSERTF128 $1, X7, Y7, Y7").
+		Raw("VPERMILPD $5, Y7, Y6").
+		Raw("MOVQ R15, R11").
+		Raw("SHLQ $6, R11").
+		Raw("SHLQ $4, CX").
+		Raw("SHLQ $4, R15").
+		Raw("XORQ AX, AX").
+		Raw("baseloop:").
+		Raw("CMPQ AX, CX").
+		Raw("JGE done")
+	b.LoadArg("a", "SI").Raw("ADDQ AX, SI").
+		Raw("LEAQ (SI)(R15*1), DI").
+		Raw("LEAQ (DI)(R15*1), R12").
+		Raw("LEAQ (R12)(R15*1), R13")
+	b.LoadArg("w1", "R8").LoadArg("w2", "R9").LoadArg("w3", "R10").
+		Raw("XORQ R14, R14").
+		Raw("kloop:").
+		Raw("CMPQ R14, R15").
+		Raw("JGE basenext")
+	for _, v := range [][3]string{{"DI", "R8", "Y8"}, {"R12", "R9", "Y9"}, {"R13", "R10", "Y10"}} {
+		b.Raw("VMOVUPD (" + v[0] + "), Y0").
+			Raw("VMOVUPD (" + v[1] + "), Y1").
+			Raw("VPERMILPD $0, Y0, Y2").
+			Raw("VPERMILPD $15, Y0, Y3").
+			Raw("VPERMILPD $5, Y1, Y4").
+			Raw("VMULPD Y1, Y2, Y2").
+			Raw("VMULPD Y4, Y3, Y3").
+			Raw("VXORPD Y7, Y3, Y3").
+			Raw("VADDPD Y3, Y2, " + v[2])
+	}
+	b.Raw("VMOVUPD (SI), Y0").
+		Raw("VADDPD Y9, Y0, Y11").
+		Raw("VSUBPD Y9, Y0, Y12").
+		Raw("VADDPD Y10, Y8, Y13").
+		Raw("VSUBPD Y10, Y8, Y14").
+		Raw("VPERMILPD $5, Y14, Y15")
+	if inverse {
+		b.Raw("VXORPD Y7, Y15, Y15")
+	} else {
+		b.Raw("VXORPD Y6, Y15, Y15")
+	}
+	b.Raw("VADDPD Y13, Y11, Y0").Raw("VMOVUPD Y0, (SI)").
+		Raw("VSUBPD Y13, Y11, Y0").Raw("VMOVUPD Y0, (R12)").
+		Raw("VADDPD Y15, Y12, Y0").Raw("VMOVUPD Y0, (DI)").
+		Raw("VSUBPD Y15, Y12, Y0").Raw("VMOVUPD Y0, (R13)")
+	for _, r := range []string{"SI", "DI", "R12", "R13", "R8", "R9", "R10", "R14"} {
+		b.Raw("ADDQ $32, " + r)
+	}
+	b.Raw("JMP kloop").Raw("basenext:").Raw("ADDQ R11, AX").
+		Raw("JMP baseloop").Raw("done:").Raw("VZEROUPPER").Ret()
+	f.Add(b.Func())
 }
 
 func writeFile(name, content string) {

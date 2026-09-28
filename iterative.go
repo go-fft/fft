@@ -218,7 +218,7 @@ func (p *itPlan) run(a []complex128, inverse bool) {
 // [0, span) using tw[k] = W_{2*span}^k.
 //
 // The whole pass runs in one kernels.Radix2Stage call. That seam dispatches per
-// arch: amd64 runs the SSE2 stage kernel (real packed ADDPD/SUBPD, which beats
+// arch: amd64 runs the SSE2 or runtime-selected AVX2 stage kernel (packed ADDPD/SUBPD, which beats
 // the autovectorized loop GOAMD64=v1 does not vectorize); every other arch runs
 // an inlinable Go loop the gc autovectorizer optimizes in place (the Go vector
 // assemblers off amd64 lack a vector FP add/sub, so a hand kernel only ties the
@@ -231,7 +231,7 @@ func radix2Stage(a []complex128, n, span int, tw []complex128) {
 // radix4Stage runs one radix-4 DIT pass in place. span is the sub-transform
 // length entering the stage; groups of 4*span are combined. tw holds the three
 // contiguous span-long twiddle planes (W^k | W^{2k} | W^{3k}). The whole pass
-// runs in one kernels.Radix4Stage call (SSE2 on amd64; autovectorized Go loop
+// runs in one kernels.Radix4Stage call (SSE2/AVX2 on amd64; autovectorized Go loop
 // elsewhere — see radix2Stage and the kernels package).
 func radix4Stage(a []complex128, n, span int, tw []complex128, inverse bool) {
 	w1 := tw[0:span:span]
