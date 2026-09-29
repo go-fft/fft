@@ -2,7 +2,7 @@
 
 # fft — go-fft
 
-[![Docs](https://img.shields.io/badge/docs-mkdocs--material-9B1C2E)](https://go-fft.github.io/docs/)
+[![Docs](https://img.shields.io/badge/docs-hugo%20%2B%20relearn-FF4088)](https://go-fft.github.io/docs/)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 [![Go](https://img.shields.io/badge/go-1.26.4%2B-00ADD8)](https://go.dev/dl/)
 [![Status](https://img.shields.io/badge/status-phase%205-1a7f37)](docs/plan-fft.md)
@@ -22,11 +22,14 @@ scalar core, with SIMD kernels generated across the six 64-bit Go targets
 > real-optimized `RFFT`/`IRFFT`, the multi-dimensional transforms
 > (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`, `RFFT2`/`IRFFT2`), the windowing / spectral
 > helpers (windows, `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`), and go-asmgen
-> SIMD kernels (bit-identical pointwise complex multiply: SSE2 on amd64, NEON on
-> arm64, RVV on riscv64, the vector facility on s390x — **four of the six
-> targets**) behind a validated per-arch split CI, with loong64 and ppc64le on
-> the validated scalar path (the Go assembler lacks the vector-double ops they
-> need). The transform is also exposed to Ruby through the
+> and go-asmgen SIMD kernels, of two kinds. The **pointwise complex multiply**
+> is bit-identical on four of the six targets (SSE2 on amd64, NEON on arm64,
+> RVV on riscv64, the vector facility on s390x), with loong64 and ppc64le on
+> the validated scalar path because the Go assembler lacks the vector-double
+> ops they need. The **butterfly stage kernels** — whole radix-2 and radix-4
+> passes rather than one multiply — are amd64, SSE2 across the baseline and
+> **AVX2** where the CPU and the OS both allow it, selected at run time. All of
+> it sits behind a validated per-arch split CI. The transform is also exposed to Ruby through the
 > [go-embedded-ruby](https://github.com/go-embedded-ruby/ruby) `FFT` module
 > (Phase 5). See **[docs/plan-fft.md](docs/plan-fft.md)** for the phased roadmap.
 
@@ -111,10 +114,42 @@ path single-threaded FFTW/pocketfft can't match) and the small-N rows (the
 Python FFI tax dominates pocketfft there), and is at-or-near parity with FFTW
 on very large 1-D transforms. FFTW still leads the single-core power-of-two and
 smooth-composite mid-range with its hand-written NEON SIMD codelets and
-dedicated Hermitian real kernel; go-fft's own SIMD butterfly kernels
-(go-asmgen, amd64/arm64/s390x/riscv64) are built and validated bit-identical
-but are *not* routed on the hot path off amd64 — measured to only tie or lose
-to the gc autovectorizer there (see `docs/plan-fft.md` Phase 4). The remaining
+dedicated Hermitian real kernel.
+
+### The amd64 butterfly kernels
+
+The **pointwise complex multiply** kernels (go-asmgen; amd64, arm64, riscv64,
+s390x) are built and validated bit-identical, and are *not* routed on the hot
+path off amd64: measured, they only tie or lose to the gc autovectorizer there
+(see `docs/plan-fft.md` Phase 4).
+
+The **butterfly stage kernels** are a different thing and they are routed. They
+run a whole radix-4 or radix-2 pass — both the loop over groups and the loop
+over positions — inside one call. On amd64 that is SSE2 across the baseline,
+and AVX2, processing two butterflies per YMM register, where both the CPU and
+the operating system support it. `internal/kernels` picks between them at run
+time; everything else keeps the SSE2 path.
+
+    Intel Core i5-14600K, GOAMD64=v1, one thread, process affinity to CPU 0.
+    Median of five 400 ms repetitions, reusable RealPlan, 0 B/op and 0 allocs/op
+    on every row. Raw runs in benchmarks/results/amd64-avx2-20260922/.
+
+| real input | SSE2 | AVX2 | time |
+| ---: | ---: | ---: | ---: |
+| 64 | 135.5 ns | 95.99 ns | −29.2% |
+| 256 | 562.3 ns | 402.0 ns | −28.5% |
+| 512 | 1,145 ns | 919.2 ns | −19.7% |
+| 1,024 | 2,521 ns | 1,734 ns | −31.2% |
+| 2,048 | 5,230 ns | 4,256 ns | −18.6% |
+| 4,096 | 11,349 ns | 7,398 ns | −34.8% |
+| 16,384 | 50,527 ns | 32,676 ns | −35.3% |
+
+⛔ The arithmetic order is preserved exactly: separately rounded multiply, add
+and subtract, no FMA and no reassociation, so the AVX2 result is **bit-identical**
+to the SSE2 one and to the scalar oracle. That is what
+`rfft_bitexact_amd64_test.go` and `butterfly_avx2_amd64_test.go` assert, the
+second by running every shape down BOTH paths and comparing `math.Float64bits`.
+A faster transform that answers differently is not the same transform. The remaining
 identified levers are a SIMD/cache-blocked real (r2c) kernel and an iterative
 mixed-radix engine for the large-prime convolution — see **[BENCHMARKS.md](BENCHMARKS.md)**'s
 "Lagging ops" section for the full, per-op root-cause breakdown. Full
