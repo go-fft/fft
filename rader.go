@@ -1,6 +1,9 @@
 package fft
 
-import "math"
+import (
+	"math"
+	"sync"
+)
 
 // Rader's algorithm for a prime length N.
 //
@@ -44,6 +47,10 @@ type raderPlan struct {
 	iperm  []int        // iperm[q] = g^{-q} mod N, q = 0 .. N-2 (output scatter order)
 	bF     []complex128 // FFT of the forward convolution kernel, length cl
 	bI     []complex128 // FFT of the inverse convolution kernel, length cl
+
+	// scratch lends each concurrent transform its length-cl convolution
+	// buffer, so a steady-state transform allocates nothing.
+	scratch sync.Pool
 }
 
 // newRaderPlan builds a Rader plan for prime n (n >= 3). The caller guarantees
@@ -87,6 +94,8 @@ func newRaderPlan(n int) *raderPlan {
 
 	p.bF = p.buildKernel(n, false)
 	p.bI = p.buildKernel(n, true)
+	cl := p.cl
+	p.scratch.New = func() any { b := make([]complex128, cl); return &b }
 	return p
 }
 
@@ -142,20 +151,21 @@ func (p *raderPlan) transform(dst, src []complex128, inverse bool) {
 
 	// Gather the permuted inputs a[p] = x[g^p] (zero-padded to cl in the linear
 	// path; the cyclic path uses exactly q == cl entries).
-	a := make([]complex128, cl)
+	bp := p.scratch.Get().(*[]complex128)
+	defer p.scratch.Put(bp)
+	a := *bp
 	for k := 0; k < q; k++ {
 		a[k] = src[p.perm[k]]
 	}
+	clear(a[q:]) // the pooled buffer is dirty; the linear path's pad must be zero
 
-	// Cyclic convolution a ⊛ kernel via FFTs: a = IFFT(FFT(a)·bSpec).
+	// Cyclic convolution a ⊛ kernel via FFTs, in place: IFFT(FFT(a)·bSpec).
 	plan := cachedPlan(cl)
-	A := make([]complex128, cl)
-	plan.FFT(A, a)
-	for i := range A {
-		A[i] *= bSpec[i]
+	plan.FFT(a, a)
+	for i := range a {
+		a[i] *= bSpec[i]
 	}
-	conv := make([]complex128, cl)
-	plan.IFFT(conv, A)
+	conv := plan.IFFT(a, a)
 
 	dst[0] = sum
 	if p.cyclic {

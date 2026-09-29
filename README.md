@@ -85,9 +85,9 @@ the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
 ## Performance
 
 `go-fft` uses a **split-radix** kernel for powers of two (≈⅓ fewer real
-multiplies than radix-4), **mixed-radix Cooley–Tukey** for the other
-highly-composite lengths (radix-2/3/4/5 straight-line butterflies plus a general
-radix-p kernel for small primes), **Rader's algorithm** for primes (from N=700)
+multiplies than radix-4), an **iterative mixed-radix (Stockham)** engine for the other
+highly-composite lengths (radix-2/3/4/5/7 straight-line passes plus a general
+radix-p pass for 11 and 13), **Rader's algorithm** for primes (from N=700)
 and **Bluestein's chirp-z** otherwise, with all twiddle factors cached per
 length. It beats the pure-Go peer `gonum/dsp/fourier` (both `CGO_ENABLED=0`) at
 **every** size measured — typically 3–5× on composite N and ~30×–200× on
@@ -150,8 +150,8 @@ to the SSE2 one and to the scalar oracle. That is what
 `rfft_bitexact_amd64_test.go` and `butterfly_avx2_amd64_test.go` assert, the
 second by running every shape down BOTH paths and comparing `math.Float64bits`.
 A faster transform that answers differently is not the same transform. The remaining
-identified levers are a SIMD/cache-blocked real (r2c) kernel and an iterative
-mixed-radix engine for the large-prime convolution — see **[BENCHMARKS.md](BENCHMARKS.md)**'s
+identified lever is a SIMD/cache-blocked real (r2c) kernel (the iterative
+mixed-radix engine for smooth lengths and the large-prime convolution has landed) — see **[BENCHMARKS.md](BENCHMARKS.md)**'s
 "Lagging ops" section for the full, per-op root-cause breakdown. Full
 methodology, every size, and GFLOP/s are also in BENCHMARKS.md. Reproduce the
 whole sweep with `benchmarks/run.sh` (go-fft + gonum via `go test -bench`, native

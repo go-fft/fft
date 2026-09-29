@@ -19,12 +19,12 @@ import (
 type Plan struct {
 	n int
 
-	// kind selects the engine. A length is resolved by mixed-radix Cooley–Tukey
-	// (factors small enough), by Rader's algorithm (a large prime), or by
+	// kind selects the engine. A length is resolved by the iterative mixed-radix
+	// Stockham engine (factors small enough), by Rader's algorithm (a large prime), or by
 	// Bluestein (any other length with a too-large prime factor). n <= 1 is the
 	// trivial copy.
 	bluestein *bluesteinPlan // non-nil iff this length uses Bluestein
-	ct        *ctPlan        // non-nil iff this length uses mixed-radix CT
+	sk        *skPlan        // non-nil iff this length uses mixed-radix Stockham
 	rader     *raderPlan     // non-nil iff this length uses Rader
 	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
 }
@@ -55,7 +55,10 @@ func NewPlan(n int) *Plan {
 		return p
 	}
 	if factorsAreSmall(n) {
-		p.ct = newCTPlan(n)
+		// Smooth length: the iterative Stockham passes (stockham.go) replaced the
+		// recursive Cooley–Tukey engine here, 1.5–1.9× faster at N=1000…1920 on
+		// the benchmark host; mixedradix.go stays as an independent test oracle.
+		p.sk = newSKPlan(n)
 		return p
 	}
 	// A large prime goes to Rader once it is big enough that Rader's lack of a
@@ -119,8 +122,8 @@ func (p *Plan) execute(dst, src []complex128, inverse bool) {
 	switch {
 	case p.it != nil:
 		p.it.transform(dst, src, inverse)
-	case p.ct != nil:
-		p.ct.transform(dst, src, inverse)
+	case p.sk != nil:
+		p.sk.transform(dst, src, inverse)
 	case p.rader != nil:
 		p.rader.transform(dst, src, inverse)
 	default:
