@@ -4,7 +4,7 @@ package kernels
 // (cmul_amd64.s). SSE2 is part of the amd64 baseline the Go toolchain requires,
 // so cmulSIMD is always callable — there is no CPU-feature branch.
 //
-//go:generate sh -c "cd asmgen/amd64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_amd64.s ../../cmul_amd64.s"
+//go:generate sh -c "cd asmgen/amd64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_amd64.s ../../cmul_amd64.s && mv butterfly_amd64.s ../../butterfly_amd64.s && mv cpu_amd64.s ../../cpu_amd64.s"
 
 // The kernel is a validated correctness artifact: the per-arch CI execution job
 // asserts cmulSIMD is bit-identical to CMulScalar. It is not routed onto the

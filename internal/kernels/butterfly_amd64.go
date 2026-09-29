@@ -7,7 +7,7 @@ var useAVX2 = supportsAVX2()
 // support YMM state: even-span radix-4 stages and pairs of span-one radix-2
 // groups. Other shapes retain SSE2. No kernel uses FMA or reassociates sums.
 //
-//go:generate sh -c "cd asmgen/amd64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_amd64.s ../../cmul_amd64.s && mv butterfly_amd64.s ../../butterfly_amd64.s"
+//go:generate sh -c "cd asmgen/amd64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_amd64.s ../../cmul_amd64.s && mv butterfly_amd64.s ../../butterfly_amd64.s && mv cpu_amd64.s ../../cpu_amd64.s"
 
 // These kernels ARE routed onto the FFT hot path (UseSIMDButterfly is true on
 // amd64): the packed SSE2 ADDPD/SUBPD compute the butterfly's re and im in one
