@@ -220,3 +220,39 @@ func TestRFFTNoMutation(t *testing.T) {
 		}
 	}
 }
+
+// TestIRFFTIgnoresBinsPastHalf checks the documented contract that IRFFT reads
+// at most Len()/2+1 bins: a longer spectrum (here the full length-N one) gives
+// the same signal as its first N/2+1 bins, and a shorter one the same signal as
+// its zero-filled extension.
+func TestIRFFTIgnoresBinsPastHalf(t *testing.T) {
+	for _, n := range []int{8, 10, 12, 1000} {
+		x := make([]float64, n)
+		for i := range x {
+			x[i] = math.Sin(float64(i)*0.37) + float64(i%4)
+		}
+		p := NewRealPlan(n)
+		half := p.RFFT(make([]complex128, n/2+1), x)
+		long := append(append([]complex128(nil), half...), make([]complex128, n-len(half))...)
+		for i := range long[len(half):] {
+			long[len(half)+i] = complex(1e3, -1e3) // junk that must be ignored
+		}
+		a := p.IRFFT(make([]float64, n), half)
+		b := p.IRFFT(make([]float64, n), long)
+		for i := range a {
+			if a[i] != b[i] {
+				t.Fatalf("n=%d index %d: %v with N/2+1 bins, %v with %d bins", n, i, a[i], b[i], len(long))
+			}
+		}
+		// A short spectrum behaves as if zero-filled to N/2+1 bins.
+		short := half[:n/4]
+		filled := append(append([]complex128(nil), short...), make([]complex128, len(half)-len(short))...)
+		c := p.IRFFT(make([]float64, n), short)
+		d := p.IRFFT(make([]float64, n), filled)
+		for i := range c {
+			if c[i] != d[i] {
+				t.Fatalf("n=%d index %d: %v with %d bins, %v zero-filled", n, i, c[i], len(short), d[i])
+			}
+		}
+	}
+}

@@ -84,11 +84,13 @@ the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
 
 ## Performance
 
-`go-fft` uses a **split-radix** kernel for powers of two (≈⅓ fewer real
-multiplies than radix-4), an **iterative mixed-radix (Stockham)** engine for the other
-highly-composite lengths (radix-2/3/4/5/7 straight-line passes plus a general
-radix-p pass for 11 and 13), **Rader's algorithm** for primes (from N=700)
-and **Bluestein's chirp-z** otherwise, with all twiddle factors cached per
+`go-fft` transforms every length whose prime factors are all ≤ 13 with an
+**iterative mixed-radix (Stockham)** engine (radix-8/4/2/3/5/7 straight-line
+passes plus a general radix-p pass for 11 and 13), except powers of two off
+arm64, which keep an **iterative radix-4 kernel** with SIMD butterflies on
+amd64. A prime whose N−1 is 7-smooth uses **Rader's algorithm**, and every
+other length **Bluestein's chirp-z**, both convolving on the Stockham engine,
+with all twiddle factors cached per
 length. It beats the pure-Go peer `gonum/dsp/fourier` (both `CGO_ENABLED=0`) at
 **every** size measured — typically 3–5× on composite N and ~30×–200× on
 primes (gonum's arbitrary-N path is a naive Bluestein with no Rader path).

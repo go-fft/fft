@@ -104,32 +104,6 @@ func TestNextSmoothConv(t *testing.T) {
 	}
 }
 
-// TestRaderConvLengthSelection asserts the plan picks the direct cyclic path when
-// q = N-1 is smooth and the padded-smooth-linear path otherwise.
-func TestRaderConvLengthSelection(t *testing.T) {
-	// 769: q=768=2⁸·3 smooth → cyclic at q. 2017: q=2016=2⁵·3²·7 smooth → cyclic.
-	for _, n := range []int{769, 2017} {
-		rp := newRaderPlan(n)
-		if !rp.cyclic || rp.cl != n-1 {
-			t.Errorf("n=%d expected cyclic conv at q=%d, got cyclic=%v cl=%d", n, n-1, rp.cyclic, rp.cl)
-		}
-	}
-	// 9973: q=9972=2²·3²·277 not smooth → padded linear, cl 7-smooth >= 2q chosen
-	// by the cost model.
-	for _, n := range []int{5003, 9973, 10007} {
-		rp := newRaderPlan(n)
-		if rp.cyclic {
-			t.Errorf("n=%d expected padded-linear conv (q not smooth), got cyclic", n)
-		}
-		if rp.cl < 2*(n-1) {
-			t.Errorf("n=%d conv length %d below 2q=%d", n, rp.cl, 2*(n-1))
-		}
-		if _, ok := convCost(rp.cl); !ok {
-			t.Errorf("n=%d conv length %d is not 7-smooth", n, rp.cl)
-		}
-	}
-}
-
 // TestConvCost checks the convolution-length cost model: it reports ok only for
 // 7-smooth lengths, is monotone in the obvious cases, and orders radix-4 below a
 // pure power-of-two of larger magnitude consistently with its weights.

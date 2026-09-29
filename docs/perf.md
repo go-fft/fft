@@ -1,5 +1,10 @@
 # Performance
 
+> **2026-09-29:** the engines and routing below predate the Stockham rounds. The
+> current engines, per-architecture routing and measured numbers are in
+> [BENCHMARKS.md](../BENCHMARKS.md) ("Stockham round" and "Round 2"). This page
+> is the history of how the library got there.
+
 `go-fft` is benchmarked head-to-head against the two reference implementations
 that matter:
 

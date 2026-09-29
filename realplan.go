@@ -3,6 +3,7 @@ package fft
 import (
 	"math"
 	"sync"
+	"unsafe"
 )
 
 // A RealPlan is a reusable, precomputed real-input transform of a fixed length
@@ -97,7 +98,7 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 
 	// Even length N = 2m: pack z[j] = src[2j] + i·src[2j+1], one m-point FFT.
 	m := n / 2
-	buf, z, Z := p.getScratch()
+	buf, _, Z := p.getScratch()
 	if p.half.it != nil {
 		// m is a power of two: fuse the real-pair packing into the iterative
 		// kernel's bit-reversal gather (transformRealPacked reads src directly into
@@ -105,10 +106,10 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 		// write/read entirely — one gather instead of pack + gather.
 		p.half.it.transformRealPacked(Z, src)
 	} else {
-		for j := 0; j < m; j++ {
-			z[j] = complex(src[2*j], src[2*j+1])
-		}
-		p.half.FFT(Z, z)
+		// The packing z[j] = src[2j] + i·src[2j+1] is exactly the memory layout
+		// of a []complex128, so the half-length FFT reads src through a view of
+		// it: no pack pass. The plan only reads its source.
+		p.half.execute(Z, asComplex(src[:2*m]), false)
 	}
 	rfftUntangle(dst, Z, p.tw, m)
 	p.putScratch(buf)
@@ -244,36 +245,35 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 	// to Z[0] = (X[0]+X[m]) + i·(X[0]-X[m]) (the inverse of X[0]=Z0.r+Z0.i,
 	// X[m]=Z0.r-Z0.i); only the real parts are used, discarding any imaginary
 	// component just as the full inverse's real() projection does.
+	//
+	// The 1/m normalization of the inverse is folded into this pass (scale), so
+	// the inverse FFT runs unnormalized and no separate scaling pass is needed.
 	buf, z, Z := p.getScratch()
+	scale := 1.0
+	if p.half.it == nil {
+		scale = 1 / float64(m)
+	}
+	h := 0.5 * scale
 	x0 := real(bin(0))
 	xm := real(bin(m))
-	Z[0] = complex((x0+xm)*0.5, (x0-xm)*0.5)
-	for k := 1; k <= m-k; k++ {
-		xk := bin(k)
-		xmk := bin(m - k)
-		cmk := complexConj(xmk) // conj(X[m-k])
-		// xe = (X[k] + conj(X[m-k]))/2.
-		xer := (real(xk) + real(cmk)) * 0.5
-		xei := (imag(xk) + imag(cmk)) * 0.5
-		// d = (X[k] - conj(X[m-k]))/2  (= W_n^k·xo).
-		dr := (real(xk) - real(cmk)) * 0.5
-		di := (imag(xk) - imag(cmk)) * 0.5
-		// xo = conj(W_n^k)·d = (wr - i·wi)·(dr + i·di).
-		wr, wi := real(p.tw[k]), imag(p.tw[k])
-		xor := wr*dr + wi*di
-		xoi := wr*di - wi*dr
-		// Z[k] = xe + i·xo = (xer - xoi) + i·(xei + xor).
-		Z[k] = complex(xer-xoi, xei+xor)
-		// Z[m-k] = conj(xe - i·xo) = (xer - xoi) - i·... wait, compute directly:
-		// xe - i·xo = (xer + xoi) + i·(xei - xor); its conjugate is the next line.
-		if k != m-k {
-			Z[m-k] = complex(xer+xoi, -(xei - xor))
+	Z[0] = complex((x0+xm)*h, (x0-xm)*h)
+	full := src
+	if len(full) > m+1 {
+		full = full[:m+1]
+	}
+	if len(full) == m+1 {
+		// Complete spectrum (the usual case): no per-bin bounds test.
+		irfftRetangle(Z, full, p.tw, m, h)
+	} else {
+		for k := 1; k <= m-k; k++ {
+			zk, zmk := retangle(bin(k), bin(m-k), p.tw[k], h)
+			Z[k] = zk
+			if k != m-k {
+				Z[m-k] = zmk
+			}
 		}
 	}
 
-	// One m-point inverse complex FFT (normalized by m), then unpack:
-	// z[j] = x[2j] + i·x[2j+1]. z is the pool buffer's second half (borrowed
-	// alongside Z above), private to this call.
 	if p.half.it != nil {
 		// m is a power of two: run the unnormalized inverse on a private scratch
 		// buffer (Z is private here, safe to consume) and normalize on unpack.
@@ -286,11 +286,61 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 		p.putScratch(buf)
 		return dst
 	}
-	p.half.IFFT(z, Z) // already normalized by m
-	for j := 0; j < m; j++ {
-		dst[2*j] = real(z[j])
-		dst[2*j+1] = imag(z[j])
-	}
+	// z[j] = x[2j] + i·x[2j+1] is the memory layout of dst read as complex128,
+	// so the (already scaled) inverse writes the real signal in place: no
+	// unpack pass.
+	p.half.execute(asComplex(dst[:2*m]), Z, true)
 	p.putScratch(buf)
 	return dst
+}
+
+// irfftRetangle rebuilds the packed spectrum Z[1..m-1] from the complete half
+// spectrum X[0..m] (len(X) == m+1), pair by pair; h = 0.5·scale.
+func irfftRetangle(Z, X, tw []complex128, m int, h float64) {
+	X = X[:m+1]
+	tw = tw[:m+1]
+	k := 1
+	for ; k < m-k; k++ {
+		Z[k], Z[m-k] = retangle(X[k], X[m-k], tw[k], h)
+	}
+	if k == m-k {
+		// Self-paired middle bin: one index, written once.
+		Z[k], _ = retangle(X[k], X[k], tw[k], h)
+	}
+}
+
+// retangle inverts the forward untangle for the conjugate pair (k, m-k): given
+// X[k] = xk and X[m-k] = xmk it returns Z[k] and Z[m-k], each scaled by 2h. The forward produced, for each pair (k, m-k) with k in 1..m-1:
+//
+//	xe = (Z[k] + conj(Z[m-k]))/2,  xo = (Z[k] - conj(Z[m-k]))·(-i/2)
+//	X[k]   = xe + W_n^k·xo,        X[m-k] = conj(xe - W_n^k·xo).
+//
+// Inverting that pair:
+//
+//	xe = (X[k] + conj(X[m-k]))/2,  W_n^k·xo = (X[k] - conj(X[m-k]))/2,
+//	xo = conj(W_n^k)·(X[k] - conj(X[m-k]))/2,
+//	Z[k]   = xe + i·xo,            Z[m-k] = conj(xe - i·xo).
+func retangle(xk, xmk, w complex128, h float64) (zk, zmk complex128) {
+	// xe = (X[k] + conj(X[m-k]))·h.
+	xer := (real(xk) + real(xmk)) * h
+	xei := (imag(xk) - imag(xmk)) * h
+	// d = (X[k] - conj(X[m-k]))·h  (= W_n^k·xo).
+	dr := (real(xk) - real(xmk)) * h
+	di := (imag(xk) + imag(xmk)) * h
+	// xo = conj(W_n^k)·d = (wr - i·wi)·(dr + i·di).
+	wr, wi := real(w), imag(w)
+	xor := wr*dr + wi*di
+	xoi := wr*di - wi*dr
+	return complex(xer-xoi, xei+xor), complex(xer+xoi, -(xei - xor))
+}
+
+// asComplex views the 2m float64s of f as m complex128 values. A complex128 is
+// laid out as its real then its imaginary float64 (the layout gc uses and that
+// TestAsComplexLayout pins), so the view is exactly the real-pair packing
+// z[j] = f[2j] + i·f[2j+1], at no cost. len(f) must be even.
+func asComplex(f []float64) []complex128 {
+	if len(f) == 0 {
+		return nil
+	}
+	return unsafe.Slice((*complex128)(unsafe.Pointer(&f[0])), len(f)/2)
 }

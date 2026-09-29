@@ -29,6 +29,11 @@ type Plan struct {
 	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
 }
 
+// pow2Stockham routes powers of two to the Stockham engine instead of the
+// iterative pow2 kernel. It is per-architecture (route_*.go) and a variable
+// only so the tests can run both routes on every architecture.
+var pow2Stockham = pow2StockhamDefault
+
 // maxRadix bounds the largest prime factor handled by a direct radix-p
 // butterfly. Factors above this make the radix-p inner DFT (O(p^2)) costlier
 // than reducing the whole transform with Bluestein, so such a length is routed
@@ -44,7 +49,7 @@ func NewPlan(n int) *Plan {
 	if n <= 1 {
 		return p
 	}
-	if n&(n-1) == 0 {
+	if n&(n-1) == 0 && !pow2Stockham {
 		// Pure power of two: the iterative cache-friendly kernel (one bit-reversal
 		// + radix-4 DIT stages, twiddles laid out for sequential reads) measured
 		// faster than the recursive split-radix engine at every power-of-two length
@@ -61,29 +66,20 @@ func NewPlan(n int) *Plan {
 		p.sk = newSKPlan(n)
 		return p
 	}
-	// A large prime goes to Rader once it is big enough that Rader's lack of a
-	// chirp pre/post-multiply outweighs its index-permutation overhead;
-	// otherwise (and for non-prime lengths with a large prime factor) Bluestein.
-	// Both reduce the prime to the same power-of-two convolution, but measured
-	// head-to-head on the benchmark host Bluestein wins below raderThreshold and
-	// Rader wins above it (see docs/perf.md), so the engine is picked per length.
-	if n >= raderThreshold && isPrime(n) {
-		p.rader = newRaderPlan(n)
-		return p
+	// A prime whose n-1 is 7-smooth goes to Rader (a cyclic convolution at
+	// length exactly n-1); every other length with a large prime factor goes to
+	// Bluestein (a linear convolution at a smooth length >= 2n-1). Measured on
+	// arm64 and amd64 for every prime up to 6000, that split picks the faster
+	// engine in all but a handful of cases — see rader.go.
+	if isPrime(n) {
+		if _, ok := convCost(n - 1); ok {
+			p.rader = newRaderPlan(n)
+			return p
+		}
 	}
 	p.bluestein = newBluesteinPlan(n)
 	return p
 }
-
-// raderThreshold is the smallest prime routed to Rader instead of Bluestein.
-// Below it the two share a convolution size and Bluestein's contiguous chirp
-// passes beat Rader's permuted gather/scatter; at and above it Rader's lack of
-// a chirp pre/post-multiply and its direct length-(N−1) convolution win. The
-// crossover dropped sharply once the split-radix engine sped up the pow2 FFTs
-// both algorithms convolve with: re-measured on the 4-core arm64 benchmark host
-// it is now ~700 (Bluestein still faster at N=641, Rader faster from N=769 up;
-// e.g. 9973: Bluestein 1.41ms vs Rader 0.66ms — Rader is ~2× ahead at N≈10⁴).
-const raderThreshold = 700
 
 // Len reports the transform length the plan was built for.
 func (p *Plan) Len() int { return p.n }
@@ -175,58 +171,47 @@ func nextSmoothConv(lo int) int {
 	}
 }
 
-// convCost estimates the relative wall-clock cost of one mixed-radix FFT of a
+// convCost estimates the relative wall-clock cost of one Stockham FFT of a
 // 7-smooth length m. It returns (cost, ok); ok is false when m is not 7-smooth
-// (i.e. has a prime factor the specialized radix-2/3/4/5/7 butterflies cannot
-// handle, which would force a slow general radix-p step and is never a good
-// convolution length). The cost is m·Σ(per-radix weight) over m's factorization
-// preferring radix-4 over 2·2, exactly the factorize() order the engine uses.
+// (a prime factor above 7 would force the slow general radix pass, never a good
+// convolution length). The cost is m·Σ(per-pass weight) over the passes the
+// engine actually runs for m — skFactorize's radix-8/4/2/3/5/7 sequence — so the
+// model follows the engine's own factorization.
 //
-// The weights {4,2: 2.0, 3: 2.0, 5: 2.8, 7: 2.6} were calibrated against
-// controlled back-to-back FFT-pair timings (one process, interleaved, best-of-4)
-// on the 4-core arm64 benchmark host across the candidate convolution lengths
-// for N = 5003/9973/10007 (see docs/perf.md). They encode that a radix-4 pass is
-// the cheapest per point, radix-3 nearly as cheap, and radix-5/7 modestly dearer
-// but far cheaper than padding to the next pure power of two — and, critically,
-// that a radix-7-bearing length often beats the smallest 2·3·5-smooth one. With
-// these weights the picker never regresses against the old "smallest 2·3·5-smooth"
-// rule and wins where it can: N=5003's pad goes 10125 → 10080 (~1.05×), N=10007's
-// 20250 = 2·3⁴·5³ → 20160 = 2⁶·3²·5·7 (~1.10×), and N=9973 is unchanged at 20000.
+// The weights were fitted by least squares (relative error) to the measured
+// time of every 7-smooth length in [500, 45000] on two hosts — Apple M4 Max
+// (arm64) and Xeon E5-2620 v3 (amd64) — and averaged; each host's own fit
+// agrees with the other's within the noise. Scored on the linear-convolution
+// windows [2q-1, 1.4·(2q-1)] of 260 primes q in 260..20000, the pick lands on
+// average 4.3% (arm64) / 2.6% (amd64) above the measured-fastest length in its
+// window, median exactly on it. The weights calibrated for the recursive engine
+// this replaced were 26% / 13% above, worse than just taking the smallest
+// smooth length (11% / 9%). Measured 2026-09-29.
 func convCost(m int) (float64, bool) {
-	const w2, w3, w5, w7 = 2.0, 2.0, 2.8, 2.6
-	cost := 0.0
 	x := m
-	for x%4 == 0 { // radix-4 first (cheaper than two radix-2 stages)
-		cost += w2
-		x /= 4
-	}
-	for x%2 == 0 {
-		cost += w2
-		x /= 2
-	}
-	for x%3 == 0 {
-		cost += w3
-		x /= 3
-	}
-	for x%5 == 0 {
-		cost += w5
-		x /= 5
-	}
-	for x%7 == 0 {
-		cost += w7
-		x /= 7
+	for _, p := range []int{2, 3, 5, 7} {
+		for x%p == 0 {
+			x /= p
+		}
 	}
 	if x != 1 {
 		return 0, false
 	}
+	cost := 0.0
+	for _, r := range skFactorize(m) {
+		cost += passWeight[r]
+	}
 	return float64(m) * cost, true
 }
 
-// bestConvLen returns the cheapest 7-smooth convolution length >= lo for the
-// Rader/Bluestein linear-convolution path. It scans the window [lo, ⌈1.4·lo⌉]
+// passWeight is the fitted relative cost per point of one Stockham pass of
+// each radix (see convCost), normalized to radix 4.
+var passWeight = map[int]float64{8: 1.51, 4: 1.0, 2: 1.11, 3: 1.05, 5: 1.44, 7: 1.93}
+
+// bestConvLen returns the cheapest 7-smooth convolution length >= lo for
+// Bluestein's linear convolution. It scans the window [lo, ⌈1.4·lo⌉]
 // of 7-smooth candidates and returns the one minimizing convCost. The lower
-// bound lo is the linear-convolution minimum (2q for a length-q cyclic
-// convolution); the 1.4× window is wide enough to always contain a highly
+// bound lo is the linear-convolution minimum (2N-1 for a length-N transform); the 1.4× window is wide enough to always contain a highly
 // 2/4-composite length yet narrow enough that a larger-but-smoother length never
 // out-costs the small dense ones. lo >= 1.
 //
@@ -235,12 +220,10 @@ func convCost(m int) (float64, bool) {
 // beyond any convolution length the prime engines produce), so the loop always
 // finds at least one candidate and best is always assigned.
 //
-// This supersedes the old "smallest 2·3·5-smooth >= lo" rule on two counts:
-// admitting radix-7 lengths (the engine has a fast straight-line radix-7
-// butterfly) and ranking by the cost model instead of by size, both of which the
-// MScan measurements showed leave real time on the table — most starkly for
-// N=10007, whose old pick 20250 = 2·3⁴·5³ measured ~1.9× slower than the
-// cost-model pick 20580 = 2²·3·5·7³.
+// Ranking by the cost model rather than taking the smallest smooth length is
+// what the measurements behind convCost support: over 260 prime windows the
+// smallest length was 9–11% slower than the fastest on average, the cost-model
+// pick 3–4%.
 func bestConvLen(lo int) int {
 	if lo < 1 {
 		lo = 1
