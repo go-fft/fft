@@ -2,3 +2,5 @@ github.com/go-asmgen/asmgen v0.5.0 h1:EFQZZpZYfEQiUw8n0VzPGrknMNiZN5564moniqqR/P
 github.com/go-asmgen/asmgen v0.5.0/go.mod h1:IibpkV28/y0oiVlG8IzKvXXQ6aYBTPzDZw8X+cBNXNU=
 github.com/go-asmgen/asmgen v0.8.0 h1:Z3qMmNxSfqmfzUxRcRXLZOXlOkqkdHU/LgFJ91jJKmc=
 github.com/go-asmgen/asmgen v0.8.0/go.mod h1:IibpkV28/y0oiVlG8IzKvXXQ6aYBTPzDZw8X+cBNXNU=
+github.com/go-asmgen/asmgen v0.9.0 h1:ptuQoL3INPk1YFUiZjYg3rH7GEe3nI1cLJ2ek0EnwNk=
+github.com/go-asmgen/asmgen v0.9.0/go.mod h1:Hj29fXioLRe9oSnQ18SuDBiOcCbu8Qwxba6/5TMr4+Y=

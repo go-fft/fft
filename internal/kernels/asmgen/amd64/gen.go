@@ -283,6 +283,16 @@ func main() {
 	genRadix4AVX2(fb, "radix4StageAVX2Inv", true)
 	genRadix2LeafAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
+
+	// The gate in front of those AVX2 kernels. It used to be 24 hand-written
+	// lines in cpu_amd64.s; go-asmgen v0.9.0 emits the same sequence, and the
+	// OS half -- OSXSAVE, then XGETBV's XMM and YMM bits in XCR0, before the
+	// feature bit -- is the part a hand-rolled probe drops. A CPU can report
+	// AVX2 on a kernel that does not save YMM state, and then the upper lanes
+	// go at the next context switch.
+	fp := emit.NewFile("amd64")
+	fp.Add(amd64.FeatureProbe("supportsAVX2", amd64.AVX2))
+	writeFile("cpu_amd64.s", fp.String())
 }
 
 // genRadix2LeafAVX2 pairs two span-one groups. Keep the twiddle multiply even
