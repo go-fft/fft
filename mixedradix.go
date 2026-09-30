@@ -12,6 +12,10 @@ package fft
 // 5 (fewer multiplies, no inner loop); any other small prime factor uses a
 // general radix-p butterfly. All trig is precomputed once into the plan's
 // twiddle table, so transforms cost no sin/cos at run time.
+//
+// NewPlan no longer routes any length here: smooth lengths run the iterative
+// Stockham engine (stockham.go), which measured 1.6–1.9× faster. This engine is
+// kept as the independent oracle that engine is cross-checked against.
 
 // ctPlan is the mixed-radix Cooley–Tukey plan for one length.
 type ctPlan struct {

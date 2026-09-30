@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"sync"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
@@ -9,27 +10,32 @@ import (
 // Bluestein chirp-z plan.
 //
 // For a length N with a large prime factor (one that the mixed-radix engine
-// cannot reduce cheaply), the DFT is computed as a length-M power-of-two
-// convolution, M being the smallest power of two >= 2N-1. The chirp sequence,
-// the convolution kernel's pre-transformed spectrum, and the output chirp are
-// all precomputed once into the plan, so a transform costs two radix-2 FFTs and
-// a pointwise product with no per-call trig.
+// cannot reduce cheaply), the DFT is computed as a length-M linear convolution,
+// M being the cheapest 7-smooth length >= 2N-1 (bestConvLen), run on the
+// Stockham engine through a cached plan. pocketfft's fftblue does the same with
+// its good_size; this used to pad to the next power of two and run the
+// standalone radix-2 kernel, which for N=641 meant a 2048-point transform
+// instead of a 1296-point one. The chirp sequence and the convolution kernel's
+// spectrum (pre-scaled by 1/M, so the inverse needs no normalization pass) are
+// precomputed once into the plan, so a transform costs two length-M FFTs and a
+// pointwise product with no per-call trig.
 type bluesteinPlan struct {
 	n  int
-	m  int          // convolution length, a power of two
+	m  int          // convolution length, 7-smooth, >= 2n-1
 	wF []complex128 // forward chirp  w[j]  = exp(-πi·j²/N), j = 0 .. n-1
 	wI []complex128 // inverse chirp  conj  = exp(+πi·j²/N)
-	bF []complex128 // FFT of the forward kernel b (built from conj(wF)), length m
-	bI []complex128 // FFT of the inverse kernel (built from conj(wI)), length m
+	bF []complex128 // FFT of the forward kernel b (built from conj(wF)) / m
+	bI []complex128 // FFT of the inverse kernel (built from conj(wI)) / m
+
+	// scratch lends each concurrent transform its length-m convolution buffer,
+	// so a steady-state transform allocates nothing.
+	scratch sync.Pool
 }
 
 // newBluesteinPlan precomputes the chirps and the kernel spectra for both
 // directions of a length-n Bluestein transform.
 func newBluesteinPlan(n int) *bluesteinPlan {
-	m := 1
-	for m < 2*n-1 {
-		m <<= 1
-	}
+	m := bestConvLen(2*n - 1)
 	p := &bluesteinPlan{n: n, m: m}
 
 	p.wF = make([]complex128, n)
@@ -44,11 +50,12 @@ func newBluesteinPlan(n int) *bluesteinPlan {
 
 	p.bF = buildKernelSpectrum(p.wF, n, m)
 	p.bI = buildKernelSpectrum(p.wI, n, m)
+	p.scratch.New = func() any { b := make([]complex128, m); return &b }
 	return p
 }
 
 // buildKernelSpectrum forms the mirrored conj(chirp) kernel b of length m and
-// returns its forward radix-2 FFT, precomputed so transforms skip it.
+// returns its forward FFT scaled by 1/m, precomputed so transforms skip both.
 func buildKernelSpectrum(w []complex128, n, m int) []complex128 {
 	b := make([]complex128, m)
 	b[0] = complexConj(w[0])
@@ -57,36 +64,35 @@ func buildKernelSpectrum(w []complex128, n, m int) []complex128 {
 		b[j] = c
 		b[m-j] = c
 	}
-	kernels.BitReverse(b)
-	kernels.Radix2(b, false)
+	cachedPlan(m).FFT(b, b)
+	inv := complex(1/float64(m), 0)
+	for i := range b {
+		b[i] *= inv
+	}
 	return b
 }
 
 // transform writes the unnormalized length-n DFT of src into dst via the
 // precomputed chirp-z convolution. dst may alias src.
 func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
-	n, m := p.n, p.m
+	n := p.n
 	w, bSpec := p.wF, p.bF
 	if inverse {
 		w, bSpec = p.wI, p.bI
 	}
-
-	// a[j] = src[j]·w[j], zero-padded to m.
-	a := make([]complex128, m)
+	bp := p.scratch.Get().(*[]complex128)
+	defer p.scratch.Put(bp)
+	a := *bp
 	for j := 0; j < n; j++ {
 		a[j] = src[j] * w[j]
 	}
+	clear(a[n:]) // the pooled buffer is dirty; the pad must be zero
 
-	// Convolution: a = IFFT(FFT(a) · bSpec).
-	kernels.BitReverse(a)
-	kernels.Radix2(a, false)
+	// Convolution, in place: a = IFFT(FFT(a) · bSpec); bSpec carries the 1/m.
+	plan := cachedPlan(p.m)
+	plan.execute(a, a, false)
 	kernels.CMul(a, bSpec)
-	kernels.BitReverse(a)
-	kernels.Radix2(a, true)
-	invM := complex(1/float64(m), 0)
-	for i := 0; i < m; i++ {
-		a[i] *= invM
-	}
+	plan.execute(a, a, true)
 
 	// dst[k] = w[k]·conv[k].
 	for k := 0; k < n; k++ {

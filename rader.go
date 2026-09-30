@@ -1,6 +1,9 @@
 package fft
 
-import "math"
+import (
+	"math"
+	"sync"
+)
 
 // Rader's algorithm for a prime length N.
 //
@@ -12,66 +15,42 @@ import "math"
 //	X[g^{-q}] = x[0] + sum_p x[g^p] · W_N^{g^{p-q}}
 //
 // i.e. X (minus its DC term) equals the cyclic convolution of the permuted
-// input with the permuted roots W_N^{g^k}. The convolution is evaluated with
-// the library's own fast FFTs of length L, where L is the smallest power of two
-// >= 2(N-1)-1 so a linear convolution wraps to the length-(N-1) cyclic one. The
-// kernel spectrum and both permutations are precomputed once into the plan, so
-// a transform costs two length-L FFTs and a pointwise product — no per-call
-// trig.
+// input with the permuted roots W_N^{g^k}. The convolution is evaluated
+// directly at length q = N-1 with the library's own FFTs: a ⊛ ker =
+// IFFT_q(FFT_q(a) · FFT_q(ker)). The kernel spectrum (pre-scaled by 1/q, so the
+// inverse needs no normalization pass) and both permutations are precomputed
+// once into the plan, so a transform costs two length-q FFTs, a pointwise
+// product and the permuted gather/scatter — no per-call trig.
 //
-// Rader replaces Bluestein for a prime N only above a measured size threshold
-// (see raderThreshold); both reduce a prime to the same power-of-two
-// convolution, but Rader transforms the length-(N-1) data directly (no chirp
-// pre/post multiply and a shorter useful span), which wins on the larger primes.
-//
-// Convolution length. The Rader convolution is *cyclic* of length q = N-1. When
-// q itself is a length the library transforms cheaply (all prime factors small,
-// so mixed-radix Cooley–Tukey applies — see factorsAreSmall), the cyclic
-// convolution is evaluated directly at length q: a ⊛ ker = IFFT_q(FFT_q(a) ·
-// FFT_q(ker)). This is FFTW's tuned Rader path and avoids the zero-pad to a
-// power of two >= 2q-1, which for these primes is 2–3.3× larger than q itself
-// (e.g. N=769: q=768=2⁸·3 vs a 2048-point pad; N=2017: q=2016=2⁵·3²·7 vs 4096).
-// When q is *not* smooth (its largest prime factor exceeds maxRadix, e.g.
-// N=9973 has q=9972=2²·3²·277) the direct length-q transform would itself be a
-// Bluestein/Rader call, so the plan falls back to the classic linear
-// convolution: zero-pad to the smallest power of two cl >= 2q-1 and read the
-// cyclic result out of the linear convolution's wrap window.
+// NewPlan routes a prime here only when q is 7-smooth, which is when this wins.
+// Measured against Bluestein for every prime up to 6000 on arm64 (M4 Max) and
+// amd64 (Xeon E5-2620 v3), 2026-09-29: with q 7-smooth, Rader was faster for
+// every prime on amd64 and for all but a handful on arm64 (median Bluestein
+// time 1.4–1.9× Rader's); with a factor 11 or 13 in q it lost every time; and
+// with q not smooth — the linear-convolution Rader this file used to carry,
+// zero-padded to a smooth length >= 2q — it lost to Bluestein at the same pad
+// in all but 15 of about 1000 primes (median ~5–10%), because its permuted
+// gather/scatter costs more than Bluestein's contiguous chirp passes. That path
+// is gone: those primes go to Bluestein.
 type raderPlan struct {
-	n      int
-	cl     int          // convolution length (q if cyclic, else pow2 >= 2q-1)
-	cyclic bool         // true: direct length-q cyclic conv; false: padded linear
-	perm   []int        // perm[p] = g^p mod N, p = 0 .. N-2 (input gather order)
-	iperm  []int        // iperm[q] = g^{-q} mod N, q = 0 .. N-2 (output scatter order)
-	bF     []complex128 // FFT of the forward convolution kernel, length cl
-	bI     []complex128 // FFT of the inverse convolution kernel, length cl
+	n     int
+	perm  []int        // perm[p] = g^p mod N, p = 0 .. N-2 (input gather order)
+	iperm []int        // iperm[q] = g^{-q} mod N, q = 0 .. N-2 (output scatter order)
+	bF    []complex128 // FFT of the forward convolution kernel / q, length q
+	bI    []complex128 // FFT of the inverse convolution kernel / q, length q
+
+	// scratch lends each concurrent transform its length-q convolution
+	// buffer, so a steady-state transform allocates nothing.
+	scratch sync.Pool
 }
 
 // newRaderPlan builds a Rader plan for prime n (n >= 3). The caller guarantees
-// primality; isPrime/factorsAreSmall route composites elsewhere.
+// primality and that n-1 is a length the mixed-radix engine handles directly
+// (factorsAreSmall); NewPlan further restricts it to a 7-smooth n-1.
 func newRaderPlan(n int) *raderPlan {
 	g := primitiveRoot(n)
 	q := n - 1
 	p := &raderPlan{n: n}
-
-	// Prefer the direct length-q cyclic convolution when q is smooth enough for
-	// the mixed-radix engine; otherwise zero-pad for the classic linear
-	// convolution to the cheapest highly-composite (2·3·5·7-smooth) length >= 2q.
-	// The pad length is chosen by bestConvLen, a cost-model search over the
-	// 7-smooth candidates above 2q: it both admits radix-7 lengths (the engine
-	// has a fast straight-line radix-7 butterfly) and ranks by estimated FFT cost
-	// rather than by size. That avoids the pathological 2·3·5-smooth picks the old
-	// "smallest smooth" rule could land on — most starkly N=10007's 20250 = 2·3⁴·5³,
-	// measured ~1.9× slower than the cost-model pick 20580 = 2²·3·5·7³ — while
-	// staying ~0.6× the size of the next pure power of two.
-	if factorsAreSmall(q) {
-		p.cyclic = true
-		p.cl = q
-	} else {
-		// The linear convolution spans indices 0..2q-2; the cyclic value is read
-		// from the wrap window at qi+q (max index 2q-1), so the buffer must hold at
-		// least 2q points (>= 2q-1 alone leaves the last window read out of range).
-		p.cl = bestConvLen(2 * q)
-	}
 
 	p.perm = make([]int, q)
 	p.iperm = make([]int, q)
@@ -87,47 +66,39 @@ func newRaderPlan(n int) *raderPlan {
 
 	p.bF = p.buildKernel(n, false)
 	p.bI = p.buildKernel(n, true)
+	p.scratch.New = func() any { b := make([]complex128, q); return &b }
 	return p
 }
 
-// buildKernel forms the convolution kernel from the roots W_N^{g^k} (forward
-// sign) or their conjugates (inverse) and returns its FFT at length cl.
-//
-// For the cyclic path the kernel is ker[m] = W_N^{g^{-m}}, m = 0 .. q-1: the
-// length-q cyclic convolution result[qi] = sum_p a[p]·ker[(qi-p) mod q] is the
-// Rader correlation. For the padded-linear path the kernel is the same cyclic
-// kernel replicated over indices 0 .. 2q-1, so a linear convolution of length cl
-// (>= 2q) recovers the cyclic value in its wrap window: result[qi] = conv[qi+q].
+// buildKernel forms the convolution kernel ker[m] = W_N^{g^{-m}}, m = 0 .. q-1
+// (forward sign, or its conjugate for the inverse) and returns its length-q FFT
+// scaled by 1/q. The length-q cyclic convolution result[qi] = sum_p
+// a[p]·ker[(qi-p) mod q] is the Rader correlation.
 func (p *raderPlan) buildKernel(n int, inverse bool) []complex128 {
 	q := n - 1
-	b := make([]complex128, p.cl)
+	b := make([]complex128, q)
 	sign := -1.0
 	if inverse {
 		sign = 1.0
 	}
-	if p.cyclic {
-		// ker[m] = W_N^{g^{-m}} = W_N^{perm[(q-m) mod q]}.
-		for m := 0; m < q; m++ {
-			e := p.perm[(q-m)%q]
-			ang := sign * 2 * math.Pi * float64(e) / float64(n)
-			b[m] = complex(math.Cos(ang), math.Sin(ang))
-		}
-	} else {
-		// Replicate the cyclic kernel over 0..2q-1 (kerC[s] = W_N^{g^{-s}}).
-		for m := 0; m < 2*q; m++ {
-			s := m % q
-			e := p.perm[(q-s)%q]
-			ang := sign * 2 * math.Pi * float64(e) / float64(n)
-			b[m] = complex(math.Cos(ang), math.Sin(ang))
-		}
+	// ker[m] = W_N^{g^{-m}} = W_N^{perm[(q-m) mod q]}.
+	for m := 0; m < q; m++ {
+		e := p.perm[(q-m)%q]
+		ang := sign * 2 * math.Pi * float64(e) / float64(n)
+		b[m] = complex(math.Cos(ang), math.Sin(ang))
 	}
-	return cachedPlan(p.cl).FFT(make([]complex128, p.cl), b)
+	cachedPlan(q).FFT(b, b)
+	inv := complex(1/float64(q), 0)
+	for i := range b {
+		b[i] *= inv
+	}
+	return b
 }
 
 // transform writes the unnormalized length-n DFT of src into dst via Rader's
 // convolution. dst may alias src.
 func (p *raderPlan) transform(dst, src []complex128, inverse bool) {
-	n, cl, q := p.n, p.cl, p.n-1
+	n, q := p.n, p.n-1
 	bSpec := p.bF
 	if inverse {
 		bSpec = p.bI
@@ -140,34 +111,30 @@ func (p *raderPlan) transform(dst, src []complex128, inverse bool) {
 		sum += src[i]
 	}
 
-	// Gather the permuted inputs a[p] = x[g^p] (zero-padded to cl in the linear
-	// path; the cyclic path uses exactly q == cl entries).
-	a := make([]complex128, cl)
-	for k := 0; k < q; k++ {
-		a[k] = src[p.perm[k]]
+	// Gather the permuted inputs a[p] = x[g^p]; every one of the q entries is
+	// written, so the pooled buffer needs no clearing.
+	bp := p.scratch.Get().(*[]complex128)
+	defer p.scratch.Put(bp)
+	a := (*bp)[:q]
+	perm := p.perm[:q]
+	for k, j := range perm {
+		a[k] = src[j]
 	}
 
-	// Cyclic convolution a ⊛ kernel via FFTs: a = IFFT(FFT(a)·bSpec).
-	plan := cachedPlan(cl)
-	A := make([]complex128, cl)
-	plan.FFT(A, a)
-	for i := range A {
-		A[i] *= bSpec[i]
+	// Cyclic convolution a ⊛ kernel via FFTs, in place: IFFT(FFT(a)·bSpec),
+	// with the 1/q carried by bSpec.
+	plan := cachedPlan(q)
+	plan.execute(a, a, false)
+	bSpec = bSpec[:q]
+	for i := range a {
+		a[i] *= bSpec[i]
 	}
-	conv := make([]complex128, cl)
-	plan.IFFT(conv, A)
+	plan.execute(a, a, true)
 
 	dst[0] = sum
-	if p.cyclic {
-		// Direct length-q cyclic convolution: result[qi] = conv[qi].
-		for qi := 0; qi < q; qi++ {
-			dst[p.iperm[qi]] = x0 + conv[qi]
-		}
-		return
-	}
-	// Padded linear convolution: the cyclic value is in the wrap window at qi+q.
-	for qi := 0; qi < q; qi++ {
-		dst[p.iperm[qi]] = x0 + conv[qi+q]
+	iperm := p.iperm[:q]
+	for qi, j := range iperm {
+		dst[j] = x0 + a[qi]
 	}
 }
 
