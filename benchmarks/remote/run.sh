@@ -20,6 +20,6 @@ cc -O3 -I$F/include cbench/fftw_bench.c $F/lib/libfftw3.a -lm -o fftw_bench
 ./fftw_bench > fftw.json
 echo "==> [5/5] numpy/scipy"
 $PY fft_reference.py > ref.json
-sed -i "s|\"machine\": \".*\"|\"machine\": \"$MACHINE\"|; s|\"go\": \"$GOV linux/$A (cross-compiled)\"|" report.py
+sed -i "s|\"machine\": \".*\"|\"machine\": \"$MACHINE\"|; s|\"go\": \".*\"|\"go\": \"$GOV linux/$A (cross-compiled)\"|" report.py
 FFTW_DESC="${FFTW_DESC:-FFTW built by setup.sh}" $PY report.py
 echo done
