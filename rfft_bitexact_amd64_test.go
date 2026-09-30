@@ -13,8 +13,14 @@ import (
 
 // The scalar oracle is separately rounded below GOAMD64=v3. At v3 the Go
 // compiler may fuse its arithmetic; SSE2/AVX2 parity is tested in kernels on
-// every amd64 build level instead.
+// every amd64 build level instead. Powers of two are forced onto the iterative
+// pow2 kernel, whose fused real packing this checks; up to 4096 amd64 routes
+// them to the Stockham engine by default (route_amd64.go).
 func TestRealPlanRFFTMatchesScalarStages(t *testing.T) {
+	withPow2Route(false, func() { realPlanRFFTMatchesScalarStages(t) })
+}
+
+func realPlanRFFTMatchesScalarStages(t *testing.T) {
 	rng := rand.New(rand.NewSource(1024))
 	for _, n := range []int{4, 8, 16, 64, 256, 512, 1024, 2048, 4096, 16384} {
 		p := NewRealPlan(n)

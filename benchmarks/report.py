@@ -13,9 +13,14 @@ verdicts, and the lagging-ops action items. No fabrication: every cell is a
 measured number or "—" when an implementation does not cover that case.
 """
 import json
+import os
 import math
 import re
 import sys
+
+# How the FFTW the C harness linked was built; run.sh's default is the Homebrew
+# bottle. Set FFTW_DESC when the harness runs against another build.
+FFTW_DESC = os.environ.get("FFTW_DESC", "Homebrew arm64 bottle, NEON, linked from C")
 
 HOST = {
     "machine": "Apple M4 Max (16-core: 12P+4E), macOS 26.5 (25F71), arm64",
@@ -96,7 +101,7 @@ def main():
     w("## Methodology\n")
     w(f"- **Machine**: {HOST['machine']}.")
     w(f"- **Toolchains**: {HOST['go']}; native **FFTW {HOST['fftw']}** "
-      f"(Homebrew arm64 bottle, NEON, linked from C); "
+      f"({FFTW_DESC}); "
       f"**numpy {HOST['numpy']}** / **scipy {HOST['scipy']}** (pocketfft); "
       f"**pyfftw {HOST['pyfftw']}**; **{HOST['gonum']}**.")
     w("- **Single-threaded** for the apples-to-apples core comparison: FFTW "

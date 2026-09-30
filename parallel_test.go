@@ -1,6 +1,9 @@
 package fft
 
-import "testing"
+import (
+	"sync"
+	"testing"
+)
 
 // withWorkers runs fn with parWorkers temporarily set to w, restoring it after.
 // It lets the parallel and serial branches both be exercised deterministically
@@ -22,7 +25,7 @@ func TestParChunksCoversRange(t *testing.T) {
 	} {
 		hits := make([]int32, tc.n)
 		withWorkers(tc.w, func() {
-			parChunks(tc.n, func(lo, hi int) {
+			parChunks(tc.n, parMinChunk, func(lo, hi int) {
 				for i := lo; i < hi; i++ {
 					hits[i]++
 				}
@@ -32,6 +35,33 @@ func TestParChunksCoversRange(t *testing.T) {
 			if h != 1 {
 				t.Fatalf("n=%d w=%d index %d hit %d times", tc.n, tc.w, i, h)
 			}
+		}
+	}
+}
+
+// TestParChunksCapsWorkersByWork checks that parChunks never hands a goroutine
+// less than parMinChunk elements of work, however many workers are available:
+// on a 128-thread host a 128×128 transform used to run as 128 goroutines of
+// one 128-point line each, 8.5× slower than FFTW (see BENCHMARKS.md).
+func TestParChunksCapsWorkersByWork(t *testing.T) {
+	for _, tc := range []struct{ n, itemLen, w, wantChunks int }{
+		{128, 128, 128, 2},           // 16384 elements: two chunks, not 128
+		{100, 1, 8, 1},               // far below one chunk: inline
+		{64, parMinChunk / 8, 32, 8}, // work for 8 chunks, 32 workers
+		{64, parMinChunk, 4, 4},      // plenty of work: the worker count rules
+		{3, 10 * parMinChunk, 16, 3}, // few heavy items: one chunk each
+	} {
+		var mu sync.Mutex
+		chunks := 0
+		withWorkers(tc.w, func() {
+			parChunks(tc.n, tc.itemLen, func(lo, hi int) {
+				mu.Lock()
+				chunks++
+				mu.Unlock()
+			})
+		})
+		if chunks != tc.wantChunks {
+			t.Errorf("n=%d itemLen=%d workers=%d: %d chunks, want %d", tc.n, tc.itemLen, tc.w, chunks, tc.wantChunks)
 		}
 	}
 }
