@@ -86,3 +86,64 @@ func sameBits(a, b complex128) bool {
 	}
 	return eq(real(a), real(b)) && eq(imag(a), imag(b))
 }
+
+// TestUntangleMatchesScalar holds the AVX2 real-FFT untangle to the Go loop,
+// bit for bit, at every half-length m up to 700 and a few large ones, on the
+// same generic, signed-zero and infinite signals as the pass kernels.
+func TestUntangleMatchesScalar(t *testing.T) {
+	if !kernels.UseUntangleAVX2 {
+		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
+	}
+	defer func(v bool) { kernels.UseUntangleAVX2 = v }(kernels.UseUntangleAVX2)
+	sizes := []int{2048, 4097, 32768}
+	for m := 2; m <= 700; m++ {
+		sizes = append(sizes, m)
+	}
+	for _, m := range sizes {
+		tw := NewRealPlan(2 * m).tw
+		for s, z := range simdSignals(m) {
+			kernels.UseUntangleAVX2 = true
+			simd := make([]complex128, m+1)
+			rfftUntangle(simd, z, tw, m)
+			kernels.UseUntangleAVX2 = false
+			scalar := make([]complex128, m+1)
+			rfftUntangle(scalar, z, tw, m)
+			for k := range scalar {
+				if !sameBits(simd[k], scalar[k]) {
+					t.Fatalf("m=%d signal %d bin %d: AVX2 %v vs Go %v", m, s, k, simd[k], scalar[k])
+				}
+			}
+		}
+	}
+}
+
+// TestRetangleMatchesScalar holds the AVX2 inverse untangle to the Go loop,
+// bit for bit, the same way.
+func TestRetangleMatchesScalar(t *testing.T) {
+	if !kernels.UseUntangleAVX2 {
+		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
+	}
+	defer func(v bool) { kernels.UseUntangleAVX2 = v }(kernels.UseUntangleAVX2)
+	sizes := []int{2048, 4097, 32768}
+	for m := 2; m <= 700; m++ {
+		sizes = append(sizes, m)
+	}
+	for _, m := range sizes {
+		tw := NewRealPlan(2 * m).tw
+		for s, x := range simdSignals(m + 1) {
+			for _, h := range []float64{0.5, 0.5 / float64(m)} {
+				kernels.UseUntangleAVX2 = true
+				simd := make([]complex128, m)
+				irfftRetangle(simd, x, tw, m, h)
+				kernels.UseUntangleAVX2 = false
+				scalar := make([]complex128, m)
+				irfftRetangle(scalar, x, tw, m, h)
+				for k := range scalar {
+					if !sameBits(simd[k], scalar[k]) {
+						t.Fatalf("m=%d signal %d h=%v bin %d: AVX2 %v vs Go %v", m, s, h, k, simd[k], scalar[k])
+					}
+				}
+			}
+		}
+	}
+}

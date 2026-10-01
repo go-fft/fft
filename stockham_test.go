@@ -1,6 +1,7 @@
 package fft
 
 import (
+	"fmt"
 	"math"
 	"math/cmplx"
 	"testing"
@@ -149,5 +150,31 @@ func TestAsComplexLayout(t *testing.T) {
 	}
 	if asComplex(nil) != nil {
 		t.Fatal("asComplex(nil) != nil")
+	}
+}
+
+// TestPow2Radices pins both ways an odd power of two can finish, whichever one
+// this architecture uses (route_*.go), and that each product is 2^e.
+func TestPow2Radices(t *testing.T) {
+	cases := []struct {
+		e         int
+		oneRadix8 bool
+		want      []int
+	}{
+		{1, true, []int{2}}, {2, true, []int{4}}, {7, true, []int{8, 4, 4}}, {9, true, []int{8, 4, 4, 4}},
+		{8, true, []int{4, 4, 4, 4}}, {7, false, []int{4, 4, 4, 2}}, {9, false, []int{4, 4, 4, 4, 2}},
+	}
+	for _, c := range cases {
+		got := pow2Radices(c.e, c.oneRadix8)
+		if fmt.Sprint(got) != fmt.Sprint(c.want) {
+			t.Errorf("pow2Radices(%d, %v) = %v, want %v", c.e, c.oneRadix8, got, c.want)
+		}
+		prod := 1
+		for _, r := range got {
+			prod *= r
+		}
+		if prod != 1<<c.e {
+			t.Errorf("pow2Radices(%d, %v) multiplies to %d", c.e, c.oneRadix8, prod)
+		}
 	}
 }

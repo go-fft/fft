@@ -9,3 +9,11 @@ package fft
 // Measured on real hardware, 2026-09-29; s390x was not reachable and keeps the
 // pow2 kernel.
 func pow2StockhamMaxDefault() int { return 0 }
+
+// r8MaxPow2Arch: powers of two do not reach the Stockham engine here (they
+// take the iterative pow2 kernel), so this only matters for a Plan built
+// directly; it keeps the rule the engine was first calibrated with.
+const r8MaxPow2Arch = 4096
+
+// pow2OneRadix8Max: see r8MaxPow2Arch.
+const pow2OneRadix8Max = 0

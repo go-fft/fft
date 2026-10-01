@@ -147,3 +147,42 @@ func skLast5AVX2(cc, ch *complex128, k *skConst, l1 int)
 
 //go:noescape
 func skLast8AVX2(cc, ch *complex128, k *skConst, l1 int)
+
+// UseUntangleAVX2 reports whether Untangle takes the AVX2 kernel; a variable so
+// the tests can compare it with the scalar loop on an AVX2 machine.
+var UseUntangleAVX2 = useAVX2
+
+// Untangle runs the real-FFT untangle for bins k = 1 .. 2·⌊half/2⌋ (half =
+// (m-1)/2) on the AVX2 kernel and returns the last bin it produced, or 0 when
+// it did nothing; the caller finishes the remaining bins, and the DC, Nyquist
+// and middle bins, in Go. dst has m+1 entries, z and tw at least m.
+func Untangle(dst, z, tw []complex128, m int) int {
+	pairs := (m - 1) / 2 / 2
+	if !UseUntangleAVX2 || pairs == 0 {
+		return 0
+	}
+	_, _, _ = dst[m], z[m-1], tw[2*pairs] // the kernel trusts these lengths
+	untangleAVX2(&dst[0], &z[0], &tw[0], skFwd, m, pairs)
+	return 2 * pairs
+}
+
+//go:noescape
+func untangleAVX2(dst, z, tw *complex128, k *skConst, m, pairs int)
+
+// Retangle runs the real-FFT inverse untangle for k = 1 .. 2·⌊half/2⌋ (half =
+// (m-1)/2) on the AVX2 kernel, writing z from the complete half spectrum x
+// scaled by h = 0.5·scale, and returns the last k it produced, or 0 when it did
+// nothing (UseUntangleAVX2 gates it too). z and tw hold at least m entries, x m+1.
+func Retangle(z, x, tw []complex128, m int, h float64) int {
+	pairs := (m - 1) / 2 / 2
+	if !UseUntangleAVX2 || pairs == 0 {
+		return 0
+	}
+	_, _, _ = z[m-1], x[m], tw[2*pairs]
+	hv := [4]float64{h, h, h, h}
+	retangleAVX2(&z[0], &x[0], &tw[0], skFwd, &hv, m, pairs)
+	return 2 * pairs
+}
+
+//go:noescape
+func retangleAVX2(z, x, tw *complex128, k *skConst, h *[4]float64, m, pairs int)

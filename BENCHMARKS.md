@@ -348,3 +348,37 @@ Chunks are now sized by work: no goroutine gets less than `parMinChunk` = 8192 e
 Where `work / 8192` is at least the thread count, the configuration is unchanged. That holds for M4 and Haswell at 512² and 1024², and for N1 and Zen 3 at 1024². Those cells run identical code, so their 0.81–1.37× spread is the noise of shared hosts, not an effect. `TestParChunksCapsWorkersByWork` pins the chunk counts.
 
 **What remains on many-core hosts: the garbage collector.** Profiling 128×128 on Zen 3 put about three quarters of the time outside the FFT, almost all of it in the GC. `runtime.(*lfstack).pop`, `getempty` and `procyield` are its mark workers coordinating across 128 threads. `FFT2`/`FFTN` return a new slice, 272 KB at 128×128, so a benchmark loop triggers a collection every few calls, and a collection on 128 threads is expensive. numpy and scipy allocate their result too, so only the FFTW comparison is skewed. Closing it needs an allocation-free N-D entry point, the way `Plan.FFT(dst, src)` is for 1-D. That is new public API, so it is left as a decision rather than added here.
+
+### Round 4 — AVX2 real-FFT untangle, radix rules re-measured per architecture, six-step ruled out (2026-10-01)
+
+The Round 3 fresh runs left the real transforms as the widest gap to FFTW on amd64 (RFFT 256–4096 at 1.5–2.9× on Zen 3). Profiling RFFT 1024 on Zen 3 put 39% of the time in `rfftUntangle`, the Go loop that recombines the half-length spectrum, and 72% of RFFT 4096 in the radix-8 pass.
+
+1. **AVX2 untangle and re-tangle.** `rfftUntangle` (forward) and `irfftRetangle` (inverse) now run their bins two at a time in generated AVX2 kernels (`genUntangleAVX2`, `genRetangleAVX2`). Bin k needs Z[k] and Z[m−k]; for k and k+1 those are one forward load and one mirrored load with its 128-bit halves swapped.
+   - **Arithmetic.** The scalar arithmetic maps onto lane blends, multiplies by 0.5 (or the inverse's scale), and the same complex product. Conjugations and multiplications by i are exact sign flips and swaps.
+   - **Bit-identity.** Both kernels are bit-identical to the Go loops at GOAMD64=v1. `TestUntangleMatchesScalar` and `TestRetangleMatchesScalar` check every m ≤ 700 plus larger ones, on the generic, ±0 and ∞ signals, on Haswell, Zen 3 and Cascade Lake.
+   - **Mutation checks.** Removing the conjugation from either kernel makes its test fail.
+
+2. **Radix rules re-measured per architecture.** The "radix 8 up to 4096" rule (Round 2) had been calibrated on the M4 with scalar passes, before the passes lost their bounds checks. Three rules for 2^e were timed on five CPUs from 2^5 to 2^13: A, radix 8 as far as it goes; B, radix 4 with a radix-2 pass for an odd e; C, radix 4 opening with one radix-8 pass for an odd e. Time over the best of the three, geometric mean:
+
+   | | rule A | rule B | rule C |
+   |:--|--:|--:|--:|
+   | arm64 (M4, Neoverse-N1) | 1.121 (worst 1.51) | 1.089 (worst 1.26) | **1.022** (worst 1.11) |
+   | amd64 (Haswell, Zen 3, Cascade Lake) | **1.082** (worst 1.62) | 1.190 (worst 1.71) | 1.129 (worst 1.78) |
+
+   - **arm64:** powers of two now use rule C up to 8192. Above that, rule B stays: re-timed to 2^20, C lost at 2^15 on the M4 (1.19–1.25×) and won only 3–11% on N1.
+   - **amd64:** keeps rule A. Its known loss is Zen 3 at 2048/4096 (1.36×/1.42× radix 4's time), where the radix-8 pass's 23 power-of-two-strided streams contend for L1 sets.
+   - **Composites:** lengths with an odd factor keep rule A everywhere.
+
+3. **Six-step (Bailey) for large N: measured and dropped.** A six-step prototype splits n = n1·n2 into in-cache FFTs, with a twiddle pass and three blocked transposes. It was correct, but 1.5–2.6× slower than the Stockham engine at 2^16–2^20 on the M4. The profile put 61% of its time in the transposes, which are 4 KB-strided rows of complex128, and only ~30% in the FFTs that the cache blocking helps. With a free transpose the ceiling would be ~25%, so it was not pursued.
+
+Speed-up over Round 3 (#12), interleaved A/B (best of 3; the arm64 rows were re-checked with medians of 6–8 under background load):
+
+| op | Haswell | Zen 3 | Cascade Lake | M4 | Neoverse-N1 |
+|:--|--:|--:|--:|--:|--:|
+| RFFT 256 / 1024 / 4096 | 1.15 / 1.18 / 1.17 | 1.19 / 1.27 / 1.05 | 1.31 / 1.34 / 1.25 | 0.99 / 1.03 / 1.20 | ≈1 / ≈1 / 1.10 |
+| IRFFT 256 / 1024 / 4096 | 1.75 / 1.56 / 1.35 | 1.48 / 1.58 / 1.17 | 1.41 / 1.50 / 1.34 | 0.99 / 1.04 / 1.19 | ≈1 / ≈1 / 1.11 |
+| RFFT / IRFFT 1000–1920 | 1.04–1.44 | 1.20–1.47 | 1.24–1.43 | ≈1 | ≈1 |
+| complex 256 / 4096 | ≈1 | ≈1 | ≈1 | 1.36 / 1.18 | 1.26 / 1.07 |
+| other sizes | ≈1 | ≈1 | ≈1 | ≈1 | ≈1 |
+
+"≈1" marks rows whose code did not change on that architecture, within that host's noise (±10% on the shared hosts). On arm64 the real transforms gain only where their half-length falls under the new radix rule (4096 → 2048).
