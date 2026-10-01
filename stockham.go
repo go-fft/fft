@@ -1,6 +1,10 @@
 package fft
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
 
 // Iterative mixed-radix (Stockham autosort) engine.
 //
@@ -24,6 +28,10 @@ type skStage struct {
 	// rt/rtc hold the size-r roots W_r^k (forward and conjugate) for the
 	// general radix pass; nil for the specialized radices.
 	rt, rtc []complex128
+	// twX/twXc are tw/twc extended to i = 0 ((r-1) blocks of ido entries, the
+	// i = 0 entry being 1), the layout the SIMD pass kernels read; nil when
+	// no pass kernel runs this pass on this architecture.
+	twX, twXc []complex128
 }
 
 // skPlan is the Stockham plan for one smooth length.
@@ -51,6 +59,7 @@ func newSKPlan(n int) *skPlan {
 				}
 			}
 		}
+		st.twX, st.twXc = kernels.StockhamTwiddles(r, ido, l1, root)
 		switch r {
 		case 2, 3, 4, 5, 7, 8:
 		default:
@@ -149,6 +158,17 @@ func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 }
 
 func (st *skStage) pass(ch, cc []complex128, inverse bool) {
+	twX := st.twX
+	if inverse {
+		twX = st.twXc
+	}
+	if !kernels.StockhamPass(st.r, st.ido, st.l1, cc, ch, twX, inverse) {
+		st.passScalar(ch, cc, inverse)
+	}
+}
+
+// passScalar is the pure-Go pass, for every radix and ido.
+func (st *skStage) passScalar(ch, cc []complex128, inverse bool) {
 	tw := st.tw
 	if inverse {
 		tw = st.twc

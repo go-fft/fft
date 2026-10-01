@@ -129,7 +129,7 @@ func transformAxis(out []complex128, shape, stride []int, ax int, inverse bool) 
 	}
 
 	if parallelizeLines(lineCount, n) {
-		parChunks(lineCount, work)
+		parChunks(lineCount, n, work)
 	} else {
 		work(0, lineCount)
 	}

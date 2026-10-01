@@ -1,0 +1,28 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplexPlan_GoFFT/256-16         	  135218	      2641 ns/op
+BenchmarkComplexPlan_GoFFT/1024-16        	   38676	      9203 ns/op
+BenchmarkComplexPlan_GoFFT/4096-16        	   10000	     35124 ns/op
+BenchmarkComplexPlan_GoFFT/65536-16       	     705	    512753 ns/op
+BenchmarkComplexPlan_GoFFT/1048576-16     	      50	   7000970 ns/op
+BenchmarkComplexPlan_GoFFT/1000-16        	   39829	     15647 ns/op
+BenchmarkComplexPlan_GoFFT/1080-16        	   36133	     10043 ns/op
+BenchmarkComplexPlan_GoFFT/1920-16        	   21058	     17004 ns/op
+BenchmarkComplexPlan_GoFFT/1009-16        	   13574	     26233 ns/op
+BenchmarkComplexPlan_GoFFT/1296-16        	   31438	     11540 ns/op
+BenchmarkComplexPlan_GoFFT/10007-16       	     729	    479593 ns/op
+BenchmarkComplexPlan_Gonum/256-16         	  147090	      2380 ns/op
+BenchmarkComplexPlan_Gonum/1024-16        	   42114	      8576 ns/op
+BenchmarkComplexPlan_Gonum/4096-16        	   10000	     31696 ns/op
+BenchmarkComplexPlan_Gonum/65536-16       	     813	    442693 ns/op
+BenchmarkComplexPlan_Gonum/1048576-16     	      50	   6385443 ns/op
+BenchmarkComplexPlan_Gonum/1000-16        	   25333	     17235 ns/op
+BenchmarkComplexPlan_Gonum/1080-16        	   38054	      9430 ns/op
+BenchmarkComplexPlan_Gonum/1920-16        	   22426	     15745 ns/op
+BenchmarkComplexPlan_Gonum/1009-16        	   37204	      9677 ns/op
+BenchmarkComplexPlan_Gonum/1296-16        	   32564	     11044 ns/op
+BenchmarkComplexPlan_Gonum/10007-16       	    3860	     90949 ns/op
+PASS
+ok  	github.com/go-fft/fft/benchmarks	11.158s

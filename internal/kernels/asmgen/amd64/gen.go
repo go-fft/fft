@@ -282,6 +282,12 @@ func main() {
 	genRadix4AVX2(fb, "radix4StageAVX2Fwd", false)
 	genRadix4AVX2(fb, "radix4StageAVX2Inv", true)
 	genRadix2LeafAVX2(fb)
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		genStockhamAVX2(fb, r)
+	}
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		genStockhamLastAVX2(fb, r)
+	}
 	writeFile("butterfly_amd64.s", fb.String())
 
 	// The gate in front of those AVX2 kernels. It used to be 24 hand-written
@@ -393,4 +399,349 @@ func writeFile(name, content string) {
 		os.Exit(1)
 	}
 	fmt.Println("wrote", name)
+}
+
+// ---------------------------------------------------------------------------
+// Stockham pass kernels (the fft package's stockham.go, radices 2/3/4/5/8).
+//
+// skPass{r}AVX2(cc, ch, tw, k *complex128/float64, ido, l1 int) runs one whole
+// Stockham pass: for every block k < l1 and every point i < ido it reads the r
+// inputs cc[i+ido·(j+r·k)], applies the size-r butterfly, multiplies output j
+// >= 1 by its twiddle and writes ch[i+ido·(k+l1·j)]. Two points (i, i+1) share
+// each YMM register; an odd ido finishes with one 128-bit step. ido >= 2.
+//
+// tw is the pass's twiddle table extended to i = 0: block j-1 (j = 1..r-1)
+// holds ido entries. The scalar oracle does NOT multiply at i = 0, and a
+// multiply by 1 is not exact on signed zeros, so the first pair of every block
+// multiplies both lanes and then takes lane pair 0 back from the unmultiplied
+// value (VBLENDPD $3) — bit-identical, not merely equal.
+//
+// k points at the constants table (32-byte rows, see stockham_amd64.go): row 0
+// is the ±i rotation sign mask, which carries the transform direction, so one
+// kernel serves both. Every operation mirrors stockham.go's scalar arithmetic
+// in the same order with separately rounded VMULPD/VADDPD/VADDSUBPD (no FMA),
+// matching the GOAMD64=v1 oracle bit for bit; the rotations are exact lane
+// swaps and sign flips.
+//
+// Registers: AX = input block + i (P), SI = P + 4·S, BX = output + i (O), DI =
+// O + 4·OS, R10/R11 = twiddle cursors (T, T + 4·S), CX = S = ido·16, DX = OS =
+// l1·ido·16, R12 = 3·S, R13 = 3·OS, R8 = blocks left, R9 = pairs left, R14 =
+// constants, R15 = twiddle table base.
+
+const (
+	kSign   = 0   // rotation sign mask (direction)
+	kHalf   = 32  // 0.5
+	kSin120 = 64  // sin(2π/3)
+	kC51    = 96  // cos(2π/5)
+	kC52    = 128 // cos(4π/5)
+	kS51    = 160 // sin(2π/5)
+	kS52    = 192 // sin(4π/5)
+	kH      = 224 // √2/2
+)
+
+type skEmit struct {
+	b    *amd64.Builder
+	w    string // "Y" (two points) or "X" (the odd tail)
+	last int    // radix of a final-pass kernel (ido == 1), 0 for the others
+}
+
+func (e skEmit) v(i int) string { return fmt.Sprintf("%s%d", e.w, i) }
+
+func (e skEmit) raw(format string, a ...any) { e.b.Raw(fmt.Sprintf(format, a...)) }
+
+func skIn(j int) string {
+	return [...]string{"(AX)", "(AX)(CX*1)", "(AX)(CX*2)", "(AX)(R12*1)", "(SI)", "(SI)(CX*1)", "(SI)(CX*2)", "(SI)(R12*1)"}[j]
+}
+
+func skOut(j int) string {
+	return [...]string{"(BX)", "(BX)(DX*1)", "(BX)(DX*2)", "(BX)(R13*1)", "(DI)", "(DI)(DX*1)", "(DI)(DX*2)", "(DI)(R13*1)"}[j]
+}
+
+// skTw addresses twiddle block j-1 (j >= 1).
+func skTw(j int) string {
+	return [...]string{"(R10)", "(R10)(CX*1)", "(R10)(CX*2)", "(R10)(R12*1)", "(R11)", "(R11)(CX*1)", "(R11)(CX*2)"}[j-1]
+}
+
+func (e skEmit) ld(dst int, addr string) { e.raw("VMOVUPD %s, %s", addr, e.v(dst)) }
+
+// in loads input j. In a final pass (ido == 1) a register holds blocks k and
+// k+1 instead of points i and i+1: input j of block k is 16·j bytes into the
+// block pair, and of block k+1 16·(r+j).
+func (e skEmit) in(dst, j int) {
+	if e.last == 0 {
+		e.ld(dst, skIn(j))
+		return
+	}
+	e.raw("VMOVUPD %d(AX), X%d", 16*j, dst)
+	if e.w == "Y" {
+		e.raw("VINSERTF128 $1, %d(AX), Y%d, Y%d", 16*(e.last+j), dst, dst)
+	}
+}
+func (e skEmit) st(src int, addr string)  { e.raw("VMOVUPD %s, %s", e.v(src), addr) }
+func (e skEmit) add(dst, a, b int)        { e.raw("VADDPD %s, %s, %s", e.v(b), e.v(a), e.v(dst)) }
+func (e skEmit) sub(dst, a, b int)        { e.raw("VSUBPD %s, %s, %s", e.v(b), e.v(a), e.v(dst)) }
+func (e skEmit) mulk(dst, a int, off int) { e.raw("VMULPD %d(R14), %s, %s", off, e.v(a), e.v(dst)) }
+
+// rot: dst = rotS(src) — swap re/im, then flip the sign the direction selects.
+func (e skEmit) rot(dst, src int) {
+	e.raw("VPERMILPD $5, %s, %s", e.v(src), e.v(dst))
+	e.raw("VXORPD %d(R14), %s, %s", kSign, e.v(dst), e.v(dst))
+}
+
+// twStore multiplies y by twiddle j and stores it to output j. In the first
+// pair of a block the i = 0 lane pair keeps the unmultiplied y. A final pass
+// has no twiddles: it stores y.
+func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
+	if e.last != 0 {
+		e.st(y, skOut(j))
+		return
+	}
+	e.raw("VMOVUPD %s, %s", skTw(j), e.v(t3))
+	e.raw("VPERMILPD $0, %s, %s", e.v(y), e.v(t1))
+	e.raw("VPERMILPD $15, %s, %s", e.v(y), e.v(t2))
+	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t1), e.v(t1))
+	e.raw("VPERMILPD $5, %s, %s", e.v(t3), e.v(t3))
+	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
+	e.raw("VADDSUBPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
+	if first {
+		e.raw("VBLENDPD $3, %s, %s, %s", e.v(y), e.v(dst), e.v(dst))
+	}
+	e.st(dst, skOut(j))
+}
+
+func (e skEmit) body(r int, first bool) {
+	switch r {
+	case 2:
+		e.in(0, 0)
+		e.in(1, 1)
+		e.add(2, 0, 1)
+		e.st(2, skOut(0))
+		e.sub(3, 0, 1)
+		e.twStore(3, 1, 5, 6, 7, 4, first)
+	case 3:
+		e.in(0, 0)
+		e.in(1, 1)
+		e.in(2, 2)
+		e.add(3, 1, 2) // t1
+		e.sub(4, 1, 2) // t2
+		e.add(5, 0, 3)
+		e.st(5, skOut(0))
+		e.mulk(6, 3, kHalf)
+		e.sub(6, 0, 6) // ca = x0 - 0.5·t1
+		e.mulk(7, 4, kSin120)
+		e.rot(7, 7) // cb
+		e.add(1, 6, 7)
+		e.sub(2, 6, 7)
+		e.twStore(1, 1, 9, 10, 11, 8, first)
+		e.twStore(2, 2, 9, 10, 11, 8, first)
+	case 4:
+		for j := 0; j < 4; j++ {
+			e.in(j, j)
+		}
+		e.add(4, 0, 2) // t2
+		e.sub(5, 0, 2) // t1
+		e.add(6, 1, 3) // t3
+		e.sub(7, 1, 3) // t4
+		e.rot(7, 7)
+		e.add(0, 4, 6)
+		e.st(0, skOut(0))
+		e.add(1, 5, 7)
+		e.sub(2, 4, 6)
+		e.sub(3, 5, 7)
+		e.twStore(1, 1, 9, 10, 11, 8, first)
+		e.twStore(2, 2, 9, 10, 11, 8, first)
+		e.twStore(3, 3, 9, 10, 11, 8, first)
+	case 5:
+		e.in(0, 0)
+		e.in(1, 1)
+		e.in(2, 4)
+		e.add(3, 1, 2) // t1
+		e.sub(4, 1, 2) // t2
+		e.in(1, 2)
+		e.in(2, 3)
+		e.add(5, 1, 2) // t3
+		e.sub(6, 1, 2) // t4
+		e.add(7, 0, 3)
+		e.add(7, 7, 5)
+		e.st(7, skOut(0))
+		e.mulk(8, 3, kC51)
+		e.mulk(9, 5, kC52)
+		e.add(8, 8, 9)
+		e.add(8, 0, 8) // r1
+		e.mulk(9, 3, kC52)
+		e.mulk(10, 5, kC51)
+		e.add(9, 9, 10)
+		e.add(9, 0, 9) // r2
+		e.mulk(10, 4, kS51)
+		e.mulk(11, 6, kS52)
+		e.add(10, 10, 11)
+		e.rot(10, 10) // i1
+		e.mulk(11, 4, kS52)
+		e.mulk(12, 6, kS51)
+		e.sub(11, 11, 12)
+		e.rot(11, 11)   // i2
+		e.add(1, 8, 10) // y1
+		e.sub(4, 8, 10) // y4
+		e.add(2, 9, 11) // y2
+		e.sub(3, 9, 11) // y3
+		e.twStore(1, 1, 12, 13, 14, 15, first)
+		e.twStore(2, 2, 12, 13, 14, 15, first)
+		e.twStore(3, 3, 12, 13, 14, 15, first)
+		e.twStore(4, 4, 12, 13, 14, 15, first)
+	case 8:
+		e.in(1, 1)
+		e.in(5, 5)
+		e.add(8, 1, 5) // a1
+		e.sub(9, 1, 5) // a5
+		e.in(3, 3)
+		e.in(7, 7)
+		e.add(10, 3, 7) // a3
+		e.sub(11, 3, 7) // a7
+		e.add(12, 8, 10)
+		e.sub(10, 8, 10) // a1, a3 = a1+a3, a1-a3
+		e.rot(10, 10)
+		e.rot(11, 11)
+		e.add(8, 9, 11)
+		e.sub(9, 9, 11) // a5, a7 = a5+a7, a5-a7
+		e.rot(11, 8)
+		e.add(8, 8, 11)
+		e.mulk(8, 8, kH) // a5 = h·(a5 + rotS(a5))
+		e.rot(11, 9)
+		e.sub(9, 11, 9)
+		e.mulk(9, 9, kH) // a7 = h·(rotS(a7) - a7)
+		e.in(0, 0)
+		e.in(4, 4)
+		e.add(1, 0, 4) // a0
+		e.sub(2, 0, 4) // a4
+		e.in(0, 2)
+		e.in(4, 6)
+		e.add(3, 0, 4) // a2
+		e.sub(5, 0, 4) // a6
+		e.add(0, 1, 3)
+		e.sub(1, 1, 3) // a0, a2 = a0+a2, a0-a2
+		e.rot(5, 5)
+		e.add(3, 2, 5)
+		e.sub(2, 2, 5) // a4, a6 = a4+a6, a4-a6
+		// a0=0 a2=1 a4=3 a6=2 a1=12 a3=10 a5=8 a7=9
+		e.add(4, 0, 12)
+		e.st(4, skOut(0))
+		e.sub(0, 0, 12)  // y4
+		e.add(12, 1, 10) // y2
+		e.sub(1, 1, 10)  // y6
+		e.add(10, 3, 8)  // y1
+		e.sub(3, 3, 8)   // y5
+		e.add(8, 2, 9)   // y3
+		e.sub(2, 2, 9)   // y7
+		for _, yj := range [][2]int{{10, 1}, {12, 2}, {8, 3}, {0, 4}, {3, 5}, {1, 6}, {2, 7}} {
+			e.twStore(yj[0], yj[1], 13, 14, 15, 4, first)
+		}
+	}
+}
+
+func (e skEmit) advance(bytes int) {
+	for _, r := range []string{"AX", "SI", "BX", "DI", "R10", "R11"} {
+		e.raw("ADDQ $%d, %s", bytes, r)
+	}
+}
+
+func genStockhamAVX2(f *emit.File, r int) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX2", r), sig, 0)
+	y, x := skEmit{b, "Y", 0}, skEmit{b, "X", 0}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
+		LoadArg("ido", "CX").LoadArg("l1", "R8")
+	b.Raw("MOVQ CX, DX").
+		Raw("IMULQ R8, DX").
+		Raw("SHLQ $4, CX"). // S
+		Raw("SHLQ $4, DX"). // OS
+		Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("kloop:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done").
+		Raw("LEAQ (AX)(CX*4), SI").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("MOVQ R15, R10").
+		Raw("LEAQ (R15)(CX*4), R11")
+	y.body(r, true)
+	y.advance(32)
+	b.Raw("MOVQ CX, R9").
+		Raw("SHRQ $5, R9"). // pairs = ido/2
+		Raw("DECQ R9").
+		Raw("iloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ tail")
+	y.body(r, false)
+	y.advance(32)
+	b.Raw("DECQ R9").
+		Raw("JMP iloop").
+		Raw("tail:").
+		Raw("TESTQ $16, CX"). // ido odd
+		Raw("JZ knext")
+	x.body(r, false)
+	x.advance(16)
+	b.Raw("knext:")
+	// P advanced by S over the block; the next block starts r·S after this one.
+	switch r {
+	case 2:
+		b.Raw("ADDQ CX, AX")
+	case 3:
+		b.Raw("LEAQ (AX)(CX*2), AX")
+	case 4:
+		b.Raw("ADDQ R12, AX")
+	case 5:
+		b.Raw("LEAQ (AX)(CX*4), AX")
+	case 8:
+		b.Raw("LEAQ (AX)(CX*4), AX").Raw("ADDQ R12, AX")
+	}
+	// O advanced by S, which is exactly the next block's output start.
+	b.Raw("DECQ R8").
+		Raw("JMP kloop").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamLastAVX2 emits skLast{r}AVX2(cc, ch, k, l1): the final Stockham
+// pass (ido == 1), where every block is a single point and there are no
+// twiddles. It vectorizes across blocks instead of points — blocks k and k+1
+// share each YMM register, their inputs gathered from the two adjacent r-point
+// blocks, their outputs landing contiguous in each of the r output runs — and
+// an odd l1 finishes with one 128-bit step. The butterflies are the ones the
+// other passes use, so the result is again bit-identical to stockham.go's
+// pass{r}last.
+func genStockhamLastAVX2(f *emit.File, r int) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "k", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX2", r), sig, 0)
+	y, x := skEmit{b, "Y", r}, skEmit{b, "X", r}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
+	b.Raw("MOVQ DX, R9").
+		Raw("SHRQ $1, R9"). // block pairs
+		Raw("SHLQ $4, DX"). // OS
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("loop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ tail")
+	y.body(r, false)
+	b.Raw(fmt.Sprintf("ADDQ $%d, AX", 32*r)).
+		Raw("ADDQ $32, BX").
+		Raw("ADDQ $32, DI").
+		Raw("DECQ R9").
+		Raw("JMP loop").
+		Raw("tail:").
+		Raw("TESTQ $16, DX"). // l1 odd
+		Raw("JZ done")
+	x.body(r, false)
+	b.Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
 }

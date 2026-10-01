@@ -24,15 +24,23 @@ var parWorkers = runtime.GOMAXPROCS(0)
 // benchmark host.
 const parThreshold = 1 << 14
 
-// parChunks splits the half-open range [0,n) into up to parWorkers contiguous
-// chunks and invokes body(lo, hi) for each, concurrently, blocking until all
-// return. When parallelism is disabled, or n is small, or only one chunk would
-// result, body is called once inline as body(0, n) — no goroutine is spawned.
-// body must be safe to run concurrently across disjoint index ranges.
-func parChunks(n int, body func(lo, hi int)) {
+// parMinChunk is the least work (elements touched) one goroutine is given.
+var parMinChunk = 1 << 13
+
+// parChunks splits the half-open range [0,n) of items, each touching itemLen
+// elements, into contiguous chunks and invokes body(lo, hi) for each,
+// concurrently, blocking until all return. It uses at most parWorkers chunks,
+// and no more than the work can feed: every chunk gets at least parMinChunk
+// elements. When that leaves one chunk, body is called once inline as
+// body(0, n) — no goroutine is spawned. body must be safe to run concurrently
+// across disjoint index ranges.
+func parChunks(n, itemLen int, body func(lo, hi int)) {
 	w := parWorkers
 	if w > n {
 		w = n
+	}
+	if byWork := n * itemLen / parMinChunk; w > byWork {
+		w = byWork
 	}
 	if w <= 1 {
 		body(0, n)

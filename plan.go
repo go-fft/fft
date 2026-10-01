@@ -29,10 +29,10 @@ type Plan struct {
 	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
 }
 
-// pow2Stockham routes powers of two to the Stockham engine instead of the
-// iterative pow2 kernel. It is per-architecture (route_*.go) and a variable
-// only so the tests can run both routes on every architecture.
-var pow2Stockham = pow2StockhamDefault
+// pow2StockhamMax is the largest power of two routed to the Stockham engine
+// instead of the iterative pow2 kernel. It is per-architecture (route_*.go)
+// and a variable only so the tests can run both routes on every architecture.
+var pow2StockhamMax = pow2StockhamMaxDefault()
 
 // maxRadix bounds the largest prime factor handled by a direct radix-p
 // butterfly. Factors above this make the radix-p inner DFT (O(p^2)) costlier
@@ -49,7 +49,7 @@ func NewPlan(n int) *Plan {
 	if n <= 1 {
 		return p
 	}
-	if n&(n-1) == 0 && !pow2Stockham {
+	if n&(n-1) == 0 && n > pow2StockhamMax {
 		// Pure power of two: the iterative cache-friendly kernel (one bit-reversal
 		// + radix-4 DIT stages, twiddles laid out for sequential reads) measured
 		// faster than the recursive split-radix engine at every power-of-two length

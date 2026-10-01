@@ -70,12 +70,15 @@ func TestPooledConvolutionBufferIsCleared(t *testing.T) {
 // or the iterative pow2 kernel, on a fresh plan cache, and restores both.
 func withPow2Route(on bool, f func()) {
 	planMu.Lock()
-	saved, savedCache := pow2Stockham, planCache
-	pow2Stockham, planCache = on, map[int]*Plan{}
+	saved, savedCache := pow2StockhamMax, planCache
+	pow2StockhamMax, planCache = 0, map[int]*Plan{}
+	if on {
+		pow2StockhamMax = math.MaxInt
+	}
 	planMu.Unlock()
 	defer func() {
 		planMu.Lock()
-		pow2Stockham, planCache = saved, savedCache
+		pow2StockhamMax, planCache = saved, savedCache
 		planMu.Unlock()
 	}()
 	f()

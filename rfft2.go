@@ -45,7 +45,7 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 		}
 	}
 	if parallelizeLines(rows, cols) {
-		parChunks(rows, rowWork)
+		parChunks(rows, cols, rowWork)
 	} else {
 		rowWork(0, rows)
 	}
@@ -66,7 +66,7 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 		}
 	}
 	if parallelizeLines(rcols, rows) {
-		parChunks(rcols, colWork)
+		parChunks(rcols, rows, colWork)
 	} else {
 		colWork(0, rcols)
 	}
@@ -114,7 +114,7 @@ func IRFFT2(data []complex128, shape [2]int) []float64 {
 		}
 	}
 	if parallelizeLines(rcols, rows) {
-		parChunks(rcols, colWork)
+		parChunks(rcols, rows, colWork)
 	} else {
 		colWork(0, rcols)
 	}
@@ -130,7 +130,7 @@ func IRFFT2(data []complex128, shape [2]int) []float64 {
 		}
 	}
 	if parallelizeLines(rows, cols) {
-		parChunks(rows, rowWork)
+		parChunks(rows, cols, rowWork)
 	} else {
 		rowWork(0, rows)
 	}
