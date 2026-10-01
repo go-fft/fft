@@ -210,3 +210,50 @@ The speed-ups are the load-bearing numbers. The FFTW column divides by the FFTW 
 Correctness: the Stockham engine is cross-checked against the recursive engine, which is kept as an independent test oracle the way the split-radix engine is, at **every smooth length up to 3000**. The check runs in both directions and with `dst` aliasing `src`, so it reaches every radix at both `ido == 1` and `ido > 1`. The existing naive-DFT and numpy differential tests now run through the new engine unchanged. A dirty-pool test runs a plan on a large input and then on a small one, then compares the result with a fresh plan. Removing either new `clear` of the pooled convolution pad makes it fail, which was checked by mutation.
 
 Remaining here: the general radix pass (11, 13) is still an O(r²) loop, and the Bluestein path (primes < 700 and lengths with a large prime factor) still convolves on the radix-2 kernel. On arm64 the Stockham engine also ran pow2 lengths ~5–10% faster than the pow2 kernel, but routing powers of two to it would drop the amd64 AVX2 butterflies and the fused real packing, so that was not done.
+
+### Round 2 — pocketfft's passes, per-architecture routing, re-measured prime engines (2026-09-29)
+
+This round compared the Stockham engine with pocketfft's `cfftp`/`fftblue` (read from `pocketfft_hdronly.h`, the C++ core behind `numpy.fft` and `scipy.fft`), and re-measured each routing constant on the new engine instead of carrying it over. Every step was measured before it was kept.
+
+1. **Radix-8 pass** (pocketfft's `pass8`, whose odd half rotates by ±45°/±135° instead of multiplying). pocketfft takes every 8 it can. Here, radix 8 wins while the working set is small (512: 1.30×, 2048: 1.17× over radix 4) but loses on large pure powers of two (65536: 0.71–0.78×), where eight input and eight output streams at power-of-two strides alias in the cache. The factorization therefore uses radix 8 up to 4096 and for any length with an odd factor, and radix 4 for larger powers of two. It never takes a lone radix-2 pass when two radix-4 passes fit.
+2. **Bounds-check-free passes.** Point `i = 0` (no twiddle) is done once per block, and every stream is resliced to exactly `ido-1`, so the compiler proves every index and the inner loops carry neither a bounds check nor a per-point branch. The direction is a sign folded exactly into the rotations. Radix 5, 7 and 8 exceed the inliner's budget and are inlined by hand, and the final pass (`ido == 1`) has its own flat loop. Together: 1.2–1.33× on composites.
+3. **Powers of two on arm64 only.** The Stockham engine beats the pow2 kernel on arm64 at every size, but not everywhere else. Measured on real hardware (Stockham ÷ pow2 kernel speed, 256/1024/4096/65536): arm64 M4 1.07/1.30/1.10/1.34; amd64 Xeon E5-2620 v3 0.46/0.45/0.45/0.47, because the AVX2 butterflies win; riscv64 SpacemiT X60 0.89/0.82/0.82/0.96; ppc64le POWER9 0.97/1.10/0.99/1.35; loong64 3A5000 1.03/1.15/1.00/1.26. So powers of two route to Stockham on arm64 only (`route_arm64.go`). s390x was unreachable and keeps the pow2 kernel. The route is a variable so a test runs both routes, complex and real, on every architecture.
+4. **Convolution-length cost model refitted.** The per-radix weights were calibrated on the recursive engine. On the new engine, over the linear-convolution windows of 260 primes, their picks were 26% (arm64) and 13% (amd64) slower than the fastest length in the window, worse than just taking the smallest smooth length. The weights were refitted by least squares to the time of every 7-smooth length in [500, 45000] on both hosts, and cross-validated (each host's fit on the other's data). Their picks now land 4.3% (arm64) and 2.6% (amd64) above the best on average, with the median exactly on it.
+5. **Bluestein on the Stockham engine at a smooth length** (pocketfft's `fftblue` + `good_size`). It used to pad to a power of two and run a standalone radix-2 kernel, so N=641 did a 2048-point convolution where 1296 suffices. That alone took 641 from 43.1 to 8.4 µs on arm64 (5.1×). It is also far more accurate: relative RMS error vs a compensated-sum DFT went 4.7e-14 → 1.3e-15 at N=1282 = 2·641, which stays on Bluestein. 641 itself then moved to Rader (item 6; 640 = 2⁷·5), ending at 3.85 µs (11.6× over `main`) with error 1.7e-14 → 9.8e-16.
+6. **Rader only where it wins.** Both engines were timed on every prime from 17 to 6000, on arm64 and amd64. Rader with a 7-smooth N−1 (a cyclic convolution at exactly N−1) won 65/65 on amd64 and most cases on arm64. Rader with an 11 or 13 in N−1 lost every time. The zero-padded linear Rader lost to Bluestein in all but 15 of about 1000 primes, because its permuted gather/scatter costs more than Bluestein's contiguous chirp passes. The router is now "prime with 7-smooth N−1 → Rader, else Bluestein". The size threshold (700) and the linear Rader path are gone.
+7. **Real transforms without pack/unpack passes.** The packing z[j] = x[2j] + i·x[2j+1] is exactly the memory layout of a `[]complex128`, so on the Stockham route RFFT reads the input through a view of it and IRFFT writes the signal in place. The 1/m normalization is folded into the inverse's re-tangle pass. A test pins the layout.
+
+Numerical accuracy was checked against a compensated-summation DFT (twoSum + FMA error terms) at 12 lengths. It is unchanged to the same order everywhere (≈1e-15 relative RMS), except for the 641/1282 gains above.
+
+Interleaved A/B, best of 5 at 0.3 s. `main` = 3d840b8, #9 = the first Stockham round. Both hosts were shared and loaded; the unchanged pow2 paths on amd64 read within ±10%, which is that host's noise.
+
+**arm64 (Apple M4 Max)**, ns/op. The last column divides by the FFTW figures carried in the tables above (a June snapshot, so indicative):
+
+| op | main | #9 | this round | vs main | vs #9 | ÷ FFTW, main → now |
+|:--|---:|---:|---:|---:|---:|---:|
+| complex 256 / 1024 / 4096 | 739 / 3,429 / 16,231 | 692 / 3,292 / 16,157 | 602 / 2,315 / 13,093 | 1.23 / 1.48 / 1.24× | 1.15 / 1.42 / 1.23× | 1.76→1.44 / 1.61→1.09 / 1.47→1.18 |
+| complex 65536 / 2²⁰ | 370,547 / 9,537,617 | 366,154 / 9,219,404 | 273,896 / 6,532,895 | 1.35 / 1.46× | 1.34 / 1.41× | 1.15→**0.85** / 1.17→**0.80** |
+| complex 1000 / 1080 / 1296 / 1920 | 5,511 / 6,398 / 9,024 / 11,693 | 3,549 / 4,036 / 4,989 / 7,106 | 2,611 / 2,830 / 3,554 / 4,913 | 2.11 / 2.26 / 2.54 / 2.38× | 1.36 / 1.43 / 1.40 / 1.45× | 2.22→1.05 / 2.59→1.15 / 3.01→1.19 / 2.69→1.13 |
+| prime 1009 / 2017 / 10007 | 15,752 / 32,603 / 341,088 | 9,390 / 19,862 / 258,045 | 7,124 / 15,407 / 204,178 | 2.21 / 2.12 / 1.67× | 1.32 / 1.29 / 1.26× | 1.15→**0.52** / — / 1.99→1.19 |
+| prime 641 (now Rader) | 44,757 | 42,521 | 3,851 | 11.6× | 11.0× | — |
+| RFFT 256 / 1024 / 4096 / 65536 | 451 / 1,999 / 9,315 / 197,737 | 448 / 2,006 / 9,341 / 201,660 | 303 / 1,340 / 7,349 / 150,809 | 1.49 / 1.49 / 1.27 / 1.31× | 1.47 / 1.50 / 1.27 / 1.34× | 2.05→1.38 / 2.00→1.34 / 1.90→1.50 / 1.38→1.05 |
+| IRFFT 256 / 1024 / 4096 / 65536 | 525 / 2,280 / 10,234 / 216,512 | 522 / 2,279 / 10,187 / 216,823 | 331 / 1,455 / 7,614 / 160,512 | 1.59 / 1.57 / 1.34 / 1.35× | 1.58 / 1.57 / 1.34 / 1.35× | 2.07→1.31 / 1.93→1.23 / 1.85→1.38 / 1.40→1.03 |
+| RFFT 1000 / 1080 / 1920 | 3,027 / 3,451 / 6,330 | 2,114 / 2,392 / 4,194 | 1,496 / 1,618 / 2,936 | 2.02 / 2.13 / 2.16× | 1.41 / 1.48 / 1.43× | 2.57→1.27 / 3.05→1.43 / 2.89→1.34 |
+| IRFFT 1000 / 1080 / 1920 | 3,312 / 3,735 / 6,703 | 2,362 / 2,659 / 4,666 | 1,591 / 1,731 / 3,135 | 2.08 / 2.16 / 2.14× | 1.48 / 1.54 / 1.49× | 2.71→1.30 / 2.79→1.29 / 2.98→1.39 |
+
+**amd64 (Intel Xeon E5-2620 v3, Haswell, AVX2)**, ns/op:
+
+| op | main | #9 | this round | vs main | vs #9 |
+|:--|---:|---:|---:|---:|---:|
+| complex 1000 / 1080 / 1296 / 1920 | 49,049 / 65,252 / 86,751 / 101,880 | 21,108 / 24,141 / 30,096 / 40,778 | 17,691 / 19,454 / 25,946 / 33,826 | 2.77 / 3.35 / 3.34 / 3.01× | 1.19 / 1.24 / 1.16 / 1.21× |
+| prime 1009 / 2017 / 10007 / 641 | 150,070 / 306,025 / 3,764,135 / 209,701 | 52,444 / 111,684 / 1,437,809 / 165,109 | 42,382 / 100,380 / 1,144,763 / 21,272 | 3.54 / 3.05 / 3.29 / 9.86× | 1.24 / 1.11 / 1.26 / 7.76× |
+| RFFT 1000 / 1080 / 1920 | 19,985 / 23,437 / 49,181 | 11,677 / 13,483 / 24,672 | 9,684 / 10,659 / 19,604 | 2.06 / 2.20 / 2.51× | 1.21 / 1.26 / 1.26× |
+| IRFFT 1000 / 1080 / 1920 | 21,104 / 26,561 / 49,746 | 14,206 / 14,778 / 25,855 | 9,903 / 11,921 / 19,008 | 2.13 / 2.23 / 2.62× | 1.43 / 1.24 / 1.36× |
+| complex and real powers of two | — | — | — | unchanged (same code; 0.94–1.08×) | — |
+
+What remains:
+
+- **amd64 non-powers of two run scalar.** At 1000 points they cost ~2.3× per point what the AVX2 pow2 kernel does at 1024. The next lever there is SIMD Stockham passes, which go-asmgen could generate the way it generates the butterflies.
+- **riscv64, ppc64le and loong64** keep the pow2 kernel for powers of two.
+- **Small real transforms** still trail FFTW ~1.3–1.5×. FFTW has codelet-scheduled real kernels; pocketfft's `rfftp` (FFTPACK real passes) is the pure-Go-portable reference for a native real engine, which was not attempted this round.
+- **The FFTW columns** need a fresh `benchmarks/run.sh` on an idle host.

@@ -7,14 +7,15 @@ import (
 
 // smallRaderPrimes are primes for which the O(N²) naive oracle is cheap, used to
 // validate the Rader engine itself (constructed directly, bypassing the
-// size-threshold router). They exercise small/medium primitive-root orders.
+// router). They exercise small/medium primitive-root orders.
 var smallRaderPrimes = []int{17, 23, 31, 97, 101, 257, 521, 1009}
 
-// largeRaderPrimes are primes at/above raderThreshold — the ones the router
-// actually sends to Rader and where the FFTW gap was largest. They are validated
-// by round-trip and by agreement with the (already-naive-validated) Bluestein
-// engine, avoiding a multi-second O(N²) oracle at N≈10⁴.
-var largeRaderPrimes = []int{769, 1009, 2017, 3001, 4507, 5003, 6007, 8009, 9973, 10007}
+// largeRaderPrimes are larger primes whose N-1 the mixed-radix engine handles
+// directly (all 7-smooth, the ones the router sends to Rader, except 6007 and
+// 8009 whose N-1 carries 11 and 13). They are validated by round-trip and by
+// agreement with the (already-naive-validated) Bluestein engine, avoiding a
+// multi-second O(N²) oracle at N≈10⁴.
+var largeRaderPrimes = []int{769, 1009, 2017, 3001, 6007, 7681, 8009, 10753, 12289}
 
 // scaledTol grows the differential tolerance with N: an O(N) reduction over
 // magnitudes ~N accumulates rounding a fixed 1e-9 floor would wrongly flag. The
@@ -75,8 +76,8 @@ func naiveIDFTUnnormalized(x []complex128) []complex128 {
 }
 
 // TestRaderMatchesBluestein cross-checks the Rader engine against the Bluestein
-// engine (independently naive-validated) for the large threshold-routed primes —
-// the same transform by two different reductions must agree.
+// engine (independently naive-validated) for the larger primes — the same
+// transform by two different reductions must agree.
 func TestRaderMatchesBluestein(t *testing.T) {
 	for _, n := range largeRaderPrimes {
 		if !isPrime(n) {
@@ -95,13 +96,13 @@ func TestRaderMatchesBluestein(t *testing.T) {
 	}
 }
 
-// TestRaderRoundTrip checks IFFT(FFT(x)) ≈ x through the router (which selects
-// Rader for these lengths).
+// TestRaderRoundTrip checks IFFT(FFT(x)) ≈ x through the router, which selects
+// Rader exactly for the primes whose N-1 is 7-smooth (Bluestein for the rest).
 func TestRaderRoundTrip(t *testing.T) {
 	for _, n := range largeRaderPrimes {
 		p := NewPlan(n)
-		if p.rader == nil {
-			t.Fatalf("n=%d not routed to Rader", n)
+		if _, smooth := convCost(n - 1); (p.rader != nil) != smooth {
+			t.Fatalf("n=%d: routed to Rader = %v, want %v", n, p.rader != nil, smooth)
 		}
 		x := cmplxSignal(n)
 		fwd := make([]complex128, n)
@@ -161,20 +162,20 @@ func TestIsPrime(t *testing.T) {
 	}
 }
 
-// TestRaderThresholdRouting confirms the Bluestein/Rader split at raderThreshold.
-func TestRaderThresholdRouting(t *testing.T) {
-	below := 641 // prime just under raderThreshold
-	if !isPrime(below) || below >= raderThreshold {
-		t.Fatalf("test setup: %d should be a prime below %d", below, raderThreshold)
+// TestPrimeRouting confirms the Rader/Bluestein split: a prime goes to Rader
+// exactly when N-1 is 7-smooth, and to Bluestein otherwise (N-1 with a factor
+// 11 or 13, or not smooth at all).
+func TestPrimeRouting(t *testing.T) {
+	for _, n := range []int{17, 641, 769, 2017, 7681} { // 16, 640, 768, 2016, 7680
+		if pl := NewPlan(n); pl.rader == nil || pl.bluestein != nil {
+			t.Errorf("n=%d (n-1 7-smooth) should route to Rader", n)
+		}
 	}
-	if pl := NewPlan(below); pl.bluestein == nil || pl.rader != nil {
-		t.Errorf("n=%d should route to Bluestein", below)
-	}
-	above := 769 // prime just above raderThreshold
-	if !isPrime(above) || above < raderThreshold {
-		t.Fatalf("test setup: %d should be a prime at/above %d", above, raderThreshold)
-	}
-	if pl := NewPlan(above); pl.rader == nil || pl.bluestein != nil {
-		t.Errorf("n=%d should route to Rader", above)
+	// 23: 22 = 2·11; 6007: 6006 = 2·3·7·11·13; 47: 46 = 2·23; 9973: 9972 =
+	// 2²·3²·277; 10007: 10006 = 2·5003.
+	for _, n := range []int{23, 47, 6007, 9973, 10007} {
+		if pl := NewPlan(n); pl.bluestein == nil || pl.rader != nil {
+			t.Errorf("n=%d (n-1 not 7-smooth) should route to Bluestein", n)
+		}
 	}
 }

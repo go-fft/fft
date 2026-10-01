@@ -37,7 +37,7 @@ func newSKPlan(n int) *skPlan {
 	root := twiddleTable(n)
 	p := &skPlan{n: n}
 	l1 := 1
-	for _, r := range factorize(n) {
+	for _, r := range skFactorize(n) {
 		ido := n / (l1 * r)
 		st := skStage{r: r, l1: l1, ido: ido}
 		if ido > 1 {
@@ -52,7 +52,7 @@ func newSKPlan(n int) *skPlan {
 			}
 		}
 		switch r {
-		case 2, 3, 4, 5, 7:
+		case 2, 3, 4, 5, 7, 8:
 		default:
 			st.rt = make([]complex128, r)
 			st.rtc = make([]complex128, r)
@@ -71,6 +71,61 @@ func newSKPlan(n int) *skPlan {
 
 // transform writes the unnormalized DFT of src into dst (conjugate roots when
 // inverse). dst may alias src.
+// skFactorize orders the radices for the passes. The powers of two come first
+// as radix-8 passes where that pays, then radix 4, with no lone radix-2 pass
+// unless the length has a single factor 2; the odd primes follow ascending, so
+// the expensive odd butterflies run on the short, late passes.
+//
+// pocketfft (cfftp::factorize) takes every 8 it can. Measured here, radix 8
+// wins while the working set is small (512: 1.30×, 2048: 1.17× over radix 4)
+// but loses on large pure powers of two (65536: 0.71–0.78×), where its eight
+// input and eight output streams sit at power-of-two strides and alias in the
+// cache. So a large power of two stays on radix 4; a length with an odd factor
+// has no such aliasing and keeps radix 8 (20160: 1.07×).
+func skFactorize(n int) []int {
+	e, odd := 0, n
+	for odd%2 == 0 {
+		odd /= 2
+		e++
+	}
+	var f []int
+	if n <= r8MaxPow2 || odd > 1 {
+		n8 := e / 3
+		switch e % 3 {
+		case 1:
+			if e >= 4 {
+				// 2^(3k+1) = 8^(k-1)·4·4: two radix-4 passes beat a radix-2 pass.
+				n8--
+				f = append(f, 4, 4)
+			} else {
+				f = append(f, 2)
+			}
+		case 2:
+			f = append(f, 4)
+		}
+		for ; n8 > 0; n8-- {
+			f = append([]int{8}, f...)
+		}
+	} else {
+		for ; e >= 2; e -= 2 {
+			f = append(f, 4)
+		}
+		if e == 1 {
+			f = append(f, 2)
+		}
+	}
+	for _, prime := range []int{3, 5, 7, 11, 13} {
+		for odd%prime == 0 {
+			f = append(f, prime)
+			odd /= prime
+		}
+	}
+	return f
+}
+
+// r8MaxPow2 is the largest pure power of two factored with radix-8 passes.
+const r8MaxPow2 = 4096
+
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
 	scr := *bp
@@ -109,6 +164,8 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 		pass5(st.ido, st.l1, cc, ch, tw, inverse)
 	case 7:
 		pass7(st.ido, st.l1, cc, ch, tw, inverse)
+	case 8:
+		pass8(st.ido, st.l1, cc, ch, tw, inverse)
 	default:
 		rt := st.rt
 		if inverse {
@@ -120,214 +177,242 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 
 // In every pass: CC(i,m,k) = cc[i+ido·(m+r·k)], CH(i,k,m) = ch[i+ido·(k+l1·m)],
 // WA(x,i) = tw[(i-1)+x·(ido-1)].
+//
+// Every pass has the same shape: point i = 0 carries no twiddle and is done
+// once per k; the remaining m = ido-1 points run a loop in which every stream
+// has been resliced to exactly length m, so the compiler proves every index in
+// range and the loop carries no bounds check and no per-point branch. The
+// direction enters as a sign s = -1 (forward) or +1 (inverse) folded into the
+// rotations, which is exact, instead of a branch per point.
+
+// dirSign is -1 for the forward transform and +1 for the inverse.
+func dirSign(inverse bool) float64 {
+	if inverse {
+		return 1
+	}
+	return -1
+}
+
+// rotS multiplies z by s·i: by -i forward, +i inverse.
+func rotS(z complex128, s float64) complex128 {
+	return complex(-s*imag(z), s*real(z))
+}
+
+// stream returns the length-m run of buf starting at off.
+func stream(buf []complex128, off, m int) []complex128 { return buf[off:][:m] }
 
 func pass2(ido, l1 int, cc, ch, tw []complex128) {
+	if ido == 1 {
+		pass2last(l1, cc, ch)
+		return
+	}
+	m := ido - 1
+	w := tw[:m]
 	for k := 0; k < l1; k++ {
-		a := cc[ido*2*k : ido*2*k+ido]
-		b := cc[ido*(2*k+1) : ido*(2*k+1)+ido]
-		o0 := ch[ido*k : ido*k+ido]
-		o1 := ch[ido*(k+l1) : ido*(k+l1)+ido]
-		o0[0] = a[0] + b[0]
-		o1[0] = a[0] - b[0]
-		for i := 1; i < ido; i++ {
-			o0[i] = a[i] + b[i]
-			o1[i] = (a[i] - b[i]) * tw[i-1]
+		a, b := cc[2*ido*k], cc[2*ido*k+ido]
+		ch[ido*k] = a + b
+		ch[ido*(k+l1)] = a - b
+		x0, x1 := stream(cc, 2*ido*k+1, m), stream(cc, 2*ido*k+ido+1, m)
+		o0, o1 := stream(ch, ido*k+1, m), stream(ch, ido*(k+l1)+1, m)
+		for i := range w {
+			a, b := x0[i], x1[i]
+			o0[i] = a + b
+			o1[i] = (a - b) * w[i]
 		}
 	}
+}
+
+// bfly3 is the size-3 DFT; s is the direction sign.
+func bfly3(x0, x1, x2 complex128, s float64) (y0, y1, y2 complex128) {
+	t1, t2 := x1+x2, x1-x2
+	ca := complex(real(x0)-0.5*real(t1), imag(x0)-0.5*imag(t1))
+	cb := rotS(complex(sin120*real(t2), sin120*imag(t2)), s)
+	return x0 + t1, ca + cb, ca - cb
 }
 
 func pass3(ido, l1 int, cc, ch, tw []complex128, inverse bool) {
-	const tw1r = -0.5
-	tw1i := -sin120
-	if inverse {
-		tw1i = sin120
+	if ido == 1 {
+		pass3last(l1, cc, ch, dirSign(inverse))
+		return
 	}
-	var w1, w2 []complex128
-	if ido > 1 {
-		w1, w2 = tw[:ido-1], tw[ido-1:2*(ido-1)]
-	}
+	s := dirSign(inverse)
+	m := ido - 1
+	w1, w2 := tw[:m], tw[m:][:m]
 	for k := 0; k < l1; k++ {
-		base := ido * 3 * k
-		x0 := cc[base : base+ido]
-		x1 := cc[base+ido : base+2*ido]
-		x2 := cc[base+2*ido : base+3*ido]
-		o0 := ch[ido*k : ido*k+ido]
-		o1 := ch[ido*(k+l1) : ido*(k+l1)+ido]
-		o2 := ch[ido*(k+2*l1) : ido*(k+2*l1)+ido]
-		for i := 0; i < ido; i++ {
-			t0 := x0[i]
-			t1 := x1[i] + x2[i]
-			t2 := x1[i] - x2[i]
-			o0[i] = t0 + t1
-			ca := complex(real(t0)+tw1r*real(t1), imag(t0)+tw1r*imag(t1))
-			cb := complex(-tw1i*imag(t2), tw1i*real(t2))
-			if i == 0 {
-				o1[0] = ca + cb
-				o2[0] = ca - cb
-			} else {
-				o1[i] = (ca + cb) * w1[i-1]
-				o2[i] = (ca - cb) * w2[i-1]
-			}
+		b := 3 * ido * k
+		y0, y1, y2 := bfly3(cc[b], cc[b+ido], cc[b+2*ido], s)
+		ch[ido*k], ch[ido*(k+l1)], ch[ido*(k+2*l1)] = y0, y1, y2
+		x0, x1, x2 := stream(cc, b+1, m), stream(cc, b+ido+1, m), stream(cc, b+2*ido+1, m)
+		o0, o1, o2 := stream(ch, ido*k+1, m), stream(ch, ido*(k+l1)+1, m), stream(ch, ido*(k+2*l1)+1, m)
+		for i := range w1 {
+			y0, y1, y2 := bfly3(x0[i], x1[i], x2[i], s)
+			o0[i] = y0
+			o1[i] = y1 * w1[i]
+			o2[i] = y2 * w2[i]
 		}
 	}
+}
+
+// bfly4 is the size-4 DFT in output order 0,1,2,3.
+func bfly4(x0, x1, x2, x3 complex128, s float64) (y0, y1, y2, y3 complex128) {
+	t2, t1 := x0+x2, x0-x2
+	t3, t4 := x1+x3, x1-x3
+	t4 = rotS(t4, s)
+	return t2 + t3, t1 + t4, t2 - t3, t1 - t4
 }
 
 func pass4(ido, l1 int, cc, ch, tw []complex128, inverse bool) {
-	var w1, w2, w3 []complex128
-	if ido > 1 {
-		w1, w2, w3 = tw[:ido-1], tw[ido-1:2*(ido-1)], tw[2*(ido-1):3*(ido-1)]
+	if ido == 1 {
+		pass4last(l1, cc, ch, dirSign(inverse))
+		return
 	}
+	s := dirSign(inverse)
+	m := ido - 1
+	w1, w2, w3 := tw[:m], tw[m:][:m], tw[2*m:][:m]
 	for k := 0; k < l1; k++ {
-		base := ido * 4 * k
-		x0 := cc[base : base+ido]
-		x1 := cc[base+ido : base+2*ido]
-		x2 := cc[base+2*ido : base+3*ido]
-		x3 := cc[base+3*ido : base+4*ido]
-		o0 := ch[ido*k : ido*k+ido]
-		o1 := ch[ido*(k+l1) : ido*(k+l1)+ido]
-		o2 := ch[ido*(k+2*l1) : ido*(k+2*l1)+ido]
-		o3 := ch[ido*(k+3*l1) : ido*(k+3*l1)+ido]
-		{
-			t2, t1 := x0[0]+x2[0], x0[0]-x2[0]
-			t3, t4 := x1[0]+x3[0], x1[0]-x3[0]
-			t4 = rotNeg90(t4, inverse)
-			o0[0] = t2 + t3
-			o2[0] = t2 - t3
-			o1[0] = t1 + t4
-			o3[0] = t1 - t4
-		}
-		if inverse {
-			for i := 1; i < ido; i++ {
-				t2, t1 := x0[i]+x2[i], x0[i]-x2[i]
-				t3, t4 := x1[i]+x3[i], x1[i]-x3[i]
-				t4 = complex(-imag(t4), real(t4))
-				o0[i] = t2 + t3
-				o2[i] = (t2 - t3) * w2[i-1]
-				o1[i] = (t1 + t4) * w1[i-1]
-				o3[i] = (t1 - t4) * w3[i-1]
-			}
-		} else {
-			for i := 1; i < ido; i++ {
-				t2, t1 := x0[i]+x2[i], x0[i]-x2[i]
-				t3, t4 := x1[i]+x3[i], x1[i]-x3[i]
-				t4 = complex(imag(t4), -real(t4))
-				o0[i] = t2 + t3
-				o2[i] = (t2 - t3) * w2[i-1]
-				o1[i] = (t1 + t4) * w1[i-1]
-				o3[i] = (t1 - t4) * w3[i-1]
-			}
+		b := 4 * ido * k
+		y0, y1, y2, y3 := bfly4(cc[b], cc[b+ido], cc[b+2*ido], cc[b+3*ido], s)
+		ch[ido*k], ch[ido*(k+l1)], ch[ido*(k+2*l1)], ch[ido*(k+3*l1)] = y0, y1, y2, y3
+		x0, x1 := stream(cc, b+1, m), stream(cc, b+ido+1, m)
+		x2, x3 := stream(cc, b+2*ido+1, m), stream(cc, b+3*ido+1, m)
+		o0, o1 := stream(ch, ido*k+1, m), stream(ch, ido*(k+l1)+1, m)
+		o2, o3 := stream(ch, ido*(k+2*l1)+1, m), stream(ch, ido*(k+3*l1)+1, m)
+		for i := range w1 {
+			y0, y1, y2, y3 := bfly4(x0[i], x1[i], x2[i], x3[i], s)
+			o0[i] = y0
+			o1[i] = y1 * w1[i]
+			o2[i] = y2 * w2[i]
+			o3[i] = y3 * w3[i]
 		}
 	}
+}
+
+// Radix-5 constants: cos/sin of 2π/5 and 4π/5.
+const (
+	c51 = 0.30901699437494742410229341718281905886015458990288
+	s51 = 0.95105651629515357211643933337938214340569863412575
+	c52 = -0.80901699437494742410229341718281905886015458990289
+	s52 = 0.58778525229247312916870595463907276859765243764314
+)
+
+// bfly5 is the size-5 DFT in output order 0..4.
+func bfly5(a, x1, x2, x3, x4 complex128, s float64) (y0, y1, y2, y3, y4 complex128) {
+	t1, t2 := x1+x4, x1-x4
+	t3, t4 := x2+x3, x2-x3
+	r1 := a + complex(c51*real(t1)+c52*real(t3), c51*imag(t1)+c52*imag(t3))
+	r2 := a + complex(c52*real(t1)+c51*real(t3), c52*imag(t1)+c51*imag(t3))
+	i1 := rotS(complex(s51*real(t2)+s52*real(t4), s51*imag(t2)+s52*imag(t4)), s)
+	i2 := rotS(complex(s52*real(t2)-s51*real(t4), s52*imag(t2)-s51*imag(t4)), s)
+	return a + t1 + t3, r1 + i1, r2 + i2, r2 - i2, r1 - i1
 }
 
 func pass5(ido, l1 int, cc, ch, tw []complex128, inverse bool) {
-	const (
-		c1 = 0.30901699437494742410229341718281905886015458990288
-		s1 = 0.95105651629515357211643933337938214340569863412575
-		c2 = -0.80901699437494742410229341718281905886015458990289
-		s2 = 0.58778525229247312916870595463907276859765243764314
-	)
-	sg := -1.0
-	if inverse {
-		sg = 1.0
+	if ido == 1 {
+		pass5last(l1, cc, ch, dirSign(inverse))
+		return
 	}
-	ss1, ss2 := sg*s1, sg*s2
-	var w [4][]complex128
-	if ido > 1 {
-		for j := 0; j < 4; j++ {
-			w[j] = tw[j*(ido-1) : (j+1)*(ido-1)]
-		}
-	}
+	s := dirSign(inverse)
+	m := ido - 1
+	w1, w2, w3, w4 := tw[:m], tw[m:][:m], tw[2*m:][:m], tw[3*m:][:m]
 	for k := 0; k < l1; k++ {
-		base := ido * 5 * k
-		x0 := cc[base : base+ido]
-		x1 := cc[base+ido : base+2*ido]
-		x2 := cc[base+2*ido : base+3*ido]
-		x3 := cc[base+3*ido : base+4*ido]
-		x4 := cc[base+4*ido : base+5*ido]
-		o0 := ch[ido*k : ido*k+ido]
-		o1 := ch[ido*(k+l1) : ido*(k+l1)+ido]
-		o2 := ch[ido*(k+2*l1) : ido*(k+2*l1)+ido]
-		o3 := ch[ido*(k+3*l1) : ido*(k+3*l1)+ido]
-		o4 := ch[ido*(k+4*l1) : ido*(k+4*l1)+ido]
-		for i := 0; i < ido; i++ {
+		b := 5 * ido * k
+		y0, y1, y2, y3, y4 := bfly5(cc[b], cc[b+ido], cc[b+2*ido], cc[b+3*ido], cc[b+4*ido], s)
+		ch[ido*k], ch[ido*(k+l1)], ch[ido*(k+2*l1)] = y0, y1, y2
+		ch[ido*(k+3*l1)], ch[ido*(k+4*l1)] = y3, y4
+		x0, x1, x2 := stream(cc, b+1, m), stream(cc, b+ido+1, m), stream(cc, b+2*ido+1, m)
+		x3, x4 := stream(cc, b+3*ido+1, m), stream(cc, b+4*ido+1, m)
+		o0, o1, o2 := stream(ch, ido*k+1, m), stream(ch, ido*(k+l1)+1, m), stream(ch, ido*(k+2*l1)+1, m)
+		o3, o4 := stream(ch, ido*(k+3*l1)+1, m), stream(ch, ido*(k+4*l1)+1, m)
+		for i := range w1 {
+			// bfly5, inlined by hand: it is over the inliner's budget.
 			a := x0[i]
-			t1 := x1[i] + x4[i]
-			t2 := x1[i] - x4[i]
-			t3 := x2[i] + x3[i]
-			t4 := x2[i] - x3[i]
+			t1, t2 := x1[i]+x4[i], x1[i]-x4[i]
+			t3, t4 := x2[i]+x3[i], x2[i]-x3[i]
+			r1 := a + complex(c51*real(t1)+c52*real(t3), c51*imag(t1)+c52*imag(t3))
+			r2 := a + complex(c52*real(t1)+c51*real(t3), c52*imag(t1)+c51*imag(t3))
+			i1 := rotS(complex(s51*real(t2)+s52*real(t4), s51*imag(t2)+s52*imag(t4)), s)
+			i2 := rotS(complex(s52*real(t2)-s51*real(t4), s52*imag(t2)-s51*imag(t4)), s)
 			o0[i] = a + t1 + t3
-			r1 := a + complex(c1*real(t1)+c2*real(t3), c1*imag(t1)+c2*imag(t3))
-			r2 := a + complex(c2*real(t1)+c1*real(t3), c2*imag(t1)+c1*imag(t3))
-			// i·(ss1·t2 + ss2·t4) and i·(ss2·t2 − ss1·t4)
-			i1 := complex(-(ss1*imag(t2) + ss2*imag(t4)), ss1*real(t2)+ss2*real(t4))
-			i2 := complex(-(ss2*imag(t2) - ss1*imag(t4)), ss2*real(t2)-ss1*real(t4))
-			if i == 0 {
-				o1[0] = r1 + i1
-				o4[0] = r1 - i1
-				o2[0] = r2 + i2
-				o3[0] = r2 - i2
-			} else {
-				o1[i] = (r1 + i1) * w[0][i-1]
-				o4[i] = (r1 - i1) * w[3][i-1]
-				o2[i] = (r2 + i2) * w[1][i-1]
-				o3[i] = (r2 - i2) * w[2][i-1]
-			}
+			o1[i] = (r1 + i1) * w1[i]
+			o2[i] = (r2 + i2) * w2[i]
+			o3[i] = (r2 - i2) * w3[i]
+			o4[i] = (r1 - i1) * w4[i]
 		}
 	}
 }
 
+// Radix-7 constants: cos/sin of 2πk/7, k = 1..3.
+const (
+	c71 = 0.6234898018587335305250048840042398106322747308237
+	s71 = 0.7818314824680298087084445266740577502323345187493
+	c72 = -0.2225209339563144042889025644967948758319743752712
+	s72 = 0.9749279121818236070181316829939312172327858006199
+	c73 = -0.9009688679024191262361023195074450511659191621318
+	s73 = 0.4338837391175581204757683328483587546099907277859
+)
+
+// bfly7 is the size-7 DFT, written into y (output order 0..6).
+func bfly7(y *[7]complex128, a, b, c, d, e, f, g complex128, s float64) {
+	s16, d16 := b+g, b-g
+	s25, d25 := c+f, c-f
+	s34, d34 := d+e, d-e
+	y[0] = a + s16 + s25 + s34
+	r1 := a + complex(c71*real(s16)+c72*real(s25)+c73*real(s34), c71*imag(s16)+c72*imag(s25)+c73*imag(s34))
+	r2 := a + complex(c72*real(s16)+c73*real(s25)+c71*real(s34), c72*imag(s16)+c73*imag(s25)+c71*imag(s34))
+	r3 := a + complex(c73*real(s16)+c71*real(s25)+c72*real(s34), c73*imag(s16)+c71*imag(s25)+c72*imag(s34))
+	i1 := rotS(complex(s71*real(d16)+s72*real(d25)+s73*real(d34), s71*imag(d16)+s72*imag(d25)+s73*imag(d34)), s)
+	i2 := rotS(complex(s72*real(d16)-s73*real(d25)-s71*real(d34), s72*imag(d16)-s73*imag(d25)-s71*imag(d34)), s)
+	i3 := rotS(complex(s73*real(d16)-s71*real(d25)+s72*real(d34), s73*imag(d16)-s71*imag(d25)+s72*imag(d34)), s)
+	y[1], y[6] = r1+i1, r1-i1
+	y[2], y[5] = r2+i2, r2-i2
+	y[3], y[4] = r3+i3, r3-i3
+}
+
 func pass7(ido, l1 int, cc, ch, tw []complex128, inverse bool) {
-	const (
-		c1 = 0.6234898018587335305250048840042398106322747308237
-		s1 = 0.7818314824680298087084445266740577502323345187493
-		c2 = -0.2225209339563144042889025644967948758319743752712
-		s2 = 0.9749279121818236070181316829939312172327858006199
-		c3 = -0.9009688679024191262361023195074450511659191621318
-		s3 = 0.4338837391175581204757683328483587546099907277859
-	)
-	sg := -1.0
-	if inverse {
-		sg = 1.0
+	if ido == 1 {
+		pass7last(l1, cc, ch, dirSign(inverse))
+		return
 	}
-	var w [6][]complex128
-	if ido > 1 {
-		for j := 0; j < 6; j++ {
-			w[j] = tw[j*(ido-1) : (j+1)*(ido-1)]
-		}
+	s := dirSign(inverse)
+	m := ido - 1
+	var w [7][]complex128
+	for j := 1; j < 7; j++ {
+		w[j] = tw[(j-1)*m:][:m]
 	}
+	var y [7]complex128
 	for k := 0; k < l1; k++ {
-		base := ido * 7 * k
-		for i := 0; i < ido; i++ {
-			a := cc[base+i]
-			b := cc[base+ido+i]
-			c := cc[base+2*ido+i]
-			d := cc[base+3*ido+i]
-			e := cc[base+4*ido+i]
-			f := cc[base+5*ido+i]
-			g := cc[base+6*ido+i]
-			s16, d16 := b+g, b-g
-			s25, d25 := c+f, c-f
-			s34, d34 := d+e, d-e
-			var y [7]complex128
-			y[0] = a + s16 + s25 + s34
-			r1 := a + complex(c1*real(s16)+c2*real(s25)+c3*real(s34), c1*imag(s16)+c2*imag(s25)+c3*imag(s34))
-			r2 := a + complex(c2*real(s16)+c3*real(s25)+c1*real(s34), c2*imag(s16)+c3*imag(s25)+c1*imag(s34))
-			r3 := a + complex(c3*real(s16)+c1*real(s25)+c2*real(s34), c3*imag(s16)+c1*imag(s25)+c2*imag(s34))
-			i1 := rotI(complex(sg*(s1*real(d16)+s2*real(d25)+s3*real(d34)), sg*(s1*imag(d16)+s2*imag(d25)+s3*imag(d34))))
-			i2 := rotI(complex(sg*(s2*real(d16)-s3*real(d25)-s1*real(d34)), sg*(s2*imag(d16)-s3*imag(d25)-s1*imag(d34))))
-			i3 := rotI(complex(sg*(s3*real(d16)-s1*real(d25)+s2*real(d34)), sg*(s3*imag(d16)-s1*imag(d25)+s2*imag(d34))))
-			y[1], y[6] = r1+i1, r1-i1
-			y[2], y[5] = r2+i2, r2-i2
-			y[3], y[4] = r3+i3, r3-i3
-			ch[ido*k+i] = y[0]
-			for j := 1; j < 7; j++ {
-				v := y[j]
-				if i > 0 {
-					v *= w[j-1][i-1]
-				}
-				ch[ido*(k+j*l1)+i] = v
-			}
+		b := 7 * ido * k
+		bfly7(&y, cc[b], cc[b+ido], cc[b+2*ido], cc[b+3*ido], cc[b+4*ido], cc[b+5*ido], cc[b+6*ido], s)
+		for j := 0; j < 7; j++ {
+			ch[ido*(k+j*l1)] = y[j]
+		}
+		var x, o [7][]complex128
+		for j := 0; j < 7; j++ {
+			x[j] = stream(cc, b+j*ido+1, m)
+			o[j] = stream(ch, ido*(k+j*l1)+1, m)
+		}
+		x0, x1, x2, x3, x4, x5, x6 := x[0], x[1][:m], x[2][:m], x[3][:m], x[4][:m], x[5][:m], x[6][:m]
+		o0, o1, o2, o3, o4, o5, o6 := o[0][:m], o[1][:m], o[2][:m], o[3][:m], o[4][:m], o[5][:m], o[6][:m]
+		w1, w2, w3, w4, w5, w6 := w[1][:m], w[2][:m], w[3][:m], w[4][:m], w[5][:m], w[6][:m]
+		for i := range x0 {
+			// bfly7, inlined by hand: it is over the inliner's budget.
+			a := x0[i]
+			s16, d16 := x1[i]+x6[i], x1[i]-x6[i]
+			s25, d25 := x2[i]+x5[i], x2[i]-x5[i]
+			s34, d34 := x3[i]+x4[i], x3[i]-x4[i]
+			r1 := a + complex(c71*real(s16)+c72*real(s25)+c73*real(s34), c71*imag(s16)+c72*imag(s25)+c73*imag(s34))
+			r2 := a + complex(c72*real(s16)+c73*real(s25)+c71*real(s34), c72*imag(s16)+c73*imag(s25)+c71*imag(s34))
+			r3 := a + complex(c73*real(s16)+c71*real(s25)+c72*real(s34), c73*imag(s16)+c71*imag(s25)+c72*imag(s34))
+			i1 := rotS(complex(s71*real(d16)+s72*real(d25)+s73*real(d34), s71*imag(d16)+s72*imag(d25)+s73*imag(d34)), s)
+			i2 := rotS(complex(s72*real(d16)-s73*real(d25)-s71*real(d34), s72*imag(d16)-s73*imag(d25)-s71*imag(d34)), s)
+			i3 := rotS(complex(s73*real(d16)-s71*real(d25)+s72*real(d34), s73*imag(d16)-s71*imag(d25)+s72*imag(d34)), s)
+			o0[i] = a + s16 + s25 + s34
+			o1[i] = (r1 + i1) * w1[i]
+			o6[i] = (r1 - i1) * w6[i]
+			o2[i] = (r2 + i2) * w2[i]
+			o5[i] = (r2 - i2) * w5[i]
+			o3[i] = (r3 + i3) * w3[i]
+			o4[i] = (r3 - i3) * w4[i]
 		}
 	}
 }
@@ -359,5 +444,190 @@ func passg(r, ido, l1 int, cc, ch, tw, rt []complex128) {
 				ch[ido*(k+q*l1)+i] = sum
 			}
 		}
+	}
+}
+
+// hsqt2 = √2/2, the magnitude of the ±45° and ±135° rotations radix 8 needs.
+const hsqt2 = 0.707106781186547524400844362104849
+
+// bfly8 is pocketfft's radix-8 butterfly: a split 2·4 whose odd half is
+// rotated by ∓45°/∓135° (pocketfft's ROTX45/ROTX135, direction folded into s)
+// instead of multiplied by general roots. Outputs in order 0..7.
+func bfly8(y *[8]complex128, x0, x1, x2, x3, x4, x5, x6, x7 complex128, s float64) {
+	a1, a5 := x1+x5, x1-x5
+	a3, a7 := x3+x7, x3-x7
+	a1, a3 = a1+a3, a1-a3
+	a3 = rotS(a3, s)
+	a7 = rotS(a7, s)
+	a5, a7 = a5+a7, a5-a7
+	// ×exp(s·iπ/4) and ×exp(s·3iπ/4).
+	a5 = complex(hsqt2*(real(a5)-s*imag(a5)), hsqt2*(imag(a5)+s*real(a5)))
+	a7 = complex(hsqt2*(-s*imag(a7)-real(a7)), hsqt2*(s*real(a7)-imag(a7)))
+	a0, a4 := x0+x4, x0-x4
+	a2, a6 := x2+x6, x2-x6
+	a0, a2 = a0+a2, a0-a2
+	a6 = rotS(a6, s)
+	a4, a6 = a4+a6, a4-a6
+	y[0], y[4] = a0+a1, a0-a1
+	y[2], y[6] = a2+a3, a2-a3
+	y[1], y[5] = a4+a5, a4-a5
+	y[3], y[7] = a6+a7, a6-a7
+}
+
+func pass8(ido, l1 int, cc, ch, tw []complex128, inverse bool) {
+	if ido == 1 {
+		pass8last(l1, cc, ch, dirSign(inverse))
+		return
+	}
+	s := dirSign(inverse)
+	m := ido - 1
+	var w [8][]complex128
+	for j := 1; j < 8; j++ {
+		w[j] = tw[(j-1)*m:][:m]
+	}
+	var y [8]complex128
+	for k := 0; k < l1; k++ {
+		b := 8 * ido * k
+		bfly8(&y, cc[b], cc[b+ido], cc[b+2*ido], cc[b+3*ido], cc[b+4*ido], cc[b+5*ido], cc[b+6*ido], cc[b+7*ido], s)
+		for j := 0; j < 8; j++ {
+			ch[ido*(k+j*l1)] = y[j]
+		}
+		var x, o [8][]complex128
+		for j := 0; j < 8; j++ {
+			x[j] = stream(cc, b+j*ido+1, m)
+			o[j] = stream(ch, ido*(k+j*l1)+1, m)
+		}
+		x0, x1, x2, x3, x4, x5, x6, x7 := x[0], x[1][:m], x[2][:m], x[3][:m], x[4][:m], x[5][:m], x[6][:m], x[7][:m]
+		o0, o1, o2, o3, o4, o5, o6, o7 := o[0][:m], o[1][:m], o[2][:m], o[3][:m], o[4][:m], o[5][:m], o[6][:m], o[7][:m]
+		w1, w2, w3, w4, w5, w6, w7 := w[1][:m], w[2][:m], w[3][:m], w[4][:m], w[5][:m], w[6][:m], w[7][:m]
+		for i := range x0 {
+			// bfly8, inlined by hand: it is over the inliner's budget.
+			a1, a5 := x1[i]+x5[i], x1[i]-x5[i]
+			a3, a7 := x3[i]+x7[i], x3[i]-x7[i]
+			a1, a3 = a1+a3, a1-a3
+			a3 = rotS(a3, s)
+			a7 = rotS(a7, s)
+			a5, a7 = a5+a7, a5-a7
+			a5 = complex(hsqt2*(real(a5)-s*imag(a5)), hsqt2*(imag(a5)+s*real(a5)))
+			a7 = complex(hsqt2*(-s*imag(a7)-real(a7)), hsqt2*(s*real(a7)-imag(a7)))
+			a0, a4 := x0[i]+x4[i], x0[i]-x4[i]
+			a2, a6 := x2[i]+x6[i], x2[i]-x6[i]
+			a0, a2 = a0+a2, a0-a2
+			a6 = rotS(a6, s)
+			a4, a6 = a4+a6, a4-a6
+			o0[i] = a0 + a1
+			o4[i] = (a0 - a1) * w4[i]
+			o2[i] = (a2 + a3) * w2[i]
+			o6[i] = (a2 - a3) * w6[i]
+			o1[i] = (a4 + a5) * w1[i]
+			o5[i] = (a4 - a5) * w5[i]
+			o3[i] = (a6 + a7) * w3[i]
+			o7[i] = (a6 - a7) * w7[i]
+		}
+	}
+}
+
+// The passXlast functions are the ido == 1 case — the final pass, where every
+// point is a block of its own. There the per-block setup of the general loop
+// runs once per point, so it is replaced by one flat loop over k: input block
+// k is cc[r·k : r·k+r] and output j is the unit-stride stream ch[j·l1 : (j+1)·l1].
+
+func pass2last(l1 int, cc, ch []complex128) {
+	in := cc[:2*l1]
+	o0, o1 := ch[:l1], ch[l1:][:l1]
+	for k := range o0 {
+		a, b := in[2*k], in[2*k+1]
+		o0[k] = a + b
+		o1[k] = a - b
+	}
+}
+
+func pass3last(l1 int, cc, ch []complex128, s float64) {
+	in := cc[:3*l1]
+	o0, o1, o2 := ch[:l1], ch[l1:][:l1], ch[2*l1:][:l1]
+	for k := range o0 {
+		x := in[3*k : 3*k+3]
+		o0[k], o1[k], o2[k] = bfly3(x[0], x[1], x[2], s)
+	}
+}
+
+func pass4last(l1 int, cc, ch []complex128, s float64) {
+	in := cc[:4*l1]
+	o0, o1, o2, o3 := ch[:l1], ch[l1:][:l1], ch[2*l1:][:l1], ch[3*l1:][:l1]
+	for k := range o0 {
+		x := in[4*k : 4*k+4]
+		o0[k], o1[k], o2[k], o3[k] = bfly4(x[0], x[1], x[2], x[3], s)
+	}
+}
+
+func pass5last(l1 int, cc, ch []complex128, s float64) {
+	in := cc[:5*l1]
+	o0, o1, o2, o3, o4 := ch[:l1], ch[l1:][:l1], ch[2*l1:][:l1], ch[3*l1:][:l1], ch[4*l1:][:l1]
+	for k := range o0 {
+		x := in[5*k : 5*k+5]
+		// bfly5, inlined by hand: it is over the inliner's budget.
+		a := x[0]
+		t1, t2 := x[1]+x[4], x[1]-x[4]
+		t3, t4 := x[2]+x[3], x[2]-x[3]
+		r1 := a + complex(c51*real(t1)+c52*real(t3), c51*imag(t1)+c52*imag(t3))
+		r2 := a + complex(c52*real(t1)+c51*real(t3), c52*imag(t1)+c51*imag(t3))
+		i1 := rotS(complex(s51*real(t2)+s52*real(t4), s51*imag(t2)+s52*imag(t4)), s)
+		i2 := rotS(complex(s52*real(t2)-s51*real(t4), s52*imag(t2)-s51*imag(t4)), s)
+		o0[k] = a + t1 + t3
+		o1[k] = r1 + i1
+		o2[k] = r2 + i2
+		o3[k] = r2 - i2
+		o4[k] = r1 - i1
+	}
+}
+
+func pass8last(l1 int, cc, ch []complex128, s float64) {
+	in := cc[:8*l1]
+	o0, o1, o2, o3 := ch[:l1], ch[l1:][:l1], ch[2*l1:][:l1], ch[3*l1:][:l1]
+	o4, o5, o6, o7 := ch[4*l1:][:l1], ch[5*l1:][:l1], ch[6*l1:][:l1], ch[7*l1:][:l1]
+	for k := range o0 {
+		x := in[8*k : 8*k+8]
+		// bfly8, inlined by hand: it is over the inliner's budget.
+		a1, a5 := x[1]+x[5], x[1]-x[5]
+		a3, a7 := x[3]+x[7], x[3]-x[7]
+		a1, a3 = a1+a3, a1-a3
+		a3 = rotS(a3, s)
+		a7 = rotS(a7, s)
+		a5, a7 = a5+a7, a5-a7
+		a5 = complex(hsqt2*(real(a5)-s*imag(a5)), hsqt2*(imag(a5)+s*real(a5)))
+		a7 = complex(hsqt2*(-s*imag(a7)-real(a7)), hsqt2*(s*real(a7)-imag(a7)))
+		a0, a4 := x[0]+x[4], x[0]-x[4]
+		a2, a6 := x[2]+x[6], x[2]-x[6]
+		a0, a2 = a0+a2, a0-a2
+		a6 = rotS(a6, s)
+		a4, a6 = a4+a6, a4-a6
+		o0[k], o4[k] = a0+a1, a0-a1
+		o2[k], o6[k] = a2+a3, a2-a3
+		o1[k], o5[k] = a4+a5, a4-a5
+		o3[k], o7[k] = a6+a7, a6-a7
+	}
+}
+
+func pass7last(l1 int, cc, ch []complex128, s float64) {
+	in := cc[:7*l1]
+	o0, o1, o2, o3 := ch[:l1], ch[l1:][:l1], ch[2*l1:][:l1], ch[3*l1:][:l1]
+	o4, o5, o6 := ch[4*l1:][:l1], ch[5*l1:][:l1], ch[6*l1:][:l1]
+	for k := range o0 {
+		x := in[7*k : 7*k+7]
+		// bfly7, inlined by hand: it is over the inliner's budget.
+		a := x[0]
+		s16, d16 := x[1]+x[6], x[1]-x[6]
+		s25, d25 := x[2]+x[5], x[2]-x[5]
+		s34, d34 := x[3]+x[4], x[3]-x[4]
+		r1 := a + complex(c71*real(s16)+c72*real(s25)+c73*real(s34), c71*imag(s16)+c72*imag(s25)+c73*imag(s34))
+		r2 := a + complex(c72*real(s16)+c73*real(s25)+c71*real(s34), c72*imag(s16)+c73*imag(s25)+c71*imag(s34))
+		r3 := a + complex(c73*real(s16)+c71*real(s25)+c72*real(s34), c73*imag(s16)+c71*imag(s25)+c72*imag(s34))
+		i1 := rotS(complex(s71*real(d16)+s72*real(d25)+s73*real(d34), s71*imag(d16)+s72*imag(d25)+s73*imag(d34)), s)
+		i2 := rotS(complex(s72*real(d16)-s73*real(d25)-s71*real(d34), s72*imag(d16)-s73*imag(d25)-s71*imag(d34)), s)
+		i3 := rotS(complex(s73*real(d16)-s71*real(d25)+s72*real(d34), s73*imag(d16)-s71*imag(d25)+s72*imag(d34)), s)
+		o0[k] = a + s16 + s25 + s34
+		o1[k], o6[k] = r1+i1, r1-i1
+		o2[k], o5[k] = r2+i2, r2-i2
+		o3[k], o4[k] = r3+i3, r3-i3
 	}
 }
