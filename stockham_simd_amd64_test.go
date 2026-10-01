@@ -20,8 +20,20 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 	if !kernels.UseStockhamAVX2 {
 		t.Skip("no AVX2 on this CPU: the scalar passes run and there is nothing to compare")
 	}
-	defer func(v bool) { kernels.UseStockhamAVX2 = v }(kernels.UseStockhamAVX2)
-	sizes := []int{8192, 20160, 45000, 65536 * 3}
+	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
+	modes := []struct {
+		name         string
+		avx2, avx512 bool
+	}{{"AVX2", true, false}}
+	if kernels.UseStockhamAVX512 {
+		modes = append(modes, struct {
+			name         string
+			avx2, avx512 bool
+		}{"AVX-512", true, true})
+	} else {
+		t.Log("no AVX-512 on this CPU: only the AVX2 kernels are compared")
+	}
+	sizes := []int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3}
 	for n := 2; n <= 2100; n++ {
 		sizes = append(sizes, n)
 	}
@@ -32,18 +44,20 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 		p := newSKPlan(n)
 		for s, x := range simdSignals(n) {
 			for _, inverse := range []bool{false, true} {
-				kernels.UseStockhamAVX2 = true
-				simd := make([]complex128, n)
-				p.transform(simd, x, inverse)
-				alias := append([]complex128(nil), x...)
-				p.transform(alias, alias, inverse)
-				kernels.UseStockhamAVX2 = false
+				kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = false, false
 				scalar := make([]complex128, n)
 				p.transform(scalar, x, inverse)
-				for i := range scalar {
-					if !sameBits(simd[i], scalar[i]) || !sameBits(alias[i], scalar[i]) {
-						t.Fatalf("n=%d signal %d inverse=%v index %d: AVX2 %v (in place %v) vs scalar %v (factors %v)",
-							n, s, inverse, i, simd[i], alias[i], scalar[i], skFactorize(n))
+				for _, m := range modes {
+					kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = m.avx2, m.avx512
+					simd := make([]complex128, n)
+					p.transform(simd, x, inverse)
+					alias := append([]complex128(nil), x...)
+					p.transform(alias, alias, inverse)
+					for i := range scalar {
+						if !sameBits(simd[i], scalar[i]) || !sameBits(alias[i], scalar[i]) {
+							t.Fatalf("%s n=%d signal %d inverse=%v index %d: %v (in place %v) vs scalar %v (factors %v)",
+								m.name, n, s, inverse, i, simd[i], alias[i], scalar[i], skFactorize(n))
+						}
 					}
 				}
 			}

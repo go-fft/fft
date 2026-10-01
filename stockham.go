@@ -32,6 +32,8 @@ type skStage struct {
 	// i = 0 entry being 1), the layout the SIMD pass kernels read; nil when
 	// no pass kernel runs this pass on this architecture.
 	twX, twXc []complex128
+	// wide lets the pass use the AVX-512 kernels (see wide512).
+	wide bool
 }
 
 // skPlan is the Stockham plan for one smooth length.
@@ -51,7 +53,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 	l1 := 1
 	for _, r := range factors {
 		ido := n / (l1 * r)
-		st := skStage{r: r, l1: l1, ido: ido}
+		st := skStage{r: r, l1: l1, ido: ido, wide: wide512(n)}
 		if ido > 1 {
 			st.tw = make([]complex128, (r-1)*(ido-1))
 			st.twc = make([]complex128, (r-1)*(ido-1))
@@ -161,6 +163,13 @@ func pow2Radices(e int, oneRadix8 bool) []int {
 // it is per-architecture (route_*.go).
 const r8MaxPow2 = r8MaxPow2Arch
 
+// wide512 reports whether a transform of length n may use the AVX-512 pass
+// kernels: a power of two of at least 256 points. Measured on Cascade Lake
+// (AVX2 time ÷ AVX-512 time, Stockham, 2026-10-01): composites 0.88–1.04
+// (see kernels.StockhamPass), powers of two 8–128 0.94–1.03, 256–2048
+// 1.19–1.34, 4096 1.49.
+func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
+
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
 	scr := *bp
@@ -188,7 +197,7 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 	if inverse {
 		twX = st.twXc
 	}
-	if !kernels.StockhamPass(st.r, st.ido, st.l1, cc, ch, twX, inverse) {
+	if !kernels.StockhamPass(st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide) {
 		st.passScalar(ch, cc, inverse)
 	}
 }

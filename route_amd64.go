@@ -15,10 +15,24 @@ import "github.com/go-fft/fft/internal/kernels"
 // Stockham wins up to 4096 everywhere but Zen 3's 4096; above it the three
 // disagree, and the pow2 kernel is kept. Without AVX2 the Stockham passes run
 // scalar and lose to the pow2 kernel's SSE2 butterflies at every size.
-func pow2StockhamMaxDefault() int { return pow2StockhamMaxAMD64(kernels.UseStockhamAVX2) }
+func pow2StockhamMaxDefault() int {
+	return pow2StockhamMaxAMD64(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
+}
 
-func pow2StockhamMaxAMD64(avx2 bool) int {
-	if avx2 {
+// With AVX-512 the Stockham passes of a power of two run 512 bits wide, and
+// beat the pow2 kernel further (Cascade Lake, pow2 kernel ÷ Stockham time,
+// 2026-10-01):
+//
+//	n        4096  8192  16384  32768  65536  2^17  2^18  2^19  2^20
+//	          2.33  1.35  1.74   1.08   0.99   0.86  1.20  1.23  0.98
+//
+// The win is clear to 16384; above it the ratio wanders around 1, and the pow2
+// kernel is kept.
+func pow2StockhamMaxAMD64(avx2, avx512 bool) int {
+	switch {
+	case avx512:
+		return 16384
+	case avx2:
 		return 4096
 	}
 	return 0

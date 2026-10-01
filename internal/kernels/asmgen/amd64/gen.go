@@ -1,5 +1,3 @@
-//go:build ignore
-
 // Command gen produces, via go-asmgen:
 //   - cmul_amd64.s      : SSE2 pointwise complex multiply (a[i] *= b[i]).
 //   - butterfly_amd64.s : SSE2/AVX2 radix-2 and radix-4 decimation-in-time butterfly
@@ -52,20 +50,20 @@ func signMask(b *amd64.Builder) {
 // scmul emits dst = (xPtr)·(yPtr) into register dst, the SSE2 complex product.
 // Uses X2,X3,X4 as scratch; X7 must hold the sign mask. dst is one of X0,X1,X5.
 func scmul(b *amd64.Builder, xPtr, yPtr, dst string) {
-	b.Raw("MOVUPD (" + xPtr + "), X0"). // a = [ar,ai]
-						Raw("MOVUPD (" + yPtr + "), X1"). // b = [br,bi]
-						Raw("MOVAPS X0, X2").
-						Raw("SHUFPD $0, X2, X2"). // [ar,ar]
-						Raw("MOVAPS X0, X3").
-						Raw("SHUFPD $3, X3, X3"). // [ai,ai]
-						Raw("MOVAPS X1, X4").
-						Raw("SHUFPD $1, X4, X4"). // [bi,br]
-						Raw("MULPD X1, X2").      // [ar*br, ar*bi]
-						Raw("MULPD X4, X3").      // [ai*bi, ai*br]
-						Raw("XORPD X7, X3").      // [-ai*bi, ai*br]
-						Raw("ADDPD X3, X2")       // [re, im]
+	b.Raw("MOVUPD (%s), X0", xPtr). // a = [ar,ai]
+					Raw("MOVUPD (%s), X1", yPtr). // b = [br,bi]
+					Raw("MOVAPS X0, X2").
+					Raw("SHUFPD $0, X2, X2"). // [ar,ar]
+					Raw("MOVAPS X0, X3").
+					Raw("SHUFPD $3, X3, X3"). // [ai,ai]
+					Raw("MOVAPS X1, X4").
+					Raw("SHUFPD $1, X4, X4"). // [bi,br]
+					Raw("MULPD X1, X2").      // [ar*br, ar*bi]
+					Raw("MULPD X4, X3").      // [ai*bi, ai*br]
+					Raw("XORPD X7, X3").      // [-ai*bi, ai*br]
+					Raw("ADDPD X3, X2")       // [re, im]
 	if dst != "X2" {
-		b.Raw("MOVAPS X2, " + dst)
+		b.Raw("MOVAPS X2, %s", dst)
 	}
 }
 
@@ -288,6 +286,12 @@ func main() {
 	for _, r := range []int{2, 3, 4, 5, 8} {
 		genStockhamLastAVX2(fb, r)
 	}
+	// AVX-512 only for the radices of a power-of-two transform, the only
+	// transforms it measured faster on (see stockham_amd64.go).
+	for _, r := range []int{2, 4, 8} {
+		genStockhamAVX512(fb, r)
+		genStockhamLastAVX512(fb, r)
+	}
 	genUntangleAVX2(fb)
 	genRetangleAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
@@ -300,6 +304,10 @@ func main() {
 	// go at the next context switch.
 	fp := emit.NewFile("amd64")
 	fp.Add(amd64.FeatureProbe("supportsAVX2", amd64.AVX2))
+	// AVX-512 also needs the OS to save opmask and ZMM state (XCR0 0xE6);
+	// go-asmgen v0.10.0 checks it. On macOS it answers false (Darwin enables
+	// ZMM state lazily) and the AVX2 kernels run.
+	fp.Add(amd64.FeatureProbe("supportsAVX512F", amd64.AVX512F))
 	writeFile("cpu_amd64.s", fp.String())
 }
 
@@ -362,15 +370,15 @@ func genRadix4AVX2(f *emit.File, name string, inverse bool) {
 		Raw("CMPQ R14, R15").
 		Raw("JGE basenext")
 	for _, v := range [][3]string{{"DI", "R8", "Y8"}, {"R12", "R9", "Y9"}, {"R13", "R10", "Y10"}} {
-		b.Raw("VMOVUPD (" + v[0] + "), Y0").
-			Raw("VMOVUPD (" + v[1] + "), Y1").
+		b.Raw("VMOVUPD (%s), Y0", v[0]).
+			Raw("VMOVUPD (%s), Y1", v[1]).
 			Raw("VPERMILPD $0, Y0, Y2").
 			Raw("VPERMILPD $15, Y0, Y3").
 			Raw("VPERMILPD $5, Y1, Y4").
 			Raw("VMULPD Y1, Y2, Y2").
 			Raw("VMULPD Y4, Y3, Y3").
 			Raw("VXORPD Y7, Y3, Y3").
-			Raw("VADDPD Y3, Y2, " + v[2])
+			Raw("VADDPD Y3, Y2, %s", v[2])
 	}
 	b.Raw("VMOVUPD (SI), Y0").
 		Raw("VADDPD Y9, Y0, Y11").
@@ -388,7 +396,7 @@ func genRadix4AVX2(f *emit.File, name string, inverse bool) {
 		Raw("VADDPD Y15, Y12, Y0").Raw("VMOVUPD Y0, (DI)").
 		Raw("VSUBPD Y15, Y12, Y0").Raw("VMOVUPD Y0, (R13)")
 	for _, r := range []string{"SI", "DI", "R12", "R13", "R8", "R9", "R10", "R14"} {
-		b.Raw("ADDQ $32, " + r)
+		b.Raw("ADDQ $32, %s", r)
 	}
 	b.Raw("JMP kloop").Raw("basenext:").Raw("ADDQ R11, AX").
 		Raw("JMP baseloop").Raw("done:").Raw("VZEROUPPER").Ret()
@@ -439,17 +447,51 @@ const (
 	kS51    = 160 // sin(2π/5)
 	kS52    = 192 // sin(4π/5)
 	kH      = 224 // √2/2
+	// kAddSub, in the AVX-512 table only: [-0, 0] repeated, the real-lane
+	// sign flip that stands in for VADDSUBPD, which has no 512-bit form.
+	kAddSub = 256
 )
 
 type skEmit struct {
 	b    *amd64.Builder
-	w    string // "Y" (two points) or "X" (the odd tail)
+	w    string // "Z" (four points), "Y" (two) or "X" (one, the odd tail)
 	last int    // radix of a final-pass kernel (ido == 1), 0 for the others
+	wide bool   // inside an AVX-512 kernel: 64-byte constant rows
+}
+
+// k scales a constants-table offset (given for 32-byte rows) to the table the
+// kernel reads: the AVX-512 table's rows are 64 bytes.
+func (e skEmit) k(off int) int {
+	if e.wide {
+		return 2 * off
+	}
+	return off
+}
+
+// perm emits a lane permute within each complex: "lo" broadcasts the real
+// part, "hi" the imaginary part, "swap" exchanges them. The immediates differ
+// with the register width (one bit per lane).
+func (e skEmit) perm(kind string, src, dst int) {
+	imm := map[string]string{"lo": "$0", "hi": "$15", "swap": "$5"}[kind]
+	if e.w == "Z" {
+		imm = map[string]string{"lo": "$0x00", "hi": "$0xFF", "swap": "$0x55"}[kind]
+	}
+	e.raw("VPERMILPD %s, %s, %s", imm, e.v(src), e.v(dst))
+}
+
+// xork flips signs by a constants row: VPXORQ for ZMM (VXORPD on ZMM would
+// need AVX512DQ), VXORPD otherwise.
+func (e skEmit) xork(off, r int) {
+	op := "VXORPD"
+	if e.w == "Z" {
+		op = "VPXORQ"
+	}
+	e.raw("%s %d(R14), %s, %s", op, e.k(off), e.v(r), e.v(r))
 }
 
 func (e skEmit) v(i int) string { return fmt.Sprintf("%s%d", e.w, i) }
 
-func (e skEmit) raw(format string, a ...any) { e.b.Raw(fmt.Sprintf(format, a...)) }
+func (e skEmit) raw(format string, a ...any) { e.b.Raw(format, a...) }
 
 func skIn(j int) string {
 	return [...]string{"(AX)", "(AX)(CX*1)", "(AX)(CX*2)", "(AX)(R12*1)", "(SI)", "(SI)(CX*1)", "(SI)(CX*2)", "(SI)(R12*1)"}[j]
@@ -475,19 +517,28 @@ func (e skEmit) in(dst, j int) {
 		return
 	}
 	e.raw("VMOVUPD %d(AX), X%d", 16*j, dst)
-	if e.w == "Y" {
+	switch e.w {
+	case "Y":
 		e.raw("VINSERTF128 $1, %d(AX), Y%d, Y%d", 16*(e.last+j), dst, dst)
+	case "Z":
+		// Four blocks: VINSERTF32X4 is AVX512F (its 64x2 twin needs DQ) and
+		// moves the same 128 bits.
+		for q := 1; q < 4; q++ {
+			e.raw("VINSERTF32X4 $%d, %d(AX), Z%d, Z%d", q, 16*(q*e.last+j), dst, dst)
+		}
 	}
 }
-func (e skEmit) st(src int, addr string)  { e.raw("VMOVUPD %s, %s", e.v(src), addr) }
-func (e skEmit) add(dst, a, b int)        { e.raw("VADDPD %s, %s, %s", e.v(b), e.v(a), e.v(dst)) }
-func (e skEmit) sub(dst, a, b int)        { e.raw("VSUBPD %s, %s, %s", e.v(b), e.v(a), e.v(dst)) }
-func (e skEmit) mulk(dst, a int, off int) { e.raw("VMULPD %d(R14), %s, %s", off, e.v(a), e.v(dst)) }
+func (e skEmit) st(src int, addr string) { e.raw("VMOVUPD %s, %s", e.v(src), addr) }
+func (e skEmit) add(dst, a, b int)       { e.raw("VADDPD %s, %s, %s", e.v(b), e.v(a), e.v(dst)) }
+func (e skEmit) sub(dst, a, b int)       { e.raw("VSUBPD %s, %s, %s", e.v(b), e.v(a), e.v(dst)) }
+func (e skEmit) mulk(dst, a int, off int) {
+	e.raw("VMULPD %d(R14), %s, %s", e.k(off), e.v(a), e.v(dst))
+}
 
 // rot: dst = rotS(src) — swap re/im, then flip the sign the direction selects.
 func (e skEmit) rot(dst, src int) {
-	e.raw("VPERMILPD $5, %s, %s", e.v(src), e.v(dst))
-	e.raw("VXORPD %d(R14), %s, %s", kSign, e.v(dst), e.v(dst))
+	e.perm("swap", src, dst)
+	e.xork(kSign, dst)
 }
 
 // twStore multiplies y by twiddle j and stores it to output j. In the first
@@ -499,14 +550,26 @@ func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 		return
 	}
 	e.raw("VMOVUPD %s, %s", skTw(j), e.v(t3))
-	e.raw("VPERMILPD $0, %s, %s", e.v(y), e.v(t1))
-	e.raw("VPERMILPD $15, %s, %s", e.v(y), e.v(t2))
+	e.perm("lo", y, t1)
+	e.perm("hi", y, t2)
 	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t1), e.v(t1))
-	e.raw("VPERMILPD $5, %s, %s", e.v(t3), e.v(t3))
+	e.perm("swap", t3, t3)
 	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
-	e.raw("VADDSUBPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
+	if e.w == "Z" {
+		// No 512-bit VADDSUBPD: flip the real lanes' sign, then add.
+		// x + (-y) is x - y exactly, so the rounding is VADDSUBPD's.
+		e.xork(kAddSub, t2)
+		e.raw("VADDPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
+	} else {
+		e.raw("VADDSUBPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
+	}
 	if first {
-		e.raw("VBLENDPD $3, %s, %s, %s", e.v(y), e.v(dst), e.v(dst))
+		if e.w == "Z" {
+			// K1 = lanes 0–1: point i = 0 keeps the unmultiplied y.
+			e.raw("VBLENDMPD %s, %s, K1, %s", e.v(y), e.v(dst), e.v(dst))
+		} else {
+			e.raw("VBLENDPD $3, %s, %s, %s", e.v(y), e.v(dst), e.v(dst))
+		}
 	}
 	e.st(dst, skOut(j))
 }
@@ -652,7 +715,7 @@ func genStockhamAVX2(f *emit.File, r int) {
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
 	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX2", r), sig, 0)
-	y, x := skEmit{b, "Y", 0}, skEmit{b, "X", 0}
+	y, x := skEmit{b, "Y", 0, false}, skEmit{b, "X", 0, false}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
 		LoadArg("ido", "CX").LoadArg("l1", "R8")
 	b.Raw("MOVQ CX, DX").
@@ -722,7 +785,7 @@ func genStockhamLastAVX2(f *emit.File, r int) {
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
 	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX2", r), sig, 0)
-	y, x := skEmit{b, "Y", r}, skEmit{b, "X", r}
+	y, x := skEmit{b, "Y", r, false}, skEmit{b, "X", r, false}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
 	b.Raw("MOVQ DX, R9").
 		Raw("SHRQ $1, R9"). // block pairs
@@ -733,7 +796,7 @@ func genStockhamLastAVX2(f *emit.File, r int) {
 		Raw("TESTQ R9, R9").
 		Raw("JZ tail")
 	y.body(r, false)
-	b.Raw(fmt.Sprintf("ADDQ $%d, AX", 32*r)).
+	b.Raw("ADDQ $%d, AX", 32*r).
 		Raw("ADDQ $32, BX").
 		Raw("ADDQ $32, DI").
 		Raw("DECQ R9").
@@ -885,6 +948,126 @@ func genRetangleAVX2(f *emit.File) {
 		Raw("DECQ R8").
 		Raw("JMP loop").
 		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// knext emits the advance from one Stockham block to the next: P has moved
+// by S over the block, and the next block starts r·S after this one.
+func skNextBlock(b *amd64.Builder, r int) {
+	switch r {
+	case 2:
+		b.Raw("ADDQ CX, AX")
+	case 3:
+		b.Raw("LEAQ (AX)(CX*2), AX")
+	case 4:
+		b.Raw("ADDQ R12, AX")
+	case 5:
+		b.Raw("LEAQ (AX)(CX*4), AX")
+	case 8:
+		b.Raw("LEAQ (AX)(CX*4), AX").Raw("ADDQ R12, AX")
+	}
+}
+
+// genStockhamAVX512 emits skPass{r}AVX512: genStockhamAVX2's pass with four
+// points per ZMM register. It needs ido >= 4; ido mod 4 is finished with one
+// 256-bit and/or one 128-bit step, the same bodies the AVX2 kernel runs. The
+// constants table has 64-byte rows (skConst512). Every substitution for an
+// instruction AVX-512 lacks at this width is exact: VADDSUBPD becomes a sign
+// flip and an add, VXORPD becomes VPXORQ, the i = 0 blend uses opmask K1.
+func genStockhamAVX512(f *emit.File, r int) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX512", r), sig, 0)
+	z, y, x := skEmit{b, "Z", 0, true}, skEmit{b, "Y", 0, true}, skEmit{b, "X", 0, true}
+	b.Raw("MOVQ $3, R9").Raw("KMOVB R9, K1") // lanes 0–1: the i = 0 point
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
+		LoadArg("ido", "CX").LoadArg("l1", "R8")
+	b.Raw("MOVQ CX, DX").
+		Raw("IMULQ R8, DX").
+		Raw("SHLQ $4, CX").
+		Raw("SHLQ $4, DX").
+		Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("kloop:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done").
+		Raw("LEAQ (AX)(CX*4), SI").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("MOVQ R15, R10").
+		Raw("LEAQ (R15)(CX*4), R11")
+	z.body(r, true)
+	z.advance(64)
+	b.Raw("MOVQ CX, R9").
+		Raw("SHRQ $6, R9"). // quads = ido/4
+		Raw("DECQ R9").
+		Raw("iloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ pair")
+	z.body(r, false)
+	z.advance(64)
+	b.Raw("DECQ R9").
+		Raw("JMP iloop").
+		Raw("pair:").
+		Raw("TESTQ $32, CX"). // ido & 2
+		Raw("JZ single")
+	y.body(r, false)
+	y.advance(32)
+	b.Raw("single:").
+		Raw("TESTQ $16, CX"). // ido & 1
+		Raw("JZ knext")
+	x.body(r, false)
+	x.advance(16)
+	b.Raw("knext:")
+	skNextBlock(b, r)
+	b.Raw("DECQ R8").
+		Raw("JMP kloop").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamLastAVX512 emits skLast{r}AVX512: the final pass (ido == 1) with
+// four blocks per ZMM register (VINSERTF32X4 gathers blocks k..k+3); l1 mod 4
+// is finished with one 256-bit and/or one 128-bit step.
+func genStockhamLastAVX512(f *emit.File, r int) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "k", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX512", r), sig, 0)
+	z, y, x := skEmit{b, "Z", r, true}, skEmit{b, "Y", r, true}, skEmit{b, "X", r, true}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
+	b.Raw("MOVQ DX, R9").
+		Raw("SHRQ $2, R9"). // block quads
+		Raw("SHLQ $4, DX"). // OS
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("loop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ pair")
+	z.body(r, false)
+	b.Raw("ADDQ $%d, AX", 64*r).
+		Raw("ADDQ $64, BX").
+		Raw("ADDQ $64, DI").
+		Raw("DECQ R9").
+		Raw("JMP loop").
+		Raw("pair:").
+		Raw("TESTQ $32, DX"). // l1 & 2
+		Raw("JZ single")
+	y.body(r, false)
+	b.Raw("ADDQ $%d, AX", 32*r).
+		Raw("ADDQ $32, BX").
+		Raw("ADDQ $32, DI").
+		Raw("single:").
+		Raw("TESTQ $16, DX"). // l1 & 1
+		Raw("JZ done")
+	x.body(r, false)
+	b.Raw("done:").
 		Raw("VZEROUPPER").
 		Ret()
 	f.Add(b.Func())

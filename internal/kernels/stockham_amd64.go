@@ -10,9 +10,37 @@ import "math"
 // exact lane swaps and sign flips, and the untwiddled i = 0 point restored by a
 // blend rather than multiplied by one. TestStockhamPassMatchesScalar asserts it.
 
-// UseStockhamAVX2 reports whether StockhamPass takes the AVX2 kernels. It is a
-// variable so the tests can run the scalar passes on an AVX2 machine too.
-var UseStockhamAVX2 = useAVX2
+// UseStockhamAVX2 and UseStockhamAVX512 report whether StockhamPass may take
+// the AVX2 and the AVX-512 kernels. They are variables so the tests can run
+// every narrower path on a machine that has the wider one.
+var (
+	UseStockhamAVX2   = useAVX2
+	UseStockhamAVX512 = supportsAVX512F()
+)
+
+// supportsAVX512F is the go-asmgen AVX-512 foundation probe (cpu_amd64.s): the
+// CPU bit and the OS saving opmask and ZMM state.
+func supportsAVX512F() bool
+
+// skConst512 is skConst with 64-byte rows, for the AVX-512 kernels, plus a
+// ninth row: [-0, 0] repeated, the real-lane sign flip that replaces
+// VADDSUBPD, which has no 512-bit form.
+type skConst512 [9][8]float64
+
+var sk512Fwd, sk512Inv = newSKConst512(false), newSKConst512(true)
+
+func newSKConst512(inverse bool) *skConst512 {
+	var t skConst512
+	narrow := newSKConst(inverse)
+	for r := range narrow {
+		for i := range t[r] {
+			t[r][i] = narrow[r][i%4]
+		}
+	}
+	neg := math.Copysign(0, -1)
+	t[8] = [8]float64{neg, 0, neg, 0, neg, 0, neg, 0}
+	return &t
+}
 
 // skConst holds the kernels' constants, one 32-byte row each (the offsets are
 // the k* constants in gen.go): row 0 is the ±i rotation sign mask, which is
@@ -71,82 +99,114 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 	return fwd, conj
 }
 
-// StockhamPass runs one Stockham pass of radix r on the AVX2 kernels and
-// reports true, or reports false (and does nothing) when it cannot: no AVX2 or
-// a radix without a kernel. The final pass (ido == 1) takes its own kernels.
-// cc holds r·ido·l1 inputs, ch receives as many outputs, and tw is the pass's
-// twiddle table extended to i = 0: (r-1) blocks of ido entries.
-func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse bool) bool {
-	if !UseStockhamAVX2 || !stockhamSIMD(r) {
+// stockhamWidth picks the widest kernel family that can run a pass of radix r
+// with ido points per block: 512 bits needs AVX-512 allowed for the transform
+// (wide512, see StockhamPass), a radix with a 512-bit kernel (2, 4 or 8), and
+// either the final pass (ido == 1, vectorized across blocks) or ido >= 4 (four
+// points per register, the first four blended); 256 bits needs AVX2 and a
+// radix with a kernel; 0 means the Go pass. It is a pure function so every
+// branch is tested on any machine (TestStockhamWidth).
+func stockhamWidth(r, ido int, avx2, wide512 bool) int {
+	switch {
+	case wide512 && (r == 2 || r == 4 || r == 8) && (ido == 1 || ido >= 4):
+		return 512
+	case avx2 && stockhamSIMD(r):
+		return 256
+	}
+	return 0
+}
+
+type (
+	skPassFn func(cc, ch, tw *complex128, k *float64, ido, l1 int)
+	skLastFn func(cc, ch *complex128, k *float64, l1 int)
+)
+
+// The kernels by radix, per width.
+var (
+	skPass256 = [9]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2}
+	skLast256 = [9]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2}
+	skPass512 = [9]skPassFn{2: skPass2AVX512, 4: skPass4AVX512, 8: skPass8AVX512}
+	skLast512 = [9]skLastFn{2: skLast2AVX512, 4: skLast4AVX512, 8: skLast8AVX512}
+)
+
+// stockhamKernels returns, for a width stockhamWidth chose (256 or 512), the
+// constants table for the direction and the radix-r pass and final-pass
+// kernels. It only selects, so it is tested for both widths on any machine
+// (TestStockhamKernels), whichever one the machine can run.
+func stockhamKernels(r, w int, inverse bool) (k *float64, pass skPassFn, last skLastFn) {
+	if w == 512 {
+		k = &sk512Fwd[0][0]
+		if inverse {
+			k = &sk512Inv[0][0]
+		}
+		return k, skPass512[r], skLast512[r]
+	}
+	k = &skFwd[0][0]
+	if inverse {
+		k = &skInv[0][0]
+	}
+	return k, skPass256[r], skLast256[r]
+}
+
+// StockhamPass runs one Stockham pass of radix r on the widest SIMD kernel
+// that can run it and reports true, or reports false (and does nothing) when
+// none can: no AVX2, or a radix without a kernel. cc holds r·ido·l1 inputs, ch
+// receives as many outputs, and tw is the pass's twiddle table extended to i =
+// 0 ((r-1) blocks of ido entries; unused by the final pass, ido == 1).
+//
+// wide allows the AVX-512 kernels. The caller sets it for a transform whose
+// length is a power of two and for nothing else: on Cascade Lake, AVX-512 sped
+// powers of two up 1.16–1.49× (256–4096) but left composites at 0.88–1.04×,
+// whether every pass or only the radix-2/4/8 passes went to 512 bits (the
+// latter was worse, 0.83–0.94×); a transform that mixes widths, or runs
+// radix-3/5/7 passes at 512 bits, pays for the core's 512-bit frequency
+// license without enough work to amortize it. (2026-10-01)
+func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
+	w := stockhamWidth(r, ido, UseStockhamAVX2, UseStockhamAVX512 && wide)
+	if w == 0 {
 		return false
 	}
 	n := r * ido * l1
 	_, _ = cc[n-1], ch[n-1] // the kernels trust these lengths
-	k := skFwd
-	if inverse {
-		k = skInv
-	}
+	k, pass, last := stockhamKernels(r, w, inverse)
 	if ido == 1 {
-		// The final pass: no twiddles, vectorized across blocks.
-		switch r {
-		case 2:
-			skLast2AVX2(&cc[0], &ch[0], k, l1)
-		case 3:
-			skLast3AVX2(&cc[0], &ch[0], k, l1)
-		case 4:
-			skLast4AVX2(&cc[0], &ch[0], k, l1)
-		case 5:
-			skLast5AVX2(&cc[0], &ch[0], k, l1)
-		default:
-			skLast8AVX2(&cc[0], &ch[0], k, l1)
-		}
+		last(&cc[0], &ch[0], k, l1)
 		return true
 	}
 	_ = tw[(r-1)*ido-1]
-	switch r {
-	case 2:
-		skPass2AVX2(&cc[0], &ch[0], &tw[0], k, ido, l1)
-	case 3:
-		skPass3AVX2(&cc[0], &ch[0], &tw[0], k, ido, l1)
-	case 4:
-		skPass4AVX2(&cc[0], &ch[0], &tw[0], k, ido, l1)
-	case 5:
-		skPass5AVX2(&cc[0], &ch[0], &tw[0], k, ido, l1)
-	default:
-		skPass8AVX2(&cc[0], &ch[0], &tw[0], k, ido, l1)
-	}
+	pass(&cc[0], &ch[0], &tw[0], k, ido, l1)
 	return true
 }
 
 //go:noescape
-func skPass2AVX2(cc, ch, tw *complex128, k *skConst, ido, l1 int)
+func skPass2AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
-func skPass3AVX2(cc, ch, tw *complex128, k *skConst, ido, l1 int)
+func skPass3AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
-func skPass4AVX2(cc, ch, tw *complex128, k *skConst, ido, l1 int)
+func skPass4AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
-func skPass5AVX2(cc, ch, tw *complex128, k *skConst, ido, l1 int)
+func skPass5AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
-func skPass8AVX2(cc, ch, tw *complex128, k *skConst, ido, l1 int)
+func skPass8AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
-func skLast2AVX2(cc, ch *complex128, k *skConst, l1 int)
+func skLast2AVX2(cc, ch *complex128, k *float64, l1 int)
 
 //go:noescape
-func skLast3AVX2(cc, ch *complex128, k *skConst, l1 int)
+func skLast3AVX2(cc, ch *complex128, k *float64, l1 int)
 
 //go:noescape
-func skLast4AVX2(cc, ch *complex128, k *skConst, l1 int)
+func skLast4AVX2(cc, ch *complex128, k *float64, l1 int)
 
 //go:noescape
-func skLast5AVX2(cc, ch *complex128, k *skConst, l1 int)
+func skLast5AVX2(cc, ch *complex128, k *float64, l1 int)
 
 //go:noescape
-func skLast8AVX2(cc, ch *complex128, k *skConst, l1 int)
+func skLast8AVX2(cc, ch *complex128, k *float64, l1 int)
 
 // UseUntangleAVX2 reports whether Untangle takes the AVX2 kernel; a variable so
 // the tests can compare it with the scalar loop on an AVX2 machine.
@@ -162,12 +222,12 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		return 0
 	}
 	_, _, _ = dst[m], z[m-1], tw[2*pairs] // the kernel trusts these lengths
-	untangleAVX2(&dst[0], &z[0], &tw[0], skFwd, m, pairs)
+	untangleAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
 	return 2 * pairs
 }
 
 //go:noescape
-func untangleAVX2(dst, z, tw *complex128, k *skConst, m, pairs int)
+func untangleAVX2(dst, z, tw *complex128, k *float64, m, pairs int)
 
 // Retangle runs the real-FFT inverse untangle for k = 1 .. 2·⌊half/2⌋ (half =
 // (m-1)/2) on the AVX2 kernel, writing z from the complete half spectrum x
@@ -180,9 +240,27 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	}
 	_, _, _ = z[m-1], x[m], tw[2*pairs]
 	hv := [4]float64{h, h, h, h}
-	retangleAVX2(&z[0], &x[0], &tw[0], skFwd, &hv, m, pairs)
+	retangleAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
 	return 2 * pairs
 }
 
 //go:noescape
-func retangleAVX2(z, x, tw *complex128, k *skConst, h *[4]float64, m, pairs int)
+func retangleAVX2(z, x, tw *complex128, k *float64, h *[4]float64, m, pairs int)
+
+//go:noescape
+func skPass2AVX512(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skLast2AVX512(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func skPass4AVX512(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skLast4AVX512(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func skPass8AVX512(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skLast8AVX512(cc, ch *complex128, k *float64, l1 int)
