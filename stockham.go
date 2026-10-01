@@ -41,11 +41,15 @@ type skPlan struct {
 	scratch sync.Pool
 }
 
-func newSKPlan(n int) *skPlan {
+func newSKPlan(n int) *skPlan { return newSKPlanFactors(n, skFactorize(n)) }
+
+// newSKPlanFactors builds the plan for the given ordered radices, whose
+// product must be n.
+func newSKPlanFactors(n int, factors []int) *skPlan {
 	root := twiddleTable(n)
 	p := &skPlan{n: n}
 	l1 := 1
-	for _, r := range skFactorize(n) {
+	for _, r := range factors {
 		ido := n / (l1 * r)
 		st := skStage{r: r, l1: l1, ido: ido}
 		if ido > 1 {
@@ -99,29 +103,9 @@ func skFactorize(n int) []int {
 	}
 	var f []int
 	if n <= r8MaxPow2 || odd > 1 {
-		n8 := e / 3
-		switch e % 3 {
-		case 1:
-			if e >= 4 {
-				// 2^(3k+1) = 8^(k-1)·4·4: two radix-4 passes beat a radix-2 pass.
-				n8--
-				f = append(f, 4, 4)
-			} else {
-				f = append(f, 2)
-			}
-		case 2:
-			f = append(f, 4)
-		}
-		for ; n8 > 0; n8-- {
-			f = append([]int{8}, f...)
-		}
+		f = radix8Maximal(e)
 	} else {
-		for ; e >= 2; e -= 2 {
-			f = append(f, 4)
-		}
-		if e == 1 {
-			f = append(f, 2)
-		}
+		f = pow2Radices(e, n <= pow2OneRadix8Max)
 	}
 	for _, prime := range []int{3, 5, 7, 11, 13} {
 		for odd%prime == 0 {
@@ -132,8 +116,50 @@ func skFactorize(n int) []int {
 	return f
 }
 
-// r8MaxPow2 is the largest pure power of two factored with radix-8 passes.
-const r8MaxPow2 = 4096
+// radix8Maximal factors 2^e into as many radix-8 passes as it can, then radix
+// 4, taking two radix-4 passes rather than one radix-2 pass when that fits.
+func radix8Maximal(e int) []int {
+	var f []int
+	n8 := e / 3
+	switch e % 3 {
+	case 1:
+		if e >= 4 {
+			// 2^(3k+1) = 8^(k-1)·4·4: two radix-4 passes beat a radix-2 pass.
+			n8--
+			f = append(f, 4, 4)
+		} else {
+			f = append(f, 2)
+		}
+	case 2:
+		f = append(f, 4)
+	}
+	for ; n8 > 0; n8-- {
+		f = append([]int{8}, f...)
+	}
+	return f
+}
+
+// pow2Radices factors a pure power of two 2^e the way a large one is factored
+// (radix 4), finishing an odd exponent either with one radix-2 pass or, when
+// oneRadix8 is set, by opening with one radix-8 pass instead.
+func pow2Radices(e int, oneRadix8 bool) []int {
+	var f []int
+	if oneRadix8 && e%2 == 1 && e >= 3 {
+		f = append(f, 8)
+		e -= 3
+	}
+	for ; e >= 2; e -= 2 {
+		f = append(f, 4)
+	}
+	if e == 1 {
+		f = append(f, 2)
+	}
+	return f
+}
+
+// r8MaxPow2 is the largest pure power of two factored with radix-8 passes;
+// it is per-architecture (route_*.go).
+const r8MaxPow2 = r8MaxPow2Arch
 
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)

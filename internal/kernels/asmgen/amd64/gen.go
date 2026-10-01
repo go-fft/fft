@@ -288,6 +288,8 @@ func main() {
 	for _, r := range []int{2, 3, 4, 5, 8} {
 		genStockhamLastAVX2(fb, r)
 	}
+	genUntangleAVX2(fb)
+	genRetangleAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
 
 	// The gate in front of those AVX2 kernels. It used to be 24 hand-written
@@ -741,6 +743,148 @@ func genStockhamLastAVX2(f *emit.File, r int) {
 		Raw("JZ done")
 	x.body(r, false)
 	b.Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genUntangleAVX2 emits untangleAVX2(dst, z, tw *complex128, k *skConst, m,
+// pairs int): the real-FFT untangle (the fft package's rfftUntangle) for bins
+// k = 1 .. 2·pairs, two consecutive k per YMM register. Bin k reads Z[k] and
+// Z[m-k]; for k and k+1 those are one forward load of Z[k..k+1] and one load of
+// Z[m-k-1..m-k] with its 128-bit halves swapped, and the two mirrored outputs
+// dst[m-k], dst[m-k-1] are stored the same way. Per bin, with Z[k] = a and
+// Z[m-k] = b, s = a + b and d = a - b:
+//
+//	xe = [s.re, d.im]·0.5          (a blend, then the multiply)
+//	xo = [s.im, -d.re]·0.5         (the other blend, a swap, a sign flip)
+//	t  = W^k · xo                  (the complex product, VADDSUBPD)
+//	dst[k] = xe + t;  dst[m-k] = conj(xe - t)
+//
+// which is rfftUntangle's arithmetic operation for operation (the scalar code
+// spells the same values out on real and imaginary parts), separately rounded
+// with no FMA: bit-identical at GOAMD64=v1. k's row 0 (the forward rotation
+// mask, [0, -0, 0, -0]) is exactly the imaginary-lane sign flip, row 1 is 0.5.
+func genUntangleAVX2(f *emit.File) {
+	sig := amd64.Layout(
+		[]string{"dst", "z", "tw", "k", "m", "pairs"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc("untangleAVX2", sig, 0)
+	b.LoadArg("dst", "DI").LoadArg("z", "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
+		LoadArg("m", "DX").LoadArg("pairs", "R8")
+	b.Raw("SHLQ $4, DX"). // m·16
+				Raw("LEAQ 16(SI), AX").         // &Z[1]
+				Raw("LEAQ -32(SI)(DX*1), BX").  // &Z[m-2] = pair (m-2, m-1)
+				Raw("LEAQ 16(DI), R9").         // &dst[1]
+				Raw("LEAQ -32(DI)(DX*1), R10"). // &dst[m-2]
+				Raw("ADDQ $16, CX").            // &tw[1]
+				Raw("loop:").
+				Raw("TESTQ R8, R8").
+				Raw("JZ done").
+				Raw("VMOVUPD (AX), Y0").             // a = Z[k], Z[k+1]
+				Raw("VMOVUPD (BX), Y1").             // Z[m-k-1], Z[m-k]
+				Raw("VPERM2F128 $1, Y1, Y1, Y1").    // b = Z[m-k], Z[m-k-1]
+				Raw("VADDPD Y1, Y0, Y2").            // s
+				Raw("VSUBPD Y1, Y0, Y3").            // d
+				Raw("VBLENDPD $10, Y3, Y2, Y4").     // [s.re, d.im]
+				Raw("VMULPD 32(R14), Y4, Y4").       // xe
+				Raw("VBLENDPD $5, Y3, Y2, Y5").      // [d.re, s.im]
+				Raw("VPERMILPD $5, Y5, Y5").         // [s.im, d.re]
+				Raw("VXORPD 0(R14), Y5, Y5").        // [s.im, -d.re]
+				Raw("VMULPD 32(R14), Y5, Y5").       // xo
+				Raw("VMOVUPD (CX), Y6").             // w
+				Raw("VPERMILPD $0, Y6, Y7").         // [wr, wr]
+				Raw("VPERMILPD $15, Y6, Y8").        // [wi, wi]
+				Raw("VPERMILPD $5, Y5, Y9").         // [xo.im, xo.re]
+				Raw("VMULPD Y5, Y7, Y7").            // [wr·xo.re, wr·xo.im]
+				Raw("VMULPD Y9, Y8, Y8").            // [wi·xo.im, wi·xo.re]
+				Raw("VADDSUBPD Y8, Y7, Y7").         // t = w·xo
+				Raw("VADDPD Y7, Y4, Y10").           // dst[k], dst[k+1]
+				Raw("VSUBPD Y7, Y4, Y11").           // xe - t
+				Raw("VXORPD 0(R14), Y11, Y11").      // conj: dst[m-k], dst[m-k-1]
+				Raw("VPERM2F128 $1, Y11, Y11, Y11"). // dst[m-k-1], dst[m-k]
+				Raw("VMOVUPD Y10, (R9)").
+				Raw("VMOVUPD Y11, (R10)").
+				Raw("ADDQ $32, AX").
+				Raw("SUBQ $32, BX").
+				Raw("ADDQ $32, R9").
+				Raw("SUBQ $32, R10").
+				Raw("ADDQ $32, CX").
+				Raw("DECQ R8").
+				Raw("JMP loop").
+				Raw("done:").
+				Raw("VZEROUPPER").
+				Ret()
+	f.Add(b.Func())
+}
+
+// genRetangleAVX2 emits retangleAVX2(z, x, tw *complex128, k *skConst, h
+// *[4]float64, m, pairs int): the inverse of the untangle (the fft package's
+// irfftRetangle) for k = 1 .. 2·pairs, two consecutive k per YMM register,
+// with the same forward/mirrored load and store pairing. Per bin, with X[k] =
+// a, X[m-k] = b, s = a + b, d = a - b and h = 0.5·scale:
+//
+//	xe = [s.re, d.im]·h;  dd = [d.re, s.im]·h
+//	xo = conj(W^k)·dd     (conj: an exact sign flip of W's imaginary lane)
+//	Z[k] = xe + i·xo;  Z[m-k] = conj(xe - i·xo)
+//
+// operation for operation retangle's arithmetic, separately rounded, no FMA.
+// k's row 0 ([0,-0,0,-0]) flips imaginary lanes; skInv's row 0 would flip
+// real ones, so i·xo is a lane swap then a flip of the real lanes, done with
+// the imaginary mask after the swap.
+func genRetangleAVX2(f *emit.File) {
+	sig := amd64.Layout(
+		[]string{"z", "x", "tw", "k", "h", "m", "pairs"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc("retangleAVX2", sig, 0)
+	b.LoadArg("z", "DI").LoadArg("x", "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
+		LoadArg("h", "R15").LoadArg("m", "DX").LoadArg("pairs", "R8")
+	b.Raw("SHLQ $4, DX").
+		Raw("LEAQ 16(SI), AX").         // &X[1]
+		Raw("LEAQ -32(SI)(DX*1), BX").  // &X[m-2]
+		Raw("LEAQ 16(DI), R9").         // &Z[1]
+		Raw("LEAQ -32(DI)(DX*1), R10"). // &Z[m-2]
+		Raw("ADDQ $16, CX").            // &tw[1]
+		Raw("VMOVUPD (R15), Y12").      // h
+		Raw("VMOVUPD 0(R14), Y13").     // imaginary-lane sign mask
+		Raw("loop:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done").
+		Raw("VMOVUPD (AX), Y0"). // a = X[k], X[k+1]
+		Raw("VMOVUPD (BX), Y1").
+		Raw("VPERM2F128 $1, Y1, Y1, Y1"). // b = X[m-k], X[m-k-1]
+		Raw("VADDPD Y1, Y0, Y2").         // s
+		Raw("VSUBPD Y1, Y0, Y3").         // d
+		Raw("VBLENDPD $10, Y3, Y2, Y4").  // [s.re, d.im]
+		Raw("VMULPD Y12, Y4, Y4").        // xe
+		Raw("VBLENDPD $5, Y3, Y2, Y5").   // [d.re, s.im]
+		Raw("VMULPD Y12, Y5, Y5").        // dd = [dr, di]
+		Raw("VMOVUPD (CX), Y6").
+		Raw("VXORPD Y13, Y6, Y6").    // conj(w) = [wr, -wi]
+		Raw("VPERMILPD $0, Y6, Y7").  // [wr, wr]
+		Raw("VPERMILPD $15, Y6, Y8"). // [-wi, -wi]
+		Raw("VPERMILPD $5, Y5, Y9").  // [di, dr]
+		Raw("VMULPD Y5, Y7, Y7").     // [wr·dr, wr·di]
+		Raw("VMULPD Y9, Y8, Y8").     // [-wi·di, -wi·dr]
+		Raw("VADDSUBPD Y8, Y7, Y7").  // xo = [wr·dr + wi·di, wr·di - wi·dr]
+		Raw("VPERMILPD $5, Y7, Y8").  // [xoi, xor]
+		Raw("VXORPD Y13, Y8, Y8").    // [xoi, -xor]
+		Raw("VSUBPD Y8, Y4, Y10").    // xe - [xoi, -xor] = [xer - xoi, xei + xor] = Z[k]
+		Raw("VADDPD Y8, Y4, Y11").    // [xer + xoi, xei - xor]
+		Raw("VXORPD Y13, Y11, Y11").  // Z[m-k] = [xer + xoi, -(xei - xor)]
+		Raw("VPERM2F128 $1, Y11, Y11, Y11").
+		Raw("VMOVUPD Y10, (R9)").
+		Raw("VMOVUPD Y11, (R10)").
+		Raw("ADDQ $32, AX").
+		Raw("SUBQ $32, BX").
+		Raw("ADDQ $32, R9").
+		Raw("SUBQ $32, R10").
+		Raw("ADDQ $32, CX").
+		Raw("DECQ R8").
+		Raw("JMP loop").
+		Raw("done:").
 		Raw("VZEROUPPER").
 		Ret()
 	f.Add(b.Func())

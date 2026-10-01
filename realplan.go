@@ -4,6 +4,8 @@ import (
 	"math"
 	"sync"
 	"unsafe"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
 
 // A RealPlan is a reusable, precomputed real-input transform of a fixed length
@@ -141,7 +143,8 @@ func rfftUntangle(dst, Z, tw []complex128, m int) {
 	dst[0] = complex(z0r+z0i, 0)
 	dst[m] = complex(z0r-z0i, 0)
 	half := (m - 1) / 2
-	for k := 1; k <= half; k++ {
+	// On amd64 an AVX2 kernel produces the leading bins, bit-identically.
+	for k := kernels.Untangle(dst, Z, tw, m) + 1; k <= half; k++ {
 		zk := Z[k]
 		zmk := Z[m-k]
 		// xe = (zk + conj(zmk))/2, xo = (zk - conj(zmk))·(-i/2).
@@ -299,7 +302,8 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 func irfftRetangle(Z, X, tw []complex128, m int, h float64) {
 	X = X[:m+1]
 	tw = tw[:m+1]
-	k := 1
+	// On amd64 an AVX2 kernel produces the leading pairs, bit-identically.
+	k := kernels.Retangle(Z, X, tw, m, h) + 1
 	for ; k < m-k; k++ {
 		Z[k], Z[m-k] = retangle(X[k], X[m-k], tw[k], h)
 	}
