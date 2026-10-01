@@ -29,3 +29,28 @@ TEXT ·supportsAVX2(SB), NOSPLIT, $0-1
 supportsAVX2_unsupported:
 	RET
 
+TEXT ·supportsAVX512F(SB), NOSPLIT, $0-1
+	MOVB $0, ret+0(FP)
+	XORL AX, AX
+	CPUID
+	CMPL AX, $7
+	JL supportsAVX512F_unsupported
+	MOVL $1, AX
+	CPUID
+	ANDL $0x18000000, CX // AVX and OSXSAVE
+	CMPL CX, $0x18000000
+	JNE supportsAVX512F_unsupported
+	XORL CX, CX
+	XGETBV
+	ANDL $0xE6, AX // XMM, YMM, opmask, ZMM_Hi256 and Hi16_ZMM state in XCR0
+	CMPL AX, $0xE6
+	JNE supportsAVX512F_unsupported
+	MOVL $7, AX
+	XORL CX, CX
+	CPUID
+	TESTL $0x10000, BX // AVX512F
+	JZ supportsAVX512F_unsupported
+	MOVB $1, ret+0(FP)
+supportsAVX512F_unsupported:
+	RET
+

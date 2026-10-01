@@ -178,3 +178,11 @@ func TestPow2Radices(t *testing.T) {
 		}
 	}
 }
+
+func TestWide512(t *testing.T) {
+	for n, want := range map[int]bool{128: false, 256: true, 4096: true, 1 << 20: true, 1000: false, 768: false, 20160: false} {
+		if got := wide512(n); got != want {
+			t.Errorf("wide512(%d) = %v, want %v", n, got, want)
+		}
+	}
+}

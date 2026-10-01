@@ -422,3 +422,51 @@ The three cells below 1.00 are all on Haswell (0.96–0.99), a shared host whose
 - **Out of tolerance:** 0 cases. **Non-finite outputs:** none.
 - **2-D/N-D cases:** they differ by at most 2.1e-15 relative.
 - **1-D, largest differences:** 2e-13, on odd-length IRFFT. Measured against numpy, the new code was the closer one in all 40 of the most-differing cases (2e-15 against the old 2e-13), so those differences are an accuracy gain.
+
+### Round 6 — AVX-512, where it pays (2026-10-01)
+
+**go-asmgen first.** go-asmgen v0.10.0 adds an `AVX512F` feature probe:
+- leaf 7 must exist;
+- OSXSAVE must be set;
+- XCR0 must hold XMM, YMM, opmask, ZMM_Hi256 and Hi16_ZMM (mask 0xE6);
+- CPUID.7.0:EBX bit 16 must be set.
+
+Generated and run on real hardware, it agreed with `/proc/cpuinfo` on Cascade Lake (true), Haswell and Zen 3 (false). On macOS it answers false, because Darwin enables ZMM state lazily, so an Intel Mac runs the AVX2 kernels.
+
+The same release adds encoders for the arm64 vector `FADD`/`FSUB`/`FMUL`/`FNEG` .2D that `cmd/asm` lacks. They are pinned against the system assembler, and ran bit-identically to Go arithmetic over 2.4M lanes on M4 and Neoverse-N1.
+
+go-fft's generator now has its own `go.mod` pinning go-asmgen v0.10.0. Before, it resolved go-asmgen from whatever a module cache held, so the committed `.s` files were only reproducible by luck.
+
+**The kernels.** The Stockham emitter gained a 512-bit width, four points per ZMM register. Every instruction AVX-512 lacks at that width is replaced exactly:
+- `VADDSUBPD` → a real-lane sign flip, then `VADDPD` (x + (−y) is x − y);
+- `VXORPD` → `VPXORQ` (avoids needing AVX512DQ);
+- the i = 0 blend → `VBLENDMPD` under opmask K1;
+- `VINSERTF128` → `VINSERTF32X4` for the final pass.
+
+`ido` mod 4 is finished with the 256- and 128-bit bodies. The bit-identity test now compares scalar against AVX2 and against AVX-512. On Cascade Lake it passes on every signal (generic, ±0, ∞), and removing the K1 blend or using the wrong sign row each makes it fail.
+
+**Where AVX-512 is used was decided by measurement.** On an idle Cascade Lake (cfarm151, load ≈ 0), AVX-512 sped powers of two up but not composites. AVX2 time ÷ AVX-512 time:
+
+| | all radices at 512 bits | only radix-2/4/8 passes at 512 bits | 512 bits except radix 8 |
+|:--|--:|--:|--:|
+| 256 / 1024 / 4096 | 1.16 / 1.21 / 1.49 | 1.17 / 1.22 / 1.50 | 0.86 / 0.93 / 1.03 |
+| 1000 / 1080 / 1296 / 1920 / 2000 | 0.95–1.04 | 0.83–0.94 | 0.94–1.03 |
+| 20160 / 1008 / 10080 / 45000 | 0.88–0.96 | 0.84–0.91 | 0.86–0.97 |
+
+Mixing widths inside one transform is worse than either width alone. That is consistent with the core's 512-bit frequency licence costing more than radix-3/5/7 passes gain. So AVX-512 is decided per transform, not per pass: only a power of two of at least 256 points uses it, because at 8–128 points the AVX-512 time ratio is 0.94–1.03 (`wide512`). The radix-3/5 kernels at 512 bits were then never called, so they are not generated.
+
+Stockham with AVX-512 also beats the pow2 kernel up to 16384 (pow2 kernel time ÷ Stockham: 4096 2.33, 8192 1.35, 16384 1.74; above that it wanders between 0.86 and 1.23). On amd64 with AVX-512, powers of two up to 16384 now route to Stockham (`route_amd64.go`).
+
+**Coverage.** Kernel choice (`stockhamWidth`, `stockhamKernels`) and routing are pure functions, tested for every combination, so the 100% gate does not depend on whether a CI runner has AVX-512. Measured: 100% on Cascade Lake (AVX-512), on Haswell (AVX2 only) and on arm64.
+
+**Result**, end to end against `main` (median of 4; Cascade Lake idle):
+
+| op | speed-up |
+|:--|--:|
+| complex 256 / 1024 / 4096 | 1.14 / 1.19 / 1.38 |
+| RFFT / IRFFT 4096 | 1.21 / 1.21 |
+| composites, primes, and powers of two the change does not reach | 0.91–1.16 |
+
+The last row is code this change does not alter on that machine: composites stay on AVX2, and 2²⁰ and the real 256 path stay on the routes they had. Its spread is run-to-run noise. Zen 3, which has no AVX-512 and so runs the same code as before, showed the same spread over the same rows (complex 2²⁰ at 1.18 there too).
+
+**Regression check.** The 8494 public-API cases were computed by `main` and by this code on the AVX-512 machine. None was out of tolerance; the largest difference was 1.1e-15 relative (IRFFT 16384, which now takes the Stockham route). The same cases agree with the M4's to 2.5e-15.
