@@ -1,5 +1,10 @@
 package fft
 
+import (
+	"strconv"
+	"sync"
+)
+
 // This file implements the multi-dimensional transforms. They operate on a flat
 // row-major (C-order) slice paired with an explicit shape, mirroring the
 // semantics of numpy.fft.fft2 / ifft2 / fftn / ifftn / rfft2 / irfft2.
@@ -62,77 +67,16 @@ func validateShape(shape []int, total int) int {
 }
 
 // transformN applies a 1-D FFT (or IFFT when inverse) along every axis of a
-// row-major array, without mutating the caller's slice.
+// row-major array, without mutating the caller's slice: a PlanN writing into a
+// new slice.
 func transformN(data []complex128, shape []int, inverse bool) []complex128 {
 	validateShape(shape, len(data))
-
+	p := cachedPlanN(shape)
 	out := make([]complex128, len(data))
-	copy(out, data)
-	if len(out) <= 1 {
-		// 0 or 1 element: the transform is the identity (a copy). This also covers
-		// the empty-shape scalar case.
-		return out
+	if inverse {
+		return p.IFFT(out, data)
 	}
-
-	// stride[ax] is the distance in the flat slice between consecutive elements
-	// along axis ax (row-major: the last axis is contiguous).
-	stride := make([]int, len(shape))
-	acc := 1
-	for ax := len(shape) - 1; ax >= 0; ax-- {
-		stride[ax] = acc
-		acc *= shape[ax]
-	}
-
-	for ax := range shape {
-		transformAxis(out, shape, stride, ax, inverse)
-	}
-	return out
-}
-
-// transformAxis transforms every 1-D line of out that runs along axis ax. A line
-// is the set of elements obtained by fixing every other index and sweeping the
-// index of axis ax from 0 to shape[ax]-1. Each line is gathered into a temporary
-// buffer, transformed, and scattered back.
-//
-// The length-n plan is built once and reused across every line of this axis (no
-// per-line twiddle lookup or plan allocation), and the independent lines are
-// distributed across goroutines when the axis is large enough — the multicore
-// lever single-threaded pocketfft cannot pull. Each goroutine owns private
-// gather/result scratch so the transforms never share mutable state.
-func transformAxis(out []complex128, shape, stride []int, ax int, inverse bool) {
-	n := shape[ax]
-	if n == 1 {
-		// A length-1 axis is unchanged by the DFT; skip the work entirely.
-		return
-	}
-	st := stride[ax]
-	plan := cachedPlan(n)
-	lineCount := len(out) / n // number of lines along axis ax = total / n
-
-	work := func(lo, hi int) {
-		buf := make([]complex128, n)
-		res := make([]complex128, n)
-		for c := lo; c < hi; c++ {
-			base := lineBase(c, shape, stride, ax)
-			for i := 0; i < n; i++ {
-				buf[i] = out[base+i*st]
-			}
-			if inverse {
-				plan.IFFT(res, buf)
-			} else {
-				plan.FFT(res, buf)
-			}
-			for i := 0; i < n; i++ {
-				out[base+i*st] = res[i]
-			}
-		}
-	}
-
-	if parallelizeLines(lineCount, n) {
-		parChunks(lineCount, n, work)
-	} else {
-		work(0, lineCount)
-	}
+	return p.FFT(out, data)
 }
 
 // lineBase maps a linear line index c (0 <= c < total/shape[ax]) to the flat
@@ -152,4 +96,32 @@ func lineBase(c int, shape, stride []int, ax int) int {
 		c /= s
 	}
 	return base
+}
+
+// planNCache memoizes N-D plans by shape, so FFTN/FFT2 called repeatedly on
+// one shape reuse its per-axis plans and its warm scratch pool instead of
+// rebuilding them every call.
+var (
+	planNMu    sync.Mutex
+	planNCache = map[string]*PlanN{}
+)
+
+// cachedPlanN returns the shared plan for shape, building it on first use.
+func cachedPlanN(shape []int) *PlanN {
+	var kb [64]byte
+	key := kb[:0]
+	for _, s := range shape {
+		key = strconv.AppendInt(key, int64(s), 10)
+		key = append(key, ',')
+	}
+	// The plan is built under the lock (NewPlanN takes only cachedPlan's own,
+	// separate mutex), so concurrent first calls on one shape build it once.
+	planNMu.Lock()
+	defer planNMu.Unlock()
+	p, ok := planNCache[string(key)]
+	if !ok {
+		p = NewPlanN(shape...)
+		planNCache[string(key)] = p
+	}
+	return p
 }

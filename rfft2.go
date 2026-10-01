@@ -1,5 +1,7 @@
 package fft
 
+import "sync"
+
 // This file implements the real two-dimensional transforms for image-style
 // workloads, mirroring numpy.fft.rfft2 / irfft2.
 //
@@ -27,50 +29,8 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 	if rows*cols != len(data) {
 		panic("fft: shape product does not match len(data)")
 	}
-
-	rcols := cols/2 + 1
-
-	// Step 1: real FFT along each row, producing a rows×rcols complex matrix.
-	// One row plan is reused across all rows, and the independent rows run across
-	// goroutines when the matrix is large enough.
-	half := make([]complex128, rows*rcols)
-	rp := cachedRealPlan(cols)
-	rowWork := func(lo, hi int) {
-		row := make([]float64, cols)
-		dst := make([]complex128, rcols)
-		for r := lo; r < hi; r++ {
-			copy(row, data[r*cols:(r+1)*cols])
-			rp.RFFT(dst, row)
-			copy(half[r*rcols:(r+1)*rcols], dst)
-		}
-	}
-	if parallelizeLines(rows, cols) {
-		parChunks(rows, cols, rowWork)
-	} else {
-		rowWork(0, rows)
-	}
-
-	// Step 2: full complex FFT down each column of the rows×rcols matrix.
-	cp := cachedPlan(rows)
-	colWork := func(lo, hi int) {
-		col := make([]complex128, rows)
-		dst := make([]complex128, rows)
-		for c := lo; c < hi; c++ {
-			for r := 0; r < rows; r++ {
-				col[r] = half[r*rcols+c]
-			}
-			cp.FFT(dst, col)
-			for r := 0; r < rows; r++ {
-				half[r*rcols+c] = dst[r]
-			}
-		}
-	}
-	if parallelizeLines(rcols, rows) {
-		parChunks(rcols, rows, colWork)
-	} else {
-		colWork(0, rcols)
-	}
-	return half
+	p := cachedRealPlan2(rows, cols)
+	return p.RFFT(make([]complex128, p.SpectrumLen()), data)
 }
 
 // IRFFT2 inverts RFFT2, reconstructing a real row-major matrix of shape
@@ -89,50 +49,33 @@ func IRFFT2(data []complex128, shape [2]int) []float64 {
 	if rows <= 0 || cols <= 0 {
 		panic("fft: shape lengths must be positive")
 	}
-	rcols := cols/2 + 1
+	p := cachedRealPlan2(rows, cols)
+	spec := data
+	if len(spec) != p.SpectrumLen() {
+		// Fewer bins than the layout holds read as zeros, extra bins are
+		// ignored: pad or trim to exactly the layout.
+		spec = make([]complex128, p.SpectrumLen())
+		copy(spec, data)
+	}
+	return p.IRFFT(make([]float64, rows*cols), spec)
+}
 
-	// Copy the supplied bins into a rows×rcols working matrix, zero-padding any
-	// bins the caller did not provide.
-	half := make([]complex128, rows*rcols)
-	for i := 0; i < rows*rcols && i < len(data); i++ {
-		half[i] = data[i]
-	}
+// realPlan2Cache memoizes real 2-D plans by shape for RFFT2/IRFFT2.
+var (
+	realPlan2Mu    sync.Mutex
+	realPlan2Cache = map[[2]int]*RealPlan2{}
+)
 
-	// Step 1: complex inverse FFT down each column.
-	cp := cachedPlan(rows)
-	colWork := func(lo, hi int) {
-		col := make([]complex128, rows)
-		dst := make([]complex128, rows)
-		for c := lo; c < hi; c++ {
-			for r := 0; r < rows; r++ {
-				col[r] = half[r*rcols+c]
-			}
-			cp.IFFT(dst, col)
-			for r := 0; r < rows; r++ {
-				half[r*rcols+c] = dst[r]
-			}
-		}
+// cachedRealPlan2 returns the shared plan for rows×cols, building it on first
+// use under the lock (NewRealPlan2 takes only the 1-D caches' own mutexes).
+func cachedRealPlan2(rows, cols int) *RealPlan2 {
+	realPlan2Mu.Lock()
+	defer realPlan2Mu.Unlock()
+	key := [2]int{rows, cols}
+	p, ok := realPlan2Cache[key]
+	if !ok {
+		p = NewRealPlan2(rows, cols)
+		realPlan2Cache[key] = p
 	}
-	if parallelizeLines(rcols, rows) {
-		parChunks(rcols, rows, colWork)
-	} else {
-		colWork(0, rcols)
-	}
-
-	// Step 2: real inverse (irfft) along each row back to length cols.
-	out := make([]float64, rows*cols)
-	rp := cachedRealPlan(cols)
-	rowWork := func(lo, hi int) {
-		dst := make([]float64, cols)
-		for r := lo; r < hi; r++ {
-			rp.IRFFT(dst, half[r*rcols:(r+1)*rcols])
-			copy(out[r*cols:(r+1)*cols], dst)
-		}
-	}
-	if parallelizeLines(rows, cols) {
-		parChunks(rows, cols, rowWork)
-	} else {
-		rowWork(0, rows)
-	}
-	return out
+	return p
 }

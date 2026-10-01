@@ -71,6 +71,16 @@ p.IFFT(dst, src)              // normalized inverse
 rp  := fft.NewRealPlan(n)      // real-input transform plan
 rp.RFFT(dst, src)             // src []float64 (len n), dst []complex128 (len n/2+1)
 rp.IRFFT(out, spec)           // out []float64 (len n), spec the half spectrum
+
+// N-D and real 2-D plans: write into your slice, allocate nothing in steady
+// state. FFTN/FFT2/RFFT2 return a new slice each call; on a many-core host
+// that allocation, not the FFT, dominates a small repeated transform.
+pn  := fft.NewPlanN(rows, cols)      // any rank: NewPlanN(d0, d1, d2, ...)
+pn.FFT(dst, src)                     // row-major, len = product of the shape (may alias)
+pn.IFFT(dst, src)                    // normalized inverse (matches IFFTN)
+r2  := fft.NewRealPlan2(rows, cols)  // real 2-D plan (matches RFFT2/IRFFT2)
+r2.RFFT(spec, img)                   // spec len r2.SpectrumLen() = rows*(cols/2+1)
+r2.IRFFT(img, spec)                  // normalized inverse
 ```
 
 The multi-dimensional transforms are separable: the 1-D FFT is applied along

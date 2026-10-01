@@ -1,6 +1,10 @@
 package fft
 
-import "github.com/go-fft/fft/internal/kernels"
+import (
+	"sync"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
 
 // Iterative, cache-friendly power-of-two FFT engine.
 //
@@ -52,12 +56,19 @@ type itPlan struct {
 	n      int
 	revPos []int       // bit-reversal permutation: out[i] = in[revPos[i]]
 	stages []stagePlan // ordered DIT stages, product of radices == n
+
+	// scratch lends an in-place call its private copy of the input, so a
+	// steady-state in-place transform allocates nothing (PlanN transforms its
+	// lines in place, and on the architectures that route powers of two here
+	// an allocating copy cost one allocation per line).
+	scratch sync.Pool
 }
 
 // newITPlan builds the bit-reversal permutation and the per-stage twiddle layout
 // for a power-of-two length n (n >= 2, a power of two — guaranteed by the caller).
 func newITPlan(n int) *itPlan {
 	p := &itPlan{n: n}
+	p.scratch.New = func() any { b := make([]complex128, n); return &b }
 
 	// Decompose log2(n) into radix-4 stages plus an optional leading radix-2 when
 	// the exponent is odd. A leading radix-2 (done first, on the shortest spans)
@@ -156,7 +167,10 @@ func (p *itPlan) transform(dst, src []complex128, inverse bool) {
 		// In-place call: the gather dst[i]=src[j] would overwrite source samples
 		// before they are read (the digit-reversal permutation is not an
 		// involution in general), so read through a private copy.
-		src = append([]complex128(nil), src...)
+		bp := p.scratch.Get().(*[]complex128)
+		defer p.scratch.Put(bp)
+		copy(*bp, src)
+		src = *bp
 	}
 	rev := p.revPos
 	for i, j := range rev {
