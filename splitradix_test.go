@@ -43,11 +43,11 @@ func TestSplitRadixVsMixedRadix(t *testing.T) {
 	for _, n := range srLargeSizes {
 		x := cmplxSignal(n)
 		sr := newSRPlan(n)
-		ct := &Plan{n: n, ct: newCTPlan(n)}
+		ct := newCTPlan(n)
 		a := make([]complex128, n)
 		b := make([]complex128, n)
 		sr.transform(a, x, false)
-		ct.FFT(b, x)
+		ct.transform(b, x, false)
 		// Two correct FFTs of the same data differ only by rounding; allow an
 		// N-scaled tolerance as the Rader/Bluestein tests do.
 		tolN := 1e-12 * float64(n)

@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"sync"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
@@ -21,6 +22,10 @@ type bluesteinPlan struct {
 	wI []complex128 // inverse chirp  conj  = exp(+πi·j²/N)
 	bF []complex128 // FFT of the forward kernel b (built from conj(wF)), length m
 	bI []complex128 // FFT of the inverse kernel (built from conj(wI)), length m
+
+	// scratch lends each concurrent transform its length-m convolution buffer,
+	// so a steady-state transform allocates nothing.
+	scratch sync.Pool
 }
 
 // newBluesteinPlan precomputes the chirps and the kernel spectra for both
@@ -44,6 +49,7 @@ func newBluesteinPlan(n int) *bluesteinPlan {
 
 	p.bF = buildKernelSpectrum(p.wF, n, m)
 	p.bI = buildKernelSpectrum(p.wI, n, m)
+	p.scratch.New = func() any { b := make([]complex128, m); return &b }
 	return p
 }
 
@@ -72,10 +78,13 @@ func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
 	}
 
 	// a[j] = src[j]·w[j], zero-padded to m.
-	a := make([]complex128, m)
+	bp := p.scratch.Get().(*[]complex128)
+	defer p.scratch.Put(bp)
+	a := *bp
 	for j := 0; j < n; j++ {
 		a[j] = src[j] * w[j]
 	}
+	clear(a[n:]) // the pooled buffer is dirty; the pad must be zero
 
 	// Convolution: a = IFFT(FFT(a) · bSpec).
 	kernels.BitReverse(a)
