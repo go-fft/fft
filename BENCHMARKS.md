@@ -382,3 +382,43 @@ Speed-up over Round 3 (#12), interleaved A/B (best of 3; the arm64 rows were re-
 | other sizes | ≈1 | ≈1 | ≈1 | ≈1 | ≈1 |
 
 "≈1" marks rows whose code did not change on that architecture, within that host's noise (±10% on the shared hosts). On arm64 the real transforms gain only where their half-length falls under the new radix rule (4096 → 2048).
+
+### Round 5 — allocation-free N-D plans, a rebuilt N-D path, and the in-place pow2 kernel (2026-10-01)
+
+Round 3 traced the small 2-D transforms on many-core hosts to the garbage collector. `FFT2`/`FFTN`/`RFFT2` return a new slice each call, and on 128 threads a collection costs more than a 128×128 FFT. Closing that needed an API that writes into the caller's slice, the way `Plan.FFT(dst, src)` does in 1-D and `fftw_plan_dft(rank, dims, …)` does in FFTW.
+
+**New API.**
+- `NewPlanN(shape...)` with `FFT(dst, src)` / `IFFT(dst, src)`, for complex transforms of any rank. `dst` may alias `src`.
+- `NewRealPlan2(rows, cols)` with `RFFT(spec, img)` / `IRFFT(img, spec)` / `SpectrumLen()`.
+
+Both allocate nothing in steady state (`TestPlanNAllocatesNothing`, `TestRealPlan2AllocatesNothing`; an odd-width real plan still allocates in its row transform). `FFTN`/`FFT2`/`IFFTN`/`IFFT2`/`RFFT2`/`IRFFT2` are now these plans writing into a new slice, cached by shape, so there is one implementation.
+
+**The N-D path, rebuilt and measured step by step.**
+- **The contiguous last axis** is transformed in place, with no gather or scatter. A real 2-D plan's rows go straight from the input matrix into their row of the output.
+- **Every other axis** gathers up to 8 neighbouring lines at once, so each element read is a whole run of a cache line rather than 16 bytes of one. The block budget (128 KB) came from a 16/32/64/128 KB sweep at 256²…2048²: it was best or within 2% on M4 and N1, and the best single value on Haswell and Zen 3 (geometric mean 1.10 of each size's best). My first guess, half an L1, was refuted by that sweep.
+- **Two Haswell regressions** turned up and were removed on the way:
+  - *4K aliasing.* Eight 512-point lines sat 8 KB apart in the scratch buffer, so every gather write hit one aliasing set. The lines are now staggered by 64 bytes.
+  - *Loop overhead.* The 8-wide inner loop cost more than the memory traffic. Full blocks now go through an unrolled gather/scatter with no bounds checks.
+
+  With both fixed, single-threaded Haswell went from ×0.76–0.86 to ×0.98–1.06 for `RFFT2` and ×1.05–1.26 for `IRFFT2`.
+- **IFFTN normalization** is one pass at the end instead of one per line.
+
+**Found on real hardware only.** The zero-allocation tests failed on ppc64le (POWER9) and riscv64 (SpacemiT X60), at 128 allocations per 64×64 call. Those architectures route powers of two to the iterative pow2 kernel, whose in-place call copied its input with `append` on every call. That cost also hit any in-place 1-D transform there. The copy now comes from a pool (`TestInPlacePow2KernelAllocatesNothing`).
+
+Median speed-up over `main` after Round 4. `PlanN` and `RealPlan2` are compared with `main`'s `FFT2` and `RFFT2`, i.e. what a user calls today:
+
+| op | M4 (16 threads) | Haswell (24) | Neoverse-N1 (64) | Zen 3 (128) |
+|:--|--:|--:|--:|--:|
+| `FFT2` 32² … 1024² | 1.17–1.59 | 0.99–1.58 | 1.08–1.41 | 1.05–1.35 |
+| **`PlanN.FFT`** 32² … 1024² | 1.35–2.03 | 1.39–3.46 | 1.55–3.27 | **2.47–4.05** |
+| `RFFT2` 64² … 1024² | 1.05–1.31 | 0.96–1.17 | 1.05–1.13 | 1.10–1.26 |
+| `IRFFT2` 64² … 1024² | 1.21–1.46 | 1.11–1.42 | 1.17–1.38 | 1.56–1.80 |
+| **`RealPlan2.RFFT`** 64² … 1024² | 1.29–2.12 | 1.45–2.36 | 1.44–3.11 | **2.38–3.04** |
+
+The three cells below 1.00 are all on Haswell (0.96–0.99), a shared host whose run-to-run noise is larger than that.
+
+**Regression check.** The whole public API (FFT/IFFT/RFFT/IRFFT at every length 1–2100 plus 12 large ones, FFT2/IFFT2/RFFT2/IRFFT2 at 10 shapes, FFTN/IFFTN at 3 ranks; 8494 cases) was computed by the code before these rounds and by this code, on M4 and on AVX2 Haswell, and compared:
+
+- **Out of tolerance:** 0 cases. **Non-finite outputs:** none.
+- **2-D/N-D cases:** they differ by at most 2.1e-15 relative.
+- **1-D, largest differences:** 2e-13, on odd-length IRFFT. Measured against numpy, the new code was the closer one in all 40 of the most-differing cases (2e-15 against the old 2e-13), so those differences are an accuracy gain.
