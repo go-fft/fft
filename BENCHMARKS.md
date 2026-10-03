@@ -470,3 +470,21 @@ Stockham with AVX-512 also beats the pow2 kernel up to 16384 (pow2 kernel time �
 The last row is code this change does not alter on that machine: composites stay on AVX2, and 2²⁰ and the real 256 path stay on the routes they had. Its spread is run-to-run noise. Zen 3, which has no AVX-512 and so runs the same code as before, showed the same spread over the same rows (complex 2²⁰ at 1.18 there too).
 
 **Regression check.** The 8494 public-API cases were computed by `main` and by this code on the AVX-512 machine. None was out of tolerance; the largest difference was 1.1e-15 relative (IRFFT 16384, which now takes the Stockham route). The same cases agree with the M4's to 2.5e-15.
+
+### Round 7 — cache-blocked pow2 kernel, and a coverage gate that passed by chance (2026-10-03)
+
+**Cache blocking.** The pow2 kernel serves powers of two above 4096 on amd64 (16384 with AVX-512), and every power of two on riscv64, ppc64le, loong64 and s390x. It is an in-place iterative DIT, so every stage used to sweep the whole array: eight sweeps of 1 MB at 65536.
+
+The stages whose butterfly groups fit in a 4096-point block now run block by block, all of them on each block while it is in cache. The bit-reversal gather for that block is fused in front of them. Only the wide stages still sweep the array. A block gets exactly the operations its points get in a full sweep, so the result is bit-identical; `TestCacheBlockingIsBitIdentical` checks every entry point at four block sizes against the unblocked run. Unlike the six-step attempt (Round 4), nothing is transposed.
+
+The block size was swept from 512 to 32768 points on Haswell, Zen 3, Cascade Lake, POWER9 and SpacemiT X60, at 2^11 to 2^20. Values are unblocked time ÷ blocked time:
+
+- **Choice:** 4096 had the best geometric mean (1.031).
+- **At 2^20:** the gain shows on all five CPUs (1.03–1.57).
+- **On the two idle hosts:** 1.19 at 2^20 and 1.07 at 2^18 on Cascade Lake; 1.05 and 1.04 on POWER9.
+- **Below 2^17:** blocking is neutral, because the array already fits in L2.
+- **At n ≤ 4096:** the code is the unblocked code.
+
+Haswell and the X60 were loaded during the run (load average 8.8 and 4.3). On rows where the code is identical, their ratios still swing by ±30–40%, so only the idle hosts' numbers are claimed above.
+
+**A coverage gate that passed by chance.** `cachedPlan`'s branch for "another goroutine stored a plan while this one built its own" was covered only when two concurrent tests happened to race. Coverage read 91.7% or 100% on identical runs, so the 100% gate passed or failed by luck. The builder is now injectable, and `TestCachedPlanKeepsTheFirstStored` takes that branch on purpose. Six consecutive `-race -coverpkg` runs, the way CI runs them, now give 100%, with no function varying between runs.

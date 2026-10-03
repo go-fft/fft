@@ -62,7 +62,25 @@ type itPlan struct {
 	// lines in place, and on the architectures that route powers of two here
 	// an allocating copy cost one allocation per line).
 	scratch sync.Pool
+
+	// blk and nSmall cache-block the stages: the first nSmall stages combine
+	// groups of at most blk points, so they run block by block on blk-point
+	// slices — each block gathered and taken through all of them while it is
+	// in cache — and only the remaining stages sweep the whole array.
+	blk, nSmall int
 }
+
+// itBlock is the cache block, in points, of the pow2 kernel's leading
+// stages (a variable so TestCacheBlockingIsBitIdentical can compare blocked
+// and unblocked runs). Swept from 512 to 32768 on Haswell, Zen 3, Cascade
+// Lake, POWER9 and SpacemiT X60, 2^11–2^20 (2026-10-03; unblocked time ÷
+// blocked): 4096 had the best geometric mean (1.031) and won at 2^20 on all
+// five (1.03–1.57). Below 2^17 blocking is neutral — the array fits in L2
+// anyway — and at n <= 4096 the code is the unblocked code (one block). On
+// the two idle hosts the gain is 1.05 (POWER9) and 1.19 (Cascade Lake) at
+// 2^20, 1.04 and 1.07 at 2^18; the loaded hosts' larger ratios carry their
+// noise (±30% on rows where the code is identical).
+var itBlock = 4096
 
 // newITPlan builds the bit-reversal permutation and the per-stage twiddle layout
 // for a power-of-two length n (n >= 2, a power of two — guaranteed by the caller).
@@ -87,6 +105,7 @@ func newITPlan(n int) *itPlan {
 
 	p.revPos = bitReversalForRadices(n, radices)
 	p.stages = buildStages(n, radices)
+	p.setBlocking()
 	return p
 }
 
@@ -160,6 +179,19 @@ func buildStages(n int, radices []int) []stagePlan {
 	return stages
 }
 
+// setBlocking derives the block and the cache-blocked stage prefix from the
+// stages (in increasing span order).
+func (p *itPlan) setBlocking() {
+	p.blk = min(p.n, itBlock)
+	p.nSmall = 0
+	for _, st := range p.stages {
+		if st.radix*st.span > p.blk {
+			break
+		}
+		p.nSmall++
+	}
+}
+
 // transform writes the unnormalized DFT of src into dst. dst may alias src. The
 // permutation gathers src into dst, then the stages run in place on dst.
 func (p *itPlan) transform(dst, src []complex128, inverse bool) {
@@ -172,11 +204,14 @@ func (p *itPlan) transform(dst, src []complex128, inverse bool) {
 		copy(*bp, src)
 		src = *bp
 	}
-	rev := p.revPos
-	for i, j := range rev {
-		dst[i] = src[j]
+	for lo := 0; lo < p.n; lo += p.blk {
+		blk := dst[lo : lo+p.blk]
+		for i, j := range p.revPos[lo : lo+p.blk] {
+			blk[i] = src[j]
+		}
+		p.stagesOn(blk, 0, p.nSmall, inverse)
 	}
-	p.run(dst, inverse)
+	p.stagesOn(dst, p.nSmall, len(p.stages), inverse)
 }
 
 // aliases reports whether two slices share backing storage at the same start,
@@ -189,11 +224,14 @@ func aliases(a, b []complex128) bool {
 // permutation reads (so a caller owning a private length-n buffer skips a copy,
 // matching srPlan.transformScratch). dst must not alias scratch.
 func (p *itPlan) transformScratch(dst, scratch []complex128, inverse bool) {
-	rev := p.revPos
-	for i, j := range rev {
-		dst[i] = scratch[j]
+	for lo := 0; lo < p.n; lo += p.blk {
+		blk := dst[lo : lo+p.blk]
+		for i, j := range p.revPos[lo : lo+p.blk] {
+			blk[i] = scratch[j]
+		}
+		p.stagesOn(blk, 0, p.nSmall, inverse)
 	}
-	p.run(dst, inverse)
+	p.stagesOn(dst, p.nSmall, len(p.stages), inverse)
 }
 
 // transformRealPacked is the forward (DIT) transform for the real-FFT packer: it
@@ -203,17 +241,24 @@ func (p *itPlan) transformScratch(dst, scratch []complex128, inverse bool) {
 // separate pack pass and the intermediate z buffer the packer would otherwise
 // write then re-read — one gather over src instead of a pack pass plus a gather.
 func (p *itPlan) transformRealPacked(dst []complex128, src []float64) {
-	rev := p.revPos
-	for i, j := range rev {
-		dst[i] = complex(src[2*j], src[2*j+1])
+	for lo := 0; lo < p.n; lo += p.blk {
+		blk := dst[lo : lo+p.blk]
+		for i, j := range p.revPos[lo : lo+p.blk] {
+			blk[i] = complex(src[2*j], src[2*j+1])
+		}
+		p.stagesOn(blk, 0, p.nSmall, false)
 	}
-	p.run(dst, false)
+	p.stagesOn(dst, p.nSmall, len(p.stages), false)
 }
 
-// run applies the DIT stages in place on a bit-reversed buffer a.
-func (p *itPlan) run(a []complex128, inverse bool) {
-	n := p.n
-	for si := range p.stages {
+// stagesOn applies DIT stages from..to-1 in place on a, a bit-reversed buffer
+// or one block of one (len(a) a multiple of every one of those stages' group
+// size, so each stage's groups tile it exactly). A stage's twiddles depend only
+// on its span, so a block is transformed exactly as the same points would be
+// in the whole array: the result is bit-identical to sweeping it.
+func (p *itPlan) stagesOn(a []complex128, from, to int, inverse bool) {
+	n := len(a)
+	for si := from; si < to; si++ {
 		st := &p.stages[si]
 		tw := st.tw
 		if inverse {
