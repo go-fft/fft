@@ -150,3 +150,26 @@ func TestImpulseAllPaths(t *testing.T) {
 		}
 	}
 }
+
+// TestCachedPlanKeepsTheFirstStored: when another goroutine stores a plan for
+// n while this one is building its own, the stored one wins and is returned,
+// so every caller shares one plan.
+func TestCachedPlanKeepsTheFirstStored(t *testing.T) {
+	const n = 1 << 21 // a length no other test caches
+	planMu.Lock()
+	delete(planCache, n)
+	planMu.Unlock()
+	first := &Plan{n: n}
+	got := cachedPlanWith(n, func(int) *Plan {
+		planMu.Lock()
+		planCache[n] = first // the other goroutine finishes first
+		planMu.Unlock()
+		return &Plan{n: n}
+	})
+	if got != first {
+		t.Error("cachedPlan returned its own plan instead of the one already stored")
+	}
+	planMu.Lock()
+	delete(planCache, n)
+	planMu.Unlock()
+}

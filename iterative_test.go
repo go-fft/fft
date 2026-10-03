@@ -71,3 +71,41 @@ func TestIterativeRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+// TestCacheBlockingIsBitIdentical runs every entry point of the pow2 kernel
+// with its leading stages cache-blocked at several block sizes and unblocked
+// (one block = the whole array), and requires identical bits: a block is
+// transformed by exactly the operations the same points get in a full sweep.
+func TestCacheBlockingIsBitIdentical(t *testing.T) {
+	saved := itBlock
+	defer func() { itBlock = saved }()
+	for _, n := range []int{2, 4, 8, 64, 512, 2048, 1 << 13, 1 << 16} {
+		x := cmplxSignal(n)
+		r := make([]float64, 2*n)
+		for i := range r {
+			r[i] = real(x[i/2]) - float64(i%3)
+		}
+		run := func(block int) (fwd, inv, scr, packed []complex128) {
+			itBlock = block
+			p := newITPlan(n)
+			fwd = make([]complex128, n)
+			p.transform(fwd, x, false)
+			inv = append([]complex128(nil), x...)
+			p.transform(inv, inv, true)
+			scr = make([]complex128, n)
+			p.transformScratch(scr, append([]complex128(nil), x...), true)
+			packed = make([]complex128, n)
+			p.transformRealPacked(packed, r)
+			return
+		}
+		f0, i0, s0, p0 := run(n) // unblocked
+		for _, block := range []int{4, 64, 1024, 4096} {
+			f, i, s, pk := run(block)
+			for k := range f0 {
+				if f[k] != f0[k] || i[k] != i0[k] || s[k] != s0[k] || pk[k] != p0[k] {
+					t.Fatalf("n=%d block=%d index %d differs from the unblocked run", n, block, k)
+				}
+			}
+		}
+	}
+}

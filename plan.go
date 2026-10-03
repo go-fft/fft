@@ -284,14 +284,21 @@ var (
 // self-deadlock. Building unlocked admits a benign race where two goroutines
 // construct the same length concurrently; plans are immutable and identical, so
 // either may win the store with no observable difference.
-func cachedPlan(n int) *Plan {
+func cachedPlan(n int) *Plan { return cachedPlanWith(n, NewPlan) }
+
+// cachedPlanWith is cachedPlan with the plan builder passed in, so a test can
+// make "another goroutine stored a plan while this one was building" happen
+// on purpose (TestCachedPlanKeepsTheFirstStored). Left to concurrent tests,
+// that branch was covered on some runs and not others, and the 100% gate
+// passed or failed by chance.
+func cachedPlanWith(n int, build func(int) *Plan) *Plan {
 	planMu.Lock()
 	p, ok := planCache[n]
 	planMu.Unlock()
 	if ok {
 		return p
 	}
-	p = NewPlan(n)
+	p = build(n)
 	planMu.Lock()
 	if existing, ok := planCache[n]; ok {
 		p = existing
