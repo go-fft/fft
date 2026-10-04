@@ -609,3 +609,37 @@ Neither threshold wins everywhere, because the cost it trades against is not a p
 - **The macOS workstation:** about 16 µs.
 
 The floor stays at 16384 elements. A threshold fitted to these VMs would cost the small machines up to ×1.7 on the shapes it moves.
+
+### Round 10 — one twiddle stream per pass (2026-10-04)
+
+**The question left by Round 8.** The two AVX2 CPUs disagree on radix 8 from 2048 points: it wins at every size on Haswell and lost at every size on Zen 3. A radix-8 pass reads 23 streams: eight inputs, eight outputs, and seven twiddle runs, `ido` entries apart. Hardware prefetchers track a bounded number of streams.
+
+**The test.** An experimental build pointed all of a pass's twiddle loads at one stream; its results were wrong, but its instruction mix was unchanged. On Zen 3 it ran radix-8 transforms 1.30–1.66× faster from 2048 points on. That build also cut twiddle traffic, since it re-read a cache-hot window, so only a real layout could say how much of the gain holds.
+
+**The layout.** FFTW's twiddle codelets store all of a butterfly's twiddles together, and the tables now do the same. `StockhamTwiddles` lays them out group by group, in the order the kernels walk the points:
+- groups of four points, then one group of two and one of one for `ido` mod 4;
+- each group stores its r−1 twiddle runs back to back.
+
+A pass now reads its twiddles as one sequential stream. The AVX-512 kernels take a group per ZMM register, and the AVX2 kernels take a group as two YMM pairs, so one table serves both widths. A twiddle's address is a constant offset from one cursor, which frees a register. No arithmetic changes: the kernels are bit-identical on Haswell, Zen 3 and Cascade Lake, in AVX2 and AVX-512 modes.
+
+**Per radix rule**, v0.1.4 time ÷ new time (one core):
+
+| n | 2048 | 4096 | 8192 | 16384 | 65536 | 2^18 | 2^20 |
+|:--|--:|--:|--:|--:|--:|--:|--:|
+| Zen 3, radix 8 | 1.25 | 1.22 | 1.53 | 1.51 | 1.34 | 1.39 | 1.49 |
+| Zen 3, radix 4 | 1.08 | 1.06 | 1.18 | 1.21 | 1.00 | 1.06 | 0.95 |
+| Cascade Lake, radix 8 | 1.02 | 1.03 | 1.07 | 1.03 | 1.04 | 1.04 | 1.05 |
+
+On Zen 3, radix 8 ÷ radix 4 went from 1.18 to 1.02 at 2048 and from 1.37 to 1.19 at 4096. From 65536 on it is now 0.98–1.06. The AVX2 rule (radix 8 to 4096, then radix 4) is unchanged; on Zen 3 both of its radix-8 sizes are the ones that gained most.
+
+**End to end**, v0.1.4 time ÷ new time, five interleaved rounds, one core:
+
+| | complex 4096 | RFFT / IRFFT 4096 | complex 10007 | complex 2^20 | the rest |
+|:--|--:|--:|--:|--:|--:|
+| Zen 3 | 1.26 | 1.21 / 1.24 | 1.32 | 1.06 | 0.99–1.10 |
+| Cascade Lake | 1.03 | 1.02 / 1.00 | 1.06 | 1.09 | 0.98–1.07 |
+
+- **10007:** a prime routed to Bluestein, which convolves at 20480 = 2^12·5 points; radix-8 passes do most of that work.
+- **Haswell:** it was saturated by other users (load 23–24 on 24 threads), so its timings are not reported. Its tests pass.
+
+**Also measured, not shipped: NEON on arm64.** The Round 3 radix-4 prototype was timed again, pass by pass with the buffers off each other's sets. On Neoverse-N1 it ran 1.13–1.24× faster than the Go pass, except on the passes whose streams are 16 KB or more apart, where it ran 0.83–0.97× as fast. A 4096-point transform would gain about 10%. Shipping it would take a whole kernel family, plus kernels that copy which product gc fuses into an FMA, so it stays unshipped.

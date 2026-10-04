@@ -87,10 +87,11 @@ func stockhamSIMD(r int) bool {
 // points (twGroups): groups of four, then one of two and one of one for ido
 // mod 4. A group of g points starting at i0 stores twiddle 1 of points i0 ..
 // i0+g-1, then twiddle 2 of the same points, and so on. A pass so reads its
-// twiddles as one sequential stream: laid out as r-1 runs of ido entries, a
-// radix-8 pass read seven streams beside its eight inputs and eight outputs,
-// and on Zen 3 from 2048 points on it cost 1.3–1.7× its time (2026-10-04, see
-// BENCHMARKS.md).
+// twiddles as one sequential stream. Laid out as r-1 runs of ido entries, a
+// radix-8 pass read seven streams beside its eight inputs and eight outputs;
+// grouped, radix-8 transforms ran 1.22–1.53× faster on Zen 3 from 2048 points
+// on, radix-4 ones up to 1.21×, and 1.02–1.07× on Cascade Lake (2026-10-04,
+// see BENCHMARKS.md).
 func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
 	if !stockhamSIMD(r) || ido < 2 {
 		return nil, nil

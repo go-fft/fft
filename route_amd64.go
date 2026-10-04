@@ -65,9 +65,11 @@ func r8MaxPow2Default() int {
 //	Cascade (AVX-512)   1.239 (1.62)   1.290 (1.62)   1.000 (1.00)
 //
 // The two AVX2 CPUs disagree from 2048 up: radix 8 wins every size on Haswell
-// and loses every size on Zen 3 (plausibly because its L1 way predictor
-// tolerates the radix-8 pass's 16 power-of-two-strided streams worse; not
-// measured). Over both, A to 4096 then B scores 1.064 (worst 1.31) — the best with
+// and lost every size on Zen 3. Most of Zen 3's loss was the radix-8 pass
+// reading its seven twiddles as seven separate streams: with the twiddles
+// laid out as one stream (see kernels.StockhamTwiddles), radix 8 ÷ radix 4 on
+// Zen 3 went from 1.18 to 1.02 at 2048, 1.37 to 1.19 at 4096, 1.56–1.64 to
+// 1.20–1.30 at 8192–32768 and to 0.98–1.06 above (2026-10-04). Over both, A to 4096 then B scores 1.064 (worst 1.31) — the best with
 // A to 1024 (1.065, worst 1.24) — and is kept; A everywhere would be 1.138
 // (worst 1.71). With AVX-512, radix 8 wins at every size.
 func r8MaxPow2AMD64(avx512 bool) int {
