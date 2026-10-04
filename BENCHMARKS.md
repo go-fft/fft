@@ -566,3 +566,46 @@ The gap changes no arithmetic: only where the scratch buffer starts.
 
 Rows at or above FFTW parity went from 2/24 to 5/24 on Zen 3; 24/24 are at or above numpy.fft. On Neoverse-N1, the 2-D shapes from 256×256 up run at 0.14–0.73× FFTW's time. The rows still behind are now the small and mid sizes: 64×64 and 128×128 in 2-D (about 2×), and 1-D 256 to 4096 (1.3–1.7×).
 
+
+### Round 9 — two shuffles per twiddle, and a fan-out threshold that depends on the machine (2026-10-04)
+
+**Where the time is.** On Zen 3, a whole transform costs 1–2% more than its passes timed alone (1024: 2213 ns against 2191; 4096: 15.9 µs against 15.6). The gap to FFTW at small and mid sizes is therefore in the pass kernels, not around them.
+
+**Fewer shuffles in the twiddle multiply.** The AVX2 and AVX-512 pass kernels multiplied each output by its twiddle with three shuffles:
+- broadcast y's real half;
+- broadcast y's imaginary half;
+- swap the twiddle.
+
+On Intel cores all three go to the one shuffle port. The kernels now take the twiddle's halves straight from memory:
+- `VMOVDDUP` gives (wr, wr), as a plain load;
+- `VPERMILPD $15`, with the twiddle as its memory operand, gives (wi, wi), for one shuffle;
+- the only other shuffle swaps y.
+
+The result is (yr·wr − yi·wi, yi·wr + yr·wi). Those are the scalar oracle's products, with the imaginary sum taken in the other order, which IEEE addition makes exact, so the kernels stay bit-identical. `TestStockhamPassMatchesScalar` passes on Haswell, Zen 3 and Cascade Lake (AVX2 and AVX-512), and a kernel that loads wi from the wrong address fails it.
+
+A second `VMOVDDUP` at w+8 would have saved the remaining shuffle, but that load straddles a cache line every other pair. Main time ÷ variant time, five interleaved rounds, one core:
+
+| | 256 | 1024 | 2048 | 4096 | 16384 | 65536 | 1000 | 1920 | RFFT 4096 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| Zen 3, `VMOVDDUP` w+8 | 1.10 | 1.04 | 0.92 | 0.92 | 1.01 | 0.95 | 1.04 | 1.04 | 1.06 |
+| Zen 3, `VPERMILPD` (kept) | 1.09 | 1.06 | 1.02 | 0.98 | 1.06 | 1.03 | 1.00 | 1.05 | 1.05 |
+| Cascade Lake, `VPERMILPD` (kept) | 1.06 | 1.03 | 1.01 | 1.01 | 1.02 | 1.02 | 1.05 | 1.04 | 0.99 |
+
+The gain is small, up to 9% at 256 and about 3% on average, but it loses nowhere beyond the 2% the noise allows. The untangle and retangle kernels already load their twiddle once and shuffle it twice; they are unchanged.
+
+**The fan-out threshold, measured and left alone.** On the 64- and 128-thread hosts, a 128×128 transform ran faster on one core than on all of them (Neoverse-N1: 290 µs against 480). The 2-D path splits an axis of 16384 elements into two goroutines of 8192 elements, about 25–80 µs of work each.
+
+Raising the floor to 32768 elements (four chunks) was timed against `main` on all cores, main time ÷ new time:
+
+| | 128×128 complex / real | 3-D 24×32×32 |
+|:--|--:|--:|
+| Zen 3 (128 threads) | 1.56 / 1.48 | 0.93 |
+| Neoverse-N1 (64) | 1.50 / 2.17 | 1.16 |
+| Cascade Lake (8) | 0.92 / 1.09 | 0.57 |
+| POWER9 (32) | 0.89 / 1.13 | 0.60 |
+
+Neither threshold wins everywhere, because the cost it trades against is not a property of the library. A probe timed two equal blocks of work split across two goroutines against running them one after the other:
+- **Compile Farm hosts (Linux VMs):** handing a goroutine to an idle core cost 70–100 µs. On POWER9, after the cores had idled 200 µs, it cost about 340 µs.
+- **The macOS workstation:** about 16 µs.
+
+The floor stays at 16384 elements. A threshold fitted to these VMs would cost the small machines up to ×1.7 on the shapes it moves.
