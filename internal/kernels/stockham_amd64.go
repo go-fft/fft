@@ -78,10 +78,20 @@ func stockhamSIMD(r int) bool {
 }
 
 // StockhamTwiddles builds, for a pass of radix r with l1 earlier points and
-// ido remaining ones, the twiddle table the kernel reads: root is the size-n
-// root table (root[k] = exp(-2πi·k/n)), and block j-1 (j = 1..r-1) holds
-// root[(j·l1·i) mod n] for i = 0..ido-1, in forward and conjugate form. It
+// ido remaining ones, the twiddle table the kernels read, in forward and
+// conjugate form: root is the size-n root table (root[k] = exp(-2πi·k/n)) and
+// twiddle j of point i is root[(j·l1·i) mod n], i = 0..ido-1, j = 1..r-1. It
 // returns nils when no kernel will run that pass.
+//
+// The table is laid out group by group, in the order every kernel walks the
+// points (twGroups): groups of four, then one of two and one of one for ido
+// mod 4. A group of g points starting at i0 stores twiddle 1 of points i0 ..
+// i0+g-1, then twiddle 2 of the same points, and so on. A pass so reads its
+// twiddles as one sequential stream. Laid out as r-1 runs of ido entries, a
+// radix-8 pass read seven streams beside its eight inputs and eight outputs;
+// grouped, radix-8 transforms ran 1.22–1.53× faster on Zen 3 from 2048 points
+// on, radix-4 ones up to 1.21×, and 1.02–1.07× on Cascade Lake (2026-10-04,
+// see BENCHMARKS.md).
 func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
 	if !stockhamSIMD(r) || ido < 2 {
 		return nil, nil
@@ -89,14 +99,38 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 	n := len(root)
 	fwd = make([]complex128, (r-1)*ido)
 	conj = make([]complex128, (r-1)*ido)
-	for j := 1; j < r; j++ {
-		for i := 0; i < ido; i++ {
-			w := root[(j*l1*i)%n]
-			fwd[(j-1)*ido+i] = w
-			conj[(j-1)*ido+i] = complex(real(w), -imag(w))
+	at, i0 := 0, 0
+	for _, g := range twGroups(ido) {
+		for j := 1; j < r; j++ {
+			for i := i0; i < i0+g; i++ {
+				w := root[(j*l1*i)%n]
+				fwd[at] = w
+				conj[at] = complex(real(w), -imag(w))
+				at++
+			}
 		}
+		i0 += g
 	}
 	return fwd, conj
+}
+
+// twGroups returns the sizes of the twiddle groups of a pass with ido points
+// per block, in walk order: ido/4 groups of four, then a group of two if
+// ido&2, then a group of one if ido&1. The AVX-512 kernels run a group of
+// four per ZMM register and the AVX2 kernels as two YMM pairs; both finish
+// with the same 256- and 128-bit steps.
+func twGroups(ido int) []int {
+	gs := make([]int, 0, ido/4+2)
+	for range ido / 4 {
+		gs = append(gs, 4)
+	}
+	if ido&2 != 0 {
+		gs = append(gs, 2)
+	}
+	if ido&1 != 0 {
+		gs = append(gs, 1)
+	}
+	return gs
 }
 
 // stockhamWidth picks the widest kernel family that can run a pass of radix r
