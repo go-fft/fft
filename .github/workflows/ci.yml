@@ -128,17 +128,20 @@ jobs:
         if: matrix.regen != ''
         run: |
           ( cd internal/kernels/asmgen/${{ matrix.regen }} && GOFLAGS=-mod=mod go run gen.go )
-          mv internal/kernels/asmgen/${{ matrix.regen }}/cmul_${{ matrix.regen }}.s \
-             internal/kernels/cmul_${{ matrix.regen }}.s
-          # amd64 also generates the SSE2 butterfly STAGE kernels (the routed FFT
-          # hot loop); arm64 does not (it runs a plain Go loop, compiled to scalar code).
-          if [ -f internal/kernels/asmgen/${{ matrix.regen }}/butterfly_${{ matrix.regen }}.s ]; then
-            mv internal/kernels/asmgen/${{ matrix.regen }}/butterfly_${{ matrix.regen }}.s \
-               internal/kernels/butterfly_${{ matrix.regen }}.s
-          fi
-          git diff --exit-code -- internal/kernels/cmul_${{ matrix.regen }}.s \
-             internal/kernels/butterfly_${{ matrix.regen }}.s 2>/dev/null || {
+          # Every file the generator writes is committed under internal/kernels:
+          # move them ALL back and compare them all. Naming files here let one
+          # through unchecked (cpu_amd64.s, the CPU and vendor probes, was never
+          # compared until 2026-10-04), and a generated file nobody committed
+          # would have stayed behind unseen.
+          for f in internal/kernels/asmgen/${{ matrix.regen }}/*.s; do
+            mv "$f" internal/kernels/
+          done
+          git diff --exit-code -- 'internal/kernels/*.s' || {
             echo "::error::generated ${{ matrix.regen }} assembly is stale; run go generate and commit"; exit 1; }
+          if [ -n "$(git status --porcelain -- internal/kernels)" ]; then
+            git status --porcelain -- internal/kernels
+            echo "::error::the ${{ matrix.regen }} generator wrote files that are not committed"; exit 1
+          fi
       - name: Vet (asmdecl) + build + run (SIMD == scalar)
         run: |
           go vet ./...
@@ -175,10 +178,20 @@ jobs:
         if: matrix.regen != ''
         run: |
           ( cd internal/kernels/asmgen/${{ matrix.regen }} && GOFLAGS=-mod=mod go run gen.go )
-          mv internal/kernels/asmgen/${{ matrix.regen }}/cmul_${{ matrix.regen }}.s \
-             internal/kernels/cmul_${{ matrix.regen }}.s
-          git diff --exit-code -- internal/kernels/cmul_${{ matrix.regen }}.s || {
+          # Every file the generator writes is committed under internal/kernels:
+          # move them ALL back and compare them all. Naming files here let one
+          # through unchecked (cpu_amd64.s, the CPU and vendor probes, was never
+          # compared until 2026-10-04), and a generated file nobody committed
+          # would have stayed behind unseen.
+          for f in internal/kernels/asmgen/${{ matrix.regen }}/*.s; do
+            mv "$f" internal/kernels/
+          done
+          git diff --exit-code -- 'internal/kernels/*.s' || {
             echo "::error::generated ${{ matrix.regen }} assembly is stale; run go generate and commit"; exit 1; }
+          if [ -n "$(git status --porcelain -- internal/kernels)" ]; then
+            git status --porcelain -- internal/kernels
+            echo "::error::the ${{ matrix.regen }} generator wrote files that are not committed"; exit 1
+          fi
       - name: Vet + test under qemu (${{ matrix.goarch }})
         run: |
           GOOS=linux GOARCH=${{ matrix.goarch }} go vet ./...
