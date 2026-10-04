@@ -1,3 +1,6 @@
 # Compiled benchmark binaries (run.sh builds the FFTW harness into /tmp).
 /fftw_bench
 *.o
+
+# report.py output; a run worth keeping goes to results/<host>-<date>-<version>/.
+/REPORT.md

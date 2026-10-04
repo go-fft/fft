@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Consolidate the four measured data sources into the standardized parity
-report BENCHMARKS.md.
+report, written to $REPORT (default REPORT.md in the current directory).
+
+It used to write ../BENCHMARKS.md, which is the hand-written history of the
+optimization rounds: running run.sh on a clone would have replaced it. A run
+worth keeping is copied into results/<host>-<date>-<version>/ instead.
 
 Inputs (all produced by run.sh on the same host):
   - go_bench.txt    : `go test -bench` output for go-fft + gonum (ns/op)
@@ -8,8 +12,8 @@ Inputs (all produced by run.sh on the same host):
   - fftw.json       : native-FFTW C harness (ns/op, GFLOP/s, plan ns)
   - ref.json        : numpy.fft + scipy.fft (pocketfft) ns/op + GFLOP/s
 
-Emits BENCHMARKS.md with the parity table (GFLOP/s + ns/op), go/FFTW ratio,
-verdicts, and the lagging-ops action items. No fabrication: every cell is a
+Emits the parity tables (ns/op + GFLOP/s), the go/FFTW ratio and verdicts,
+and the rows behind FFTW, worst first. No fabrication: every cell is a
 measured number or "—" when an implementation does not cover that case.
 """
 import json
@@ -258,9 +262,10 @@ def main():
     # ---------------- Summary ----------------
     emit_summary(w, go, fftw_c, fftw_r, fftw_2, ref_c, ref_r, ref_2)
 
-    with open("../BENCHMARKS.md", "w") as f:
+    out = os.environ.get("REPORT", "REPORT.md")
+    with open(out, "w") as f:
         f.write("\n".join(L) + "\n")
-    print("wrote ../BENCHMARKS.md", file=sys.stderr)
+    print("wrote " + out, file=sys.stderr)
 
 
 def go2d(go):

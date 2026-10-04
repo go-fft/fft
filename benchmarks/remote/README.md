@@ -26,5 +26,5 @@ Compile Farm hosts with no root and a Go too old to build go-fft.
            sh ~/gofft-bench/runpkg/run-remote.sh amd64 "<machine description>"
 
    It repeats `../run.sh` step by step (correctness gate first) and writes
-   `~/gofft-bench/runpkg/BENCHMARKS.md`, the report to keep with the raw
+   `~/gofft-bench/runpkg/benchmarks/REPORT.md`, the report to keep with the raw
    `go_bench.txt`, `go_plan.txt`, `fftw.json` and `ref.json`.
