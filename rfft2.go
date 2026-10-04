@@ -40,7 +40,9 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 //
 // shape lengths must be positive; IRFFT2 panics otherwise. data is read up to
 // shape[0]*(shape[1]/2+1) bins; any beyond that are treated as zero. The input
-// is not modified.
+// is not modified. The output has shape[0]*shape[1] values whatever the
+// spectrum's length: bound the shape when it comes from untrusted input (see
+// SECURITY.md).
 func IRFFT2(data []complex128, shape [2]int) []float64 {
 	rows, cols := shape[0], shape[1]
 	shapeProduct(rows, cols)

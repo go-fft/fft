@@ -36,6 +36,10 @@ func RFFT(x []float64) []complex128 {
 // is normalized by n so that IRFFT(RFFT(x), len(x)) ≈ x.
 //
 // The input is not modified. n <= 0 returns an empty (non-nil) slice.
+//
+// The output has n values whatever the spectrum's length, so n sets the
+// allocation, as it would for make: bound it when it comes from untrusted
+// input (see SECURITY.md).
 func IRFFT(spectrum []complex128, n int) []float64 {
 	if n <= 0 {
 		return []float64{}

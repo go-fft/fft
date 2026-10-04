@@ -35,6 +35,23 @@ error. A panic with an `fft:` message is the documented response to invalid
 arguments. A `fatal error`, such as running out of memory on a request that
 should have been rejected, is not.
 
+## Lengths you choose are allocated
+
+Some functions allocate in proportion to a length the caller passes, not to
+the data the caller hands in:
+- `IRFFT(spectrum, n)` and `IRFFT2(data, shape)` return n (or
+  shape[0]·shape[1]) values whatever the spectrum's length;
+- `NewPlan(n)`, `NewRealPlan(n)`, `NewPlanN` and `NewRealPlan2` build tables of
+  that size;
+- `Hann(n)` and the other windows, and `FFTFreq(n, d)`, return n values.
+
+That is the numpy contract and the same as `make([]float64, n)`. But Go cannot
+recover from running out of memory: on Linux with a 4 GB limit, each of these
+called with n = 2^36 ends the process with `fatal error: out of memory`
+(2026-10-04). If n or a shape comes from untrusted input, bound it before the
+call. The library rejects only lengths that are invalid in themselves:
+non-positive shape lengths, and shapes whose product overflows `int`.
+
 ## Audit of 2026-10-04 (v0.1.11)
 
 - **govulncheck:** no vulnerability reachable from the module. The ones it lists
