@@ -2,7 +2,45 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-> Regenerate with `benchmarks/run.sh` (it runs the Go benchmarks, the native-FFTW C harness, and the numpy/scipy/pyfftw Python harness, then rebuilds this file). Numerical correctness is gated first: every go-fft transform is checked against `numpy.fft` within `rtol=1e-9, atol=1e-7` before any timing is reported.
+## Current numbers (v0.1.5, 2026-10-04)
+
+Measured on two GCC Compile Farm hosts against FFTW 3.3.10 (built from source
+with the host's SIMD), numpy.fft 2.5.3 and scipy.fft 1.18.1 (pocketfft), and
+gonum v0.16.0. Every transform first passed the correctness gate (24/24 against
+`numpy.fft`, `rtol=1e-9`). The full reports and raw inputs are in
+[`benchmarks/results/*-20261004-v0.1.5`](benchmarks/results/). go-fft time ÷
+FFTW time, below 1 means go-fft is faster:
+
+| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64) |
+|:--|--:|--:|
+| complex 256 | 1.45 | 1.64 |
+| complex 4,096 | 1.23 | 1.16 |
+| complex 65,536 | **0.97** | **0.85** |
+| complex 1,048,576 | **0.63** | **0.59** |
+| complex 1,000 (2³·5³) | 1.27 | 1.55 |
+| complex 1,009 (prime, Rader) | **0.64** | **0.57** |
+| complex 10,007 (prime, Bluestein) | 1.24 | 1.34 |
+| RFFT 4,096 | 1.29 | 1.26 |
+| RFFT 1,048,576 | **0.99** | **0.75** |
+| 2-D 128×128 | 1.96 | 2.48 |
+| 2-D 1024×1024 | **0.36** | **0.14** |
+
+- **Against FFTW:** at or above it on 6 of the 24 rows on Zen 3, and on 7 of 24 on Neoverse-N1.
+- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows on Zen 3; on Neoverse-N1, on 23 and 20 of 24.
+
+The dated rounds below (from "Stockham round" on) record how the code got
+there, with every measurement behind each kept or dropped change.
+
+To reproduce, run `benchmarks/run.sh`; it gates on correctness first and
+writes `benchmarks/REPORT.md` (this file is not generated). On a Linux host
+without Go, see `benchmarks/remote/`.
+
+## June 2026 baseline (Apple M4 Max) — superseded
+
+> Everything from here to "SIMD-butterfly round" is the June 2026 snapshot of
+> the **previous engines** (described in [docs/perf.md](docs/perf.md)), kept
+> as the starting point of the history. None of its numbers or
+> engine descriptions apply to the current code.
 
 ## Methodology
 

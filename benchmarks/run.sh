@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Reproduce the full go-fft performance-parity sweep and regenerate
-# ../BENCHMARKS.md. Runs four implementations on the SAME host, SAME inputs,
+# Reproduce the full go-fft performance-parity sweep and write the report to
+# benchmarks/REPORT.md (BENCHMARKS.md is the hand-written history and is not
+# touched; copy a run worth keeping into results/). Runs four implementations on the SAME host, SAME inputs,
 # SAME sizes, single-threaded, with plan reuse:
 #
 #   1. go-fft  + gonum  via `go test -bench`        (Go)
@@ -41,6 +42,6 @@ cc -O3 -I"$FFTW_PREFIX/include" cbench/fftw_bench.c \
 echo "==> [5/5] numpy.fft + scipy.fft (pocketfft)"
 "$PY" fft_reference.py >ref.json
 
-echo "==> consolidating -> ../BENCHMARKS.md"
+echo "==> consolidating -> REPORT.md"
 "$PY" report.py
 echo "done."
