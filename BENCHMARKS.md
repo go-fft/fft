@@ -717,3 +717,33 @@ Statements about amd64 ("GOAMD64=v1 does not vectorize") were already right.
 † That morning's 2-D row timed the allocating `FFT2`; the v0.1.5 rows time a reused `PlanN`.
 
 On Zen 3, go-fft is at or above FFTW on 6 of 24 rows, and at or above numpy.fft and scipy.fft on all 24. Against gonum it is 19–31× faster on Zen 3 and 5–6× on Neoverse-N1 for powers of two and composites, and 85–612× on primes.
+
+### Round 12 — radix 8 on Intel, and a report that no longer overwrites this file (2026-10-04)
+
+**The radix rule, timed again.** Round 10 shrank Zen 3's radix-8 penalty, so the three rules were timed again on v0.1.6 at every 2^e from 256 to 2^20. Time over the best rule, geometric mean (worst):
+
+| | radix 8 to 4096, then radix 4 (the AVX2 rule) | radix 8 to 1024, then radix 4 | radix 8 everywhere |
+|:--|--:|--:|--:|
+| Haswell | 1.173 (1.47) | 1.218 (1.47) | **1.003** (1.04) |
+| Zen 3 | 1.017 (1.20) | **1.003** (1.03) | 1.101 (1.55) |
+| both | 1.092 | 1.105 | 1.051 |
+
+Haswell still wants radix 8 everywhere: from 4096 up, radix 4 takes 1.18–1.47× its time. Zen 3 does not: radix 8 takes 1.00–1.50× radix 4's time there. Any single rule costs one of them 10–17%.
+
+So the rule now follows the vendor:
+- **Intel:** radix 8 everywhere, as the AVX-512 kernels already did.
+- **Every other vendor:** keeps radix 8 to 4096, then radix 4. Zen 3 is the only non-Intel CPU measured, and that rule is within 1.4% of its best there.
+
+The vendor comes from CPUID leaf 0. go-asmgen v0.12.0 gained `amd64.VendorProbe` for it, and the generator moved there from v0.10.0, which left every existing kernel byte-identical. The rule is a pure function of (AVX-512, Intel), tested for all four combinations. On hardware the probe agreed with `/proc/cpuinfo`: Haswell and Cascade Lake read as Intel, Zen 3 as AMD.
+
+End to end, main time ÷ new time, five interleaved rounds, one core:
+
+| | complex 4096 | complex 65536 | complex 2^20 | RFFT 65536 | RFFT 2^20 | IRFFT 65536 | IRFFT 2^20 |
+|:--|--:|--:|--:|--:|--:|--:|--:|
+| Haswell | 1.00 | 1.23 | 1.33 | 1.35 | 1.28 | 1.34 | 1.20 |
+| Zen 3 (control: same code path) | 1.01 | 1.01 | 0.96 | 1.01 | 0.99 | 0.99 | 1.02 |
+
+- **4096 on Haswell:** unchanged, since radix 8 already factored it.
+- **Zen 3 control:** its rows run the same code as before. Their spread, 0.92–1.02 including the multicore 2-D rows, is that host's noise.
+
+**The report and this file.** `benchmarks/report.py` wrote `../BENCHMARKS.md`, so running `benchmarks/run.sh` on a clone replaced this file, the hand-written history of the rounds, with a generated report. It now writes `benchmarks/REPORT.md`. This file also opened with the June 2026 M4 tables of the previous engines; it now opens with the current numbers and marks that block as the superseded baseline.
