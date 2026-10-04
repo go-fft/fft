@@ -1,4 +1,28 @@
-# Fresh parity runs, 2026-09-30
+# Fresh parity runs
+
+Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
+`remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
+was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
+
+## 2026-10-04, after Round 8
+
+| directory | host | FFTW |
+|:--|:--|:--|
+| `amd64-zen3-epyc7773x-20261004` | AMD EPYC 7773X (Zen 3), GCC Compile Farm cfarm420, load average ≈ 3 on 128 threads | 3.3.10 from source, SSE2/AVX/AVX2/FMA |
+| `arm64-neoverse-n1-20261004` | ARM Neoverse-N1, 64 cores, GCC Compile Farm cfarm424, load average < 1 | 3.3.10 from source, NEON |
+
+Taken on the code of BENCHMARKS.md's "Round 8" section, cross-compiled with
+go1.26.4. The correctness gate passed 24/24 on both hosts. The 2-D go-fft
+column is the reused `PlanN` row (`BenchmarkFFT2Plan_GoFFT`), run right after
+the sweep with the same settings and appended to `go_bench.txt`. The sweep
+scripts of that commit did not yet select it; they now do.
+
+Against the same day's run of v0.1.2 on Zen 3 (go-fft time ÷ FFTW time):
+complex 4096 2.15 → 1.53, complex 65536 1.84 → 1.07, complex 2²⁰ 1.56 → 0.59,
+RFFT 2²⁰ 1.62 → 1.02, IRFFT 2²⁰ 2.08 → 0.93. Rows at or above FFTW parity:
+2/24 → 5/24, and 24/24 against numpy.fft.
+
+## 2026-09-30
 
 Each directory holds one complete run of `benchmarks/run.sh` on the go-fft
 code of the "Round 3" section of BENCHMARKS.md, taken just BEFORE that

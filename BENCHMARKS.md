@@ -556,3 +556,13 @@ The gap changes no arithmetic: only where the scratch buffer starts.
 - **POWER9:** every power of two from 256 gains ×1.25–1.39, and the 2-D shapes ×1.25–1.34.
 - **Composites and primes:** their code did not change. They read 0.99–1.01 on the four quiet hosts; on Zen 3 their paired ratios spread from 0.71 to 1.07.
 - **128×128:** read 0.96–0.97 on Zen 3 and Haswell. That run applied the gap from 64 points; the gap now starts at 1024.
+
+**Fresh parity runs** on this code (`benchmarks/results/*-20261004`), against the same day's run of v0.1.2 on Zen 3, go-fft time ÷ FFTW time:
+
+| | complex 4096 | 65536 | 2^20 | RFFT 2^20 | IRFFT 2^20 |
+|:--|--:|--:|--:|--:|--:|
+| v0.1.2 | 2.15 | 1.84 | 1.56 | 1.62 | 2.08 |
+| this round | 1.53 | 1.07 | 0.59 | 1.02 | 0.93 |
+
+Rows at or above FFTW parity went from 2/24 to 5/24 on Zen 3; 24/24 are at or above numpy.fft. On Neoverse-N1, the 2-D shapes from 256×256 up run at 0.14–0.73× FFTW's time. The rows still behind are now the small and mid sizes: 64×64 and 128×128 in 2-D (about 2×), and 1-D 256 to 4096 (1.3–1.7×).
+
