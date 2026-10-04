@@ -93,9 +93,9 @@ the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
   general radix-p pass for 11 and 13.
 - **A prime whose N−1 is 7-smooth** uses **Rader's algorithm**; **every other
   length** uses **Bluestein's chirp-z**. Both convolve on the Stockham engine.
-- **Powers of two on riscv64, loong64, s390x, and amd64 without AVX2** take an
-  iterative, cache-blocked **radix-4 kernel** instead (SSE2 butterflies on
-  amd64).
+- **Powers of two on loong64, s390x and amd64 without AVX2, and above 65536 on
+  riscv64,** take an iterative, cache-blocked **radix-4 kernel** instead (SSE2
+  butterflies on amd64).
 - **Real transforms** run a half-length complex transform and one untangle pass.
 - **N-D transforms** run the 1-D transform along each axis, spread across cores
   above a work threshold.

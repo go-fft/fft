@@ -1,30 +1,27 @@
 package fft
 
-import "math"
-
-// pow2StockhamMaxDefault routes every power of two to the Stockham engine on
-// riscv64, factored with radix-4 passes and a lone radix-2 pass for an odd
-// exponent (rule B, below). The passes run as Go code there, like the pow2
-// kernel's. Measured with the scratch off dst's L1 sets (2026-10-04), at every
-// 2^e from 256 to 2^20; time over the best of the pow2 kernel and three
-// Stockham rules, geometric mean (worst):
+// pow2StockhamMaxDefault routes powers of two up to 65536 to the Stockham
+// engine on riscv64, factored with radix-4 passes and a lone radix-2 pass for
+// an odd exponent (rule B, below), and larger ones to the pow2 kernel. The
+// passes run as Go code there, like the pow2 kernel's. Measured with the
+// scratch off dst's L1 sets (2026-10-04), at every 2^e from 256 to 2^20;
+// pow2 kernel time ÷ Stockham rule B time:
 //
-//	                         pow2 kernel    Stockham, rule B
-//	SiFive U74 (cfarm94)     1.156 (1.56)   1.127 (1.37)
-//	SpacemiT X60 (cfarm95)   1.238 (1.53)   1.060 (1.24)
+//	n                        256   1024  4096  16384  65536  2^17  2^18  2^20
+//	SiFive U74 (cfarm94)     1.34  1.06  1.18  1.14   0.97   0.89  0.79  0.82
+//	SpacemiT X60 (cfarm95)   1.22  0.81  1.30  1.21   1.45   1.15  1.07  1.17
 //
-// On the U74 Stockham wins up to 32768 and the pow2 kernel above it (Stockham
-// takes 1.03–1.27× its time from 65536 on); on the X60 Stockham with rule B
-// wins at almost every size. Every Stockham policy tried scored 1.09–1.10 over
-// both, against 1.196 for the pow2 kernel; rule B everywhere is the simplest
-// of them. (The X60 host had four of its eight cores busy; the run was pinned
-// to an idle one.) Until then riscv64 kept the pow2 kernel, measured ahead of
+// Up to 65536 Stockham wins on both, but for the X60 at 1024. Above it the two
+// disagree, so the pow2 kernel keeps them. End to end against main, the U74
+// (idle) gained 1.04–1.34 on its real, inverse and 2-D rows up to 65536 and lost
+// 0.80–0.92 at 2^20, which this limit avoids. (The X60 host had four of its
+// eight cores busy; its runs were pinned to an idle one and are noisier.)
+// Until then riscv64 kept the pow2 kernel throughout, measured ahead of
 // Stockham (0.82–0.96×) on 2026-09-29, before the scratch fix.
-func pow2StockhamMaxDefault() int { return math.MaxInt }
+func pow2StockhamMaxDefault() int { return 65536 }
 
-// r8MaxPow2Default and pow2OneRadix8Max select rule B for every power of two:
-// radix 8 as far as it goes (rule A) scored 1.654 over the best on the X60,
-// with a worst case of 2.56.
+// r8MaxPow2Default and pow2OneRadix8Max select rule B: radix 8 as far as it
+// goes (rule A) took up to 2.56× the best rule's time on the X60.
 func r8MaxPow2Default() int { return 0 }
 
 const pow2OneRadix8Max = 0

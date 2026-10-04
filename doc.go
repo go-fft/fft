@@ -7,8 +7,8 @@
 // engine (radix-8/4/2/3/5/7 straight-line passes plus a general radix-p pass
 // for 11/13), whose radix-2/3/4/5/8 passes run as AVX2 (or, for powers of two,
 // AVX-512) kernels on amd64, bit-identical to the Go passes; a power of two on
-// riscv64/loong64/s390x, or on amd64 without AVX2, uses an iterative radix-4
-// kernel instead (with SSE2 butterflies on amd64). A prime whose N-1 is
+// loong64/s390x, above 65536 on riscv64, or on amd64 without AVX2, uses an
+// iterative radix-4 kernel instead (with SSE2 butterflies on amd64). A prime whose N-1 is
 // 7-smooth uses Rader's algorithm and any other length Bluestein's chirp-z
 // algorithm, so any length transforms correctly and fast. Twiddle factors are
 // precomputed and cached per length (see Plan / NewPlan), so repeated
