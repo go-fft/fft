@@ -16,8 +16,8 @@ import (
 // Both the dispatched Radix*Stage and the raw radix*StageSIMD are checked. On
 // amd64 the routed kernel is hand-written SSE2 assembly and must match the oracle
 // BIT-FOR-BIT (its MULPD/ADDPD are separately rounded, like the non-fused
-// GOAMD64=v1 oracle). Off amd64 the routed path is an inlinable Go loop the gc
-// compiler autovectorizes in the caller, which may FMA-fuse a product with a
+// GOAMD64=v1 oracle). Off amd64 the routed path is an inlinable Go loop compiled
+// in the caller, where gc may FMA-fuse a product with a
 // following add and so differ from the noinline oracle by ≤1 ULP — a correct
 // rounding difference, checked within a tight tolerance (see
 // kernelMatchesOracle and butterfly_bitexact_*).
@@ -42,7 +42,7 @@ func bitEqualSlice(t *testing.T, who string, got, want []complex128) {
 
 // kernelMatchesOracle asserts the dispatched/SIMD result matches the scalar
 // oracle: bit-for-bit on amd64 (the hand-written SSE2 kernel's no-FMA contract),
-// and within a tight relative tolerance elsewhere (the autovectorized loop may
+// and within a tight relative tolerance elsewhere (the inlined Go loop may
 // FMA-fuse a product with a following add, ≤1 ULP — see butterfly_bitexact_*).
 func kernelMatchesOracle(t *testing.T, who string, got, want []complex128) {
 	t.Helper()

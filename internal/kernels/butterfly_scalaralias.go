@@ -2,31 +2,34 @@
 
 package kernels
 
-// arm64, s390x and riscv64 run the butterfly STAGES through a plain Go loop that
-// the gc compiler autovectorizes — NOT a hand-written SIMD kernel — a MEASURED
-// decision, not a gap in effort:
+// arm64, s390x and riscv64 run the butterfly STAGES through a plain Go loop —
+// NOT a hand-written SIMD kernel. gc compiles it to scalar code (it does not
+// vectorize; on these arches it fuses multiply-adds). A MEASURED decision, not
+// a gap in effort:
 //
 //   - The Go arm64 and s390x assemblers expose vector floating-point only as the
 //     fused multiply-add family (no vector VFADD/VFSUB; VADD/VSUB are integer), so
 //     a vector butterfly must emulate every add/sub as a copy plus an FMA-by-one
 //     and pay a VLD2/VST2 (or VL/VST + VMRH/VMRL) deinterleave on each pass. A
 //     full stage-level NEON kernel was built and benchmarked against this loop:
-//     it TIED the compiler (≈±2%), so the emulation buys nothing — the
-//     autovectorizer already extracts the NEON throughput. (Same as the SIMD
-//     complex-multiply round; see cmul.go and BENCHMARKS.md.)
+//     it TIED the scalar loop (≈±2%), so the emulation buys nothing. (Same as
+//     the SIMD complex-multiply round; see cmul.go and BENCHMARKS.md. This
+//     comment used to credit a gc "autovectorizer"; gc has none, the scalar
+//     loop is simply as fast as that kernel.)
 //   - riscv64's RVV is run-time-optional and its strip-mined kernel was not
 //     measured to beat this loop on the available hardware either.
 //
-// These functions are deliberately INLINABLE (no //go:noinline): the
-// autovectorizer optimizes them in their caller exactly as it did the loop when
-// it lived inline in the fft package, which is why they match the inline-loop
-// speed (routing through the noinline scalar ORACLE instead, Radix*StageScalar,
-// measured ~2× slower because the oracle is a separate non-vectorized body). The
+// These functions are deliberately INLINABLE (no //go:noinline): they are
+// compiled in their caller exactly as the loop was when it lived inline in the
+// fft package, and match the inline-loop speed (routing through the noinline
+// scalar ORACLE instead, Radix*StageScalar, measured ~2× slower; the cause was
+// not established — both bodies are scalar code). The
 // loop bodies are identical to Radix2StageScalar/Radix4StageScalar, so the
 // SIMD-vs-scalar test (which compares against the oracle) trivially holds and the
 // transform result is unchanged. amd64 is the one arch whose SSE2 stage kernel
-// (real packed ADDPD/SUBPD, no emulation tax, weakest autovectorizer under
-// GOAMD64=v1) was measured to win, and it alone ships a routed asm kernel.
+// (real packed ADDPD/SUBPD, no emulation tax, against a loop gc compiles to
+// scalar SSE2 under GOAMD64=v1) was measured to win, and it alone ships a routed
+// asm kernel.
 
 func radix2StageSIMD(a []complex128, n, span int, tw []complex128) {
 	step := 2 * span

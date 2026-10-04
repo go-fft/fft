@@ -2,8 +2,9 @@
 
 package kernels
 
-// Off amd64 the butterfly stage runs an inlinable Go loop the gc compiler
-// autovectorizes IN THE CALLER. On the FMA arches (arm64/s390x/riscv64) the
+// Off amd64 the butterfly stage runs an inlinable Go loop, compiled IN THE
+// CALLER (to scalar code: gc does not vectorize). On the FMA arches
+// (arm64/s390x/riscv64) the
 // compiler may fuse a complex product with a following radix add into one FMA,
 // which rounds up to 1 ULP differently than the noinline scalar oracle (whose
 // pinned cmul1 keeps every product a separate rounding). That is a legitimate,

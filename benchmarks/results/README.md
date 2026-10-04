@@ -4,6 +4,19 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-04, v0.1.5
+
+| directory | host | FFTW |
+|:--|:--|:--|
+| `amd64-zen3-epyc7773x-20261004-v0.1.5` | AMD EPYC 7773X (Zen 3), cfarm420, load average ≈ 3–4 on 128 threads | 3.3.10 from source, SSE2/AVX/AVX2/FMA |
+| `arm64-neoverse-n1-20261004-v0.1.5` | Neoverse-N1, 64 cores, cfarm424, load average < 1 | 3.3.10 from source, NEON |
+
+The released v0.1.5 (Round 10), cross-compiled with go1.26.4. The correctness
+gate passed 24/24 on both hosts, and the 2-D go-fft column is the reused
+`PlanN` row, which the sweep now selects itself. Rows at or above FFTW: 6/24 on
+Zen 3, 7/24 on Neoverse-N1. At or above numpy.fft and scipy.fft: 24/24 on Zen 3;
+on Neoverse-N1, 23/24 and 20/24.
+
 ## 2026-10-04, after Round 8
 
 | directory | host | FFTW |

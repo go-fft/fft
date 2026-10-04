@@ -134,7 +134,8 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 // complex-multiply helper calls.
 //
 // The interior loop runs over k = 1 .. (m-1)/2 with NO data-dependent branch in
-// the body (the gc autovectorizer bails on a loop carrying a branch), writing
+// the body (a branch per bin only costs; gc does not vectorize either form),
+// writing
 // both dst[k] and dst[m-k] every iteration. The self-paired middle bin k = m/2
 // (present only when m is even, where m-k == k) is finished once after the loop
 // from the same formula, so it is never written twice.

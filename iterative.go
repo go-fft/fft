@@ -31,11 +31,12 @@ import (
 // A note on blocking: an explicit inner-loop block (sweeping butterfly positions
 // in L1-sized chunks across groups) was implemented and measured — and it *lost*
 // to leaving each stage as one long contiguous inner loop, at every size and most
-// at the large ones (e.g. N=65536: ~450 µs unblocked vs ~480 µs blocked). The gc
-// autovectorizer extracts more from the simple long loop than the fragmented
-// blocked one, the same lesson the SIMD round taught (docs/perf.md). So the win
-// here is the iterative *schedule* — one linear pass per stage, radix-4 to halve
-// the pass count, twiddles pre-laid for sequential reads — not manual blocking.
+// at the large ones (e.g. N=65536: ~450 µs unblocked vs ~480 µs blocked); the
+// cause was not established (gc emits scalar code for both forms, so it is not
+// vectorization). So the win there was the iterative *schedule* — one linear
+// pass per stage, radix-4 to halve the pass count, twiddles pre-laid for
+// sequential reads. (The cache blocking that later paid off, below, blocks
+// whole stages over 4096-point blocks, not the inner loop.)
 //
 // The recursive split-radix kernel is kept; plan.go routes each power-of-two
 // length to whichever of the two measured faster for that size (see docs/perf.md
@@ -277,12 +278,11 @@ func (p *itPlan) stagesOn(a []complex128, from, to int, inverse bool) {
 // [0, span) using tw[k] = W_{2*span}^k.
 //
 // The whole pass runs in one kernels.Radix2Stage call. That seam dispatches per
-// arch: amd64 runs the SSE2 or runtime-selected AVX2 stage kernel (packed ADDPD/SUBPD, which beats
-// the autovectorized loop GOAMD64=v1 does not vectorize); every other arch runs
-// an inlinable Go loop the gc autovectorizer optimizes in place (the Go vector
-// assemblers off amd64 lack a vector FP add/sub, so a hand kernel only ties the
-// compiler there — see kernels/butterfly_scalaralias.go and BENCHMARKS.md). Both
-// are bit-identical to the scalar oracle.
+// arch: amd64 runs the SSE2 or runtime-selected AVX2 stage kernel (packed
+// ADDPD/SUBPD, against a Go loop gc compiles to scalar SSE2); every other arch
+// runs an inlinable Go loop, compiled to scalar code (gc does not vectorize; on
+// arm64/s390x/riscv64 it fuses multiply-adds). A hand NEON kernel measured only
+// level with that loop — see kernels/butterfly_scalaralias.go and BENCHMARKS.md.
 func radix2Stage(a []complex128, n, span int, tw []complex128) {
 	kernels.Radix2Stage(a, n, span, tw)
 }
@@ -290,7 +290,7 @@ func radix2Stage(a []complex128, n, span int, tw []complex128) {
 // radix4Stage runs one radix-4 DIT pass in place. span is the sub-transform
 // length entering the stage; groups of 4*span are combined. tw holds the three
 // contiguous span-long twiddle planes (W^k | W^{2k} | W^{3k}). The whole pass
-// runs in one kernels.Radix4Stage call (SSE2/AVX2 on amd64; autovectorized Go loop
+// runs in one kernels.Radix4Stage call (SSE2/AVX2 on amd64; a scalar Go loop
 // elsewhere — see radix2Stage and the kernels package).
 func radix4Stage(a []complex128, n, span int, tw []complex128, inverse bool) {
 	w1 := tw[0:span:span]
