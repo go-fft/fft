@@ -22,6 +22,15 @@ var (
 // CPU bit and the OS saving opmask and ZMM state.
 func supportsAVX512F() bool
 
+// IntelCPU reports whether CPUID names the vendor GenuineIntel. It only tunes
+// the fft package's radix rule (route_amd64.go), which was measured to differ
+// between Intel and AMD; no result depends on it. A hypervisor reporting its
+// own vendor string reads as false, which keeps the default rule.
+var IntelCPU = isGenuineIntel()
+
+// isGenuineIntel is the go-asmgen CPUID leaf-0 vendor probe (cpu_amd64.s).
+func isGenuineIntel() bool
+
 // skConst512 is skConst with 64-byte rows, for the AVX-512 kernels, plus a
 // ninth row: [-0, 0] repeated, the real-lane sign flip that replaces
 // VADDSUBPD, which has no 512-bit form.

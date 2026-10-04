@@ -17,10 +17,12 @@ func TestPow2StockhamMaxAMD64(t *testing.T) {
 }
 
 func TestR8MaxPow2AMD64(t *testing.T) {
-	if got := r8MaxPow2AMD64(true); got != math.MaxInt {
-		t.Errorf("r8MaxPow2AMD64(avx512) = %d, want MaxInt", got)
-	}
-	if got := r8MaxPow2AMD64(false); got != 4096 {
-		t.Errorf("r8MaxPow2AMD64(no avx512) = %d, want 4096", got)
+	for _, c := range []struct {
+		avx512, intel bool
+		want          int
+	}{{true, true, math.MaxInt}, {true, false, math.MaxInt}, {false, true, math.MaxInt}, {false, false, 4096}} {
+		if got := r8MaxPow2AMD64(c.avx512, c.intel); got != c.want {
+			t.Errorf("r8MaxPow2AMD64(avx512=%v, intel=%v) = %d, want %d", c.avx512, c.intel, got, c.want)
+		}
 	}
 }

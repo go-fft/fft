@@ -308,6 +308,10 @@ func main() {
 	// go-asmgen v0.10.0 checks it. On macOS it answers false (Darwin enables
 	// ZMM state lazily) and the AVX2 kernels run.
 	fp.Add(amd64.FeatureProbe("supportsAVX512F", amd64.AVX512F))
+	// The vendor, for a tuning choice measured to differ between Intel and
+	// AMD (the radix rule, see the fft package's route_amd64.go); go-asmgen
+	// v0.12.0. Never for correctness: the kernels' results do not depend on it.
+	fp.Add(amd64.VendorProbe("isGenuineIntel", "GenuineIntel"))
 	writeFile("cpu_amd64.s", fp.String())
 }
 

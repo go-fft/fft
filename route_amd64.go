@@ -47,33 +47,33 @@ func pow2StockhamMaxAMD64(avx2, avx512 bool) int {
 	return 0
 }
 
-// r8MaxPow2Default keeps radix-8 passes for powers of two up to 4096 with the
-// AVX2 passes, and for every power of two with the AVX-512 passes.
+// r8MaxPow2Default keeps radix-8 passes for every power of two with the
+// AVX-512 passes, and with the AVX2 passes on Intel; on other AVX2 CPUs, up to
+// 4096.
 func r8MaxPow2Default() int {
-	return r8MaxPow2AMD64(kernels.UseStockhamAVX512)
+	return r8MaxPow2AMD64(kernels.UseStockhamAVX512, kernels.IntelCPU)
 }
 
 // r8MaxPow2AMD64 is r8MaxPow2Default's choice. Three rules were timed at every
-// 2^e from 256 to 2^20, with the scratch off dst's sets (2026-10-04): A, radix
-// 8 as far as it goes; B, radix 4 with a radix-2 pass for an odd exponent; C,
-// radix 4 with one radix-8 pass for an odd exponent. Time over the best of
-// the three, geometric mean (worst):
+// 2^e from 256 to 2^20: A, radix 8 as far as it goes; B, radix 4 with a
+// radix-2 pass for an odd exponent; C, radix 4 with one radix-8 pass for an
+// odd exponent. Time over the best of the three, geometric mean (worst), on
+// v0.1.6 with the grouped twiddles (2026-10-04; Cascade Lake from v0.1.3):
 //
 //	                    A to 4096, B   A to 1024, B   A everywhere
-//	Haswell (AVX2)      1.090 (1.22)   1.124 (1.24)   1.000 (1.00)
-//	Zen 3 (AVX2)        1.038 (1.31)   1.008 (1.04)   1.295 (1.71)
+//	Haswell (AVX2)      1.173 (1.47)   1.218 (1.47)   1.003 (1.04)
+//	Zen 3 (AVX2)        1.017 (1.20)   1.003 (1.03)   1.101 (1.55)
 //	Cascade (AVX-512)   1.239 (1.62)   1.290 (1.62)   1.000 (1.00)
 //
-// The two AVX2 CPUs disagree from 2048 up: radix 8 wins every size on Haswell
-// and lost every size on Zen 3. Most of Zen 3's loss was the radix-8 pass
-// reading its seven twiddles as seven separate streams: with the twiddles
-// laid out as one stream (see kernels.StockhamTwiddles), radix 8 ÷ radix 4 on
-// Zen 3 went from 1.18 to 1.02 at 2048, 1.37 to 1.19 at 4096, 1.56–1.64 to
-// 1.20–1.30 at 8192–32768 and to 0.98–1.06 above (2026-10-04). Over both, A to 4096 then B scores 1.064 (worst 1.31) — the best with
-// A to 1024 (1.065, worst 1.24) — and is kept; A everywhere would be 1.138
-// (worst 1.71). With AVX-512, radix 8 wins at every size.
-func r8MaxPow2AMD64(avx512 bool) int {
-	if avx512 {
+// The vendors disagree from 4096 up: radix 8 wins every size on Haswell (B
+// takes 1.18–1.47× its time) and loses or ties on Zen 3 (1.00–1.50×). One
+// rule for both costs one of them 10–17%, so the rule follows the vendor:
+// Intel takes radix 8 everywhere, like AVX-512. Every other vendor keeps A to
+// 4096 then B, the rule all AVX2 CPUs had: Zen 3 is the only non-Intel CPU
+// measured, and it is within 1.4% of its best there, so nothing justifies
+// changing what Zen 2, 4 or 5 get on its evidence alone.
+func r8MaxPow2AMD64(avx512, intel bool) int {
+	if avx512 || intel {
 		return math.MaxInt
 	}
 	return 4096
