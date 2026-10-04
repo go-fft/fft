@@ -766,14 +766,16 @@ AVX-512's lead is gone from 65536 on, and it is 6% behind at 2^20. A switch for 
 **2. AVX-512 only on passes with a large `ido`.** Timed alone at 65536, the last two passes (radix 4, `ido` = 4 and 1) ran about 20% slower at 512 bits than at 256. But mixing widths inside one transform, which Round 6 had already found harmful, cost 10–24% up to 16384. It gained only 2–9% at 65536 and 2^20, and lost at 2^18.
 
 **3. A radix-16 pass.** It does 65536 in four passes instead of six, so it moves a third less data. It was written in Go (4×4: radix-4 butterflies, the internal twiddles W16^k, radix-4 again) and checked against a direct DFT; a broken twiddle in any of its three butterfly copies fails the test. It was timed on the two hosts whose passes are Go code, current rule ÷ radix 16:
-- **Neoverse-N1:** 0.80–1.01 up to 16384, then **0.47–0.57** from 32768.
-- **POWER9:** 0.84–1.12 up to 32768, then **0.59–0.73**.
+- **Neoverse-N1:** 0.88–1.07 up to 32768, then **0.47–0.81**.
+- **POWER9:** 0.91–1.12 up to 32768, then **0.59–0.90**.
+
+These are the better of two orders (the radix-16 passes first or last) at each size.
 
 The likely reason, not measured, is the stream count: a radix-16 pass reads 16 inputs and writes 16 outputs at power-of-two strides, plus 15 twiddle runs. That is 47 concurrent streams, the mechanism of Round 10 at a larger scale. Fewer passes do not help when each pass costs this much more.
 
 **Also measured: grouped twiddles in the Go passes.** Round 10's grouping covered only the SIMD tables. Applied to the Go radix-4 pass:
-- **Neoverse-N1:** 0.97–1.03.
-- **POWER9:** 0.97 at 1024 and 4096, 1.03 at 16384–2^18, 1.12 at 2^20.
+- **Neoverse-N1:** 0.97–1.04.
+- **POWER9:** 0.97 at 1024 and 4096, 1.02–1.03 at 16384–2^18, 1.12 at 2^20.
 
 Small and size-dependent, so it is not shipped.
 
