@@ -88,6 +88,23 @@ jobs:
           awk -v t="$cov" 'BEGIN { exit !(t+0 >= 100.0) }' || {
             echo "::error::coverage ${cov}% < 100%"; exit 1; }
 
+  # Security: known vulnerabilities reachable from this module (govulncheck,
+  # pinned; it fails only when vulnerable code is actually called), and a short
+  # fuzz run of the public API, whose only allowed panics are the package's own
+  # "fft: ..." messages (see validation_test.go).
+  security:
+    name: govulncheck + fuzz
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+      - name: Fuzz the public API for 60 s
+        run: go test -run '^$' -fuzz FuzzPublicAPI -fuzztime 60s .
+
   # Native per-arch execution. amd64/arm64 have GitHub-hosted runners, so the
   # generated assembly (where present) runs natively. Each job regenerates the
   # committed .s via go-asmgen and fails if it is stale, then vets/builds/runs

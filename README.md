@@ -163,6 +163,13 @@ target for free and is `CGO_ENABLED=0` clean — which is what makes it usable a
 the FFT backend for an embedded Ruby (`go-embedded-ruby`) and for the wider
 go-* ecosystem.
 
+## Security
+
+Report a vulnerability privately through GitHub's
+[Report a vulnerability](https://github.com/go-fft/fft/security/advisories/new)
+form. [SECURITY.md](SECURITY.md) lists what deserves a report, where the code
+steps outside Go's memory safety, and the findings of the 2026-10-04 audit.
+
 ## License
 
 BSD-3-Clause. See [LICENSE](LICENSE).

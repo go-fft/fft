@@ -23,10 +23,7 @@ import "sync"
 // RFFT2 panics otherwise. The input is not modified.
 func RFFT2(data []float64, shape [2]int) []complex128 {
 	rows, cols := shape[0], shape[1]
-	if rows <= 0 || cols <= 0 {
-		panic("fft: shape lengths must be positive")
-	}
-	if rows*cols != len(data) {
+	if shapeProduct(rows, cols) != len(data) {
 		panic("fft: shape product does not match len(data)")
 	}
 	p := cachedRealPlan2(rows, cols)
@@ -46,9 +43,7 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 // is not modified.
 func IRFFT2(data []complex128, shape [2]int) []float64 {
 	rows, cols := shape[0], shape[1]
-	if rows <= 0 || cols <= 0 {
-		panic("fft: shape lengths must be positive")
-	}
+	shapeProduct(rows, cols)
 	p := cachedRealPlan2(rows, cols)
 	spec := data
 	if len(spec) != p.SpectrumLen() {

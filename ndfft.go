@@ -1,6 +1,7 @@
 package fft
 
 import (
+	"math"
 	"strconv"
 	"sync"
 )
@@ -53,15 +54,29 @@ func IFFT2(data []complex128, shape [2]int) []complex128 {
 // equals total, returning the product. It panics on any violation, mirroring
 // numpy's refusal to run on a shape that does not match the data.
 func validateShape(shape []int, total int) int {
+	prod := shapeProduct(shape...)
+	if prod != total {
+		panic("fft: shape product does not match len(data)")
+	}
+	return prod
+}
+
+// shapeProduct returns the product of the shape's lengths, panicking if one is
+// not positive or if the product overflows int. Without the overflow check, a
+// shape such as {1 << 32, 1 << 32} multiplied to 0 = len(nil), passed the
+// length check, and the plan for its 2^32-point axes then failed with an
+// unrecoverable "fatal error: out of memory": a crafted shape with empty data
+// could take a process down.
+func shapeProduct(shape ...int) int {
 	prod := 1
 	for _, s := range shape {
 		if s <= 0 {
 			panic("fft: shape lengths must be positive")
 		}
+		if prod > math.MaxInt/s {
+			panic("fft: shape product overflows int")
+		}
 		prod *= s
-	}
-	if prod != total {
-		panic("fft: shape product does not match len(data)")
 	}
 	return prod
 }
