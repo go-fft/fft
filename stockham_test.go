@@ -234,3 +234,11 @@ func TestSkFactorizeAroundR8Max(t *testing.T) {
 		t.Errorf("skFactorize(3·2^%d) = %s, want %s", e, got, want)
 	}
 }
+
+func TestTakesGap(t *testing.T) {
+	for n, want := range map[int]bool{512: false, 1000: false, 1024: true, 1536: false, 1 << 20: true} {
+		if got := takesGap(n); got != want {
+			t.Errorf("takesGap(%d) = %v, want %v", n, got, want)
+		}
+	}
+}

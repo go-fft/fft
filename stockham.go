@@ -82,7 +82,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		l1 *= r
 	}
 	size := n
-	if n&(n-1) == 0 {
+	if takesGap(n) {
 		size += setSpan // room to slide the window off dst's sets
 	}
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
@@ -178,7 +178,7 @@ func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
 	scr := (*bp)[:p.n]
-	if p.n&(p.n-1) == 0 {
+	if takesGap(p.n) {
 		scr = offTheSets(*bp, dst, p.n)
 	}
 	s := len(p.stages)
@@ -221,11 +221,17 @@ func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 // gap was slower than none on Zen 3. Lengths 2^k·3 (6144, 12288) LOST 2–5%
 // with any gap on all four CPUs; 1920 and 3840 did not move and 1000 gained
 // 3–6% on Intel only. Without a rule that separates those, only powers of
-// two take the gap.
+// two take the gap, and only from 1024 points, where a first pass's streams
+// are at least 4 KB apart: below it the gap bought nothing anywhere and cost
+// 2–3% at 64 and 128 points on Haswell and Cascade Lake.
 const (
 	setSpan = 4096 / 16 // one 4 KB set period, in complex128
 	setGap  = 576       // bytes
 )
+
+// takesGap reports whether a transform of length n slides its scratch off
+// dst's sets: powers of two from 1024 points.
+func takesGap(n int) bool { return n&(n-1) == 0 && n >= 1024 }
 
 // offTheSets returns the n-point window of buf (n+setSpan long) that starts
 // setGap bytes past dst modulo 4 KB.
