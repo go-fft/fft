@@ -12,7 +12,7 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_TH
 echo "==> [1/5] correctness gate"
 ../verify.$A | $PY verify_correctness.py
 echo "==> [2/5] Go benchmarks"
-../bench.$A -test.run='^$' -test.bench='Benchmark(Complex|Real|CReal|FFT2)_' -test.benchtime=1s -test.count=3 | tee go_bench.txt | tail -3
+../bench.$A -test.run='^$' -test.bench='Benchmark(Complex|Real|CReal|FFT2|FFT2Plan)_' -test.benchtime=1s -test.count=3 | tee go_bench.txt | tail -3
 echo "==> [3/5] plan cost"
 ../bench.$A -test.run='^$' -test.bench='BenchmarkComplexPlan_' -test.benchtime=300ms -test.count=1 > go_plan.txt
 echo "==> [4/5] native FFTW"

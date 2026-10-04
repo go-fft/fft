@@ -488,3 +488,71 @@ The block size was swept from 512 to 32768 points on Haswell, Zen 3, Cascade Lak
 Haswell and the X60 were loaded during the run (load average 8.8 and 4.3). On rows where the code is identical, their ratios still swing by ±30–40%, so only the idle hosts' numbers are claimed above.
 
 **A coverage gate that passed by chance.** `cachedPlan`'s branch for "another goroutine stored a plan while this one built its own" was covered only when two concurrent tests happened to race. Coverage read 91.7% or 100% on identical runs, so the 100% gate passed or failed by luck. The builder is now injectable, and `TestCachedPlanKeepsTheFirstStored` takes that branch on purpose. Six consecutive `-race -coverpkg` runs, the way CI runs them, now give 100%, with no function varying between runs.
+
+### Round 8 — the scratch buffer was in dst's L1 sets (2026-10-04)
+
+**Where it showed.** A fresh parity run on v0.1.2 put complex 4096 on Zen 3 at 2.15× FFTW, at half the GFLOP/s of 1024. Timing each Stockham pass alone (ns per point, page-aligned buffers) found the cost in the passes whose streams sit a multiple of 4 KB apart:
+
+| | stride of the costly pass | that pass | the same pass, output moved off the input's sets | the other passes |
+|:--|:--|--:|--:|--:|
+| Neoverse-N1, 4096 (radix 4) | 16 KB | 3.38 | 2.27 | 1.9–2.1 |
+| Zen 3, 4096 (radix 8, AVX2) | 8 KB | 3.27 | 1.37 | 0.72–1.18 |
+
+**Why.** Every pass writes its r output streams n/r points apart, and the first pass reads its r inputs as far apart. For a power of two that distance is a multiple of 4 KB, so a pass's output streams share one L1 set, and its input streams share one too. Go places large allocations on page boundaries, so dst and the scratch buffer are usually a multiple of 4 KB apart, and then the two groups land in the same set: 2r lines for an 8-way (Zen 3, Intel) or 4-way (N1) L1. Moved off (576 bytes on N1, 2112 on Zen 3 in the table), a whole N1 transform went from 12.7 to 11.1 ns per point at 4096 and from 16.2 to 13.7 at 16384; on Zen 3, 4096 went from 5.43 to 3.80 with a 576-byte gap.
+
+**The fix.** For powers of two from 1024 points, the pooled scratch buffer is 4 KB longer, and each call slices it to start 576 bytes past dst, modulo 4 KB (`offTheSets`). Seven gaps from 0 to 3136 bytes were swept through the transform on four CPUs. Time with the buffers 4 KB-aligned ÷ time with the gap:
+
+| | 1024 | 2048 | 4096 | 8192 | 16384 | 65536 |
+|:--|--:|--:|--:|--:|--:|--:|
+| Zen 3 | 1.34 | 1.49 | 1.65 | 1.12 | 1.21 | 1.23 |
+| Haswell | 1.04 | 1.04 | 1.03 | 1.00 | 1.00 | 1.04 |
+| Neoverse-N1 | 0.99 | 0.99 | 1.00 | 1.06 | 1.06 | 1.20 |
+| Cascade Lake | 0.98 | 1.01 | 1.01 | 0.99 | 0.99 | 0.99 |
+
+- **Why 576 bytes:** it is the only gap that lost nowhere. 2112 bytes cost 8% at 1024 on both Intel CPUs, and a 64-byte gap was slower than none on Zen 3.
+- **Why N1 gains little at small sizes:** its L1 ways are 16 KB, so whether the conflict happened depended on where the allocator put the buffers. The gap now rules it out.
+- **Why powers of two only:** lengths 2^k·3 (6144, 12288) lost 2–5% with any gap on all four CPUs, while 1920 and 3840 did not move and 1000 gained 3–6% on Intel only.
+- **Why from 1024 points:** below 1024 a first pass's streams are less than 4 KB apart. The gap bought nothing there and cost 2–3% at 64 and 128 points on Haswell and Cascade Lake.
+
+The gap changes no arithmetic: only where the scratch buffer starts.
+
+**What it changed in the routing.** The routes and radix rules of Rounds 2–6 were measured with the conflict in place, so they were measured again (`route_*.go` holds the tables).
+
+- **Stockham vs the pow2 kernel**, pow2 kernel time ÷ Stockham time:
+
+  | n | 4096 | 8192 | 16384 | 32768 | 65536 | 2^17 | 2^18 | 2^19 | 2^20 |
+  |:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+  | Zen 3 | 1.50 | 1.58 | 1.94 | 1.50 | 1.81 | 1.38 | 1.81 | 1.96 | 2.51 |
+  | Haswell | 1.76 | 1.05 | 1.65 | 1.04 | 1.16 | 0.82 | 1.15 | 1.23 | 1.24 |
+  | POWER9 | 1.20 | 1.24 | 1.34 | 1.30 | 1.37 | 1.15 | 1.22 | 1.44 | 1.81 |
+
+  With AVX2, and on ppc64le, every power of two now routes to Stockham. Before, the threshold was 4096 with AVX2, and ppc64le used the pow2 kernel throughout.
+- **Radix rules**, time over the best of three rules, geometric mean over 256…2^20:
+  - **Cascade Lake (AVX-512):** radix 8 everywhere scores 1.000. The old rule, radix 8 to 4096 then radix 4, scored 1.239. With radix 8, Stockham also beats the pow2 kernel at every size up to 2^20 (2^20: 28.7 against 36.7 ns per point). So AVX-512 now routes every power of two to Stockham with radix 8 throughout, where the route used to stop at 16384.
+  - **POWER9:** arm64's rule, radix 4 opening with one radix 8 for an odd exponent up to 8192, scores 1.003, against 1.056 for the rule ppc64le had. ppc64le now takes arm64's rule.
+  - **Haswell vs Zen 3:** the two AVX2 CPUs disagree. Radix 8 wins at every size on Haswell and loses at every size from 2048 on Zen 3. The current rule (radix 8 to 4096) ties for best over both (1.064), and stays.
+- **Not re-measured:** riscv64 and loong64, whose hosts were loaded, and s390x, which was not reachable. They keep the pow2 kernel.
+
+**Accuracy.** For exact tones, the relative RMS error of the forward transform at 2^20 was 4.5–5.5e-16 for Stockham and 6.0e-16 for the pow2 kernel, on Zen 3, Cascade Lake and POWER9. Round-trip errors were the same, 4.4–4.8e-16.
+
+**Regression check.** The 8494 public-API cases were computed by `main` and by this code. On POWER9 none was out of tolerance, and the largest difference was 2.5e-15 relative (IRFFT of composite lengths, whose Bluestein convolutions now run on Stockham).
+
+**Benchmark harness.**
+- **2-D row:** it timed `FFT2`, which returns a new slice per call, so it also timed an allocation and, on a many-core host, the garbage collector. Every other row writes into a reused slice through a plan. The row now times a reused `PlanN`, and the allocating call stays as a separate column. On Zen 3 the difference is 25 against 65 µs at 64×64 and 0.32 against 0.95 ms at 256×256.
+- **`report.py`:** it ended every report with a fixed "root cause" paragraph that had gone stale ("scalar Go butterflies", "a recursive engine"). It now lists the rows behind FFTW, worst first, and points here for the explanations.
+
+**The 2^20 row that looked like a regression.** The fresh run put complex 2^20 on Zen 3 at 18.9 ms, against 12.8 ms on 2026-09-30. Fifteen interleaved rounds of the 09-30 code, an intermediate commit that does not touch this path (a control), and v0.1.2 gave medians of 19.1, 19.3 and 19.6 ms. The old code is just as slow today: the host changed, not the code.
+
+**Result**, end to end against `main`. Five interleaved rounds, one core, main time ÷ new time:
+
+| | complex 4096 | 65536 | 2^20 | RFFT 65536 | 2^20 | IRFFT 2^20 |
+|:--|--:|--:|--:|--:|--:|--:|
+| Zen 3 | 1.42 | 1.83 | 1.99 | 1.39 | 1.18 | 1.94 |
+| Haswell | 1.03 | 1.15 | 1.25 | 1.04 | 1.30 | 1.49 |
+| Cascade Lake | 1.01 | 1.27 | 1.20 | 1.46 | 1.24 | 1.31 |
+| POWER9 | 1.35 | 1.34 | 1.78 | 1.29 | 1.46 | 1.53 |
+| Neoverse-N1 | 1.11 | 1.19 | 1.13 | 1.07 | 1.17 | 1.12 |
+
+- **POWER9:** every power of two from 256 gains ×1.25–1.39, and the 2-D shapes ×1.25–1.34.
+- **Composites and primes:** their code did not change. They read 0.99–1.01 on the four quiet hosts; on Zen 3 their paired ratios spread from 0.71 to 1.07.
+- **128×128:** read 0.96–0.97 on Zen 3 and Haswell. That run applied the gap from 64 points; the gap now starts at 1024.
