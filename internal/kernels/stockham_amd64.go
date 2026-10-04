@@ -87,12 +87,8 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 		return nil, nil
 	}
 	n := len(root)
-	// One element past the end: the kernels load the last twiddle's imaginary
-	// part duplicated with a VMOVDDUP at its address + 8, which reads 8 bytes
-	// beyond it (see twStore in asmgen/amd64/gen.go).
-	size := (r - 1) * ido
-	fwd = make([]complex128, size+1)[:size]
-	conj = make([]complex128, size+1)[:size]
+	fwd = make([]complex128, (r-1)*ido)
+	conj = make([]complex128, (r-1)*ido)
 	for j := 1; j < r; j++ {
 		for i := 0; i < ido; i++ {
 			w := root[(j*l1*i)%n]

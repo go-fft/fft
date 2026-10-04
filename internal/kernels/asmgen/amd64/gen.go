@@ -545,21 +545,25 @@ func (e skEmit) rot(dst, src int) {
 // pair of a block the i = 0 lane pair keeps the unmultiplied y. A final pass
 // has no twiddles: it stores y.
 //
-// The twiddle comes in already duplicated: VMOVDDUP from w gives (wr, wr) per
-// point and from w+8 gives (wi, wi), both plain loads, so the multiply takes
-// one shuffle (swapping y) where broadcasting y's halves and swapping w took
-// three, all on the one shuffle port Intel cores have. It computes
-// (yr·wr − yi·wi, yi·wr + yr·wi): the same products as the scalar oracle's
-// (yr·wr − yi·wi, yr·wi + yi·wr), its imaginary sum taken in the other order,
-// which IEEE addition makes exact. The load at w+8 reads 8 bytes past the
-// pair; StockhamTwiddles pads its tables for the last one.
+// The twiddle's halves are taken straight from memory: VMOVDDUP gives
+// (wr, wr) per point as a plain load, and VPERMILPD with a memory operand
+// gives (wi, wi), so the multiply takes two shuffles (that one and swapping
+// y) where broadcasting y's halves and swapping w took three, all on the one
+// shuffle port Intel cores have. It computes (yr·wr − yi·wi, yi·wr + yr·wi):
+// the same products as the scalar oracle's (yr·wr − yi·wi, yr·wi + yi·wr),
+// its imaginary sum taken in the other order, which IEEE addition makes
+// exact. Loading (wi, wi) with a second VMOVDDUP at w+8 saves the other
+// shuffle but straddles a cache line every other pair: it measured 8% slower
+// at 2048 and 4096 on Zen 3, where this form is within 2% of the old one or
+// faster at every size (2026-10-04).
 func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 	if e.last != 0 {
 		e.st(y, skOut(j))
 		return
 	}
+	hi := map[string]string{"X": "$3", "Y": "$15", "Z": "$0xFF"}[e.w]
 	e.raw("VMOVDDUP %s, %s", skTw(j), e.v(t1))
-	e.raw("VMOVDDUP 8%s, %s", skTw(j), e.v(t2))
+	e.raw("VPERMILPD %s, %s, %s", hi, skTw(j), e.v(t2))
 	e.perm("swap", y, t3)
 	e.raw("VMULPD %s, %s, %s", e.v(y), e.v(t1), e.v(t1))
 	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
