@@ -2,31 +2,33 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-## Current numbers (v0.1.5, 2026-10-04)
+## Current numbers (2026-10-04)
 
-Measured on two GCC Compile Farm hosts against FFTW 3.3.10 (built from source
+Measured on three GCC Compile Farm hosts against FFTW 3.3.10 (built from source
 with the host's SIMD), numpy.fft 2.5.3 and scipy.fft 1.18.1 (pocketfft), and
 gonum v0.16.0. Every transform first passed the correctness gate (24/24 against
 `numpy.fft`, `rtol=1e-9`). The full reports and raw inputs are in
-[`benchmarks/results/*-20261004-v0.1.5`](benchmarks/results/). go-fft time ÷
-FFTW time, below 1 means go-fft is faster:
+[`benchmarks/results/`](benchmarks/results/): v0.1.5 on Zen 3 and Neoverse-N1,
+v0.1.7 on Cascade Lake. None of those machines runs different code under
+v0.1.8. go-fft time ÷ FFTW time, below 1 means go-fft is faster:
 
-| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64) |
-|:--|--:|--:|
-| complex 256 | 1.45 | 1.64 |
-| complex 4,096 | 1.23 | 1.16 |
-| complex 65,536 | **0.97** | **0.85** |
-| complex 1,048,576 | **0.63** | **0.59** |
-| complex 1,000 (2³·5³) | 1.27 | 1.55 |
-| complex 1,009 (prime, Rader) | **0.64** | **0.57** |
-| complex 10,007 (prime, Bluestein) | 1.24 | 1.34 |
-| RFFT 4,096 | 1.29 | 1.26 |
-| RFFT 1,048,576 | **0.99** | **0.75** |
-| 2-D 128×128 | 1.96 | 2.48 |
-| 2-D 1024×1024 | **0.36** | **0.14** |
+| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64) | Xeon Cascade Lake (AVX-512) |
+|:--|--:|--:|--:|
+| complex 256 | 1.45 | 1.64 | 1.42 |
+| complex 4,096 | 1.23 | 1.16 | 1.11 |
+| complex 65,536 | **0.97** | **0.85** | 1.57 |
+| complex 1,048,576 | **0.63** | **0.59** | 1.16 |
+| complex 1,000 (2³·5³) | 1.27 | 1.55 | 1.42 |
+| complex 1,009 (prime, Rader) | **0.64** | **0.57** | **0.65** |
+| complex 10,007 (prime, Bluestein) | 1.24 | 1.34 | **0.96** |
+| RFFT 4,096 | 1.29 | 1.26 | 1.24 |
+| RFFT 1,048,576 | **0.99** | **0.75** | 1.54 |
+| 2-D 128×128 | 1.96 | 2.48 | 1.67 |
+| 2-D 1024×1024 | **0.36** | **0.14** | **0.33** |
 
 - **Against FFTW:** at or above it on 6 of the 24 rows on Zen 3, and on 7 of 24 on Neoverse-N1.
 - **Against numpy.fft and scipy.fft:** at or above both on all 24 rows on Zen 3; on Neoverse-N1, on 23 and 20 of 24.
+- **Cascade Lake:** at or above FFTW on 5 of 24 rows, and at or above numpy and scipy on all 24. Its large 1-D transforms trail FFTW (complex 65536 at 1.57×, RFFT 2^20 at 1.54×), unlike Zen 3's: complex throughput falls from 18.6 GFLOP/s at 4096 to 8.3 at 65536, where input and output (2 MB) outgrow the core's 1 MB L2.
 
 The dated rounds below (from "Stockham round" on) record how the code got
 there, with every measurement behind each kept or dropped change.
@@ -636,7 +638,7 @@ The gain is small, up to 9% at 256 and about 3% on average, but it loses nowhere
 Raising the floor to 32768 elements (four chunks) was timed against `main` on all cores, main time ÷ new time:
 
 | | 128×128 complex / real | 3-D 24×32×32 |
-|:--|--:|--:|
+|:--|--:|--:|--:|
 | Zen 3 (128 threads) | 1.56 / 1.48 | 0.93 |
 | Neoverse-N1 (64) | 1.50 / 2.17 | 1.16 |
 | Cascade Lake (8) | 0.92 / 1.09 | 0.57 |
