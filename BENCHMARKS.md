@@ -812,3 +812,27 @@ Round 4's six-step, measured only on the M4, had three explicit transposes. This
 | POWER9 | 0.60 | 0.65 | 0.75 | 0.76 | 0.69 |
 
 The gather, the twiddle multiply and the transposed store are Go loops, about a nanosecond per point each, and they cost more than the passes they save. A four-step would need them vectorized and fused into the pass kernels, as FFTW's codelets read and write at a stride. That is a different engine; it is not pursued here.
+
+### Round 15 — riscv64 joins the Stockham route up to 65536 (2026-10-04)
+
+**Re-measured at last.** riscv64 kept every power of two on the pow2 kernel because its 2026-09-29 measurement predated the scratch fix of Round 8, and its host was loaded every time since. This time a SiFive U74 (StarFive VisionFive 2, cfarm94) was idle. The SpacemiT X60 (cfarm95) had four of its eight cores busy, and its runs were pinned to an idle one. Both cores run the passes as Go code.
+
+Pow2 kernel time ÷ Stockham time with radix 4 throughout (rule B):
+
+| n | 256 | 1024 | 4096 | 16384 | 65536 | 2^17 | 2^18 | 2^20 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|
+| SiFive U74 | 1.34 | 1.06 | 1.18 | 1.14 | 0.97 | 0.89 | 0.79 | 0.82 |
+| SpacemiT X60 | 1.22 | 0.81 | 1.30 | 1.21 | 1.45 | 1.15 | 1.07 | 1.17 |
+
+Over all sizes, the pow2 kernel scored 1.156 (U74) and 1.238 (X60) of the best of the four candidates (geometric mean); every Stockham policy scored 1.09–1.10 over both. Radix 8 as far as it goes (rule A) took up to 2.56× the best time on the X60, so the rule is B.
+
+**The limit.** Up to 65536, Stockham wins on both cores, except the X60 at 1024. Above 65536 the two disagree: the geometric mean of the two ratios is 0.92–1.01. So riscv64 now routes powers of two up to 65536 to Stockham, and keeps the pow2 kernel above, which is exactly the code it had.
+
+**End to end against main**, five interleaved rounds, one core. On the idle U74, the real, inverse and 2-D rows gained 1.04–1.34 up to 65536:
+- RFFT 256 / 1024 / 4096: 1.16 / 1.11 / 1.08;
+- IRFFT 256 / 1024 / 4096 / 65536: 1.30 / 1.26 / 1.18 / 1.10;
+- 2-D 64² to 256²: 1.23–1.34.
+
+Its 2^20 rows lost 0.80–0.92, which is what the 65536 limit avoids. Its complex rows could not be read: rows whose code did not change (1000, 1080, 1296) swung between 0.49 and 1.00 within one run. The X60's run was noisy (paired ratios 0.7–1.7); it showed the largest gains at 65536 (RFFT 1.44, IRFFT 1.37). The full suites pass on both.
+
+**loong64 is still not measured.** Its only host had a load average of 146 on 32 cores all day, so it keeps the pow2 kernel.
