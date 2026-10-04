@@ -1,14 +1,13 @@
-//go:build !arm64 && !amd64 && !ppc64le
+//go:build !arm64 && !amd64 && !ppc64le && !riscv64
 
 package fft
 
-// pow2StockhamMaxDefault keeps powers of two on the iterative pow2 kernel. On
-// riscv64 (SpacemiT X60) that kernel was ahead of the Stockham engine
-// (Stockham 0.82–0.96×); on loong64 (3A5000) the two tied below 65536 and
-// Stockham won only at 65536. Measured on real hardware, 2026-09-29, before
-// the scratch buffer was placed off dst's L1 sets (see offTheSets), which
-// moved ppc64le to its own route; riscv64 and loong64 could not be re-measured
-// (both hosts loaded, 2026-10-04), and s390x was not reachable.
+// pow2StockhamMaxDefault keeps powers of two on the iterative pow2 kernel on
+// loong64 and s390x. On loong64 (3A5000) the two tied below 65536 and
+// Stockham won only at 65536 (2026-09-29, before the scratch buffer was placed
+// off dst's L1 sets, see offTheSets); its only host has been saturated since
+// (load ~146 on 32 cores, 2026-10-04), so it was not re-measured. s390x was not
+// reachable. ppc64le and riscv64 have their own routes.
 func pow2StockhamMaxDefault() int { return 0 }
 
 // r8MaxPow2Default: powers of two do not reach the Stockham engine here (they
