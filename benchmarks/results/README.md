@@ -4,6 +4,18 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-04, v0.1.7, Cascade Lake
+
+| directory | host | FFTW |
+|:--|:--|:--|
+| `amd64-cascadelake-20261004-v0.1.7` | Intel Xeon (Cascade Lake), 8 vCPUs, cfarm151, load average < 1 | 3.3.10 from source, SSE2/AVX/AVX2/AVX-512/FMA |
+
+The released v0.1.7, whose code on this machine (AVX-512, radix 8 throughout)
+is that of v0.1.5. The Python references are the same versions as on the other
+hosts (numpy 2.5.3, scipy 1.18.1, pyfftw 0.15.1), installed with `uv` on Python
+3.13 because the host's default Python is 3.6. Correctness 24/24. Rows at or
+above FFTW: 5/24; at or above numpy.fft and scipy.fft: 24/24.
+
 ## 2026-10-04, v0.1.5
 
 | directory | host | FFTW |

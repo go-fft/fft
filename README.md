@@ -115,31 +115,36 @@ are validated bit-identical, but are not used: the scalar loop measured as
 fast.
 
 **Against FFTW, numpy and scipy**, single-threaded except the 2-D rows (which
-use all cores), on two GCC Compile Farm hosts, v0.1.5, 2026-10-04. go-fft time
-÷ FFTW time (below 1 means go-fft is faster):
+use all cores), on three GCC Compile Farm hosts, 2026-10-04: v0.1.5 on Zen 3
+and Neoverse-N1, v0.1.7 on Cascade Lake. None of those machines runs different
+code under v0.1.8. go-fft time ÷ FFTW time (below 1 means go-fft is faster):
 
-| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64) |
-|:--|--:|--:|
-| complex 256 | 1.45 | 1.64 |
-| complex 4,096 | 1.23 | 1.16 |
-| complex 65,536 | **0.97** | **0.85** |
-| complex 1,048,576 | **0.63** | **0.59** |
-| complex 1,000 (2³·5³) | 1.27 | 1.55 |
-| complex 1,009 (prime, Rader) | **0.64** | **0.57** |
-| complex 10,007 (prime, Bluestein) | 1.24 | 1.34 |
-| RFFT 4,096 | 1.29 | 1.26 |
-| RFFT 1,048,576 | **0.99** | **0.75** |
-| 2-D 128×128 | 1.96 | 2.48 |
-| 2-D 1024×1024 | **0.36** | **0.14** |
+| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64) | Xeon Cascade Lake (AVX-512) |
+|:--|--:|--:|--:|
+| complex 256 | 1.45 | 1.64 | 1.42 |
+| complex 4,096 | 1.23 | 1.16 | 1.11 |
+| complex 65,536 | **0.97** | **0.85** | 1.57 |
+| complex 1,048,576 | **0.63** | **0.59** | 1.16 |
+| complex 1,000 (2³·5³) | 1.27 | 1.55 | 1.42 |
+| complex 1,009 (prime, Rader) | **0.64** | **0.57** | **0.65** |
+| complex 10,007 (prime, Bluestein) | 1.24 | 1.34 | **0.96** |
+| RFFT 4,096 | 1.29 | 1.26 | 1.24 |
+| RFFT 1,048,576 | **0.99** | **0.75** | 1.54 |
+| 2-D 128×128 | 1.96 | 2.48 | 1.67 |
+| 2-D 1024×1024 | **0.36** | **0.14** | **0.33** |
 
 - **Zen 3:** at or above FFTW on 6 of the 24 rows of the full sweep, and at or
   above numpy.fft and scipy.fft on all 24.
 - **Neoverse-N1:** at or above FFTW on 7 of 24.
-- **Where FFTW still leads:** the small and mid sizes (256 to 4096) and small
-  2-D shapes.
+- **Cascade Lake:** at or above FFTW on 5 of 24, and at or above numpy and
+  scipy on all 24. Its large 1-D transforms trail FFTW (65536 at 1.57×), unlike
+  Zen 3's: throughput halves past 4096 points on that host.
+- **Where FFTW still leads:** the small and mid sizes (256 to 4096), small
+  2-D shapes, and, on Cascade Lake, the large 1-D transforms.
 - **Against gonum/dsp/fourier**, the pure-Go peer (both `CGO_ENABLED=0`),
-  go-fft is faster at every size measured: 5–6× on Neoverse-N1 and 19–31× on
-  Zen 3 for powers of two and composites, and 85–612× on primes (gonum's
+  go-fft is faster at every size measured: 5–6× on Neoverse-N1, 4.5–18× on
+  Cascade Lake and 19–31× on Zen 3 for powers of two and composites, and
+  85–612× on primes (gonum's
   arbitrary-length path is a naive Bluestein with no Rader).
 
 Every size, GFLOP/s, the methodology and the dated optimization rounds (what
