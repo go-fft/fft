@@ -88,6 +88,7 @@ func (p *Plan) Len() int { return p.n }
 // each have length Len(); dst may alias src. src is not modified unless it
 // aliases dst.
 func (p *Plan) FFT(dst, src []complex128) []complex128 {
+	p.checkLen(dst, src)
 	p.execute(dst, src, false)
 	return dst
 }
@@ -95,16 +96,27 @@ func (p *Plan) FFT(dst, src []complex128) []complex128 {
 // IFFT writes the inverse DFT of src into dst (normalized by N) and returns
 // dst. dst and src must each have length Len(); dst may alias src.
 func (p *Plan) IFFT(dst, src []complex128) []complex128 {
+	p.checkLen(dst, src)
 	p.execute(dst, src, true)
 	n := p.n
 	if n == 0 {
 		return dst
 	}
+	// Only the n transformed values: a longer dst keeps the rest untouched.
 	inv := complex(1/float64(n), 0)
-	for i := range dst {
+	for i := range dst[:n] {
 		dst[i] *= inv
 	}
 	return dst
+}
+
+// checkLen panics with the package's own message when dst or src is shorter
+// than the plan's length, before any kernel runs: the assembly kernels trust
+// the lengths they are given. Longer slices are accepted, as they always were.
+func (p *Plan) checkLen(dst, src []complex128) {
+	if len(dst) < p.n || len(src) < p.n {
+		panic("fft: Plan slice shorter than the plan's length")
+	}
 }
 
 // execute dispatches to the selected engine, leaving the unnormalized transform

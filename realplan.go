@@ -79,6 +79,9 @@ func (p *RealPlan) Len() int { return p.n }
 // Len()/2+1. src is not modified.
 func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	n := p.n
+	if len(src) < n || (n > 0 && len(dst) < n/2+1) {
+		panic("fft: RealPlan slice shorter than the plan's length")
+	}
 	if n == 0 {
 		return dst[:0]
 	}
@@ -185,6 +188,9 @@ func rfftUntangle(dst, Z, tw []complex128, m int) {
 // (and the trivial N<=1) it falls back to the full conjugate-mirror inverse.
 func (p *RealPlan) IRFFT(dst []float64, src []complex128) []float64 {
 	n := p.n
+	if len(dst) < n {
+		panic("fft: RealPlan slice shorter than the plan's length")
+	}
 	if n <= 0 {
 		return dst[:0]
 	}

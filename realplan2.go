@@ -18,9 +18,7 @@ type RealPlan2 struct {
 // NewRealPlan2 returns a plan for real rows×cols matrices. Both lengths must be
 // positive; NewRealPlan2 panics otherwise.
 func NewRealPlan2(rows, cols int) *RealPlan2 {
-	if rows <= 0 || cols <= 0 {
-		panic("fft: shape lengths must be positive")
-	}
+	shapeProduct(rows, cols)
 	p := &RealPlan2{rows: rows, cols: cols, rcols: cols/2 + 1}
 	p.row = cachedRealPlan(cols)
 	p.col = NewPlanN(rows, p.rcols)

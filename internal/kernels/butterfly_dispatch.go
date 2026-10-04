@@ -22,6 +22,12 @@ func Radix2Stage(a []complex128, n, span int, tw []complex128) {
 	if span == 0 || n == 0 {
 		return
 	}
+	// The amd64 kernel trusts these: whole groups of 2·span inside a, span
+	// twiddles. Checked here so an inconsistent caller panics, not overruns.
+	if n%(2*span) != 0 {
+		panic("kernels: Radix2Stage: n is not a multiple of 2·span")
+	}
+	_, _ = a[n-1], tw[span-1]
 	radix2StageSIMD(a, n, span, tw)
 }
 
@@ -30,5 +36,10 @@ func Radix4Stage(a []complex128, n, span int, w1, w2, w3 []complex128, inverse b
 	if span == 0 || n == 0 {
 		return
 	}
+	// As Radix2Stage: whole groups of 4·span inside a, span twiddles per plane.
+	if n%(4*span) != 0 {
+		panic("kernels: Radix4Stage: n is not a multiple of 4·span")
+	}
+	_, _, _, _ = a[n-1], w1[span-1], w2[span-1], w3[span-1]
 	radix4StageSIMD(a, n, span, w1, w2, w3, inverse)
 }

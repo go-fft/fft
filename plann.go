@@ -53,13 +53,7 @@ func blockWidth(n int) int {
 // single-element (scalar) array.
 func NewPlanN(shape ...int) *PlanN {
 	p := &PlanN{shape: append([]int(nil), shape...)}
-	p.size = 1
-	for _, s := range shape {
-		if s <= 0 {
-			panic("fft: shape lengths must be positive")
-		}
-		p.size *= s
-	}
+	p.size = shapeProduct(shape...)
 	p.stride = make([]int, len(shape))
 	acc := 1
 	for ax := len(shape) - 1; ax >= 0; ax-- {
