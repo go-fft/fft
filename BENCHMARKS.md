@@ -28,7 +28,7 @@ v0.1.8. go-fft time ÷ FFTW time, below 1 means go-fft is faster:
 
 - **Against FFTW:** at or above it on 6 of the 24 rows on Zen 3, and on 7 of 24 on Neoverse-N1.
 - **Against numpy.fft and scipy.fft:** at or above both on all 24 rows on Zen 3; on Neoverse-N1, on 23 and 20 of 24.
-- **Cascade Lake:** at or above FFTW on 5 of 24 rows, and at or above numpy and scipy on all 24. Its large 1-D transforms trail FFTW (complex 65536 at 1.57×, RFFT 2^20 at 1.54×), unlike Zen 3's: complex throughput falls from 18.6 GFLOP/s at 4096 to 8.3 at 65536, where input and output (2 MB) outgrow the core's 1 MB L2.
+- **Cascade Lake:** at or above FFTW on 5 of 24 rows, and at or above numpy and scipy on all 24. Its large 1-D transforms trail FFTW (complex 65536 at 1.57×, RFFT 2^20 at 1.54×), unlike Zen 3's: complex throughput falls from 18.6 GFLOP/s at 4096 to 8.3 at 65536. Round 13 looked for the cause and did not establish it.
 
 The dated rounds below (from "Stockham round" on) record how the code got
 there, with every measurement behind each kept or dropped change.
@@ -749,3 +749,33 @@ End to end, main time ÷ new time, five interleaved rounds, one core:
 - **Zen 3 control:** its rows run the same code as before. Their spread, 0.92–1.02 including the multicore 2-D rows, is that host's noise.
 
 **The report and this file.** `benchmarks/report.py` wrote `../BENCHMARKS.md`, so running `benchmarks/run.sh` on a clone replaced this file, the hand-written history of the rounds, with a generated report. It now writes `benchmarks/REPORT.md`. This file also opened with the June 2026 M4 tables of the previous engines; it now opens with the current numbers and marks that block as the superseded baseline.
+
+### Round 13 — three things that did not help on large transforms (2026-10-04)
+
+The Cascade Lake run (Round 12) showed complex throughput falling from 18.6 GFLOP/s at 4096 points to 8.3 at 65536, where FFTW only falls from 20.6 to 13.0. The fresh-run notes blamed the arrays outgrowing a 1 MB L2. That was not checked, and it does not hold: this VM reports 4 MiB of L2 per core, and the time per pass at 65536 is spread over all six passes (1.4–2.4 ns per point each), not concentrated in the ones whose working set changes size. The cause is still open. Three remedies were measured, and none is shipped.
+
+**1. AVX2 instead of AVX-512 at large sizes.** Cascade Lake, rule A, ns per point:
+
+| n | 4096 | 16384 | 65536 | 2^18 | 2^20 |
+|:--|--:|--:|--:|--:|--:|
+| AVX-512 (shipped) | 3.2 | 4.4 | 9.8 | 12.9 | 28.9 |
+| AVX2 | 4.3 | 6.1 | 9.8 | 13.3 | 27.2 |
+
+AVX-512's lead is gone from 65536 on, and it is 6% behind at 2^20. A switch for one size is not worth a rule.
+
+**2. AVX-512 only on passes with a large `ido`.** Timed alone at 65536, the last two passes (radix 4, `ido` = 4 and 1) ran about 20% slower at 512 bits than at 256. But mixing widths inside one transform, which Round 6 had already found harmful, cost 10–24% up to 16384. It gained only 2–9% at 65536 and 2^20, and lost at 2^18.
+
+**3. A radix-16 pass.** It does 65536 in four passes instead of six, so it moves a third less data. It was written in Go (4×4: radix-4 butterflies, the internal twiddles W16^k, radix-4 again) and checked against a direct DFT; a broken twiddle in any of its three butterfly copies fails the test. It was timed on the two hosts whose passes are Go code, current rule ÷ radix 16:
+- **Neoverse-N1:** 0.88–1.07 up to 32768, then **0.47–0.81**.
+- **POWER9:** 0.91–1.12 up to 32768, then **0.59–0.90**.
+
+These are the better of two orders (the radix-16 passes first or last) at each size.
+
+The likely reason, not measured, is the stream count: a radix-16 pass reads 16 inputs and writes 16 outputs at power-of-two strides, plus 15 twiddle runs. That is 47 concurrent streams, the mechanism of Round 10 at a larger scale. Fewer passes do not help when each pass costs this much more.
+
+**Also measured: grouped twiddles in the Go passes.** Round 10's grouping covered only the SIMD tables. Applied to the Go radix-4 pass:
+- **Neoverse-N1:** 0.97–1.04.
+- **POWER9:** 0.97 at 1024 and 4096, 1.02–1.03 at 16384–2^18, 1.12 at 2^20.
+
+Small and size-dependent, so it is not shipped.
+
