@@ -1,2 +1,4 @@
 github.com/go-asmgen/asmgen v0.10.0 h1:LyCKpGRcug2ynAyOKHwxYxVgd4sNd9S2Oy9IFOR9lTQ=
 github.com/go-asmgen/asmgen v0.10.0/go.mod h1:Hj29fXioLRe9oSnQ18SuDBiOcCbu8Qwxba6/5TMr4+Y=
+github.com/go-asmgen/asmgen v0.12.0 h1:np/3c2HCfTIg2BRdjMp/KabBU+XqiBote1HtMz6Tl6k=
+github.com/go-asmgen/asmgen v0.12.0/go.mod h1:Hj29fXioLRe9oSnQ18SuDBiOcCbu8Qwxba6/5TMr4+Y=

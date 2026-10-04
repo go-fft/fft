@@ -54,3 +54,17 @@ TEXT ·supportsAVX512F(SB), NOSPLIT, $0-1
 supportsAVX512F_unsupported:
 	RET
 
+TEXT ·isGenuineIntel(SB), NOSPLIT, $0-1
+	MOVB $0, ret+0(FP)
+	XORL AX, AX
+	CPUID
+	CMPL BX, $0x756e6547 // "Genu"
+	JNE isGenuineIntel_other
+	CMPL DX, $0x49656e69 // "ineI"
+	JNE isGenuineIntel_other
+	CMPL CX, $0x6c65746e // "ntel"
+	JNE isGenuineIntel_other
+	MOVB $1, ret+0(FP)
+isGenuineIntel_other:
+	RET
+
