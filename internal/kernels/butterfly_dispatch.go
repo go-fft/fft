@@ -7,7 +7,8 @@ package kernels
 // Unlike CMul (whose scalar default was measured to beat its SIMD kernel at the
 // short Bluestein widths), these stage kernels are routed onto the SIMD path on
 // the arch that was measured to win (amd64, where SSE2 has real packed ADDPD/
-// SUBPD and the GOAMD64=v1 autovectorizer is weakest — see UseSIMDButterfly).
+// SUBPD and gc compiles the Go loop to scalar SSE2 without FMA — see
+// UseSIMDButterfly).
 // The bit-identity contract is the same as cmul's — each arch's kernel is
 // asserted bit-for-bit identical to the scalar oracle by that arch's CI
 // execution job — so routing here cannot change a transform's result.

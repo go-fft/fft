@@ -15,8 +15,9 @@ package kernels
 // kernel call. That matters: a per-GROUP kernel call pays one Go call per group,
 // and the early stages have a tiny span and therefore very many groups
 // (n/(radix·span) calls), which swamps any SIMD win. One call per stage has
-// zero per-group overhead, so the kernel competes with the gc-autovectorized
-// inline loop on equal footing and wins only on real SIMD throughput.
+// zero per-group overhead, so the kernel competes with the inline Go loop (which
+// gc compiles to scalar code) on equal footing and wins only on real SIMD
+// throughput.
 //
 // Data layout. Within a group the operand blocks are contiguous (radix-2: the
 // even block a[base:base+span] and the odd block a[base+span:base+2·span];

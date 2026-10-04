@@ -4,10 +4,10 @@ package kernels
 
 // loong64 and ppc64le expose no vector DOUBLE arithmetic in the Go assembler
 // (see cmul_generic.go for the detailed reason), so like arm64/s390x/riscv64
-// they run the butterfly STAGES through the gc-autovectorized plain Go loop, not
-// a hand-written kernel. The bodies are identical to Radix2StageScalar/
-// Radix4StageScalar and are deliberately inlinable so the autovectorizer
-// optimizes them in the caller; the SIMD-vs-scalar test trivially holds and the
+// they run the butterfly STAGES through a plain Go loop (scalar code: gc does not
+// vectorize), not a hand-written kernel. The bodies are identical to
+// Radix2StageScalar/Radix4StageScalar and are deliberately inlinable, so they
+// compile in the caller; the SIMD-vs-scalar test trivially holds and the
 // transform result is unchanged. amd64 alone ships a routed SSE2 kernel.
 
 func radix2StageSIMD(a []complex128, n, span int, tw []complex128) {

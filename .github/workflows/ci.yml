@@ -114,7 +114,7 @@ jobs:
           mv internal/kernels/asmgen/${{ matrix.regen }}/cmul_${{ matrix.regen }}.s \
              internal/kernels/cmul_${{ matrix.regen }}.s
           # amd64 also generates the SSE2 butterfly STAGE kernels (the routed FFT
-          # hot loop); arm64 does not (it uses the gc-autovectorized Go loop).
+          # hot loop); arm64 does not (it runs a plain Go loop, compiled to scalar code).
           if [ -f internal/kernels/asmgen/${{ matrix.regen }}/butterfly_${{ matrix.regen }}.s ]; then
             mv internal/kernels/asmgen/${{ matrix.regen }}/butterfly_${{ matrix.regen }}.s \
                internal/kernels/butterfly_${{ matrix.regen }}.s

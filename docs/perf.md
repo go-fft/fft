@@ -2,7 +2,7 @@
 
 > **2026-09-29:** the engines and routing below predate the Stockham rounds. The
 > current engines, per-architecture routing and measured numbers are in
-> [BENCHMARKS.md](../BENCHMARKS.md) ("Stockham round" and "Round 2"). This page
+> [BENCHMARKS.md](../BENCHMARKS.md) (the dated rounds, from "Stockham round" on). This page
 > is the history of how the library got there.
 
 `go-fft` is benchmarked head-to-head against the two reference implementations
@@ -202,9 +202,9 @@ ports that schedule to pure Go (`iterative.go`):
   cache-blocked inner loop (sweeping butterfly positions in L1-sized chunks across
   groups) was implemented and measured, and it *lost* to leaving each stage as one
   contiguous inner loop, most at the large sizes (N=65536: ~450 µs unblocked vs
-  ~480 µs blocked). The gc autovectorizer extracts more from the simple long loop
-  than from the fragmented blocked one — the same lesson the SIMD round taught. So
-  the win is the iterative *schedule*, not hand-blocking.
+  ~480 µs blocked). (This note used to credit a gc "autovectorizer" for that; gc
+  does not vectorize, and the cause was not established.) So the win is the
+  iterative *schedule*, not hand-blocking.
 
 The iterative kernel measured faster than the recursive split-radix engine at
 **every** power-of-two length, so `NewPlan` now routes all powers of two here
@@ -230,9 +230,9 @@ pocketfft) is **closed**: go-fft now wins outright at N=1024 and ties pocketfft 
 N=2048 and N=4096 on the same single core. The pow2 small-N rows (64, 256) and the
 real-input path (whose even-N transform packs into a half-length pow2 complex FFT)
 ride the same kernel and improved for free. This was a pure *schedule* win:
-identical operation count, no wider vectors — confirming the standing lesson that
-on this µ-arch the lever is memory layout the gc compiler can autovectorize, not
-hand-emitted SIMD.
+identical operation count, no wider vectors — the lever was memory layout, not
+hand-emitted SIMD. (Corrected 2026-10-04: an earlier wording said the gc compiler
+autovectorizes this loop; it does not, it emits scalar code.)
 
 ## What made go-fft fast (Rader-convolution + real-untangle round)
 
@@ -384,8 +384,9 @@ The earlier round's optimizations (still in force) follow.
 
 The pointwise complex-multiply SIMD kernels (amd64/arm64/s390x/riscv64) ship for
 the Bluestein/Rader convolution step and are **re-measured each round** at the
-actual convolution widths. On arm64 at width 32768 the autovectorized scalar
-loop runs in 11.5 µs versus 38.8 µs for the de-interleaving NEON kernel — the
+actual convolution widths. On arm64 at width 32768 the scalar loop (gc does not
+vectorize; it fuses multiply-adds) runs in 11.5 µs versus 38.8 µs for the
+de-interleaving NEON kernel — the
 hand-SIMD still **loses by ~3.3×**, so it stays off the hot path. The scalar
 default is the measured-faster choice; the SIMD kernels remain validated,
 per-arch-tested artifacts (bit-identical to the scalar oracle, asserted by the

@@ -17,7 +17,7 @@ func benchmarkCMul(b *testing.B, n int, f func(a, b []complex128)) {
 	}
 }
 
-// On arm64/amd64 the autovectorized scalar loop wins at these widths
+// On arm64/amd64 the scalar loop (gc does not vectorize) wins at these widths
 // (documented in the Phase 4 plan), which is why the dispatch keeps the scalar
 // default; the SIMD kernel is benchmarked here so the delta is visible.
 func BenchmarkCMulScalar1024(b *testing.B) { benchmarkCMul(b, 1024, CMulScalar) }

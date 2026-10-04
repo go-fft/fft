@@ -24,8 +24,8 @@ import (
 // instructions never execute there).
 //
 // It is not routed onto the FFT hot path (CMul stays scalar) because the
-// compiler's autovectorized scalar loop is already at least as fast at this
-// width; the SIMD kernel is kept for its hardware validation and as the
+// compiler's scalar loop (gc does not vectorize) measured at least as fast at
+// this width; the SIMD kernel is kept for its hardware validation and as the
 // reference implementation for future widening.
 //
 // Bit-identity. FMA is baseline on riscv64, so the gc compiler emits a FUSED
