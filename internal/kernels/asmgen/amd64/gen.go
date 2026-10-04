@@ -420,8 +420,10 @@ func writeFile(name, content string) {
 // >= 1 by its twiddle and writes ch[i+ido·(k+l1·j)]. Two points (i, i+1) share
 // each YMM register; an odd ido finishes with one 128-bit step. ido >= 2.
 //
-// tw is the pass's twiddle table extended to i = 0: block j-1 (j = 1..r-1)
-// holds ido entries. The scalar oracle does NOT multiply at i = 0, and a
+// tw is the pass's twiddle table extended to i = 0, laid out group by group
+// (see StockhamTwiddles and skEmit.tw): the points are walked in groups of
+// four (two pairs), then one pair and one single point for ido mod 4, and each
+// group's r-1 twiddle runs are stored together. The scalar oracle does NOT multiply at i = 0, and a
 // multiply by 1 is not exact on signed zeros, so the first pair of every block
 // multiplies both lanes and then takes lane pair 0 back from the unmultiplied
 // value (VBLENDPD $3) — bit-identical, not merely equal.
@@ -434,9 +436,9 @@ func writeFile(name, content string) {
 // swaps and sign flips.
 //
 // Registers: AX = input block + i (P), SI = P + 4·S, BX = output + i (O), DI =
-// O + 4·OS, R10/R11 = twiddle cursors (T, T + 4·S), CX = S = ido·16, DX = OS =
-// l1·ido·16, R12 = 3·S, R13 = 3·OS, R8 = blocks left, R9 = pairs left, R14 =
-// constants, R15 = twiddle table base.
+// O + 4·OS, R10 = twiddle group cursor, CX = S = ido·16, DX = OS = l1·ido·16,
+// R12 = 3·S, R13 = 3·OS, R8 = blocks left, R9 = groups left, R14 = constants,
+// R15 = twiddle table base.
 
 const (
 	kSign   = 0   // rotation sign mask (direction)
@@ -457,6 +459,10 @@ type skEmit struct {
 	w    string // "Z" (four points), "Y" (two) or "X" (one, the odd tail)
 	last int    // radix of a final-pass kernel (ido == 1), 0 for the others
 	wide bool   // inside an AVX-512 kernel: 64-byte constant rows
+	// g is the size, in points, of the twiddle group the body reads (see
+	// StockhamTwiddles): 4, 2 or 1. half is 1 for the second pair of a
+	// four-point group walked as two pairs, 0 otherwise.
+	g, half int
 }
 
 // k scales a constants-table offset (given for 32-byte rows) to the table the
@@ -501,10 +507,19 @@ func skOut(j int) string {
 	return [...]string{"(BX)", "(BX)(DX*1)", "(BX)(DX*2)", "(BX)(R13*1)", "(DI)", "(DI)(DX*1)", "(DI)(DX*2)", "(DI)(R13*1)"}[j]
 }
 
-// skTw addresses twiddle block j-1 (j >= 1).
-func skTw(j int) string {
-	return [...]string{"(R10)", "(R10)(CX*1)", "(R10)(CX*2)", "(R10)(R12*1)", "(R11)", "(R11)(CX*1)", "(R11)(CX*2)"}[j-1]
+// tw addresses twiddle j (j >= 1) of the points the body runs on. The table
+// holds the twiddles group by group, in the order the kernel walks the points:
+// a group of g points stores its r-1 twiddle runs one after the other, g
+// entries each, so twiddle j sits (j-1)·16·g bytes into the group (plus 32 for
+// the second pair of a four-point group). R10 points at the current group. A
+// pass then reads its twiddles as one sequential stream instead of r-1 runs
+// ido entries apart.
+func (e skEmit) tw(j int) string {
+	return fmt.Sprintf("%d(R10)", (j-1)*16*e.g+32*e.half)
 }
+
+// twNext moves R10 past the current group.
+func (e skEmit) twNext(r int) { e.raw("ADDQ $%d, R10", (r-1)*16*e.g) }
 
 func (e skEmit) ld(dst int, addr string) { e.raw("VMOVUPD %s, %s", addr, e.v(dst)) }
 
@@ -562,8 +577,8 @@ func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 		return
 	}
 	hi := map[string]string{"X": "$3", "Y": "$15", "Z": "$0xFF"}[e.w]
-	e.raw("VMOVDDUP %s, %s", skTw(j), e.v(t1))
-	e.raw("VPERMILPD %s, %s, %s", hi, skTw(j), e.v(t2))
+	e.raw("VMOVDDUP %s, %s", e.tw(j), e.v(t1))
+	e.raw("VPERMILPD %s, %s, %s", hi, e.tw(j), e.v(t2))
 	e.perm("swap", y, t3)
 	e.raw("VMULPD %s, %s, %s", e.v(y), e.v(t1), e.v(t1))
 	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
@@ -716,7 +731,7 @@ func (e skEmit) body(r int, first bool) {
 }
 
 func (e skEmit) advance(bytes int) {
-	for _, r := range []string{"AX", "SI", "BX", "DI", "R10", "R11"} {
+	for _, r := range []string{"AX", "SI", "BX", "DI"} {
 		e.raw("ADDQ $%d, %s", bytes, r)
 	}
 }
@@ -727,7 +742,12 @@ func genStockhamAVX2(f *emit.File, r int) {
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
 	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX2", r), sig, 0)
-	y, x := skEmit{b, "Y", 0, false}, skEmit{b, "X", 0, false}
+	// A four-point twiddle group is walked as two pairs (q0, q1); then come a
+	// two-point group (p) and a one-point group (x) for ido mod 4.
+	q0 := skEmit{b: b, w: "Y", g: 4}
+	q1 := skEmit{b: b, w: "Y", g: 4, half: 1}
+	p := skEmit{b: b, w: "Y", g: 2}
+	x := skEmit{b: b, w: "X", g: 1}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
 		LoadArg("ido", "CX").LoadArg("l1", "R8")
 	b.Raw("MOVQ CX, DX").
@@ -742,38 +762,45 @@ func genStockhamAVX2(f *emit.File, r int) {
 		Raw("LEAQ (AX)(CX*4), SI").
 		Raw("LEAQ (BX)(DX*4), DI").
 		Raw("MOVQ R15, R10").
-		Raw("LEAQ (R15)(CX*4), R11")
-	y.body(r, true)
-	y.advance(32)
-	b.Raw("MOVQ CX, R9").
-		Raw("SHRQ $5, R9"). // pairs = ido/2
-		Raw("DECQ R9").
-		Raw("iloop:").
+		Raw("MOVQ CX, R9").
+		Raw("SHRQ $6, R9"). // four-point groups = ido/4
 		Raw("TESTQ R9, R9").
-		Raw("JZ tail")
-	y.body(r, false)
-	y.advance(32)
+		Raw("JZ firstpair")
+	q0.body(r, true)
+	q0.advance(32)
+	q1.body(r, false)
+	q1.advance(32)
+	q0.twNext(r)
 	b.Raw("DECQ R9").
-		Raw("JMP iloop").
-		Raw("tail:").
-		Raw("TESTQ $16, CX"). // ido odd
+		Raw("qloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ pair")
+	q0.body(r, false)
+	q0.advance(32)
+	q1.body(r, false)
+	q1.advance(32)
+	q0.twNext(r)
+	b.Raw("DECQ R9").
+		Raw("JMP qloop").
+		Raw("pair:").
+		Raw("TESTQ $32, CX"). // ido & 2
+		Raw("JZ single")
+	p.body(r, false)
+	p.advance(32)
+	p.twNext(r)
+	b.Raw("JMP single").
+		Raw("firstpair:") // ido is 2 or 3: the first pair is the two-point group
+	p.body(r, true)
+	p.advance(32)
+	p.twNext(r)
+	b.Raw("single:").
+		Raw("TESTQ $16, CX"). // ido & 1
 		Raw("JZ knext")
 	x.body(r, false)
 	x.advance(16)
 	b.Raw("knext:")
 	// P advanced by S over the block; the next block starts r·S after this one.
-	switch r {
-	case 2:
-		b.Raw("ADDQ CX, AX")
-	case 3:
-		b.Raw("LEAQ (AX)(CX*2), AX")
-	case 4:
-		b.Raw("ADDQ R12, AX")
-	case 5:
-		b.Raw("LEAQ (AX)(CX*4), AX")
-	case 8:
-		b.Raw("LEAQ (AX)(CX*4), AX").Raw("ADDQ R12, AX")
-	}
+	skNextBlock(b, r)
 	// O advanced by S, which is exactly the next block's output start.
 	b.Raw("DECQ R8").
 		Raw("JMP kloop").
@@ -797,7 +824,7 @@ func genStockhamLastAVX2(f *emit.File, r int) {
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
 	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX2", r), sig, 0)
-	y, x := skEmit{b, "Y", r, false}, skEmit{b, "X", r, false}
+	y, x := skEmit{b: b, w: "Y", last: r}, skEmit{b: b, w: "X", last: r}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
 	b.Raw("MOVQ DX, R9").
 		Raw("SHRQ $1, R9"). // block pairs
@@ -994,7 +1021,9 @@ func genStockhamAVX512(f *emit.File, r int) {
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
 	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX512", r), sig, 0)
-	z, y, x := skEmit{b, "Z", 0, true}, skEmit{b, "Y", 0, true}, skEmit{b, "X", 0, true}
+	z := skEmit{b: b, w: "Z", wide: true, g: 4}
+	y := skEmit{b: b, w: "Y", wide: true, g: 2}
+	x := skEmit{b: b, w: "X", wide: true, g: 1}
 	b.Raw("MOVQ $3, R9").Raw("KMOVB R9, K1") // lanes 0–1: the i = 0 point
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
 		LoadArg("ido", "CX").LoadArg("l1", "R8")
@@ -1009,10 +1038,10 @@ func genStockhamAVX512(f *emit.File, r int) {
 		Raw("JZ done").
 		Raw("LEAQ (AX)(CX*4), SI").
 		Raw("LEAQ (BX)(DX*4), DI").
-		Raw("MOVQ R15, R10").
-		Raw("LEAQ (R15)(CX*4), R11")
+		Raw("MOVQ R15, R10")
 	z.body(r, true)
 	z.advance(64)
+	z.twNext(r)
 	b.Raw("MOVQ CX, R9").
 		Raw("SHRQ $6, R9"). // quads = ido/4
 		Raw("DECQ R9").
@@ -1021,6 +1050,7 @@ func genStockhamAVX512(f *emit.File, r int) {
 		Raw("JZ pair")
 	z.body(r, false)
 	z.advance(64)
+	z.twNext(r)
 	b.Raw("DECQ R9").
 		Raw("JMP iloop").
 		Raw("pair:").
@@ -1028,6 +1058,7 @@ func genStockhamAVX512(f *emit.File, r int) {
 		Raw("JZ single")
 	y.body(r, false)
 	y.advance(32)
+	y.twNext(r)
 	b.Raw("single:").
 		Raw("TESTQ $16, CX"). // ido & 1
 		Raw("JZ knext")
@@ -1052,7 +1083,7 @@ func genStockhamLastAVX512(f *emit.File, r int) {
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
 	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX512", r), sig, 0)
-	z, y, x := skEmit{b, "Z", r, true}, skEmit{b, "Y", r, true}, skEmit{b, "X", r, true}
+	z, y, x := skEmit{b: b, w: "Z", last: r, wide: true}, skEmit{b: b, w: "Y", last: r, wide: true}, skEmit{b: b, w: "X", last: r, wide: true}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
 	b.Raw("MOVQ DX, R9").
 		Raw("SHRQ $2, R9"). // block quads
