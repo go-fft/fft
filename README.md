@@ -99,9 +99,9 @@ the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
 passes plus a general radix-p pass for 11 and 13). On amd64 with AVX2 its
 radix-2/3/4/5/8 passes run as generated **AVX2 kernels**, and a power of two of
 256 points or more runs **AVX-512 kernels** where the CPU and OS support them;
-both are bit-identical to the Go passes. Powers of two above 4096 on amd64 (16384 with AVX-512), and every power of two on
-riscv64/ppc64le/loong64/s390x, use an **iterative radix-4 kernel** instead
-(with SIMD butterflies on amd64). A prime whose N−1 is 7-smooth uses **Rader's algorithm**, and every
+both are bit-identical to the Go passes. Every power of two on
+riscv64/loong64/s390x, and on amd64 without AVX2, uses an **iterative radix-4
+kernel** instead (with SSE2 butterflies on amd64). A prime whose N−1 is 7-smooth uses **Rader's algorithm**, and every
 other length **Bluestein's chirp-z**, both convolving on the Stockham engine,
 with all twiddle factors cached per
 length. It beats the pure-Go peer `gonum/dsp/fourier` (both `CGO_ENABLED=0`) at
@@ -167,7 +167,7 @@ second by running every shape down BOTH paths and comparing `math.Float64bits`.
 A faster transform that answers differently is not the same transform. The remaining
 identified lever is a SIMD/cache-blocked real (r2c) kernel (the iterative
 mixed-radix engine for smooth lengths and the large-prime convolution has landed) — see **[BENCHMARKS.md](BENCHMARKS.md)**'s
-"Lagging ops" section for the full, per-op root-cause breakdown. Full
+"Lagging ops" section and the dated rounds after it for the per-op breakdown. Full
 methodology, every size, and GFLOP/s are also in BENCHMARKS.md. Reproduce the
 whole sweep with `benchmarks/run.sh` (go-fft + gonum via `go test -bench`, native
 FFTW via a C harness, numpy/scipy via Python; correctness-gated; gonum is

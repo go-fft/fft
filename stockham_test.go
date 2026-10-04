@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/cmplx"
 	"testing"
+	"unsafe"
 )
 
 // TestStockhamMatchesMixedRadix cross-checks the Stockham passes against the
@@ -183,6 +184,61 @@ func TestWide512(t *testing.T) {
 	for n, want := range map[int]bool{128: false, 256: true, 4096: true, 1 << 20: true, 1000: false, 768: false, 20160: false} {
 		if got := wide512(n); got != want {
 			t.Errorf("wide512(%d) = %v, want %v", n, got, want)
+		}
+	}
+}
+
+// TestScratchSitsOffTheSets checks offTheSets for every 16-byte alignment of
+// dst against the scratch buffer: the window is n points inside the buffer
+// and starts setGap bytes past dst, modulo 4 KB (within the 16-byte rounding
+// of a complex128 index).
+func TestScratchSitsOffTheSets(t *testing.T) {
+	const n = 1024
+	buf := make([]complex128, n+setSpan)
+	backing := make([]complex128, n+setSpan)
+	for k := 0; k < setSpan; k++ {
+		dst := backing[k : k+n]
+		w := offTheSets(buf, dst, n)
+		if len(w) != n {
+			t.Fatalf("dst offset %d: window length %d, want %d", k, len(w), n)
+		}
+		lo := uintptr(unsafe.Pointer(unsafe.SliceData(buf)))
+		at := uintptr(unsafe.Pointer(unsafe.SliceData(w)))
+		if at < lo || at+16*n > lo+16*uintptr(len(buf)) {
+			t.Fatalf("dst offset %d: window outside the buffer", k)
+		}
+		gap := (at - uintptr(unsafe.Pointer(unsafe.SliceData(dst)))) & 4095
+		if gap > setGap || setGap-gap >= 16 {
+			t.Fatalf("dst offset %d: window starts %d bytes past dst mod 4 KB, want %d", k, gap, setGap)
+		}
+	}
+}
+
+// TestSkFactorizeAroundR8Max takes both of skFactorize's power-of-two rules
+// whatever this machine's r8MaxPow2 is: with AVX-512 it is unbounded, so the
+// rule above it would otherwise go untested (and uncovered) there.
+func TestSkFactorizeAroundR8Max(t *testing.T) {
+	saved := r8MaxPow2
+	defer func() { r8MaxPow2 = saved }()
+	const e = 13
+	r8MaxPow2 = 1 << e
+	if got, want := fmt.Sprint(skFactorize(1<<e)), fmt.Sprint(radix8Maximal(e)); got != want {
+		t.Errorf("at r8MaxPow2: skFactorize(2^%d) = %s, want radix 8 as far as it goes %s", e, got, want)
+	}
+	r8MaxPow2 = 1<<e - 1
+	if got, want := fmt.Sprint(skFactorize(1<<e)), fmt.Sprint(pow2Radices(e, 1<<e <= pow2OneRadix8Max)); got != want {
+		t.Errorf("above r8MaxPow2: skFactorize(2^%d) = %s, want %s", e, got, want)
+	}
+	// An odd factor keeps radix 8 as far as it goes for the power of two.
+	if got, want := fmt.Sprint(skFactorize(3<<e)), fmt.Sprint(append(radix8Maximal(e), 3)); got != want {
+		t.Errorf("skFactorize(3·2^%d) = %s, want %s", e, got, want)
+	}
+}
+
+func TestTakesGap(t *testing.T) {
+	for n, want := range map[int]bool{512: false, 1000: false, 1024: true, 1536: false, 1 << 20: true} {
+		if got := takesGap(n); got != want {
+			t.Errorf("takesGap(%d) = %v, want %v", n, got, want)
 		}
 	}
 }

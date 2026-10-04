@@ -123,10 +123,10 @@ def main():
     w("- **Inputs**: bit-identical across all four implementations "
       "(`((i·7+1)%13)·0.1 + i·((i·3+2)%11)·0.1` for complex; "
       "`((i·7+1)%13)·0.1` for real).")
-    w("- **Note on pyfftw**: the bundled pip-wheel FFTW plans a poor 2-D "
-      "transform on Apple Silicon (≈4× slower than the native bottle); the FFTW "
-      "column therefore uses the **native Homebrew FFTW called directly from C** "
-      "(`benchmarks/cbench/fftw_bench.c`) as the authoritative gold standard.\n")
+    w("- **Note on pyfftw**: the FFTW column is the **native FFTW called "
+      "directly from C** (`benchmarks/cbench/fftw_bench.c`), not pyfftw: the "
+      "pip-wheel FFTW bundled with pyfftw planned a 2-D transform about 4× "
+      "slower than the native library on Apple Silicon.\n")
 
     def verdict(gns, fns):
         if gns is None or fns is None:
@@ -211,10 +211,15 @@ def main():
     w("## 2-D complex FFT2 (`complex128`)\n")
     w("go-fft fans the independent 1-D row/column transforms across goroutines "
       "above a work-size threshold (the multicore path); FFTW / numpy / scipy "
-      "are single-threaded here. ns/op (GFLOP/s).\n")
-    w("| shape | go-fft | FFTW | numpy.fft2 | scipy.fft2 | go/FFTW | verdict |")
-    w("|:--|---:|---:|---:|---:|---:|:--|")
-    g2 = go.get("FFT2_GoFFT", {})
+      "are single-threaded here. The go-fft column is a reused `PlanN` writing "
+      "into a reused slice, as FFTW's plan writes into its reused array; the "
+      "`FFT2` column is the convenience call, which returns a new slice each "
+      "time and so also pays an allocation (and, on a many-core host, the "
+      "garbage collector). ns/op (GFLOP/s).\n")
+    w("| shape | go-fft | FFT2 | FFTW | numpy.fft2 | scipy.fft2 | go/FFTW | verdict |")
+    w("|:--|---:|---:|---:|---:|---:|---:|:--|")
+    g2 = go2d(go)
+    g2a = go.get("FFT2_GoFFT", {})
     for shp in ["64x64", "128x128", "256x256", "512x512", "1024x1024"]:
         a, b = (int(v) for v in shp.split("x"))
         n = a * b
@@ -223,7 +228,9 @@ def main():
         rr = ref_2.get(shp, {})
         nns, sns = rr.get("numpy_ns"), rr.get("scipy_ns")
         fns = fr.get("fftw_ns")
+        ans = g2a.get(shp)
         w(f"| {shp} | {fmt_ns(gns)} ({gflops(n, gns):.1f}) "
+          f"| {fmt_ns(ans)} ({gflops(n, ans):.1f}) "
           f"| {fmt_ns(fns)} ({fmt_g(fr.get('fftw_gflops'))}) "
           f"| {fmt_ns(nns)} ({gflops(n, nns):.1f}) "
           f"| {fmt_ns(sns)} ({gflops(n, sns):.1f}) "
@@ -254,6 +261,12 @@ def main():
     with open("../BENCHMARKS.md", "w") as f:
         f.write("\n".join(L) + "\n")
     print("wrote ../BENCHMARKS.md", file=sys.stderr)
+
+
+def go2d(go):
+    """The go-fft 2-D timings the report compares: the reused-plan benchmark
+    when the run has it, else (older runs) the allocating FFT2 one."""
+    return go.get("FFT2Plan_GoFFT") or go.get("FFT2_GoFFT", {})
 
 
 def label_c(n):
@@ -297,7 +310,7 @@ def emit_summary(w, go, fftw_c, fftw_r, fftw_2, ref_c, ref_r, ref_2):
 
     # 2-D tally
     t2 = {"fftw": [0, 0], "numpy": [0, 0], "scipy": [0, 0]}
-    g2 = go.get("FFT2_GoFFT", {})
+    g2 = go2d(go)
     for shp in ["64x64", "128x128", "256x256", "512x512", "1024x1024"]:
         g = g2.get(shp)
         if g is None:
@@ -332,56 +345,32 @@ def emit_summary(w, go, fftw_c, fftw_r, fftw_2, ref_c, ref_r, ref_2):
         a, b = allt.get(key, [0, 0])
         w(f"- **vs {label}**: {a}/{b} ops at-or-above parity.")
     w("")
-    w("**vs gonum** (the fair pure-Go, CGO=0 peer): go-fft is faster at "
-      "**every** size measured — typically 3–5× on composite N and an order of "
-      "magnitude on primes (gonum falls back to a naive Bluestein with no Rader "
-      "path), confirming go-fft is the fastest pure-Go FFT here.\n")
-    w("**vs pocketfft** (numpy/scipy): go-fft wins the small-N rows outright "
-      "(the Python FFI tax dominates pocketfft's C kernel there) and is "
-      "competitive-to-winning at large 1-D and large 2-D; the residual losses "
-      "are the mid-range single-core bands.\n")
-    w("**vs FFTW** (the gold standard): FFTW leads on the single-core "
-      "power-of-two and smooth-composite mid-range — it has hand-written SIMD "
-      "codelets and a dedicated Hermitian real kernel that a scalar pure-Go "
-      "library cannot match on one core. go-fft reaches parity-or-better where "
-      "the algorithm, not raw SIMD throughput, dominates: very large 1-D, the "
-      "large 2-D multicore shapes, and (relative to FFTW's own cost) the "
-      "large-prime rows.\n")
-    w("### Lagging ops — root cause + action items\n")
-    w("Honest read of where go-fft trails FFTW, with the concrete lever to "
-      "close each gap:\n")
-    w("1. **Power-of-two & smooth-composite mid-range (256 … 4096, "
-      "1000/1080/1296/1920).** *Root cause*: scalar Go butterflies vs FFTW's "
-      "hand-written NEON SIMD codelets — the kernel is the same Cooley–Tukey "
-      "schedule, FFTW just does 2 complex muls per instruction. *Action*: drop "
-      "in the **go-asmgen SIMD complex-multiply kernels** (already validated "
-      "bit-identical on amd64/arm64/s390x/riscv64) on the hot radix-2/4 "
-      "butterfly inner loop — the single highest-ROI item; expected to roughly "
-      "halve this band on arm64.")
-    w("2. **Real mid-range (1024 … 65536).** *Root cause*: go-fft packs a real "
-      "signal into a half-length complex FFT and untangles once; FFTW runs a "
-      "**dedicated real (r2c) kernel** that exploits Hermitian symmetry at every "
-      "stage (~2× less arithmetic). *Action*: implement a native split-radix "
-      "real butterfly schedule (declined before as duplication; the measured gap "
-      "now justifies it) — and it benefits from item 1's SIMD too.")
-    w("3. **Large primes (1009, 10007).** *Root cause*: Rader/Bluestein convolve "
-      "at length ≈N−1 on the recursive mixed-radix engine, which pays a "
-      "~1.5× recursion tax; FFTW convolves at exactly N−1 with codelet-fused "
-      "mixed-radix. *Note*: go-fft is already **2–2.5× faster than gonum** here "
-      "and within ~1.6× of FFTW (vs ~30× gap for gonum's naive Bluestein). "
-      "*Action*: an **iterative mixed-radix engine** for the smooth convolution "
-      "lengths (the same lever that closed the pow2 band) — a substantial new "
-      "engine, lower priority than items 1–2.")
-    w("4. **Small 2-D (64×64, 128×128).** *Root cause*: below the parallel "
-      "threshold, so they run the serial per-line path while FFTW uses fused "
-      "2-D codelets. *Action*: SIMD (item 1) lifts the per-line 1-D cost "
-      "directly; the multicore path already makes go-fft win at 512×512 and "
-      "1024×1024 (beats numpy, ties/leads scipy).")
-    w("\n> The unifying lever is **item 1 (go-asmgen SIMD butterflies)**: it "
-      "attacks the pow2/composite mid-range, the per-line cost inside 2-D, and "
-      "feeds the real and prime paths (which both convolve via complex FFTs). "
-      "That is the one change that moves the most rows toward FFTW parity.")
-
+    # Every row behind FFTW, worst first. What explains each band, and what
+    # was tried against it, is in the dated rounds of BENCHMARKS.md: prose
+    # written here once went stale as the engine changed, so the report now
+    # states only what this run measured.
+    lag = []
+    for base, fmap, sizes, kind in (("Complex_GoFFT", fftw_c, cs, "complex"),
+                                    ("Real_GoFFT", fftw_r, rs, "real")):
+        gb = go.get(base, {})
+        for n in sizes:
+            g, f = gb.get(str(n)), fmap.get(n, {}).get("fftw_ns")
+            if g and f and g > f * 1.05:
+                lag.append((g / f, f"{kind} {n:,}{label_c(n)}"))
+    g2 = go2d(go)
+    for shp in ["64x64", "128x128", "256x256", "512x512", "1024x1024"]:
+        g, f = g2.get(shp), fftw_2.get(shp, {}).get("fftw_ns")
+        if g and f and g > f * 1.05:
+            lag.append((g / f, f"2-D {shp}"))
+    lag.sort(reverse=True)
+    w("### Rows behind FFTW, worst first\n")
+    if not lag:
+        w("None: every row is at or above parity.")
+    for r, name in lag:
+        w(f"- {name}: {r:.2f}×")
+    w("\nWhy each band trails, and the levers already measured against it "
+      "(kept or dropped), are in the dated rounds of the repository's "
+      "BENCHMARKS.md, not regenerated here.")
 
 if __name__ == "__main__":
     main()
