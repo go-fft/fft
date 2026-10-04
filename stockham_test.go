@@ -213,3 +213,24 @@ func TestScratchSitsOffTheSets(t *testing.T) {
 		}
 	}
 }
+
+// TestSkFactorizeAroundR8Max takes both of skFactorize's power-of-two rules
+// whatever this machine's r8MaxPow2 is: with AVX-512 it is unbounded, so the
+// rule above it would otherwise go untested (and uncovered) there.
+func TestSkFactorizeAroundR8Max(t *testing.T) {
+	saved := r8MaxPow2
+	defer func() { r8MaxPow2 = saved }()
+	const e = 13
+	r8MaxPow2 = 1 << e
+	if got, want := fmt.Sprint(skFactorize(1<<e)), fmt.Sprint(radix8Maximal(e)); got != want {
+		t.Errorf("at r8MaxPow2: skFactorize(2^%d) = %s, want radix 8 as far as it goes %s", e, got, want)
+	}
+	r8MaxPow2 = 1<<e - 1
+	if got, want := fmt.Sprint(skFactorize(1<<e)), fmt.Sprint(pow2Radices(e, 1<<e <= pow2OneRadix8Max)); got != want {
+		t.Errorf("above r8MaxPow2: skFactorize(2^%d) = %s, want %s", e, got, want)
+	}
+	// An odd factor keeps radix 8 as far as it goes for the power of two.
+	if got, want := fmt.Sprint(skFactorize(3<<e)), fmt.Sprint(append(radix8Maximal(e), 3)); got != want {
+		t.Errorf("skFactorize(3·2^%d) = %s, want %s", e, got, want)
+	}
+}
