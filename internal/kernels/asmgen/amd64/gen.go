@@ -544,16 +544,24 @@ func (e skEmit) rot(dst, src int) {
 // twStore multiplies y by twiddle j and stores it to output j. In the first
 // pair of a block the i = 0 lane pair keeps the unmultiplied y. A final pass
 // has no twiddles: it stores y.
+//
+// The twiddle comes in already duplicated: VMOVDDUP from w gives (wr, wr) per
+// point and from w+8 gives (wi, wi), both plain loads, so the multiply takes
+// one shuffle (swapping y) where broadcasting y's halves and swapping w took
+// three, all on the one shuffle port Intel cores have. It computes
+// (yr·wr − yi·wi, yi·wr + yr·wi): the same products as the scalar oracle's
+// (yr·wr − yi·wi, yr·wi + yi·wr), its imaginary sum taken in the other order,
+// which IEEE addition makes exact. The load at w+8 reads 8 bytes past the
+// pair; StockhamTwiddles pads its tables for the last one.
 func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 	if e.last != 0 {
 		e.st(y, skOut(j))
 		return
 	}
-	e.raw("VMOVUPD %s, %s", skTw(j), e.v(t3))
-	e.perm("lo", y, t1)
-	e.perm("hi", y, t2)
-	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t1), e.v(t1))
-	e.perm("swap", t3, t3)
+	e.raw("VMOVDDUP %s, %s", skTw(j), e.v(t1))
+	e.raw("VMOVDDUP 8%s, %s", skTw(j), e.v(t2))
+	e.perm("swap", y, t3)
+	e.raw("VMULPD %s, %s, %s", e.v(y), e.v(t1), e.v(t1))
 	e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
 	if e.w == "Z" {
 		// No 512-bit VADDSUBPD: flip the real lanes' sign, then add.
