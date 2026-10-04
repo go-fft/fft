@@ -280,9 +280,9 @@ Go code it replaces and tested bit for bit on generic, ±0 and ∞ inputs.
   measured slower.
 - **amd64, AVX2:** the real-FFT untangle and its inverse.
 - **amd64 without AVX2:** SSE2 butterfly stage kernels for the iterative pow2
-  kernel. That kernel also has AVX2 stages, but since v0.1.3 an AVX2 machine
-  routes every power of two to the Stockham engine, so those stages run only in
-  the tests that force that route.
+  kernel. It also had AVX2 stages until v0.1.8; since v0.1.3 an AVX2 machine
+  routes every power of two to the Stockham engine, so they ran only in tests
+  and were removed.
 - **arm64, ppc64le, riscv64, loong64, s390x:** the Go passes, compiled to scalar
   instructions. gc does not vectorize, and fuses multiply-adds on all five.
 
