@@ -779,3 +779,36 @@ The likely reason, not measured, is the stream count: a radix-16 pass reads 16 i
 
 Small and size-dependent, so it is not shipped.
 
+
+### Round 14 — hardware counters on Haswell, and a four-step that lost (2026-10-04)
+
+**Where large transforms lose time, measured.** The Cascade Lake VM exposes no performance counters, but Haswell (cfarm13) is bare metal with `perf`, and it falls off the same cliff. Fourteen events were counted (multiplexed, so scaled) over 2-second runs of the current transform on one core. Per point, per transform:
+
+| n | ns/pt | L2 misses | stalls on a full store buffer (cycles) | stalls with an L2 miss pending (cycles) | loads blocked by 4K aliasing | dTLB walks |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1024 | 3.9 | 0.001 | 0.2 | 0.02 | 0.5 | 0 |
+| 4096 | 5.7 | 0.22 | 3.1 | 0.3 | 1.2 | 0 |
+| 16384 | 9.0 | 3.3 | 8.1 | 3.8 | 1.7 | 0 |
+| 65536 | 10.7 | 4.0 | 8.9 | 4.6 | 1.8 | 0 |
+| 2^20 | 35.2 | 6.6 | 16.7 | 53.6 | 1.3 | 0.06 |
+
+- **On Haswell, the cliff is the L2.** It holds 256 KB, and at 16384 points the input and output arrays need 512 KB: L2 misses go up 15-fold between 4096 and 16384. Each pass writes its r output streams across the whole array, and stalls on a full store buffer reach a third of the cycles.
+- **From 2^18 on, memory takes over.** At 2^20, cycles stalled with an L2 miss outstanding are 54 of 99 per point.
+- **TLB misses do not matter.** Transparent huge pages are on.
+- **Cascade Lake:** these counts are Haswell's. Cascade Lake's cause, with 4 MiB of L2 reported per core, is still unmeasured.
+
+**A four-step without transposes: slower everywhere.** n = n1·n2 with n1 ≈ n2 ≈ √n, which needs 3 reads and 2 writes of the array, where Stockham needs one read and one write per pass (six passes at 65536):
+- **Columns:** transformed eight at a time. The eight are gathered as 128-byte runs, transformed in cache, multiplied by W_n^(c·k1) as they are stored back.
+- **Rows:** transformed eight at a time, written out transposed as 8-point runs.
+
+Round 4's six-step, measured only on the M4, had three explicit transposes. This variant was correct against the current transform (relative error < 1e-13·log2 n, forward and inverse). Current time ÷ four-step time:
+
+| n | 4096 | 16384 | 65536 | 2^18 | 2^20 |
+|:--|--:|--:|--:|--:|--:|
+| Haswell | 0.46 | 0.55 | 0.66 | 0.51 | 0.56 |
+| Zen 3 | 0.45 | 0.43 | 0.58 | 0.61 | 0.41 |
+| Cascade Lake | 0.31 | 0.35 | 0.62 | 0.32 | 0.65 |
+| Neoverse-N1 | 0.70 | 0.78 | 0.68 | 0.70 | 0.63 |
+| POWER9 | 0.60 | 0.65 | 0.75 | 0.76 | 0.69 |
+
+The gather, the twiddle multiply and the transposed store are Go loops, about a nanosecond per point each, and they cost more than the passes they save. A four-step would need them vectorized and fused into the pass kernels, as FFTW's codelets read and write at a stride. That is a different engine; it is not pursued here.
