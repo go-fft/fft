@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/cmplx"
 	"testing"
+	"unsafe"
 )
 
 // TestStockhamMatchesMixedRadix cross-checks the Stockham passes against the
@@ -183,6 +184,32 @@ func TestWide512(t *testing.T) {
 	for n, want := range map[int]bool{128: false, 256: true, 4096: true, 1 << 20: true, 1000: false, 768: false, 20160: false} {
 		if got := wide512(n); got != want {
 			t.Errorf("wide512(%d) = %v, want %v", n, got, want)
+		}
+	}
+}
+
+// TestScratchSitsOffTheSets checks offTheSets for every 16-byte alignment of
+// dst against the scratch buffer: the window is n points inside the buffer
+// and starts setGap bytes past dst, modulo 4 KB (within the 16-byte rounding
+// of a complex128 index).
+func TestScratchSitsOffTheSets(t *testing.T) {
+	const n = 1024
+	buf := make([]complex128, n+setSpan)
+	backing := make([]complex128, n+setSpan)
+	for k := 0; k < setSpan; k++ {
+		dst := backing[k : k+n]
+		w := offTheSets(buf, dst, n)
+		if len(w) != n {
+			t.Fatalf("dst offset %d: window length %d, want %d", k, len(w), n)
+		}
+		lo := uintptr(unsafe.Pointer(unsafe.SliceData(buf)))
+		at := uintptr(unsafe.Pointer(unsafe.SliceData(w)))
+		if at < lo || at+16*n > lo+16*uintptr(len(buf)) {
+			t.Fatalf("dst offset %d: window outside the buffer", k)
+		}
+		gap := (at - uintptr(unsafe.Pointer(unsafe.SliceData(dst)))) & 4095
+		if gap > setGap || setGap-gap >= 16 {
+			t.Fatalf("dst offset %d: window starts %d bytes past dst mod 4 KB, want %d", k, gap, setGap)
 		}
 	}
 }

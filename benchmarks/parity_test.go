@@ -143,6 +143,23 @@ func BenchmarkFFT2_GoFFT(b *testing.B) {
 	}
 }
 
+// BenchmarkFFT2Plan_GoFFT times the 2-D transform the way the 1-D rows and the
+// references are timed: a plan built once, writing into a reused slice. FFT2
+// above returns a new slice per call, so it also times an allocation and, on a
+// many-core host, the garbage collector's share of it.
+func BenchmarkFFT2Plan_GoFFT(b *testing.B) {
+	for _, s := range shapes {
+		x := cmplx(s[0] * s[1])
+		p := gofft.NewPlanN(s[0], s[1])
+		dst := make([]complex128, len(x))
+		b.Run(strconv.Itoa(s[0])+"x"+strconv.Itoa(s[1]), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.FFT(dst, x)
+			}
+		})
+	}
+}
+
 // --- Plan / setup cost (reported separately from steady-state) ---
 
 func BenchmarkComplexPlan_GoFFT(b *testing.B) {

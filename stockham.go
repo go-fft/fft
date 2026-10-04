@@ -2,6 +2,7 @@ package fft
 
 import (
 	"sync"
+	"unsafe"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
@@ -80,7 +81,11 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		p.stages = append(p.stages, st)
 		l1 *= r
 	}
-	p.scratch.New = func() any { b := make([]complex128, n); return &b }
+	size := n
+	if n&(n-1) == 0 {
+		size += setSpan // room to slide the window off dst's sets
+	}
+	p.scratch.New = func() any { b := make([]complex128, size); return &b }
 	return p
 }
 
@@ -161,7 +166,7 @@ func pow2Radices(e int, oneRadix8 bool) []int {
 
 // r8MaxPow2 is the largest pure power of two factored with radix-8 passes;
 // it is per-architecture (route_*.go).
-const r8MaxPow2 = r8MaxPow2Arch
+var r8MaxPow2 = r8MaxPow2Default()
 
 // wide512 reports whether a transform of length n may use the AVX-512 pass
 // kernels: a power of two of at least 256 points. Measured on Cascade Lake
@@ -172,7 +177,10 @@ func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
 
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
-	scr := *bp
+	scr := (*bp)[:p.n]
+	if p.n&(p.n-1) == 0 {
+		scr = offTheSets(*bp, dst, p.n)
+	}
 	s := len(p.stages)
 	// Pass s writes dst when (S-1-s) is even, so the last pass lands in dst.
 	in := src
@@ -190,6 +198,41 @@ func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 		in = out
 	}
 	p.scratch.Put(bp)
+}
+
+// Every pass writes its r output streams n/r points apart, and the first pass
+// reads its r inputs as far apart. For a power of two that distance is a
+// multiple of 4 KB, so all of a pass's output streams fall in one L1 set, and
+// its input streams in one set too. When dst and the scratch buffer also sit
+// a multiple of 4 KB apart — the usual case, since Go places large
+// allocations on page boundaries — the two groups land in the SAME set: 2r
+// lines for an 8-way (Zen 3, Intel) or 4-way (Neoverse-N1) L1, which then
+// evicts lines still in use.
+//
+// For a power of two, the scratch buffer is therefore allocated setSpan
+// points longer and sliced so that it starts setGap bytes past dst, modulo
+// 4 KB. Measured through the transform (2026-10-04, ns per point, dst and
+// scratch 4 KB-aligned ÷ setGap apart): Zen 3 1.34 at 1024, 1.49 at 2048,
+// 1.65 at 4096, 1.21 at 16384, 1.23 at 65536; Haswell 1.03–1.04 and 1.04 at
+// 65536; Neoverse-N1 1.00 up to 4096 (its 16 KB ways made the conflict a
+// matter of luck), 1.06 at 8192 and 16384, 1.20 at 65536; Cascade Lake within
+// ±2%. Of the gaps tried (256 to 3136 bytes) only 576 lost nowhere: 2112 cost
+// 8% at 1024 on both Intel CPUs and gave up Zen 3's gain there, and a 64-byte
+// gap was slower than none on Zen 3. Lengths 2^k·3 (6144, 12288) LOST 2–5%
+// with any gap on all four CPUs; 1920 and 3840 did not move and 1000 gained
+// 3–6% on Intel only. Without a rule that separates those, only powers of
+// two take the gap.
+const (
+	setSpan = 4096 / 16 // one 4 KB set period, in complex128
+	setGap  = 576       // bytes
+)
+
+// offTheSets returns the n-point window of buf (n+setSpan long) that starts
+// setGap bytes past dst modulo 4 KB.
+func offTheSets(buf, dst []complex128, n int) []complex128 {
+	d := uintptr(unsafe.Pointer(unsafe.SliceData(buf))) - uintptr(unsafe.Pointer(unsafe.SliceData(dst)))
+	shift := int((setGap-d)&4095) / 16
+	return buf[shift : shift+n]
 }
 
 func (st *skStage) pass(ch, cc []complex128, inverse bool) {

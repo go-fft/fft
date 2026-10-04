@@ -1,55 +1,84 @@
 package fft
 
-import "github.com/go-fft/fft/internal/kernels"
+import (
+	"math"
 
-// pow2StockhamMaxDefault routes powers of two up to 4096 to the Stockham
-// engine on amd64 when its AVX2 pass kernels run, and larger ones to the
-// iterative pow2 kernel. Both use AVX2 there. Measured on real hardware
-// (2026-09-30, pow2 kernel time ÷ Stockham time):
+	"github.com/go-fft/fft/internal/kernels"
+)
+
+// pow2StockhamMaxDefault routes every power of two to the Stockham engine on
+// amd64 when its AVX2 (or AVX-512) pass kernels run.
 //
-//	n            64    256   1024  4096  16384  65536  262144  2^20
-//	Haswell      1.28  1.63  1.35  1.28  0.92   0.97   0.81    1.07
-//	Zen 3        1.51  1.51  1.35  0.95  1.58   1.38   1.40    1.43
-//	Cascade Lake 1.57  1.86  1.63  1.22  1.04   1.00   1.08    0.98
+// Until 2026-10-04 the AVX2 route stopped at 4096: measured then (pow2 kernel
+// time ÷ Stockham time, 2026-09-30), Haswell and Cascade Lake lost above it
+// and Zen 3 lost AT 4096. Those Stockham times were inflated by L1 set
+// conflicts between dst and the scratch buffer (see offTheSets); with the
+// scratch placed off dst's sets, the same comparison reads (2026-10-04):
 //
-// Stockham wins up to 4096 everywhere but Zen 3's 4096; above it the three
-// disagree, and the pow2 kernel is kept. Without AVX2 the Stockham passes run
-// scalar and lose to the pow2 kernel's SSE2 butterflies at every size.
+//	n        4096  8192  16384  32768  65536  2^17  2^18  2^19  2^20
+//	Zen 3    1.50  1.58  1.94   1.50   1.81   1.38  1.81  1.96  2.51
+//	Haswell  1.76  1.05  1.65   1.04   1.16   0.82  1.15  1.23  1.24
+//
+// Stockham wins at every size on Zen 3, and on Haswell everywhere but 2^17;
+// the geometric mean of the two is above 1 at every size. Without AVX2 the
+// Stockham passes run scalar, and lost to the pow2 kernel's SSE2 butterflies
+// at every size when measured (2026-09-30, before the scratch fix; not
+// re-measured, since every host at hand has AVX2).
 func pow2StockhamMaxDefault() int {
 	return pow2StockhamMaxAMD64(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 }
 
-// With AVX-512 the Stockham passes of a power of two run 512 bits wide, and
-// beat the pow2 kernel further (Cascade Lake, pow2 kernel ÷ Stockham time,
-// 2026-10-01):
+// With AVX-512 the route stopped at 16384 (Cascade Lake, pow2 kernel time ÷
+// Stockham time, 2026-10-01: 2.33 at 4096, 0.86–1.23 above 16384). Above 4096
+// those powers of two were factored with rule B. Radix 8 as far as it goes
+// (rule A, see r8MaxPow2AMD64) is 10–38% faster at every size there, and with
+// it and the scratch off dst's sets the Stockham engine
+// beats the pow2 kernel at every size on the same idle host (2026-10-04,
+// ns per point):
 //
-//	n        4096  8192  16384  32768  65536  2^17  2^18  2^19  2^20
-//	          2.33  1.35  1.74   1.08   0.99   0.86  1.20  1.23  0.98
-//
-// The win is clear to 16384; above it the ratio wanders around 1, and the pow2
-// kernel is kept.
+//	n            32768  65536  2^17   2^18   2^19   2^20
+//	Stockham A    6.18   9.00  10.50  12.72  25.49  28.67
+//	pow2 kernel   9.91  13.18  15.30  24.41  33.31  36.66
 func pow2StockhamMaxAMD64(avx2, avx512 bool) int {
 	switch {
-	case avx512:
-		return 16384
-	case avx2:
-		return 4096
+	case avx2 || avx512:
+		return math.MaxInt
 	}
 	return 0
 }
 
-// r8MaxPow2Arch keeps radix-8 passes for powers of two up to 4096 on amd64.
-// With the AVX2 passes, radix 8 beat radix 4 at every power of two from 256 to
-// 4096 on Haswell (0.80–0.87× the time at 2048/4096) and Cascade Lake
-// (0.74–0.91×), but not on Zen 3 at 2048 and 4096 (1.36×, 1.42×), where the
-// radix-8 pass's 23 power-of-two-strided streams contend for L1 sets. Two of
-// the three CPUs prefer radix 8 and the geometric mean is neutral at 2048/4096,
-// so it stays; Zen 3's loss is recorded in BENCHMARKS.md. (2026-09-30)
-const r8MaxPow2Arch = 4096
+// r8MaxPow2Default keeps radix-8 passes for powers of two up to 4096 with the
+// AVX2 passes, and for every power of two with the AVX-512 passes.
+func r8MaxPow2Default() int {
+	return r8MaxPow2AMD64(kernels.UseStockhamAVX512)
+}
 
-// pow2OneRadix8Max is unused on amd64 below r8MaxPow2 (rule A factors those);
-// above it powers of two take the pow2 kernel. Timed there, rule A — radix 8
-// as far as it goes — scored 1.082 over the best (geometric mean, Haswell, Zen 3,
-// Cascade Lake, 2^5..2^13), radix 4 plus one radix 8 for an odd exponent 1.129,
-// radix 4 plus a radix-2 pass 1.190.
+// r8MaxPow2AMD64 is r8MaxPow2Default's choice. Three rules were timed at every
+// 2^e from 256 to 2^20, with the scratch off dst's sets (2026-10-04): A, radix
+// 8 as far as it goes; B, radix 4 with a radix-2 pass for an odd exponent; C,
+// radix 4 with one radix-8 pass for an odd exponent. Time over the best of
+// the three, geometric mean (worst):
+//
+//	                    A to 4096, B   A to 1024, B   A everywhere
+//	Haswell (AVX2)      1.090 (1.22)   1.124 (1.24)   1.000 (1.00)
+//	Zen 3 (AVX2)        1.038 (1.31)   1.008 (1.04)   1.295 (1.71)
+//	Cascade (AVX-512)   1.239 (1.62)   1.290 (1.62)   1.000 (1.00)
+//
+// The two AVX2 CPUs disagree from 2048 up: radix 8 wins every size on Haswell
+// and loses every size on Zen 3 (plausibly because its L1 way predictor
+// tolerates the radix-8 pass's 16 power-of-two-strided streams worse; not
+// measured). Over both, A to 4096 then B scores 1.064 (worst 1.31) — the best with
+// A to 1024 (1.065, worst 1.24) — and is kept; A everywhere would be 1.138
+// (worst 1.71). With AVX-512, radix 8 wins at every size.
+func r8MaxPow2AMD64(avx512 bool) int {
+	if avx512 {
+		return math.MaxInt
+	}
+	return 4096
+}
+
+// pow2OneRadix8Max is 0 on amd64: above r8MaxPow2 a power of two takes rule B
+// (see r8MaxPow2AMD64). Below it, timed at 2^5..2^13 on Haswell, Zen 3 and
+// Cascade Lake (2026-09-30), rule A scored 1.082 over the best, C 1.129, B
+// 1.190.
 const pow2OneRadix8Max = 0
