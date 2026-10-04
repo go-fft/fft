@@ -636,10 +636,11 @@ On Zen 3, radix 8 ÷ radix 4 went from 1.18 to 1.02 at 2048 and from 1.37 to 1.1
 
 | | complex 4096 | RFFT / IRFFT 4096 | complex 10007 | complex 2^20 | the rest |
 |:--|--:|--:|--:|--:|--:|
-| Zen 3 | 1.26 | 1.21 / 1.24 | 1.32 | 1.06 | 0.99–1.10 |
+| Zen 3 | 1.26 | 1.21 / 1.24 | 1.32 | 1.06 | 0.94–1.10 |
 | Cascade Lake | 1.03 | 1.02 / 1.00 | 1.06 | 1.09 | 0.98–1.07 |
 
 - **10007:** a prime routed to Bluestein, which convolves at 20480 = 2^12·5 points; radix-8 passes do most of that work.
+- **Zen 3's 0.94:** it is 2-D 512×512, whose paired ratios ran from 0.79 to 1.04.
 - **Haswell:** it was saturated by other users (load 23–24 on 24 threads), so its timings are not reported. Its tests pass.
 
 **Also measured, not shipped: NEON on arm64.** The Round 3 radix-4 prototype was timed again, pass by pass with the buffers off each other's sets. On Neoverse-N1 it ran 1.13–1.24× faster than the Go pass, except on the passes whose streams are 16 KB or more apart, where it ran 0.83–0.97× as fast. A 4096-point transform would gain about 10%. Shipping it would take a whole kernel family, plus kernels that copy which product gc fuses into an FMA, so it stays unshipped.
