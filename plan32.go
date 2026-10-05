@@ -204,12 +204,14 @@ type skPlan32 struct {
 // newSKPlan32 builds the plan with the float64 engine's factorization. Every
 // twiddle is taken from the float64 root table and rounded once.
 func newSKPlan32(n int) *skPlan32 {
-	// skFactorize's order, per architecture (oddRadicesFirst): odd-first on
-	// amd64 with AVX2, where the float32 kernels ran composite lengths
-	// 1.06–1.43× faster in that order than in pocketfft's (1000, 1080, 1296,
-	// 1920, 8192, 20160) and powers of two at the same speed (Zen 3,
-	// BENCHMARKS.md Round 22); pocketfft's elsewhere.
-	return newSKPlan32Factors(n, skFactorize(n))
+	// skFactorize's radix order, per architecture (oddRadicesFirst):
+	// odd-first on amd64 with AVX2, where the float32 kernels ran composite
+	// lengths 1.06–1.43× faster in that order than in pocketfft's (1000, 1080,
+	// 1296, 1920, 8192, 20160) and powers of two at the same speed (Zen 3,
+	// BENCHMARKS.md Round 22); pocketfft's elsewhere. Not skFactorize itself:
+	// its radix-16 table is for the float64 radix-16 kernel, and a float32
+	// radix-16 pass would run as the O(r²) general pass.
+	return newSKPlan32Factors(n, skFactorizeOrder(n, oddRadicesFirst))
 }
 
 // newSKPlan32Factors builds the plan for the given radix order.

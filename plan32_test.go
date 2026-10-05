@@ -452,3 +452,18 @@ func TestAsComplex64Layout(t *testing.T) {
 		t.Fatal("complex64 is not two float32s")
 	}
 }
+
+// TestPlan32RadicesHaveKernels: Plan32 factors with radices that have float32
+// passes of their own (2, 3, 4, 5, 7, 8) and the general pass only for 11 and
+// 13. The float64 engine's radix-16 table (amd64) is not for it.
+func TestPlan32RadicesHaveKernels(t *testing.T) {
+	for _, n := range []int{128, 256, 1024, 2048, 4096, 1000, 1001, 4004, 1 << 20} {
+		for _, st := range newSKPlan32(n).stages {
+			switch st.r {
+			case 2, 3, 4, 5, 7, 8, 11, 13:
+			default:
+				t.Errorf("n=%d: radix-%d pass", n, st.r)
+			}
+		}
+	}
+}
