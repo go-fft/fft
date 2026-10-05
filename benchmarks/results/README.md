@@ -4,6 +4,26 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-05, perf-arm64-neon: NEON Stockham passes (Round 18)
+
+`arm64-neon-stockham-20261005` holds the measurements behind Round 18 of
+BENCHMARKS.md, on Neoverse-N1 (cfarm424, load average below 1, one pinned
+core) and on an Apple M4 Max (shared, load average 3-5, not pinned):
+
+- `*/pass-*.txt`: every NEON-capable pass timed alone, Go pass against kernel
+  (`BenchmarkSKPassNEON`, `scripts/pass.sh`, `scripts/passan.py`); `pass-v1`
+  and `pass-v2` are the first radix-4 kernel and its `LDP`+`ZIP` variant
+  (`zip` rows), `pass-final` the code of the pull request.
+- `*/ab-*.txt`: interleaved A/B of main against the branch on every go-fft row
+  of the parity harness (`scripts/ab.sh`, `ab15.sh` and `ab15-1296.sh` for the
+  fifteen-round reruns, `scripts/aban.py`).
+- `*/gap-*.txt`, `apple-m4-max/passgap-*.txt`: the scratch-gap experiment, on
+  whole transforms (`scripts/gapexp_test.go.txt`, with `setGap` made a
+  variable) and pass by pass (`BenchmarkSKPassNEON` with the scratch placed
+  at the gap given in the file name); not shipped.
+- `neoverse-n1/parity/`: the parity report of the branch against FFTW
+  (`remote/run.sh`, go1.27.1).
+
 ## 2026-10-05, v0.2.0: go1.27.1 against go1.26.4
 
 `go1.27.1-vs-go1.26.4-20261005-v0.2.0` is not a parity run: it times the same

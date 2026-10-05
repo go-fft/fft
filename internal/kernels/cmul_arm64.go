@@ -4,7 +4,7 @@ package kernels
 // (cmul_arm64.s). NEON (ASIMD) is part of the arm64 baseline the Go toolchain
 // requires, so cmulSIMD is always callable — there is no CPU-feature branch.
 //
-//go:generate sh -c "cd asmgen/arm64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_arm64.s ../../cmul_arm64.s"
+//go:generate sh -c "cd asmgen/arm64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_arm64.s ../../cmul_arm64.s && mv stockham_arm64.s ../../stockham_arm64.s"
 
 // The kernel is a validated correctness artifact: the per-arch CI execution job
 // asserts cmulSIMD is bit-identical to CMulScalar. It is not routed onto the
@@ -19,9 +19,10 @@ package kernels
 // part's ar*br-ai*bi, FMADDD for the imaginary part's ar*bi+ai*br; confirmed by
 // disassembling CMulScalar). The NEON kernel reproduces exactly that fusion: it
 // processes two complex128 per iteration with VLD2/VST2 deinterleave, computing
-// each product into a zeroed accumulator with VFMLA (adding +0.0 leaves the
-// product's rounding unchanged, matching the oracle's FMULD) and folding in the
+// each rounded product with VFMUL (the oracle's FMULD) and folding in the
 // second term with VFMLS / VFMLA (the fused subtract / add the oracle performs).
+// Before Go 1.27 assembled VFMUL, the rounded product was VFMLA into a zeroed
+// accumulator, which turned a -0 product into +0 (TestCMulSignedZeroNEON).
 // A non-fused NEON kernel — or one whose fusion form differed — would diverge by
 // up to 1 ULP; the random SIMD-vs-scalar test would catch it. (amd64's SSE2
 // kernel, by contrast, is bit-identical via SEPARATELY rounded MULPD+ADDPD,

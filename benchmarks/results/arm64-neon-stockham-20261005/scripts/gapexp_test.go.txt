@@ -1,0 +1,33 @@
+package fft
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"testing"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
+
+func init() {
+	if g := os.Getenv("GAP"); g != "" {
+		v, _ := strconv.Atoi(g)
+		setGap = uintptr(v)
+	}
+	if os.Getenv("NEON") == "0" {
+		kernels.UseStockhamNEON = false
+	}
+}
+
+func BenchmarkGapSK(b *testing.B) {
+	for _, n := range []int{1024, 2048, 4096, 8192, 16384, 32768, 65536, 1 << 18, 1 << 20} {
+		p := newSKPlan(n)
+		x := benchComplex(n)
+		dst := make([]complex128, n)
+		b.Run(fmt.Sprint(n), func(b *testing.B) {
+			for b.Loop() {
+				p.transform(dst, x, false)
+			}
+		})
+	}
+}

@@ -13,12 +13,15 @@ package kernels
 //     every add/sub as a copy plus an FMA-by-one and pay a VLD2/VST2 (or VL/VST +
 //     VMRH/VMRL) deinterleave on each pass. A full stage-level NEON kernel was
 //     built and benchmarked against this loop: it TIED the scalar loop (≈±2%).
-//     Go 1.27 (which this module requires) assembles arm64 VFADD/VFSUB/VFMUL/
-//     VFNEG, which removes the emulation but not the deinterleave; that kernel
-//     has not been measured again. (Same as
-//     the SIMD complex-multiply round; see cmul.go and BENCHMARKS.md. This
-//     comment used to credit a gc "autovectorizer"; gc has none, the scalar
-//     loop is simply as fast as that kernel.)
+//     (Same as the SIMD complex-multiply round; see cmul.go and BENCHMARKS.md.
+//     This comment used to credit a gc "autovectorizer"; gc has none, the
+//     scalar loop is simply as fast as that kernel.)
+//   - These stages only serve the iterative pow2 kernel, which arm64 no longer
+//     uses for transforms (route_arm64.go sends every power of two to the
+//     Stockham engine). The Stockham passes DO run as NEON kernels on arm64
+//     since Go 1.27 assembles VFADD/VFSUB/VFMUL/VFNEG (stockham_arm64.go,
+//     1.09–1.61× per pass on Neoverse-N1, Round 18 of BENCHMARKS.md); this
+//     stage-level kernel was not built again.
 //   - riscv64's RVV is run-time-optional and its strip-mined kernel was not
 //     measured to beat this loop on the available hardware either.
 //
