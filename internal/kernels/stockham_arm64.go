@@ -23,17 +23,21 @@ var UseStockhamNEON = true
 // i, i+1 and each j, the float64s re(w_j(i)), re(w_j(i+1)), im(w_j(i)),
 // im(w_j(i+1)), so a VLD1 loads them as they are used. It is stored as
 // complex128 for the plan's sake; each element holds two of those float64s.
+// For an odd ido the last point's pair is completed with zeros.
 func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
-	if !stockhamNEON(r, ido, 2) || ido < 2 {
+	if ido < 2 || !stockhamNEON(r, ido, l1) {
 		return nil, nil
 	}
 	n := len(root)
-	fwd = make([]complex128, (r-1)*ido)
-	conj = make([]complex128, (r-1)*ido)
+	fwd = make([]complex128, twLen(r, ido))
+	conj = make([]complex128, len(fwd))
 	at := 0
 	for i := 0; i < ido; i += 2 {
 		for j := 1; j < r; j++ {
-			a, b := root[(j*l1*i)%n], root[(j*l1*(i+1))%n]
+			a, b := root[(j*l1*i)%n], complex128(0)
+			if i+1 < ido {
+				b = root[(j*l1*(i+1))%n]
+			}
 			fwd[at] = complex(real(a), real(b))
 			fwd[at+1] = complex(imag(a), imag(b))
 			conj[at] = fwd[at]
@@ -45,18 +49,27 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 }
 
 // stockhamNEON reports whether a NEON kernel runs a pass of radix r with ido
-// points per block and l1 blocks: radix 4, with an even ido (the kernels take
-// points in pairs) or, for the final pass (ido == 1, paired across blocks),
-// an even l1.
+// points per block and l1 blocks: radix 4 or 8 for ido >= 2 (points in pairs,
+// an odd last one alone), and radix 4 with an even l1 for the final pass
+// (ido == 1, blocks in pairs).
 func stockhamNEON(r, ido, l1 int) bool {
-	if r != 4 {
-		return false
-	}
 	if ido == 1 {
-		return l1%2 == 0
+		return r == 4 && l1%2 == 0
 	}
-	return ido%2 == 0
+	return r < len(skPassNEON) && skPassNEON[r] != nil
 }
+
+// twLen is the length of a pass's twiddle table: r-1 twiddles for each of
+// ido points rounded up to whole pairs.
+func twLen(r, ido int) int { return (r - 1) * (ido + ido&1) }
+
+type skPassFn func(cc, ch, tw *complex128, ido, l1 int)
+
+// The pass kernels by radix, forward and inverse.
+var (
+	skPassNEON    = [9]skPassFn{4: skPass4NEON, 8: skPass8NEON}
+	skPassNEONInv = [9]skPassFn{4: skPass4NEONInv, 8: skPass8NEONInv}
+)
 
 // StockhamPass runs one Stockham pass of radix r on a NEON kernel and reports
 // true, or reports false (and does nothing) when no kernel runs it. cc holds
@@ -77,12 +90,12 @@ func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) b
 		}
 		return true
 	}
-	_ = tw[(r-1)*ido-1]
+	_ = tw[twLen(r, ido)-1]
+	pass := skPassNEON[r]
 	if inverse {
-		skPass4NEONInv(&cc[0], &ch[0], &tw[0], ido, l1)
-	} else {
-		skPass4NEON(&cc[0], &ch[0], &tw[0], ido, l1)
+		pass = skPassNEONInv[r]
 	}
+	pass(&cc[0], &ch[0], &tw[0], ido, l1)
 	return true
 }
 
@@ -97,6 +110,12 @@ func skPass4NEON(cc, ch, tw *complex128, ido, l1 int)
 
 //go:noescape
 func skPass4NEONInv(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEON(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONInv(cc, ch, tw *complex128, ido, l1 int)
 
 //go:noescape
 func skLast4NEON(cc, ch *complex128, l1 int)

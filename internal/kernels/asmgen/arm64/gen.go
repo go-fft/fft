@@ -100,7 +100,8 @@ func main() {
 
 	sk := emit.NewFile("arm64")
 	for _, inverse := range []bool{false, true} {
-		genStockhamPass4(sk, inverse)
+		genStockhamPass(sk, 4, inverse, pass4Pair)
+		genStockhamPass(sk, 8, inverse, pass8Pair)
 		genStockhamLast4(sk, inverse)
 	}
 	write("stockham_arm64.s", sk)
@@ -152,9 +153,9 @@ func write(name string, f *emit.File) {
 
 // pass4Pair emits one pair of points of the radix-4 pass. first marks the pair
 // i = 0, 1, whose lane 0 is restored untwiddled.
-func pass4Pair(b *arm64.Builder, inverse, first bool) {
+func pass4Pair(b *arm64.Builder, in, out []string, inverse bool, st step) {
 	for j := 0; j < 4; j++ { // x_j: real parts in V(2j), imaginary in V(2j+1)
-		b.Raw("VLD2.P 32(R%d), [V%d.D2, V%d.D2]", 6+j, 2*j, 2*j+1)
+		st.load(b, in[j], 2*j)
 	}
 	b.Raw("VLD1.P 64(R14), [V20.D2, V21.D2, V22.D2, V23.D2]") // w1 re, im, w2 re, im
 	b.Raw("VLD1.P 32(R14), [V24.D2, V25.D2]")                 // w3 re, im
@@ -172,21 +173,62 @@ func pass4Pair(b *arm64.Builder, inverse, first bool) {
 	cmul(26, y1, 20)
 	cmul(28, 18, 22)
 	cmul(30, y3, 24)
-	if first {
+	if st == firstPair {
 		for _, m := range [][2]int{{y1, 26}, {y1 + 1, 27}, {18, 28}, {19, 29}, {y3, 30}, {y3 + 1, 31}} {
 			b.Raw("VMOV V%d.D[0], V%d.D[0]", m[0], m[1])
 		}
 	}
-	b.Raw("VST2.P [V16.D2, V17.D2], 32(R10)").
-		Raw("VST2.P [V26.D2, V27.D2], 32(R11)").
-		Raw("VST2.P [V28.D2, V29.D2], 32(R12)").
-		Raw("VST2.P [V30.D2, V31.D2], 32(R13)")
+	for j, v := range []int{16, 26, 28, 30} {
+		st.store(b, v, out[j])
+	}
 }
 
-// genStockhamPass4 emits skPass4NEON / skPass4NEONInv(cc, ch, tw *complex128,
-// ido, l1 int): the radix-4 pass for an even ido >= 2.
-func genStockhamPass4(f *emit.File, inverse bool) {
-	name := "skPass4NEON"
+// step is what one call of a pass body emits: the pair of points i = 0, 1
+// (whose lane 0 is restored untwiddled), a later pair, or the last point of an
+// odd ido. A lone point is loaded into lane 0 with a scalar FLDPD (which
+// zeroes lane 1), runs through the same vector code with a dummy lane 1, and
+// lane 0 is stored with FSTPD; its twiddles come as a pair whose second half is
+// zero.
+type step int
+
+const (
+	firstPair step = iota
+	nextPair
+	lastPoint
+)
+
+// load loads the next point(s) of the stream at ptr: real parts into V(v),
+// imaginary parts into V(v+1).
+func (st step) load(b *arm64.Builder, ptr string, v int) {
+	if st == lastPoint {
+		b.Raw("FLDPD (%s), (F%d, F%d)", ptr, v, v+1)
+		return
+	}
+	b.Raw("VLD2.P 32(%s), [V%d.D2, V%d.D2]", ptr, v, v+1)
+}
+
+// store stores V(v) (real parts) and V(v+1) (imaginary parts) to the stream
+// at ptr.
+func (st step) store(b *arm64.Builder, v int, ptr string) {
+	if st == lastPoint {
+		b.Raw("FSTPD (F%d, F%d), (%s)", v, v+1, ptr)
+		return
+	}
+	b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", v, v+1, ptr)
+}
+
+// skStreams holds, per radix, the registers that walk the pass's input and
+// output streams (the rest of the register use is in the comment above).
+var skStreams = map[int][2][]string{
+	4: {{"R6", "R7", "R8", "R9"}, {"R10", "R11", "R12", "R13"}},
+	8: {{"R0", "R1", "R4", "R6", "R7", "R8", "R9", "R10"}, {"R11", "R12", "R13", "R21", "R22", "R23", "R24", "R25"}},
+}
+
+// genStockhamPass emits skPass<r>NEON / skPass<r>NEONInv(cc, ch, tw
+// *complex128, ido, l1 int): the radix-r pass for an even ido >= 2. pair emits
+// one pair of points; first marks the pair i = 0, 1.
+func genStockhamPass(f *emit.File, r int, inverse bool, pair func(b *arm64.Builder, in, out []string, inverse bool, st step)) {
+	name := fmt.Sprintf("skPass%dNEON", r)
 	if inverse {
 		name += "Inv"
 	}
@@ -194,34 +236,39 @@ func genStockhamPass4(f *emit.File, inverse bool) {
 		[]string{"cc", "ch", "tw", "ido", "l1"},
 		[]arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Ptr, arm64.Int64, arm64.Int64}, nil, nil,
 	)
+	in, out := skStreams[r][0], skStreams[r][1]
+	shift := map[int]int{4: 2, 8: 3}[r]
 	b := arm64.NewFunc(name, sig, 0)
-	b.LoadArg("cc", "R0").LoadArg("ch", "R1").LoadArg("tw", "R2").
-		LoadArg("ido", "R3").LoadArg("l1", "R4").
-		Raw("LSL $4, R3, R16").
-		Raw("MUL R4, R16, R17").
-		Raw("MOVD R0, R19").
-		Raw("MOVD R1, R20").
-		Raw("MOVD R4, R5")
-	b.Label("kloop").
-		Raw("MOVD R19, R6").
-		Raw("ADD R16, R6, R7").
-		Raw("ADD R16, R7, R8").
-		Raw("ADD R16, R8, R9").
-		Raw("MOVD R20, R10").
-		Raw("ADD R17, R10, R11").
-		Raw("ADD R17, R11, R12").
-		Raw("ADD R17, R12, R13").
-		Raw("MOVD R2, R14")
-	pass4Pair(b, inverse, true)
+	b.LoadArg("cc", "R19").LoadArg("ch", "R20").LoadArg("tw", "R2").
+		LoadArg("ido", "R3").LoadArg("l1", "R5").
+		Raw("LSL $4, R3, R16"). // S: one input stream
+		Raw("MUL R5, R16, R17") // OS: one output stream
+	if r == 8 {
+		b.Raw("FMOVD $(0.707106781186547524400844362104849), F18"). // √2/2
+										Raw("VDUP V18.D[0], V18.D2")
+	}
+	b.Label("kloop").Raw("MOVD R19, %s", in[0])
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R16, %s, %s", in[j-1], in[j])
+	}
+	b.Raw("MOVD R20, %s", out[0])
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R17, %s, %s", out[j-1], out[j])
+	}
+	b.Raw("MOVD R2, R14")
+	pair(b, in, out, inverse, firstPair)
 	b.Raw("LSR $1, R3, R15").
 		Raw("SUBS $1, R15, R15").
 		Raw("BEQ knext")
 	b.Label("iloop")
-	pass4Pair(b, inverse, false)
+	pair(b, in, out, inverse, nextPair)
 	b.Raw("SUBS $1, R15, R15").
 		Raw("BNE iloop")
 	b.Label("knext").
-		Raw("ADD R16<<2, R19, R19").
+		Raw("TBZ $0, R3, knext2") // odd ido: one point left
+	pair(b, in, out, inverse, lastPoint)
+	b.Label("knext2").
+		Raw("ADD R16<<%d, R19, R19", shift).
 		Raw("ADD R16, R20, R20").
 		Raw("SUBS $1, R5, R5").
 		Raw("BNE kloop").
@@ -289,4 +336,113 @@ func bfly4(b *arm64.Builder) {
 	b.VFSUB2D(1, 11, 14) // C = t1i - t4r
 	b.VFSUB2D(2, 10, 15) // B = t1r - t4i
 	b.VFADD2D(3, 11, 14) // D = t1i + t4r
+}
+
+// pass8Pair emits one pair of points of the radix-8 pass: stockham.go's pass8
+// loop body, which gc compiles (-gcflags=-S) with these fusions beyond the
+// twiddle product's: every ±s·z (the ±i rotations, s = ±1) is fused into the
+// add or subtract that uses it, which is exact; the ∓45°/∓135° rotations are
+// computed unscaled, P = a5r - s·a5i, Q = a5i + s·a5r, R = -a7r - s·a7i
+// (FNMADDD), T = -a7i + s·a7r (FNMSUBD), and their scaling by √2/2 is fused
+// into the final add or subtract: y1 = a4 + h·(P, Q), y5 = a4 - h·(P, Q), y3 =
+// a6 + h·(R, T), y7 = a6 - h·(R, T), each one FMADDD/FMSUBD. The kernel does
+// the same with VFMLA/VFMLS on a copy of a4 and a6. R and T are sums of two
+// negated operands, so they are written (-a) - b with a VFNEG, never -(a + b),
+// which differs on a zero sum. h, √2/2, is in V18 for the whole call.
+func pass8Pair(b *arm64.Builder, in, out []string, inverse bool, st step) {
+	fwd := !inverse
+	add := func(d, n, m int) { b.VFADD2D(d, n, m) }
+	sub := func(d, n, m int) { b.VFSUB2D(d, n, m) }
+	pm := func(d, n, m int, plus bool) {
+		if plus {
+			add(d, n, m)
+		} else {
+			sub(d, n, m)
+		}
+	}
+	aMinusSz := func(d, a, z int) { pm(d, a, z, fwd) } // a - s·z: forward a + z, inverse a - z
+	aPlusSz := func(d, a, z int) { pm(d, a, z, !fwd) } // a + s·z
+	for j := 0; j < 8; j++ {                           // x_j in V(2j), V(2j+1)
+		st.load(b, in[j], 2*j)
+	}
+	add(16, 2, 10) // a1 = x1 + x5
+	add(17, 3, 11)
+	sub(2, 2, 10) // a5 = x1 - x5
+	sub(3, 3, 11)
+	add(28, 6, 14) // a3 = x3 + x7
+	add(29, 7, 15)
+	sub(6, 6, 14) // a7 = x3 - x7
+	sub(7, 7, 15)
+	add(20, 16, 28) // a1 = a1 + a3
+	add(21, 17, 29)
+	sub(16, 16, 28) // a3 = a1 - a3, then rotS
+	sub(17, 17, 29)
+	aMinusSz(22, 2, 7) // a5 = a5 + rotS(a7)
+	aPlusSz(23, 3, 6)
+	aPlusSz(24, 2, 7) // a7 = a5 - rotS(a7)
+	aMinusSz(25, 3, 6)
+	aMinusSz(2, 22, 23) // P
+	aPlusSz(3, 23, 22)  // Q
+	if fwd {
+		sub(6, 25, 24) // R = -a7r + a7i
+		b.VFNEG2D(7, 25)
+		sub(7, 7, 24) // T = -a7i - a7r
+	} else {
+		b.VFNEG2D(6, 24)
+		sub(6, 6, 25)  // R = -a7r - a7i
+		sub(7, 24, 25) // T = -a7i + a7r
+	}
+	add(22, 0, 8) // a0 = x0 + x4
+	add(23, 1, 9)
+	sub(0, 0, 8) // a4 = x0 - x4
+	sub(1, 1, 9)
+	add(24, 4, 12) // a2 = x2 + x6
+	add(25, 5, 13)
+	sub(4, 4, 12) // a6 = x2 - x6
+	sub(5, 5, 13)
+	add(26, 22, 24) // a0 = a0 + a2
+	add(27, 23, 25)
+	sub(22, 22, 24) // a2 = a0 - a2
+	sub(23, 23, 25)
+	aMinusSz(8, 0, 5) // a4 = a4 + rotS(a6)
+	aPlusSz(9, 1, 4)
+	aPlusSz(10, 0, 5) // a6 = a4 - rotS(a6)
+	aMinusSz(11, 1, 4)
+	add(12, 26, 20) // y0 = a0 + a1
+	add(13, 27, 21)
+	st.store(b, 12, out[0])
+	// Outputs 1..7, in twiddle-table order: y into (yr, yi), times w_j.
+	for j := 1; j < 8; j++ {
+		yr, yi := 14, 15
+		switch j {
+		case 1: // a4 + h·(P, Q)
+			b.Raw("VMOV V8.B16, V14.B16").Raw("VMOV V9.B16, V15.B16")
+			b.VFMLA2D(14, 2, 18).VFMLA2D(15, 3, 18)
+		case 2: // a2 + rotS(a3)
+			aMinusSz(14, 22, 17)
+			aPlusSz(15, 23, 16)
+		case 3: // a6 + h·(R, T)
+			b.Raw("VMOV V10.B16, V14.B16").Raw("VMOV V11.B16, V15.B16")
+			b.VFMLA2D(14, 6, 18).VFMLA2D(15, 7, 18)
+		case 4: // a0 - a1
+			sub(14, 26, 20)
+			sub(15, 27, 21)
+		case 5: // a4 - h·(P, Q), in place
+			b.VFMLS2D(8, 2, 18).VFMLS2D(9, 3, 18)
+			yr, yi = 8, 9
+		case 6: // a2 - rotS(a3)
+			aPlusSz(14, 22, 17)
+			aMinusSz(15, 23, 16)
+		case 7: // a6 - h·(R, T), in place
+			b.VFMLS2D(10, 6, 18).VFMLS2D(11, 7, 18)
+			yr, yi = 10, 11
+		}
+		b.Raw("VLD1.P 32(R14), [V28.D2, V29.D2]")
+		b.VFMUL2D(30, yr, 28).VFMLS2D(30, yi, 29)
+		b.VFMUL2D(31, yi, 28).VFMLA2D(31, yr, 29)
+		if st == firstPair {
+			b.Raw("VMOV V%d.D[0], V30.D[0]", yr).Raw("VMOV V%d.D[0], V31.D[0]", yi)
+		}
+		st.store(b, 30, out[j])
+	}
 }
