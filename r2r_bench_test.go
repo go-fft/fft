@@ -41,3 +41,34 @@ func BenchmarkR2R(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkR2RTypeI times DCT-I and DST-I at the lengths their extensions
+// favour: DCT-I runs a real FFT of length 2(N-1) and DST-I one of length
+// 2(N+1), so N = 2^k+1 and N = 2^k-1 put a power of two under them, where
+// N = 2^k may land on a Bluestein length.
+func BenchmarkR2RTypeI(b *testing.B) {
+	for _, k := range []int{8, 10, 12} {
+		for _, c := range []struct {
+			name   string
+			cosine bool
+			n      int
+		}{{"dct1", true, 1<<k + 1}, {"dst1", false, 1<<k - 1}} {
+			x := benchReal(c.n)
+			dst := make([]float64, c.n)
+			b.Run(c.name+"/"+strconv.Itoa(c.n), func(b *testing.B) {
+				b.ReportAllocs()
+				if c.cosine {
+					p := NewDCTPlan(c.n, 1)
+					for i := 0; i < b.N; i++ {
+						p.DCT(dst, x, NormBackward)
+					}
+					return
+				}
+				p := NewDSTPlan(c.n, 1)
+				for i := 0; i < b.N; i++ {
+					p.DST(dst, x, NormBackward)
+				}
+			})
+		}
+	}
+}
