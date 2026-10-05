@@ -187,6 +187,31 @@ complex FFT for even-length DCT-IV, a symmetric extension for DCT-I and DST-I,
 and index identities for the DSTs. The results are checked against scipy's
 own values (`testdata/scipy_r2r.json`).
 
+### Single precision (complex64 / float32)
+
+As `scipy.fft` does for `complex64` input, the 1-D transforms also run in single
+precision, complex64 in and complex64 out, for any length:
+
+```go
+X := fft.FFT32(x)             // []complex64 → []complex64, unnormalized
+y := fft.IFFT32(X)            // normalized by N
+R := fft.RFFT32(r)            // []float32 → N/2+1 bins of []complex64
+z := fft.IRFFT32(R, len(r))   // back to []float32
+
+p := fft.NewPlan32(n)                  // reusable, safe for concurrent use
+p.FFT(dst, src)                        // also p.IFFT
+p.FFTNorm(dst, src, fft.NormOrtho)     // numpy/scipy norm=: NormBackward (default),
+p.IFFTNorm(dst, src, fft.NormOrtho)    // NormOrtho, NormForward
+rp := fft.NewRealPlan32(n)
+rp.RFFT(dst, src)                      // also rp.IRFFT, rp.RFFTNorm, rp.IRFFTNorm
+```
+
+The arithmetic is float32; twiddles and the Rader/Bluestein kernels are computed
+in float64 and rounded once. The error is within `eps32·log2(N)` of the exact DFT,
+relative to the vector's 2-norm (`eps32 = 2⁻²³`), on every length tested. The
+multi-dimensional transforms, the `...With`/`Options` variants and the DCT/DST
+are float64 only for now.
+
 ## Performance
 
 **How a length is transformed.**

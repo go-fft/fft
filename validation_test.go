@@ -122,6 +122,22 @@ func FuzzPublicAPI(f *testing.F) {
 					t.Fatalf("n=%d: RFFT round trip index %d: %v want %v", n, i, rb[i], r[i])
 				}
 			}
+			// Single precision: the same signals (exact in float32), held to
+			// the round-trip form of the bound the float32 tests use.
+			x32 := make([]complex64, n)
+			r32 := make([]float32, n)
+			w64 := make([]float64, n)
+			for i, v := range x {
+				x32[i] = complex64(v)
+				r32[i] = float32(real(v))
+				w64[i] = real(v)
+			}
+			if e := relErr(IFFT32(FFT32(x32)), x); e > 4*bound32(n) {
+				t.Fatalf("n=%d: FFT32 round trip error %g", n, e)
+			}
+			if e := relErrReal(IRFFT32(RFFT32(r32), n), w64); e > 4*bound32(n) {
+				t.Fatalf("n=%d: RFFT32 round trip error %g", n, e)
+			}
 		}
 		shape := []int{a, b}
 		total := 0
