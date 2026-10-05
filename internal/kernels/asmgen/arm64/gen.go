@@ -29,19 +29,18 @@
 // (verified by disassembling CMulScalar with -gcflags=-S). A NEON kernel is
 // therefore bit-identical ONLY if it reproduces that same fusion:
 //
-//	re acc = 0; VFMLA br,ar (acc += ar*br); VFMLS bi,ai (acc -= ai*bi)
-//	im acc = 0; VFMLA bi,ar (acc += ar*bi); VFMLA br,ai (acc += ai*br)
+//	re = VFMUL ar,br (rounded); VFMLS ai,bi (re -= ai*bi, fused)
+//	im = VFMUL ar,bi (rounded); VFMLA ai,br (im += ai*br, fused)
 //
-// VFMLA into a zeroed accumulator yields the exactly-rounded product (adding
-// +0.0 does not change rounding), matching the oracle's leading FMULD; the
-// trailing VFMLS / VFMLA are the fused subtract / add the oracle performs. A
-// naive non-fused NEON (separate multiply then add) — or, equally, a fused
+// A naive non-fused NEON (separate multiply then add) — or, equally, a fused
 // kernel whose fusion form differs from the oracle's — diverges by up to 1 ULP;
 // the random SIMD-vs-scalar test catches it, so this is validated, not assumed.
 //
-// Go's arm64 assembler exposes no non-fused vector float multiply (there is no
-// VFMUL), so matching the oracle's fused form is the only way to vectorize this
-// soundly. We do, and the per-arch arm64 CI job asserts bit identity.
+// Until Go 1.27 the arm64 assembler had no VFMUL, and the kernel formed each
+// rounded product as VFMLA into a zeroed accumulator. That is the product
+// rounded once, but not on signed zeros: +0 + (-0) is +0, so (-0)·1 came out
+// +0 where the oracle's FMULD gives -0 (found 2026-10-05,
+// TestCMulSignedZeroNEON). VFMUL is exact there too.
 package main
 
 import (
@@ -67,14 +66,12 @@ func main() {
 		Raw("loop2:").
 		Raw("CMP $2, R2").
 		Raw("BLT tail").
-		Raw("VLD2 (R0), [V0.D2, V1.D2]").   // V0=[ar0,ar1] V1=[ai0,ai1]
-		Raw("VLD2 (R1), [V2.D2, V3.D2]").   // V2=[br0,br1] V3=[bi0,bi1]
-		Raw("VEOR V4.B16, V4.B16, V4.B16"). // re acc = 0
-		Raw("VEOR V5.B16, V5.B16, V5.B16"). // im acc = 0
-		Raw("VFMLA V2.D2, V0.D2, V4.D2").   // re += ar*br
-		Raw("VFMLS V3.D2, V1.D2, V4.D2").   // re -= ai*bi  (fused, matches oracle FMSUBD)
-		Raw("VFMLA V3.D2, V0.D2, V5.D2").   // im += ar*bi
-		Raw("VFMLA V2.D2, V1.D2, V5.D2").   // im += ai*br  (fused, matches oracle FMADDD)
+		Raw("VLD2 (R0), [V0.D2, V1.D2]"). // V0=[ar0,ar1] V1=[ai0,ai1]
+		Raw("VLD2 (R1), [V2.D2, V3.D2]"). // V2=[br0,br1] V3=[bi0,bi1]
+		VFMUL2D(4, 0, 2).                 // re = ar*br
+		VFMLS2D(4, 1, 3).                 // re -= ai*bi  (fused, matches oracle FMSUBD)
+		VFMUL2D(5, 0, 3).                 // im = ar*bi
+		VFMLA2D(5, 1, 2).                 // im += ai*br  (fused, matches oracle FMADDD)
 		Raw("VST2 [V4.D2, V5.D2], (R0)").
 		Raw("ADD $32, R0").
 		Raw("ADD $32, R1").
