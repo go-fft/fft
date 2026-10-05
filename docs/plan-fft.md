@@ -265,7 +265,7 @@ job; the gate is never lowered and there is no coverage-gaming knob.
   each for a concrete checked reason (no assemblable vector FMA, and on ppc64le
   no vector double arithmetic at all — see above). 🔒
 
-### What the transforms run today (v0.2.0)
+### What the transforms run today (v0.8.0)
 
 The pointwise multiply above was the first kernel; it stayed off the hot path
 everywhere, because the compiler's scalar loop measured as fast. The kernels
@@ -279,29 +279,46 @@ Go code it replaces and tested bit for bit on generic, ±0 and ∞ inputs.
   powers of two of 256 points or more. Elsewhere, mixing widths in a transform
   measured slower.
 - **amd64, AVX2:** the real-FFT untangle and its inverse.
+- **amd64, AVX2, N-D:** an axis other than the last runs as batched passes
+  over strips of 16 or 32 neighbouring lines, in place (v0.8.0). The radix
+  order puts 3 and 5 first, then 4 before 8, then 7/11/13 (measured over every
+  ordering of 12 lengths).
 - **amd64 without AVX2:** SSE2 butterfly stage kernels for the iterative pow2
   kernel. It also had AVX2 stages until v0.1.8; since v0.1.3 an AVX2 machine
   routes every power of two to the Stockham engine, so they ran only in tests
   and were removed.
-- **arm64, ppc64le, riscv64, loong64, s390x:** the Go passes, compiled to scalar
-  instructions. gc does not vectorize, and fuses multiply-adds on all five.
+- **arm64, NEON:** the Stockham passes of radix 2/3/4/5/8 at any stride, and the
+  radix-2 to 5 final passes over an even number of blocks (v0.7.0). gc fuses
+  multiply-adds on arm64, so each kernel reproduces, pass by pass, which product
+  the Go code rounds and which it fuses; results equal the Go code's bit for bit
+  except the sign of a NaN produced from infinite inputs. Radix 7, the general
+  radix and odd final passes stay in Go.
+- **ppc64le, riscv64, loong64, s390x:** the Go passes, compiled to scalar
+  instructions. gc does not vectorize, and fuses multiply-adds on all four.
 
 Every routing and radix rule behind this was measured on real hardware; the
 dated rounds in [BENCHMARKS.md](../BENCHMARKS.md) give the numbers, including
 what was tried and dropped:
-- a NEON Stockham pass: 1.13–1.24× on Neoverse-N1, but slower on its
-  large-stride passes;
+- a first NEON Stockham pass (WORD-encoded, interleaved twiddles): 1.13–1.24×
+  on Neoverse-N1 but slower on large strides; the shipped one stores twiddles
+  pre-split and wins at every stride there (Round 18);
 - the six-step algorithm;
 - a fan-out threshold that depends on the machine.
 
 ### Remaining
 
-- **arm64 NEON Stockham passes.** About +10% per transform on Neoverse-N1. They
-  need the Go-assembler gaps filled by go-asmgen's WORD encoders, and kernels
-  that reproduce exactly which product gc fuses.
-- **loong64 LASX passes.** These need a hand-encoded vector FMA and a host idle
-  enough to measure on.
-- **A radix-16 pass on amd64**, three passes instead of four at 4096.
+- **Small powers of two** (256 points: 1.26–1.41× FFTW). A radix-16 codelet
+  would cut about 12% of the floating-point operations before register spills
+  (Round 17's estimate, not built).
+- **Cascade Lake's large 1-D transforms** (65536: 1.53× FFTW). The cause is not
+  established; that VM has no performance counters.
+- **The 2-D fan-out threshold on arm64.** amd64 moved it to 16384 elements per
+  goroutine; Neoverse-N1 showed the same symptom (128²: 394 µs on all cores,
+  212 µs on one) and keeps the old value until measured.
+- **NEON:** keeping data split between passes (as KFR can) would remove the
+  per-pass deinterleave; the 576-byte scratch gap costs some large passes on
+  Apple M4 (Round 18).
+- **loong64.** Never measured: its only host was saturated, then unreachable.
 - **An RVV-capable CI runner**, so the riscv64 bit-identity proof also runs in
   CI. Today it runs scalar there, and the proof is on real hardware (cfarm95).
 
@@ -318,3 +335,16 @@ what was tried and dropped:
   The binding required a Ruby `Complex` type and the `::` scope operator, both
   added to go-embedded-ruby; it is differentially validated against the
   `numpy.fft` conventions and held to the same 100%-coverage gate.
+
+## Phase 6 — numpy.fft / scipy.fft surface — DONE (v0.3.0–v0.6.0)
+
+- **numpy's optional arguments** (v0.4.0): `n`, `norm` and `axes` through
+  `...With(Options)` variants whose zero value is numpy's defaults; `HFFT`/
+  `IHFFT`, `RFFTN`/`IRFFTN`, `FFTShift`/`IFFTShift` (N-D too), `NextFastLen`,
+  batched 1-D transforms, and a `Norm` argument on every plan.
+- **DCT and DST** of types I–IV, forward, inverse and N-D, as scipy.fft defines
+  them (v0.5.0), with reusable plans.
+- **Single precision** (v0.6.0): `Plan32`, `RealPlan32`, `FFT32`, `RFFT32`.
+  Not yet in float32: N-D, the `Options` variants, DCT/DST and SIMD kernels.
+- **Not planned:** numpy's `s` (per-axis crop/pad) for N-D, `orthogonalize=False`
+  for the DCT/DST.
