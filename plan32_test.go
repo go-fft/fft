@@ -106,8 +106,6 @@ func (w *worst32) log(t *testing.T) {
 	t.Logf("worst error %.3f of eps32·log2(n) (n=%d, %s); %.3f for n >= 1024", w.all, w.n, w.what, w.large)
 }
 
-var allNorms = []Norm{NormBackward, NormOrtho, NormForward}
-
 // sizes32 covers every length 0..130 (so every radix pass, with and without
 // twiddles, the general pass for 11 and 13, Rader for 17, 97, 101, …, and
 // Bluestein for 23, 46, 47, …) plus larger smooth, prime and composite ones.
