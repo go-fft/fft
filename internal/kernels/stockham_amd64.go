@@ -263,6 +263,11 @@ var (
 // j. The arithmetic is StockhamPass's final pass, operation for operation;
 // wide allows the AVX-512 kernel as it does there.
 func StockhamLastRun(r int, cc, ch []complex128, os, runs, run, gap int, inverse, wide bool) bool {
+	if os < 0 || gap < 0 {
+		// The bound check below assumes the last output is the highest one;
+		// a negative stride would write before ch[0].
+		panic("kernels: StockhamLastRun: os and gap must be >= 0")
+	}
 	if !UseStockhamAVX2 || runs < 1 || run < 4 || run%4 != 0 || skLastRun256[r] == nil {
 		return false
 	}
@@ -303,6 +308,11 @@ var (
 // not multiplied (the plain pass keeps it exact the same way). The arithmetic
 // is StockhamPass's, operation for operation.
 func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bout, btw int, first0, firstRest, inverse, wide bool) bool {
+	if sin < 0 || bin < 0 || sout < 0 || bout < 0 || btw < 0 {
+		// The bound checks below assume the last element is the highest one;
+		// a negative stride would read or write before the slice.
+		panic("kernels: StockhamStrided: strides must be >= 0")
+	}
 	if !UseStockhamAVX2 || nb < 1 || cnt < 4 || cnt%4 != 0 || skStrided256[r] == nil {
 		return false
 	}
