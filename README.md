@@ -23,7 +23,8 @@ to the Go code.
 > multi-dimensional transforms (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`,
 > `RFFT2`/`IRFFT2`, `RFFTN`/`IRFFTN`), numpy's `n`, `norm` and `axes` arguments
 > (`...With(Options)`), `FFTShift`, `NextFastLen`, the DCT and DST of types
-> I–IV, single precision (`FFT32`, `RFFT32`, `Plan32`), reusable and
+> I–IV, all of these in single precision too (`FFT32`, `FFTN32`, `RFFT2_32`,
+> `FFT32With`, `DCT32`, `Plan32`, …), reusable and
 > allocation-free plans (`Plan`, `RealPlan`, `PlanN`, `RealPlan2`, `DCTPlan`,
 > `DSTPlan`), and the windowing and spectral helpers (windows,
 > `FFTFreq`/`RFFTFreq`, `PSD`, `Spectrogram`). The transform is also exposed to Ruby through the
@@ -210,11 +211,48 @@ rp := fft.NewRealPlan32(n)
 rp.RFFT(dst, src)                      // also rp.IRFFT, rp.RFFTNorm, rp.IRFFTNorm
 ```
 
-The arithmetic is float32; twiddles and the Rader/Bluestein kernels are computed
-in float64 and rounded once. The error is within `eps32·log2(N)` of the exact DFT,
-relative to the vector's 2-norm (`eps32 = 2⁻²³`), on every length tested. The
-multi-dimensional transforms, the `...With`/`Options` variants and the DCT/DST
-are float64 only for now.
+The multi-dimensional transforms, the numpy optional arguments and the DCT/DST
+have single-precision forms too, so the float32 surface mirrors the float64 one:
+
+```go
+// N-D and 2-D (scipy.fft.fftn/ifftn/fft2/ifft2/rfftn/irfftn/rfft2/irfft2):
+F := fft.FFTN32(data, shape)              // []complex64, row-major
+d := fft.IFFTN32(F, shape)                // normalized by the product of the shape
+F2 := fft.FFT2_32(img, [2]int{rows, cols}) // also IFFT2_32
+S := fft.RFFTN32(vol, shape)              // []float32 → last axis keeps n/2+1 bins
+v := fft.IRFFTN32(S, shape)               // the REAL output's shape
+R2 := fft.RFFT2_32(img, [2]int{rows, cols}) // also IRFFT2_32
+
+pn := fft.NewPlanN32(rows, cols)          // FFT, IFFT, FFTNorm, IFFTNorm
+r2 := fft.NewRealPlan2_32(rows, cols)     // RFFT, IRFFT, RFFTNorm, IRFFTNorm
+
+// numpy's n, norm and axes, with the same fft.Options:
+X := fft.FFT32With(x, fft.Options{N: 1024, Norm: fft.NormOrtho}) // also IFFT32With
+R := fft.RFFT32With(r, fft.Options{N: 1024})                     // also IRFFT32With
+h := fft.HFFT32(half, n)                                         // HFFT32With, IHFFT32, IHFFT32With
+B := fft.RFFTN32With(rows, []int{m, n}, fft.Options{Axes: []int{-1}}) // batched rows
+// FFTN32With, IFFTN32With, FFT2_32With, IFFT2_32With, IRFFTN32With,
+// RFFT2_32With, IRFFT2_32With likewise.
+
+// DCT/DST types I–IV (scipy.fft.dct/idct/dst/idst/dctn/idctn/dstn/idstn):
+y := fft.DCT32(x32, 2, fft.NormOrtho)     // also IDCT32, DST32, IDST32
+Y := fft.DCTN32(img32, shape, 2, fft.NormOrtho) // also IDCTN32, DSTN32, IDSTN32
+dp := fft.NewDCTPlan32(n, 2)              // dp.DCT/dp.IDCT; NewDSTPlan32 likewise
+```
+
+Each name is the float64 one with `32` appended; where that name already ends
+in a digit an underscore keeps the two numbers apart (`FFT2_32`, not `FFT232`),
+as the standard library's `crypto/sha512.Sum512_256` does.
+
+The precision follows `scipy.fft`, which keeps float32 and complex64 (as
+`numpy.fft` does since NumPy 2.0). The arithmetic is float32; twiddles, the
+Rader/Bluestein kernels and the DCT/DST twiddles are computed in float64 and
+rounded once, and a `Norm` factor is rounded once and applied in one pass. The
+error is within `eps32·log2(N)` of the exact transform, relative to the
+vector's 2-norm (`eps32 = 2⁻²³`; N is the number of points combined: the
+product of the transformed axes, or the DCT/DST's logical size), on every
+length and shape tested, and the results agree with scipy's own float32 ones
+(`testdata/scipy_f32.json`).
 
 ## Performance
 

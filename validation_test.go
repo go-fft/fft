@@ -75,8 +75,8 @@ func TestLongerSlicesStillWork(t *testing.T) {
 	}
 }
 
-// FuzzPublicAPI drives the 1-D, 2-D and DCT/DST entry points with fuzzed
-// lengths and shapes. The only panics allowed are the package's own ("fft: ..."), and every
+// FuzzPublicAPI drives the 1-D, 2-D and DCT/DST entry points, in double and
+// single precision, with fuzzed lengths and shapes. The only panics allowed are the package's own ("fft: ..."), and every
 // transform must round-trip.
 func FuzzPublicAPI(f *testing.F) {
 	for _, s := range [][3]int{{1, 1, 0}, {7, 3, 1}, {64, 16, 2}, {97, 5, 3}, {1000, 0, 4}, {0, 9, 5}, {12, 5, 8}, {9, 4, 10}, {2, 3, 13}, {5, 5, 19}} {
@@ -189,6 +189,7 @@ func FuzzPublicAPI(f *testing.F) {
 			}
 		}
 		fuzzOptions(t, a, b, seed)
+		fuzzF32ND(t, a, b, seed)
 	})
 }
 
