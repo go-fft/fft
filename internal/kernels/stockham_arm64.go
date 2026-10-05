@@ -49,9 +49,10 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 }
 
 // stockhamNEON reports whether a NEON kernel runs a pass of radix r with ido
-// points per block and l1 blocks: radix 3, 4, 5 or 8 for ido >= 2 (points in
-// pairs, an odd last one alone), and radix 3, 4 or 5 with an even l1 for the
-// final pass (ido == 1, blocks in pairs).
+// points per block and l1 blocks: radix 2, 3, 4, 5 or 8 for ido >= 2 (points
+// in pairs, an odd last one alone), and radix 2, 3, 4 or 5 with an even l1 for
+// the final pass (ido == 1, blocks in pairs). Radix 7 and the general radix
+// stay in Go.
 func stockhamNEON(r, ido, l1 int) bool {
 	if r >= len(skPassNEON) {
 		return false
@@ -73,10 +74,10 @@ type (
 
 // The kernels by radix, forward and inverse.
 var (
-	skPassNEON    = [9]skPassFn{3: skPass3NEON, 4: skPass4NEON, 5: skPass5NEON, 8: skPass8NEON}
-	skPassNEONInv = [9]skPassFn{3: skPass3NEONInv, 4: skPass4NEONInv, 5: skPass5NEONInv, 8: skPass8NEONInv}
-	skLastNEON    = [9]skLastFn{3: skLast3NEON, 4: skLast4NEON, 5: skLast5NEON}
-	skLastNEONInv = [9]skLastFn{3: skLast3NEONInv, 4: skLast4NEONInv, 5: skLast5NEONInv}
+	skPassNEON    = [9]skPassFn{2: skPass2NEON, 3: skPass3NEON, 4: skPass4NEON, 5: skPass5NEON, 8: skPass8NEON}
+	skPassNEONInv = [9]skPassFn{2: skPass2NEONInv, 3: skPass3NEONInv, 4: skPass4NEONInv, 5: skPass5NEONInv, 8: skPass8NEONInv}
+	skLastNEON    = [9]skLastFn{2: skLast2NEON, 3: skLast3NEON, 4: skLast4NEON, 5: skLast5NEON}
+	skLastNEONInv = [9]skLastFn{2: skLast2NEONInv, 3: skLast3NEONInv, 4: skLast4NEONInv, 5: skLast5NEONInv}
 )
 
 // StockhamPass runs one Stockham pass of radix r on a NEON kernel and reports
@@ -154,3 +155,15 @@ func skLast5NEON(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skLast5NEONInv(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skPass2NEON(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONInv(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skLast2NEON(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast2NEONInv(cc, ch *complex128, l1 int)

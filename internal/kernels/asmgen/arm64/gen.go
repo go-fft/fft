@@ -100,10 +100,10 @@ func main() {
 
 	sk := emit.NewFile("arm64")
 	for _, inverse := range []bool{false, true} {
-		for _, r := range []int{3, 4, 5, 8} {
+		for _, r := range []int{2, 3, 4, 5, 8} {
 			genStockhamPass(sk, r, inverse)
 		}
-		for _, r := range []int{3, 4, 5} {
+		for _, r := range []int{2, 3, 4, 5} {
 			genStockhamLast(sk, r, inverse)
 		}
 	}
@@ -118,9 +118,9 @@ func write(name string, f *emit.File) {
 	fmt.Println("wrote", name)
 }
 
-// The Stockham kernels run stockham.go's radix-3, 4, 5 and 8 passes (pass3,
-// pass4, pass5, pass8) and the radix-3, 4 and 5 final passes (pass3last,
-// pass4last, pass5last) two points per NEON register, deinterleaved: VLD2
+// The Stockham kernels run stockham.go's radix-2, 3, 4, 5 and 8 passes
+// (pass2 ... pass8) and the radix-2, 3, 4 and 5 final passes (pass2last ...
+// pass5last) two points per NEON register, deinterleaved: VLD2
 // splits two complex128 into a register of real parts and one of imaginary
 // parts, every lane then runs exactly the scalar operation the Go pass runs on
 // one point, and VST2 interleaves on store.
@@ -140,11 +140,12 @@ func write(name string, f *emit.File) {
 //     gc forms with FNMADDD/FNMSUBD, is written (-a) - b with a VFNEG, never
 //     -(a + b), which differs on a zero sum.
 //   - The twiddle product y·w compiles to re = FMULD(yr, wr) then FMSUBD
-//     re - yi·wi, and im = FMULD(yi, wr) then FMADDD im + yr·wi: the products
-//     yr·wr and yi·wr are rounded, yi·wi and yr·wi fused. The kernels use
-//     VFMUL, VFMLS and VFMLA in that order. (cmul.go's CMulScalar fuses the
-//     other imaginary product, ai·br: which product gc rounds depends on the
-//     code around it, so each kernel copies the pass it replaces.)
+//     re - yi·wi, and, in pass3, pass4, pass5 and pass8, im = FMULD(yi, wr)
+//     then FMADDD im + yr·wi: the products yr·wr and yi·wr are rounded, yi·wi
+//     and yr·wi fused. In pass2 the imaginary part is the other way round, im =
+//     FMULD(yr, wi) then FMADDD im + yi·wr (as in cmul.go's CMulScalar): which
+//     product gc rounds depends on the code around it, so each kernel copies
+//     the pass it replaces, with VFMUL, VFMLS and VFMLA.
 //   - Radix 3 fuses 0.5·t1 into x0 - 0.5·t1 and rounds sin(2π/3)·t2.
 //   - Radix 5: c·x + c'·y rounds c'·y and fuses c·x; c·x - c'·y rounds c·x and
 //     fuses c'·y.
@@ -204,6 +205,7 @@ func (st step) store(b *arm64.Builder, v int, ptr string) {
 // skStreams holds, per radix, the registers that walk a pass's input and
 // output streams.
 var skStreams = map[int][2][]string{
+	2: {{"R6", "R7"}, {"R10", "R11"}},
 	3: {{"R6", "R7", "R8"}, {"R10", "R11", "R12"}},
 	4: {{"R6", "R7", "R8", "R9"}, {"R10", "R11", "R12", "R13"}},
 	5: {{"R6", "R7", "R8", "R9", "R10"}, {"R11", "R12", "R13", "R21", "R22"}},
@@ -234,7 +236,7 @@ func skConsts(b *arm64.Builder, r int) {
 // yr, yi) for every output j in ascending order once y_j is in (yr, yi).
 // Between calls, out may use V28-V31.
 func bfly(b *arm64.Builder, r int, inverse bool, out func(j, yr, yi int)) {
-	map[int]func(*arm64.Builder, bool, func(j, yr, yi int)){3: bfly3, 4: bfly4, 5: bfly5, 8: bfly8}[r](b, inverse, out)
+	map[int]func(*arm64.Builder, bool, func(j, yr, yi int)){2: bfly2, 3: bfly3, 4: bfly4, 5: bfly5, 8: bfly8}[r](b, inverse, out)
 }
 
 // sops returns the add, the subtract, and the two ±s·z forms: aMinusSz(d, a,
@@ -253,6 +255,15 @@ func sops(b *arm64.Builder, inverse bool) (add, sub, aMinusSz, aPlusSz func(d, n
 	aMinusSz = func(d, a, z int) { pm(d, a, z, !inverse) }
 	aPlusSz = func(d, a, z int) { pm(d, a, z, inverse) }
 	return
+}
+
+// bfly2 is the radix-2 butterfly of pass2 and pass2last: y0 = x0 + x1, y1 =
+// x0 - x1.
+func bfly2(b *arm64.Builder, inverse bool, out func(j, yr, yi int)) {
+	b.VFADD2D(4, 0, 2).VFADD2D(5, 1, 3)
+	out(0, 4, 5)
+	b.VFSUB2D(4, 0, 2).VFSUB2D(5, 1, 3)
+	out(1, 4, 5)
 }
 
 // bfly3 is stockham.go's bfly3: t1 = x1 + x2, t2 = x1 - x2, ca = x0 - 0.5·t1
@@ -435,7 +446,11 @@ func passStep(b *arm64.Builder, r int, in, out []string, inverse bool, st step) 
 		}
 		b.Raw("VLD1.P 32(R14), [V28.D2, V29.D2]")
 		b.VFMUL2D(30, yr, 28).VFMLS2D(30, yi, 29) // re = yr·wr - yi·wi, yi·wi fused
-		b.VFMUL2D(31, yi, 28).VFMLA2D(31, yr, 29) // im = yi·wr + yr·wi, yr·wi fused
+		if r == 2 {
+			b.VFMUL2D(31, yr, 29).VFMLA2D(31, yi, 28) // im = yr·wi + yi·wr, yi·wr fused
+		} else {
+			b.VFMUL2D(31, yi, 28).VFMLA2D(31, yr, 29) // im = yi·wr + yr·wi, yr·wi fused
+		}
 		if st == firstPair {
 			b.Raw("VMOV V%d.D[0], V30.D[0]", yr).Raw("VMOV V%d.D[0], V31.D[0]", yi)
 		}
@@ -462,6 +477,8 @@ func genStockhamPass(f *emit.File, r int, inverse bool) {
 		Raw("MUL R5, R16, R17") // OS: one output stream
 	next := ""
 	switch r {
+	case 2:
+		next = "ADD R16<<1, R19, R19"
 	case 4:
 		next = "ADD R16<<2, R19, R19"
 	case 8:
@@ -517,7 +534,7 @@ func genStockhamLast(f *emit.File, r int, inverse bool) {
 		[]arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Int64}, nil, nil,
 	)
 	out := skStreams[r][1]
-	t := map[int]int{3: 10, 4: 20, 5: 10}[r]
+	t := map[int]int{2: 20, 3: 10, 4: 20, 5: 10}[r]
 	b := arm64.NewFunc(name, sig, 0)
 	b.LoadArg("cc", "R0").LoadArg("ch", out[0]).LoadArg("l1", "R4").
 		Raw("LSL $4, R4, R17")
