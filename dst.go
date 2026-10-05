@@ -108,7 +108,11 @@ func (p *DSTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 		alternate = true
 	}
 	k.pool.Put(s)
-	scaleReal(dst[:n], f, alternate)
+	if alternate {
+		scaleAlternating(dst[:n], f)
+	} else {
+		scaleReal(dst[:n], f)
+	}
 	return dst[:n]
 }
 

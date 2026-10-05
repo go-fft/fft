@@ -172,5 +172,127 @@ func FuzzPublicAPI(f *testing.F) {
 				}
 			}
 		}
+		fuzzOptions(t, a, b, seed)
+	})
+}
+
+// fuzzOptions drives the numpy-style entry points (Options, Hermitian, real
+// N-D, shifts, NextFastLen) with fuzzed lengths, N, Norm and axes. Each call
+// may panic only with the package's own "fft: ..." message, and each valid
+// pair must round-trip. a and b are already bounded by FuzzPublicAPI.
+func fuzzOptions(t *testing.T, a, b int, seed uint8) {
+	norm := Norm(int(seed % 4)) // 3 is not a Norm: it must be refused cleanly
+	axesChoices := [][]int{nil, {0}, {-1}, {1, 0}, {}, {2}, {0, -2}}
+	axes := axesChoices[int(seed/4)%len(axesChoices)]
+	try := func(name string, f func()) {
+		t.Helper()
+		defer func() {
+			if r := recover(); r != nil {
+				if msg, _ := r.(string); !strings.HasPrefix(msg, "fft: ") {
+					t.Fatalf("%s a=%d b=%d seed=%d: unexpected panic %v", name, a, b, seed, r)
+				}
+			}
+		}()
+		f()
+	}
+	tol := func(n int) float64 { return 1e-9 * math.Max(1, float64(n)) }
+	if a >= 0 {
+		x := make([]complex128, a)
+		r := make([]float64, a)
+		for i := range x {
+			x[i] = complex(float64((i*5+int(seed))%9)-4, float64((i*7+int(seed))%5)-2)
+			r[i] = real(x[i])
+		}
+		o := Options{N: b, Norm: norm}
+		try("FFTWith/IFFTWith", func() {
+			X := FFTWith(x, o)
+			back := IFFTWith(X, Options{N: len(X), Norm: norm})
+			for i, v := range back {
+				want := complex128(0)
+				if i < len(x) {
+					want = x[i]
+				}
+				if cmplx.Abs(v-want) > tol(len(X)) {
+					t.Fatalf("FFTWith round trip a=%d N=%d %v index %d: %v want %v", a, b, norm, i, v, want)
+				}
+			}
+		})
+		try("RFFTWith/IRFFTWith", func() {
+			n := o.N
+			if n == 0 {
+				n = a
+			}
+			back := IRFFTWith(RFFTWith(r, o), Options{N: n, Norm: norm})
+			for i, v := range back {
+				want := 0.0
+				if i < len(r) {
+					want = r[i]
+				}
+				if math.Abs(v-want) > tol(n) {
+					t.Fatalf("RFFTWith round trip a=%d N=%d %v index %d: %v want %v", a, b, norm, i, v, want)
+				}
+			}
+		})
+		try("IHFFTWith/HFFTWith", func() {
+			n := o.N
+			if n == 0 {
+				n = a
+			}
+			back := HFFTWith(IHFFTWith(r, o), Options{N: n, Norm: norm})
+			for i, v := range back {
+				want := 0.0
+				if i < len(r) {
+					want = r[i]
+				}
+				if math.Abs(v-want) > tol(n) {
+					t.Fatalf("IHFFTWith round trip a=%d N=%d %v index %d: %v want %v", a, b, norm, i, v, want)
+				}
+			}
+		})
+		try("HFFT", func() { HFFT(x, b) })
+		try("NextFastLen", func() {
+			for _, real := range []bool{false, true} {
+				m := NextFastLen(a, real)
+				if m < a || (a > 1 && real && m%2 != 0) {
+					t.Fatalf("NextFastLen(%d, %v) = %d", a, real, m)
+				}
+			}
+		})
+	}
+	shape := []int{a, b}
+	total := 0
+	if a > 0 && b > 0 {
+		total = a * b
+	}
+	d := make([]complex128, total)
+	rd := make([]float64, total)
+	for i := range d {
+		d[i] = complex(float64(i%7)-3, float64(i%4))
+		rd[i] = float64(i%6) - 2
+	}
+	o := Options{Axes: axes, Norm: norm}
+	try("FFTNWith/IFFTNWith", func() {
+		back := IFFTNWith(FFTNWith(d, shape, o), shape, o)
+		for i := range d {
+			if cmplx.Abs(back[i]-d[i]) > tol(total) {
+				t.Fatalf("FFTNWith round trip shape %v axes %v index %d", shape, axes, i)
+			}
+		}
+	})
+	try("RFFTNWith/IRFFTNWith", func() {
+		back := IRFFTNWith(RFFTNWith(rd, shape, o), shape, o)
+		for i := range rd {
+			if math.Abs(back[i]-rd[i]) > tol(total) {
+				t.Fatalf("RFFTNWith round trip shape %v axes %v index %d", shape, axes, i)
+			}
+		}
+	})
+	try("FFTShiftN/IFFTShiftN", func() {
+		back := IFFTShiftN(FFTShiftN(rd, shape, axes), shape, axes)
+		for i := range rd {
+			if back[i] != rd[i] {
+				t.Fatalf("FFTShiftN round trip shape %v axes %v index %d", shape, axes, i)
+			}
+		}
 	})
 }

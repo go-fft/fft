@@ -151,8 +151,6 @@ func oracleR2R(x []float64, cosine bool, typ int, norm Norm, inverse bool) []flo
 	return y
 }
 
-var allNorms = []Norm{NormBackward, NormOrtho, NormForward}
-
 func r2rSignal(n, seed int) []float64 {
 	x := make([]float64, n)
 	for i := range x {
@@ -532,13 +530,13 @@ func TestR2RPanics(t *testing.T) {
 	mustPanicWith(t, "IDSTN zero axis", "fft: shape lengths must be positive", func() { IDSTN(nil, []int{0}, 1, NormBackward) })
 }
 
-// TestR2RScaleReal covers the shared scaling helper's branches directly.
+// TestR2RScaleReal covers the scaling helpers' branches directly.
 func TestR2RScaleReal(t *testing.T) {
 	x := []float64{1, 2, 3}
-	scaleReal(x, 1, false)
-	scaleReal(x, 2, false)
-	scaleReal(x, 0.5, true)
+	scaleReal(x, 1)
+	scaleReal(x, 2)
+	scaleAlternating(x, 0.5)
 	if x[0] != 1 || x[1] != -2 || x[2] != 3 {
-		t.Fatalf("scaleReal: %v", x)
+		t.Fatalf("scaleReal/scaleAlternating: %v", x)
 	}
 }

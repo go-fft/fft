@@ -405,20 +405,12 @@ func (p *DCTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 		k.dct4(dst, src, s)
 	}
 	k.pool.Put(s)
-	scaleReal(dst[:n], f, false)
+	scaleReal(dst[:n], f)
 	return dst[:n]
 }
 
-// scaleReal multiplies x by f, and by -f at odd indices if alternate.
-func scaleReal(x []float64, f float64, alternate bool) {
-	if !alternate {
-		if f != 1 {
-			for i := range x {
-				x[i] *= f
-			}
-		}
-		return
-	}
+// scaleAlternating multiplies x by f at even indices and by -f at odd ones.
+func scaleAlternating(x []float64, f float64) {
 	for i := range x {
 		if i%2 == 0 {
 			x[i] *= f
