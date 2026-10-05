@@ -1,0 +1,219 @@
+#include "textflag.h"
+
+// func readZ(p *byte, nbytes, reps int) float64
+TEXT ·readZ(SB), NOSPLIT, $0-32
+	MOVQ p+0(FP), DI
+	MOVQ nbytes+8(FP), CX
+	MOVQ reps+16(FP), DX
+	VPXORQ Z0, Z0, Z0
+	VPXORQ Z1, Z1, Z1
+	VPXORQ Z2, Z2, Z2
+	VPXORQ Z3, Z3, Z3
+rep:
+	MOVQ DI, SI
+	MOVQ CX, BX
+loop:
+	VADDPD 0(SI), Z0, Z0
+	VADDPD 64(SI), Z1, Z1
+	VADDPD 128(SI), Z2, Z2
+	VADDPD 192(SI), Z3, Z3
+	ADDQ $256, SI
+	SUBQ $256, BX
+	JNZ loop
+	DECQ DX
+	JNZ rep
+	VADDPD Z1, Z0, Z0
+	VADDPD Z3, Z2, Z2
+	VADDPD Z2, Z0, Z0
+	VMOVSD X0, ret+24(FP)
+	VZEROUPPER
+	RET
+
+// func readY(p *byte, nbytes, reps int) float64
+TEXT ·readY(SB), NOSPLIT, $0-32
+	MOVQ p+0(FP), DI
+	MOVQ nbytes+8(FP), CX
+	MOVQ reps+16(FP), DX
+	VXORPD Y0, Y0, Y0
+	VXORPD Y1, Y1, Y1
+	VXORPD Y2, Y2, Y2
+	VXORPD Y3, Y3, Y3
+rep:
+	MOVQ DI, SI
+	MOVQ CX, BX
+loop:
+	VADDPD 0(SI), Y0, Y0
+	VADDPD 32(SI), Y1, Y1
+	VADDPD 64(SI), Y2, Y2
+	VADDPD 96(SI), Y3, Y3
+	VADDPD 128(SI), Y0, Y0
+	VADDPD 160(SI), Y1, Y1
+	VADDPD 192(SI), Y2, Y2
+	VADDPD 224(SI), Y3, Y3
+	ADDQ $256, SI
+	SUBQ $256, BX
+	JNZ loop
+	DECQ DX
+	JNZ rep
+	VADDPD Y1, Y0, Y0
+	VADDPD Y3, Y2, Y2
+	VADDPD Y2, Y0, Y0
+	VMOVSD X0, ret+24(FP)
+	VZEROUPPER
+	RET
+
+// func writeZ(p *byte, nbytes, reps int)
+TEXT ·writeZ(SB), NOSPLIT, $0-24
+	MOVQ p+0(FP), DI
+	MOVQ nbytes+8(FP), CX
+	MOVQ reps+16(FP), DX
+	VPXORQ Z0, Z0, Z0
+rep:
+	MOVQ DI, SI
+	MOVQ CX, BX
+loop:
+	VMOVUPD Z0, 0(SI)
+	VMOVUPD Z0, 64(SI)
+	VMOVUPD Z0, 128(SI)
+	VMOVUPD Z0, 192(SI)
+	ADDQ $256, SI
+	SUBQ $256, BX
+	JNZ loop
+	DECQ DX
+	JNZ rep
+	VZEROUPPER
+	RET
+
+// func copyZ(dst, src *byte, nbytes, reps int)
+TEXT ·copyZ(SB), NOSPLIT, $0-32
+	MOVQ dst+0(FP), DI
+	MOVQ src+8(FP), R8
+	MOVQ nbytes+16(FP), CX
+	MOVQ reps+24(FP), DX
+rep:
+	MOVQ DI, SI
+	MOVQ R8, R9
+	MOVQ CX, BX
+loop:
+	VMOVUPD 0(R9), Z0
+	VMOVUPD 64(R9), Z1
+	VMOVUPD 128(R9), Z2
+	VMOVUPD 192(R9), Z3
+	VMOVUPD Z0, 0(SI)
+	VMOVUPD Z1, 64(SI)
+	VMOVUPD Z2, 128(SI)
+	VMOVUPD Z3, 192(SI)
+	ADDQ $256, SI
+	ADDQ $256, R9
+	SUBQ $256, BX
+	JNZ loop
+	DECQ DX
+	JNZ rep
+	VZEROUPPER
+	RET
+
+// func copyY(dst, src *byte, nbytes, reps int)
+TEXT ·copyY(SB), NOSPLIT, $0-32
+	MOVQ dst+0(FP), DI
+	MOVQ src+8(FP), R8
+	MOVQ nbytes+16(FP), CX
+	MOVQ reps+24(FP), DX
+rep:
+	MOVQ DI, SI
+	MOVQ R8, R9
+	MOVQ CX, BX
+loop:
+	VMOVUPD 0(R9), Y0
+	VMOVUPD 32(R9), Y1
+	VMOVUPD 64(R9), Y2
+	VMOVUPD 96(R9), Y3
+	VMOVUPD Y0, 0(SI)
+	VMOVUPD Y1, 32(SI)
+	VMOVUPD Y2, 64(SI)
+	VMOVUPD Y3, 96(SI)
+	ADDQ $128, SI
+	ADDQ $128, R9
+	SUBQ $128, BX
+	JNZ loop
+	DECQ DX
+	JNZ rep
+	VZEROUPPER
+	RET
+
+#define ADD16 \
+	ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; \
+	ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; \
+	ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; \
+	ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX; ADDQ BX, AX
+
+// func chain(n int) int  — n iterations of 16 dependent adds
+TEXT ·chain(SB), NOSPLIT, $0-16
+	MOVQ n+0(FP), CX
+	XORQ AX, AX
+	MOVQ $1, BX
+loop:
+	ADD16
+	DECQ CX
+	JNZ loop
+	MOVQ AX, ret+8(FP)
+	RET
+
+// func chainZ(n int) int — same, plus 8 independent 512-bit multiplies
+TEXT ·chainZ(SB), NOSPLIT, $0-16
+	MOVQ n+0(FP), CX
+	XORQ AX, AX
+	MOVQ $1, BX
+	VPXORQ Z0, Z0, Z0
+	VPXORQ Z1, Z1, Z1
+	VPXORQ Z2, Z2, Z2
+	VPXORQ Z3, Z3, Z3
+	VPXORQ Z4, Z4, Z4
+	VPXORQ Z5, Z5, Z5
+	VPXORQ Z6, Z6, Z6
+	VPXORQ Z7, Z7, Z7
+	VPXORQ Z8, Z8, Z8
+loop:
+	ADD16
+	VMULPD Z8, Z0, Z0
+	VMULPD Z8, Z1, Z1
+	VMULPD Z8, Z2, Z2
+	VMULPD Z8, Z3, Z3
+	VMULPD Z8, Z4, Z4
+	VMULPD Z8, Z5, Z5
+	VMULPD Z8, Z6, Z6
+	VMULPD Z8, Z7, Z7
+	DECQ CX
+	JNZ loop
+	MOVQ AX, ret+8(FP)
+	VZEROUPPER
+	RET
+
+// func chainY(n int) int — same, with 256-bit multiplies
+TEXT ·chainY(SB), NOSPLIT, $0-16
+	MOVQ n+0(FP), CX
+	XORQ AX, AX
+	MOVQ $1, BX
+	VXORPD Y0, Y0, Y0
+	VXORPD Y1, Y1, Y1
+	VXORPD Y2, Y2, Y2
+	VXORPD Y3, Y3, Y3
+	VXORPD Y4, Y4, Y4
+	VXORPD Y5, Y5, Y5
+	VXORPD Y6, Y6, Y6
+	VXORPD Y7, Y7, Y7
+	VXORPD Y8, Y8, Y8
+loop:
+	ADD16
+	VMULPD Y8, Y0, Y0
+	VMULPD Y8, Y1, Y1
+	VMULPD Y8, Y2, Y2
+	VMULPD Y8, Y3, Y3
+	VMULPD Y8, Y4, Y4
+	VMULPD Y8, Y5, Y5
+	VMULPD Y8, Y6, Y6
+	VMULPD Y8, Y7, Y7
+	DECQ CX
+	JNZ loop
+	MOVQ AX, ret+8(FP)
+	VZEROUPPER
+	RET

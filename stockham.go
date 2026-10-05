@@ -47,6 +47,11 @@ type skPlan struct {
 	n       int
 	stages  []skStage
 	scratch sync.Pool
+	// cascT and cascB are the blocked schedule's shape (cascade.go): passes
+	// over the whole array, then groups of cascB blocks; 0 runs breadth first.
+	cascT, cascB int
+	// cascPair runs passes 0 and 1 as one sweep (cascadePair).
+	cascPair bool
 }
 
 func newSKPlan(n int) *skPlan { return newSKPlanFactors(n, skFactorize(n)) }
@@ -94,7 +99,16 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		p.stages[k].split = m
 	}
 	size := n
+	p.cascT, p.cascB = cascadeShape(n, p.stages, cascadeMin)
+	p.cascPair = cascadePairs(p.cascT, p.stages)
 	switch {
+	case p.cascT > 0:
+		size = cascadeScratch(n)
+		// The groups and the final runs read and write interleaved data,
+		// so the whole schedule does (arm64 keeps powers of two split).
+		for k := range p.stages {
+			p.stages[k].split = 0
+		}
 	case takesGap(n):
 		size += setSpan // room to slide the window off dst's sets
 	case len(p.stages)%2 == 1:
@@ -225,6 +239,11 @@ func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
 	s := len(p.stages)
+	if p.cascT > 0 {
+		p.cascadeRun(dst, src, *bp, inverse)
+		p.scratch.Put(bp)
+		return
+	}
 	if s%2 == 1 && &dst[0] == &src[0] {
 		p.run(dst, src, *bp, inverse)
 		p.scratch.Put(bp)
@@ -258,6 +277,10 @@ func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 // 128×128 on Zen 3, copying 16384 values alone took 6 µs against 96 µs for
 // the whole transform (2026-10-05).
 func (p *skPlan) run(dst, src, buf []complex128, inverse bool) {
+	if p.cascT > 0 {
+		p.cascadeRun(dst, src, buf, inverse)
+		return
+	}
 	n, s := p.n, len(p.stages)
 	gap := takesGap(n)
 	scr := buf[:n]

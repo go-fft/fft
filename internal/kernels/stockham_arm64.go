@@ -388,3 +388,13 @@ func skLast2NEONInvSI(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skLast4NEONInvSI(cc, ch *complex128, l1 int)
+
+// StockhamLastRun reports false: the fft package runs its Go final pass.
+func StockhamLastRun(r int, cc, ch []complex128, os, runs, run, gap int, inverse, wide bool) bool {
+	return false
+}
+
+// StockhamStrided reports false: the fft package runs whole passes instead.
+func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bout, btw int, first0, firstRest, inverse, wide bool) bool {
+	return false
+}

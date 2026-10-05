@@ -1246,6 +1246,227 @@ The gap that remains at 256 and 1024 is the one Round 17 named. FFTW's codelets 
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round19-radix16-20261005/`](benchmarks/results/round19-radix16-20261005/).
 
+### Round 20 — Cascade Lake's large transforms: six copies through a 1 MB L2 (2026-10-05)
+
+On Cascade Lake, the large 1-D transforms trailed FFTW: complex 65536 ran at
+1.53× FFTW's time, RFFT 2^20 at 1.53×. On Zen 3 the same rows were at or
+below parity. Round 13 had ruled out three remedies but had not found the
+cause. This round measured the host first, then located the time pass by
+pass. Host: cfarm151, one pinned core (`GOMAXPROCS=1 taskset -c 3`), load
+average 0.3–1.3 with nothing else of ours running.
+
+**The host, measured.** Probes: `scripts/probe` (Go and assembly,
+cross-compiled) and `scripts/fftw_scale.c`.
+- **The L2 is 1 MB, not 4 MiB.** `lscpu` and sysfs report 32 KiB L1d,
+  4096 KiB of 16-way L2 and 16 MiB of L3 per "socket", on 8 sockets of one
+  core each. Those are the KVM CPU model's values. A pointer chase over a
+  random cycle says otherwise. On 2 MiB pages, a load costs:
+  - 1.23 ns up to 24 KB;
+  - 4.3 ns from 48 KB to 768 KB, which is 14 cycles at 3.2 GHz, an L2 hit;
+  - 4.8 ns at 1 MB;
+  - 15.8 ns at 1.25 MB, and 21–25 ns from 1.5 to 3 MB;
+  - 102–120 ns from 4 MB on.
+- **Bandwidth, AVX-512 streams, per byte of one buffer:**
+
+  | | both buffers in L2 (128–512 KB each) | 768 KB – 4 MB | 16 MB | 64–256 MB |
+  |:--|--:|--:|--:|--:|
+  | copy (read one buffer, write the other) | 40–46 GB/s | 12.4–13.9 GB/s | 5.0 GB/s | 4.3–4.4 GB/s |
+  | read | 110–117 GB/s | 24–25 GB/s | 21.6 GB/s | 9.4–9.6 GB/s |
+
+- **Clock.** A chain of dependent integer adds ran at 3.05–3.27 GHz alone,
+  2.77–2.91 GHz beside independent 256-bit multiplies, and 2.37–2.42 GHz
+  beside 512-bit ones. That is the frequency licence the Intel optimization
+  manual describes for AVX-512 "heavy" instructions, about 25% here (AVX2
+  about 10%). There is no PMU in this VM, so this is the only measure.
+- **Pages.** Transparent huge pages are `always`, and one NUMA node.
+
+**Where the time goes.** Each pass of the current transform (radix 8 as far
+as it goes) was timed alone, on the buffers the transform gives it
+(`TestRound20Probe`, `R20MODE=passes`), in ns per point:
+
+| n | passes | each pass, AVX-512 | each pass, AVX2 | whole, AVX-512 / AVX2 |
+|:--|--:|:--|:--|:--|
+| 16384 | 5 | 0.64–0.84 | 0.93–1.18 | 4.0 / 5.7 |
+| 65536 | 6 | 1.46–2.40 | 1.43–2.46 | 10.4 / 10.4 |
+| 2^20 | 7 | 3.3–7.2 | 3.2–5.5 | 30.8 / 28.1 |
+
+- **Copy floor.** A pass reads 16 bytes per point and writes 16. At 65536,
+  dst and the scratch buffer are 1 MB each, so at the copy rate above every
+  pass costs at least 1.3 ns per point. At 2^20 the floor is 3.7 ns per
+  point.
+- **Every pass is at that floor.** From 65536 on, every pass costs 1.1–1.9×
+  a plain copy of the same bytes, whatever its radix or stride. So the
+  transform is six copies through the L2–L3 boundary at 65536, and seven
+  through DRAM at 2^20.
+- **Why AVX-512 stopped helping.** At 16384 the passes run from L2 and
+  AVX-512 is 1.4× faster. Beyond L2, neither width is bound by its
+  arithmetic, so AVX-512 loses its lead (Round 13's finding).
+- **Why Zen 3 does not show it.** The EPYC 7773X has 96 MB of L3 per CCD,
+  so the same passes run from a much faster level there.
+
+**What did not matter**, whole transform, five interleaved rounds, ns per
+point at 65536 / 2^20:
+
+| variant | 65536 | 2^20 |
+|:--|--:|--:|
+| shipped (scratch 576 bytes off dst's sets) | 10.41 | 28.97 |
+| scratch gap 0 / 1088 / 2112 bytes | 10.56 / 10.27 / 10.18 | 29.04 / 28.94 / 29.00 |
+| buffers on 2 MiB pages, `MADV_HUGEPAGE` / `MADV_NOHUGEPAGE` | 10.37 / 10.27 | 28.83 / 28.54 |
+| radix rule B / C | 14.33 / 14.18 | 58.6 / 58.5 |
+| AVX2 kernels | 10.25 | 26.93 |
+| pow2 kernel | 19.36 | 40.93 |
+
+So the scratch placement, the pages, the radix rule and the pow2 kernel are
+eliminated: none moves the time that matters.
+
+**What FFTW does on the same host.** FFTW's own time per point grows too:
+
+| n | 4096 | 16384 | 32768 | 65536 | 2^17 | 2^18 | 2^19 | 2^20 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|
+| FFTW, ns per point | 3.23 | 3.68 | 4.50 | 6.30 | 7.49 | 9.69 | 24.8 | 29.4 |
+
+So the host itself degrades, but FFTW degrades less. Its plans
+(`fftw_fprint_plan`) show how:
+- **65536:** 16 sub-transforms of 4096 points (64 KB each, in L2), then one
+  radix-16 pass over the whole array.
+- **2^20:** one buffered radix-256 pass (`dftw-genericbuf`) over
+  sub-transforms of 4096 points.
+
+So FFTW crosses the L2 boundary twice, and go-fft six or seven times. This
+is the recursive, cache-oblivious decomposition of Frigo and Johnson, "The
+Design and Implementation of FFTW3" (Proc. IEEE 93(2), 2005), and the aim
+of Bailey's four-step: two passes over main memory ("FFTs in external or
+hierarchical memory", J. Supercomputing 4, 1990).
+
+**The change: a blocked schedule** (`cascade.go`).
+
+- **Groups.** In the Stockham layout, block k of pass t (m = n/l1_t
+  consecutive points) and everything later computed from it never meet
+  another block. So the first t passes run over the whole array. The rest
+  run group by group: b blocks at a time, as a Stockham transform of b·m =
+  8192 points whose l1 starts at b, between two 128 KB local buffers that
+  stay in L2.
+  - Those passes are the existing kernels with l1 = b·r_t·…. A pass's
+    twiddles depend on its radix and ido only, so the pass's own table
+    serves.
+  - The local transform leaves value f of block c at c + b·f. The whole
+    transform wants it at k0 + c + l1_t·f. A new final-pass kernel
+    (`skLastRun{2,4,8}{AVX2,AVX512}`, `genStockhamLastRun`) writes it there
+    directly, in runs of b ≥ 4 consecutive points, so whole cache lines.
+  - A first version scattered the runs with Go `copy` calls, which cost
+    1.5–2 ns per point and ate the gain (`raw/blocked-*`).
+- **The pair.** The first two passes, which run over the whole array, make
+  one sweep instead of two (`cascadePair`). Point i' of pass 1 needs the
+  r0·r1 inputs i' + ido1·m' + ido0·m, and its outputs land at
+  i' + ido1·(k + r0·j).
+  - So 256 consecutive i' at a time go through both passes, pass 0 into the
+    local buffer and pass 1 back out. A chunk reads exactly the positions it
+    writes, so the pair also runs in place.
+  - This needs a pass kernel whose strides are parameters
+    (`skStrided{4,8}{AVX2,AVX512}`, `genStockhamStrided`): block and point
+    strides, a per-block twiddle advance, and whether a block's first point
+    is the untwiddled i = 0.
+- **Shapes.** At 65536 the transform is now two sweeps: the pair, then the
+  groups. At 2^20 it is three: the pair, one pass, then the groups.
+- **Bit for bit.** Every value gets the operations and the order of breadth
+  first, so the result is bit-identical. `TestCascadeIsBitIdentical` and
+  `TestCascadeKernelModes` compare the two schedules bit for bit on Cascade
+  Lake with AVX-512, AVX2 and the Go passes:
+  - seven lengths and radix orders;
+  - forward and inverse, in place, out of place, and through `run`;
+  - a generic signal, and one cycling through ±0, ±∞, subnormals and NaN.
+
+  The kernels' own tests split a pass into strided pieces and check the
+  placement of every run (`TestStockhamStridedSplitsThePass`,
+  `TestStockhamLastRunPlacesTheFinalPass`). A mutation that treats the first
+  point of every block of pass 0 as i = 0 makes the two schedule tests
+  fail.
+
+**How it was tuned**, ns per point, pass-by-pass harness, seven rounds
+(`raw/cascade-*`):
+
+| n | breadth first | groups only | groups + pair, chunk 64 / 128 / 256 |
+|:--|--:|--:|:--|
+| 32768 | 6.24 | 6.72 | 6.02 / 6.02 / 5.84 |
+| 65536 | 9.95 | 7.68 | 7.25 / 7.25 / 7.18 |
+| 2^17 | 10.29 | 8.51 | 7.72 / 7.81 / 7.61 |
+| 2^18 | 11.67 | 10.25 | 9.08 / 9.13 / 8.75 |
+| 2^20 | 28.89 | 21.43 | 19.12 / 19.04 / 18.64 |
+
+- **Group size.** From 65536 to 2^18, groups of 4096 and 16384 points ran
+  within 5% of 8192. At 2^20, 4096 lost 11%. Groups of 32768 (1 MB for the
+  pair of buffers) spilled out of L2.
+- **Chunk width.** Chunks of 32 points lost 10–30% from 2^18.
+- **AVX2.** With the AVX2 kernels the schedule tied breadth first, or lost:
+  the groups are then bound by AVX2's arithmetic, the work AVX-512 does
+  1.4× faster. So the schedule runs only with the AVX-512 kernels on Intel
+  (`cascadeMinAMD64`), from 65536 points. 32768 gained 7% in the harness
+  but nothing end to end (1.00).
+- **Not measured.** Haswell (Intel, AVX2) and the AMD CPUs keep breadth
+  first.
+
+**End to end**, `main` time ÷ new time, fifteen interleaved rounds, one core
+(`raw/ab-fin15-151.txt`; load 0.6–1.1):
+
+| complex 65536 | 2^17 | 2^18 | 2^19 | 2^20 | RFFT / IRFFT 2^18 | RFFT / IRFFT 2^20 |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1.29 | 1.36 | 1.21 | 1.04 (spread 1.45) | 1.24 | 1.28 / 1.28 | 1.04 / 1.16 (spread 1.6) |
+
+- **2^19, and the RFFT and IRFFT of 2^20 (complex 2^19):** they swung
+  between 7.5 and 12 ms from one round to the next on both builds. Their
+  data sits at the edge of what this VM keeps out of DRAM. No gain is
+  claimed for them.
+- **Rows the change does not reach:** complex 4096, 16384, 32768, 1000,
+  RFFT and IRFFT 65536 (complex 32768) and 2-D 1024² read 0.99–1.02.
+- **The broader set:** in a seven-round run over `BenchmarkAB`'s rows (64
+  to 2^18, composites, primes, real, 2-D), every row the schedule does not
+  touch read 0.986–1.026. The exception was 2-D 512², at 0.958 with a
+  max/min spread of 1.76.
+
+**Against FFTW**, two pinned parity runs on the same afternoon, `main` then
+this branch (`parity-main/`, `parity-r20/`, each correct 24/24), go-fft
+time ÷ FFTW time:
+
+| | complex 65536 | complex 2^20 | RFFT 65536 | RFFT 2^20 | IRFFT 2^20 |
+|:--|--:|--:|--:|--:|--:|
+| `main` | 1.44 | 1.06 | 1.26 | 1.25 | 1.26 |
+| this round | **1.19** | **0.83** | 1.34 | **0.92** | 1.13 |
+
+- **RFFT 65536** runs a 32768-point complex transform, which this round does
+  not change: go-fft read 245.6 against 244.1 µs. FFTW's time moved, from
+  195 to 183 µs.
+- **The 1.19 at 65536** is still behind FFTW. Its two sweeps are at the copy
+  floor; the groups are now bound by the pass kernels in L2, where FFTW's
+  radix-16 and radix-64 codelets do the same work in fewer passes.
+
+**Zen 3 (cfarm420), non-regression.** Zen 3 runs breadth first as before
+(the threshold is 0 there), so only the added branch in `transform` and
+`run` reaches it.
+- **Seven interleaved rounds** over `BenchmarkLarge` and `BenchmarkAB`
+  (load 2.6–3.3 on 128 threads): every row read 0.906–1.075, and every row
+  but two within its own max/min spread. The two exceptions were C/64 at
+  0.935 and 2-D 32² at 0.906.
+- **Fifteen rounds**, on the code rebased onto v0.10.0 (radix 16 on AVX2),
+  against v0.10.0 itself. The complex rows read 0.962–1.138, each within its
+  spread; C/64, which had read 0.935, now read 1.138. That is this host's
+  noise at 120 ns, not a cost of the branch.
+
+**Forced on Zen 3**, for reference (`raw/cascade-420.txt`): the blocked
+schedule, run with the AVX2 kernels, is slower than breadth first from
+65536 on. In ns per point:
+
+| n | breadth first | blocked |
+|:--|--:|--:|
+| 65536 | 4.53 | 5.11 |
+| 2^17 | 4.97 | 5.67 |
+| 2^18 | 5.37 | 6.58 |
+| 2^20 | 6.56 | 8.26 |
+
+Its 96 MB L3 per CCD already holds these arrays, so the schedule has no
+cache level to save there. The threshold stays 0 on AMD.
+
+Raw data, probes and scripts: [`benchmarks/results/round20-cascade-large-20261005/`](benchmarks/results/round20-cascade-large-20261005/).
+
 ### Round 21 — arm64: the columns as NEON strips, the data kept split between passes, the fan-out threshold (2026-10-05)
 
 Round 18 left three things open on arm64: the 2-D rows that ran slower on many

@@ -67,3 +67,7 @@ func parMinChunkDefault() int { return 1 << 13 }
 // against 553. From 256×256 more goroutines won: 777 µs on eight against 1142
 // on one, and 512×512 1.63 ms against 4.80. (BENCHMARKS.md, Round 21.)
 func parThresholdNDefault() int { return 1 << 16 }
+
+// cascadeMinDefault is 0: the blocked schedule (cascade.go) was measured on
+// amd64 only, so every length runs breadth first here.
+func cascadeMinDefault() int { return 0 }

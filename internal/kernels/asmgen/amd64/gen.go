@@ -296,6 +296,18 @@ func main() {
 	// where the AVX-512 kernels run (see radix16TableAMD64).
 	genStockham16(fb)
 	genStockham16Last(fb)
+	// The final pass of the blocked schedule for large powers of two
+	// (cascadeBlocked in the fft package): the radices that end a power of two.
+	for _, r := range []int{2, 4, 8} {
+		genStockhamLastRun(fb, r, false)
+		genStockhamLastRun(fb, r, true)
+	}
+	// The two passes it runs over the whole array chunk by chunk
+	// (cascadePair): the radices that open a large power of two.
+	for _, r := range []int{4, 8} {
+		genStockhamStrided(fb, r, false)
+		genStockhamStrided(fb, r, true)
+	}
 	genUntangleAVX2(fb)
 	genRetangleAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
@@ -1090,6 +1102,162 @@ func genStockhamLastAVX512(f *emit.File, r int) {
 		Raw("JZ done")
 	x.body(r, false)
 	b.Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamLastRun emits skLastRun{r}{AVX2,AVX512}(cc, ch, k, os, runs,
+// run, gap): the final pass (ido == 1) of the fft package's blocked schedule
+// (stockham.go, cascadeBlocked), which writes straight into the transform's
+// output instead of a local buffer. It runs runs·run blocks, the bodies the
+// final-pass kernels run (genStockhamLastAVX2/512, so the arithmetic is the
+// same, operation for operation), reading the blocks contiguously; its
+// outputs land in runs of run consecutive points, gap points apart, and
+// output j sits os points after output j-1. run is a multiple of 4. The
+// plain final-pass kernel is the case runs = 1, run = gap = os.
+//
+// Registers: AX = input, BX = output run cursor, DI = BX + 4·OS, DX = OS =
+// os·16, R13 = 3·OS, R14 = constants, R8 = runs left, R9 = steps left in the
+// run, R10 = steps per run, R11 = (gap - run)·16, the jump to the next run.
+func genStockhamLastRun(f *emit.File, r int, wide bool) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "k", "os", "runs", "run", "gap"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	name, step, w := fmt.Sprintf("skLastRun%dAVX2", r), 2, "Y"
+	if wide {
+		name, step, w = fmt.Sprintf("skLastRun%dAVX512", r), 4, "Z"
+	}
+	b := amd64.NewFunc(name, sig, 0)
+	e := skEmit{b: b, w: w, last: r, wide: wide}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("os", "DX").
+		LoadArg("runs", "R8").LoadArg("run", "R10").LoadArg("gap", "R11")
+	b.Raw("SHLQ $4, DX"). // OS
+				Raw("LEAQ (DX)(DX*2), R13").
+				Raw("SUBQ R10, R11").
+				Raw("SHLQ $4, R11"). // (gap - run)·16
+				Raw("SHRQ $%d, R10", map[int]int{2: 1, 4: 2}[step]).
+				Raw("rloop:").
+				Raw("TESTQ R8, R8").
+				Raw("JZ done").
+				Raw("LEAQ (BX)(DX*4), DI").
+				Raw("MOVQ R10, R9").
+				Raw("sloop:").
+				Raw("TESTQ R9, R9").
+				Raw("JZ rnext")
+	e.body(r, false)
+	b.Raw("ADDQ $%d, AX", 16*step*r).
+		Raw("ADDQ $%d, BX", 16*step).
+		Raw("ADDQ $%d, DI", 16*step).
+		Raw("DECQ R9").
+		Raw("JMP sloop").
+		Raw("rnext:").
+		Raw("ADDQ R11, BX").
+		Raw("DECQ R8").
+		Raw("JMP rloop").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamStrided emits skStrided{r}{AVX2,AVX512}(cc, ch, tw, k, cnt, nb,
+// sin, sout, din, dout, dtw, bf, br): genStockhamAVX2's (or AVX512's) pass
+// over nb blocks of cnt points (cnt a positive multiple of 4), with every
+// stride a parameter instead of a function of ido and l1. Point i of block b
+// reads its r inputs sin points apart from cc + b·bin + i and writes its r
+// outputs sout points apart from ch + b·bout + i, where the caller passes the
+// block strides as din = (bin - cnt)·16 and dout = (bout - cnt)·16, the jump
+// left after the block's points. Block b's twiddles start dtw bytes after
+// block b-1's (StockhamTwiddles' layout, so a slice of a pass's table that
+// starts at a point i0 with i0 mod 4 = 0 serves points i0, i0+1, ...). bf and
+// br say whether the first point of block 0, and of the other blocks, is the
+// pass's untwiddled point i = 0, which the kernel then keeps unmultiplied as
+// the plain pass does (the blend); any other point is multiplied. The
+// butterflies and the products are the plain pass's, so a pass split into
+// strided pieces is bit-identical to the pass. The fft package runs two
+// passes chunk by chunk with it (cascadePair), one reading the array and the
+// other writing it, through a buffer that stays in cache.
+//
+// Registers as genStockhamAVX2, plus R11 = whether the block's first point is
+// i = 0; R8 = blocks left, R9 = four-point groups left.
+func genStockhamStrided(f *emit.File, r int, wide bool) {
+	names := []string{"cc", "ch", "tw", "k", "cnt", "nb", "sin", "sout", "din", "dout", "dtw", "bf", "br"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr}
+	for range names[4:] {
+		types = append(types, amd64.Int64)
+	}
+	sig := amd64.Layout(names, types, nil, nil)
+	arg := func(name string) string {
+		for _, p := range sig.Args {
+			if p.Name == name {
+				return fmt.Sprintf("%s+%d(FP)", name, p.Offset)
+			}
+		}
+		panic(name)
+	}
+	name := fmt.Sprintf("skStrided%dAVX2", r)
+	if wide {
+		name = fmt.Sprintf("skStrided%dAVX512", r)
+	}
+	b := amd64.NewFunc(name, sig, 0)
+	// One four-point group: a ZMM register, or two YMM pairs.
+	group := func(first bool) {
+		if wide {
+			z := skEmit{b: b, w: "Z", wide: true, g: 4}
+			z.body(r, first)
+			z.advance(64)
+			z.twNext(r)
+			return
+		}
+		q0 := skEmit{b: b, w: "Y", g: 4}
+		q1 := skEmit{b: b, w: "Y", g: 4, half: 1}
+		q0.body(r, first)
+		q0.advance(32)
+		q1.body(r, false)
+		q1.advance(32)
+		q0.twNext(r)
+	}
+	if wide {
+		b.Raw("MOVQ $3, R9").Raw("KMOVB R9, K1") // lanes 0–1: the i = 0 point
+	}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
+		LoadArg("sin", "CX").LoadArg("sout", "DX").LoadArg("nb", "R8").LoadArg("bf", "R11")
+	b.Raw("SHLQ $4, CX").
+		Raw("SHLQ $4, DX").
+		Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("kloop:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done").
+		Raw("LEAQ (AX)(CX*4), SI").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("MOVQ R15, R10").
+		Raw("MOVQ %s, R9", arg("cnt")).
+		Raw("SHRQ $2, R9").
+		Raw("TESTQ R11, R11").
+		Raw("JZ plain")
+	group(true)
+	b.Raw("JMP rest").
+		Raw("plain:")
+	group(false)
+	b.Raw("rest:").
+		Raw("DECQ R9").
+		Raw("gloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ knext")
+	group(false)
+	b.Raw("DECQ R9").
+		Raw("JMP gloop").
+		Raw("knext:").
+		Raw("ADDQ %s, AX", arg("din")).
+		Raw("ADDQ %s, BX", arg("dout")).
+		Raw("ADDQ %s, R15", arg("dtw")).
+		Raw("MOVQ %s, R11", arg("br")).
+		Raw("DECQ R8").
+		Raw("JMP kloop").
+		Raw("done:").
 		Raw("VZEROUPPER").
 		Ret()
 	f.Add(b.Func())

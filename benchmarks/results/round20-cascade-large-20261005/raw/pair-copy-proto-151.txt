@@ -1,0 +1,23 @@
+=== RUN   TestRound20Probe
+pair n=65536 two_passes   3.973 ns/pt [3.947 3.994]
+pair n=65536 fused_w16    4.610 ns/pt [4.600 5.368]
+pair n=65536 fused_w32    4.085 ns/pt [4.065 4.093]
+pair n=65536 fused_w64    4.113 ns/pt [4.106 4.485]
+pair n=65536 fused_w128   3.837 ns/pt [3.822 3.854]
+pair n=131072 two_passes   4.314 ns/pt [4.306 4.433]
+pair n=131072 fused_w16    4.623 ns/pt [4.618 4.631]
+pair n=131072 fused_w32    4.138 ns/pt [4.133 4.215]
+pair n=131072 fused_w64    4.292 ns/pt [4.275 4.311]
+pair n=131072 fused_w128   3.893 ns/pt [3.876 3.903]
+pair n=262144 two_passes   6.043 ns/pt [5.900 6.430]
+pair n=262144 fused_w16    10.537 ns/pt [5.643 11.977]
+pair n=262144 fused_w32    4.624 ns/pt [4.304 5.325]
+pair n=262144 fused_w64    4.488 ns/pt [4.396 4.522]
+pair n=262144 fused_w128   4.049 ns/pt [3.970 4.833]
+pair n=1048576 two_passes   9.143 ns/pt [8.860 9.789]
+pair n=1048576 fused_w16    12.040 ns/pt [11.978 14.399]
+pair n=1048576 fused_w32    10.945 ns/pt [10.798 11.739]
+pair n=1048576 fused_w64    8.061 ns/pt [7.931 8.246]
+pair n=1048576 fused_w128   7.420 ns/pt [7.216 7.542]
+--- PASS: TestRound20Probe (7.95s)
+PASS

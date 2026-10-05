@@ -1,0 +1,57 @@
+fftw n=1024 2.119 ns/pt 23.60 GFLOP/s
+fftw n=2048 2.537 ns/pt 21.68 GFLOP/s
+fftw n=4096 3.228 ns/pt 18.59 GFLOP/s
+plan n=4096: (dft-ct-dit/8
+  (dftw-direct-8/56 "t1fv_8_avx512")
+  (dft-vrank>=1-x8/1
+    (dft-ct-dit/64
+      (dftw-direct-64/1008 "t2fv_64_avx512")
+      (dft-direct-8-x64 "n1fv_8_avx2"))))
+fftw n=8192 3.387 ns/pt 19.19 GFLOP/s
+fftw n=16384 3.680 ns/pt 19.02 GFLOP/s
+fftw n=32768 4.504 ns/pt 16.65 GFLOP/s
+plan n=32768: (dft-ct-dit/32
+  (dftw-direct-32/32 "t3fv_32_avx512")
+  (dft-vrank>=1-x32/1
+    (dft-ct-dit/32
+      (dftw-direct-32/248 "t1fv_32_avx512")
+      (dft-direct-32-x32 "n1fv_32_avx2"))))
+fftw n=65536 6.298 ns/pt 12.70 GFLOP/s
+plan n=65536: (dft-ct-dit/16
+  (dftw-direct-16/32 "t3fv_16_avx512")
+  (dft-vrank>=1-x16/1
+    (dft-ct-dit/8
+      (dftw-direct-8/24 "t3fv_8_avx512")
+      (dft-vrank>=1-x8/1
+        (dft-ct-dit/64
+          (dftw-direct-64/1008 "t2fv_64_avx512")
+          (dft-direct-8-x64 "n1fv_8_avx"))))))
+fftw n=131072 7.494 ns/pt 11.34 GFLOP/s
+fftw n=262144 9.691 ns/pt 9.29 GFLOP/s
+plan n=262144: (dft-ct-dit/16
+  (dftw-direct-16/32 "t3fv_16_avx512")
+  (dft-vrank>=1-x16/1
+    (dft-ct-dit/32
+      (dftw-direct-32/32 "t3fv_32_avx512")
+      (dft-vrank>=1-x32/1
+        (dft-ct-dit/64
+          (dftw-direct-64/1008 "t2fv_64_avx512")
+          (dft-direct-8-x64 "n1fv_8_avx2"))))))
+fftw n=524288 24.835 ns/pt 3.83 GFLOP/s
+fftw n=1048576 29.381 ns/pt 3.40 GFLOP/s
+plan n=1048576: (dft-ct-dit/256
+  (dftw-genericbuf/64-256-4096
+    (dft-vrank>=1-x64/1
+      (dft-ct-dit/16
+        (dftw-direct-16/240 "t2fv_16_avx512")
+        (dft-indirect-before
+          (dft-direct-16-x16 "n1fv_16_avx2")
+          (dft-r2hc-1
+            (rdft-rank0-ip-sq/2-x16-x16))))))
+  (dft-vrank>=1-x256/1
+    (dft-ct-dit/8
+      (dftw-direct-8/24 "t3fv_8_avx512")
+      (dft-vrank>=1-x8/1
+        (dft-ct-dit/64
+          (dftw-direct-64/1008 "t2fv_64_avx512")
+          (dft-direct-8-x64 "n1fv_8_avx2"))))))

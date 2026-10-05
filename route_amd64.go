@@ -147,3 +147,22 @@ func radix16TableAMD64(avx2, avx512, intel bool) map[int][]int {
 // parThresholdNDefault is parThreshold: the change of Round 21 was measured
 // on arm64 only.
 func parThresholdNDefault() int { return parThreshold }
+
+// cascadeMinDefault is the smallest power of two that runs the blocked
+// schedule (cascade.go): 65536 with the AVX-512 kernels on Intel, never
+// otherwise. On Cascade Lake (2026-10-05, main time ÷ new time, fifteen
+// interleaved rounds, one core) it gained 1.29 at 65536, 1.36 at 2^17, 1.21
+// at 2^18 and 1.24 at 2^20 (2^19: 1.04, within that row's spread); 32768 did
+// not move (1.00), so it stays breadth first. With the AVX2 kernels the
+// schedule tied breadth first there, because the groups it keeps in L2 are
+// then bound by the AVX2 passes' arithmetic. Haswell (Intel, AVX2, 256 KB of
+// L2) was not measured, so it keeps breadth first; so does every AMD CPU.
+func cascadeMinDefault() int { return cascadeMinAMD64(kernels.UseStockhamAVX512, kernels.IntelCPU) }
+
+// cascadeMinAMD64 is cascadeMinDefault's choice.
+func cascadeMinAMD64(avx512, intel bool) int {
+	if avx512 && intel {
+		return 1 << 16
+	}
+	return 0
+}

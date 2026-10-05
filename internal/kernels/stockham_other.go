@@ -33,3 +33,13 @@ func StockhamSplitModes(r, ido, l1 []int) []uint8 { return make([]uint8, len(r))
 func StockhamPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
 	return StockhamPass(r, ido, l1, cc, ch, tw, inverse, wide)
 }
+
+// StockhamLastRun reports false: the fft package runs its Go final pass.
+func StockhamLastRun(r int, cc, ch []complex128, os, runs, run, gap int, inverse, wide bool) bool {
+	return false
+}
+
+// StockhamStrided reports false: the fft package runs whole passes instead.
+func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bout, btw int, first0, firstRest, inverse, wide bool) bool {
+	return false
+}
