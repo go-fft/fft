@@ -20,7 +20,7 @@ package kernels
 //     uses for transforms (route_arm64.go sends every power of two to the
 //     Stockham engine). The Stockham passes DO run as NEON kernels on arm64
 //     since Go 1.27 assembles VFADD/VFSUB/VFMUL/VFNEG (stockham_arm64.go,
-//     1.08–1.83× per pass on Neoverse-N1, Round 18 of BENCHMARKS.md); this
+//     1.09–1.61× per pass on Neoverse-N1, Round 18 of BENCHMARKS.md); this
 //     stage-level kernel was not built again.
 //   - riscv64's RVV is run-time-optional and its strip-mined kernel was not
 //     measured to beat this loop on the available hardware either.

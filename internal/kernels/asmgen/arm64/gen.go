@@ -2,9 +2,8 @@
 
 // Command gen produces, via go-asmgen, cmul_arm64.s (the NEON pointwise
 // complex multiply kernel) and stockham_arm64.s (the NEON Stockham pass
-// kernels, genStockhamPass4 and genStockhamLast4 below). Run with: go run
-// gen.go (or `go generate` from the
-// kernels package).
+// kernels, genStockhamPass and genStockhamLast below). Run with: go run gen.go
+// (or `go generate` from the kernels package).
 //
 // cmulNEON(a, b *complex128, n int) computes a[i] = a[i] * b[i] for i in [0,n).
 // A complex128 is two contiguous float64 {re, im} (16 bytes). The kernel
