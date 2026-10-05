@@ -4,6 +4,6 @@
 // go-asmgen to (re)produce the committed .s files via `go generate`.
 module github.com/go-fft/fft/internal/kernels/asmgen
 
-go 1.26.4
+go 1.27.1
 
-require github.com/go-asmgen/asmgen v0.14.0
+require github.com/go-asmgen/asmgen v0.15.1

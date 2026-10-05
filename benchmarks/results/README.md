@@ -4,6 +4,15 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-05, v0.2.0: go1.27.1 against go1.26.4
+
+`go1.27.1-vs-go1.26.4-20261005-v0.2.0` is not a parity run: it times the same
+source built by the two toolchains, interleaved, on Zen 3 (cfarm420),
+Neoverse-N1 (cfarm424) and Cascade Lake (cfarm151). It holds the raw `go test`
+lines, the scripts (`run.sh`, `run2.sh` for the fifteen-round rerun) and
+`analyze.py`, which prints the per-row ratios (`*.ratios.txt`). See Round 16 of
+BENCHMARKS.md.
+
 ## 2026-10-04, v0.1.7, Cascade Lake
 
 | directory | host | FFTW |

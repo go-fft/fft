@@ -1,0 +1,8 @@
+CReal_GoFFT/256                               353            373  1.055  spread 1.100 n=15
+CReal_GoFFT/65536                         169,424        170,290  1.005  spread 1.520 n=15
+Complex_GoFFT/1000                          2,659          2,673  1.005  spread 1.142 n=15
+Complex_GoFFT/1048576                   6,802,356      7,059,901  1.038  spread 1.412 n=15
+Complex_GoFFT/4096                         13,076         12,933  0.989  spread 1.159 n=15
+Real_GoFFT/1080                             1,843          1,880  1.020  spread 1.120 n=15
+Real_GoFFT/4096                             7,106          7,151  1.006  spread 1.305 n=15
+geomean go1.27.1/go1.26.4 = 1.0168 over 7 benchmarks; min 0.989 max 1.055

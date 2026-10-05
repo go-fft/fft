@@ -7,12 +7,15 @@ package kernels
 // vectorize; on these arches it fuses multiply-adds). A MEASURED decision, not
 // a gap in effort:
 //
-//   - The Go arm64 and s390x assemblers expose vector floating-point only as the
-//     fused multiply-add family (no vector VFADD/VFSUB; VADD/VSUB are integer), so
-//     a vector butterfly must emulate every add/sub as a copy plus an FMA-by-one
-//     and pay a VLD2/VST2 (or VL/VST + VMRH/VMRL) deinterleave on each pass. A
-//     full stage-level NEON kernel was built and benchmarked against this loop:
-//     it TIED the scalar loop (≈±2%), so the emulation buys nothing. (Same as
+//   - When this was measured (Go 1.26), the Go arm64 and s390x assemblers exposed
+//     vector floating-point only as the fused multiply-add family (no vector
+//     VFADD/VFSUB; VADD/VSUB are integer), so a vector butterfly had to emulate
+//     every add/sub as a copy plus an FMA-by-one and pay a VLD2/VST2 (or VL/VST +
+//     VMRH/VMRL) deinterleave on each pass. A full stage-level NEON kernel was
+//     built and benchmarked against this loop: it TIED the scalar loop (≈±2%).
+//     Go 1.27 (which this module requires) assembles arm64 VFADD/VFSUB/VFMUL/
+//     VFNEG, which removes the emulation but not the deinterleave; that kernel
+//     has not been measured again. (Same as
 //     the SIMD complex-multiply round; see cmul.go and BENCHMARKS.md. This
 //     comment used to credit a gc "autovectorizer"; gc has none, the scalar
 //     loop is simply as fast as that kernel.)
