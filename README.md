@@ -156,6 +156,37 @@ raises); an axis listed twice is refused (numpy's `fftn` transforms it twice);
 `IRFFTN`/`IRFFTNWith` take the real output's shape instead of numpy's
 `s`, and the N-D transforms do not pad or crop axes (numpy's `s` argument).
 
+### DCT and DST (scipy.fft.dct / dst)
+
+The discrete cosine and sine transforms of types I–IV, forward and inverse,
+with scipy's definitions and its `norm` argument (`fft.NormBackward`, the
+default, `fft.NormOrtho` and `fft.NormForward`):
+
+```go
+y := fft.DCT(x, 2, fft.NormOrtho)      // scipy.fft.dct(x, type=2, norm="ortho")
+x2 := fft.IDCT(y, 2, fft.NormOrtho)    // scipy.fft.idct: IDCT(DCT(x)) == x for every norm
+s := fft.DST(x, 1, fft.NormBackward)   // scipy.fft.dst(x, type=1)
+x3 := fft.IDST(s, 1, fft.NormBackward) // scipy.fft.idst
+
+// N-D over a row-major shape, every axis (scipy.fft.dctn / idctn / dstn / idstn):
+Y := fft.DCTN(img, []int{rows, cols}, 2, fft.NormOrtho)
+
+// Reusable plans, writing into your slice (dst may alias src):
+dp := fft.NewDCTPlan(n, 2)             // also NewDSTPlan(n, typ)
+dp.DCT(dst, src, fft.NormOrtho)
+dp.IDCT(dst, src, fft.NormOrtho)
+```
+
+`NormOrtho` applies scipy's default orthogonalisation (`orthogonalize=True`),
+which makes every type an orthonormal matrix; the inverse of type 2 is type 3
+and vice versa, types 1 and 4 are their own inverses. Every length is
+supported except those scipy rejects: DCT-I needs at least 2 points, the
+others 1. Each transform is O(N log N) on the package's real and complex FFTs:
+Makhoul's algorithm (one N-point real FFT) for DCT-II/III, a half-length
+complex FFT for even-length DCT-IV, a symmetric extension for DCT-I and DST-I,
+and index identities for the DSTs. The results are checked against scipy's
+own values (`testdata/scipy_r2r.json`).
+
 ## Performance
 
 **How a length is transformed.**

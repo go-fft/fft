@@ -75,11 +75,11 @@ func TestLongerSlicesStillWork(t *testing.T) {
 	}
 }
 
-// FuzzPublicAPI drives the 1-D and 2-D entry points with fuzzed lengths and
-// shapes. The only panics allowed are the package's own ("fft: ..."), and every
+// FuzzPublicAPI drives the 1-D, 2-D and DCT/DST entry points with fuzzed
+// lengths and shapes. The only panics allowed are the package's own ("fft: ..."), and every
 // transform must round-trip.
 func FuzzPublicAPI(f *testing.F) {
-	for _, s := range [][3]int{{1, 1, 0}, {7, 3, 1}, {64, 16, 2}, {97, 5, 3}, {1000, 0, 4}, {0, 9, 5}} {
+	for _, s := range [][3]int{{1, 1, 0}, {7, 3, 1}, {64, 16, 2}, {97, 5, 3}, {1000, 0, 4}, {0, 9, 5}, {12, 5, 8}, {9, 4, 10}, {2, 3, 13}, {5, 5, 19}} {
 		f.Add(s[0], s[1], uint8(s[2]))
 	}
 	f.Fuzz(func(t *testing.T, a, b int, seed uint8) {
@@ -136,6 +136,40 @@ func FuzzPublicAPI(f *testing.F) {
 		for i := range d {
 			if cmplx.Abs(bd[i]-d[i]) > 1e-9*math.Max(1, float64(total)) {
 				t.Fatalf("shape %v: FFTN round trip index %d", shape, i)
+			}
+		}
+		// DCT/DST of every type and norm, including the invalid ones (type 0
+		// and 5, Norm(3)) and the lengths below a type's minimum: those must
+		// panic with the package's message, the others round-trip.
+		typ, norm := int(seed)%6, Norm(int(seed/6)%4)
+		if a >= 0 {
+			r := make([]float64, a)
+			for i := range r {
+				r[i] = float64((i*7+int(seed))%13) - 6
+			}
+			for _, cosine := range []bool{true, false} {
+				fwd, inv := DST, IDST
+				if cosine {
+					fwd, inv = DCT, IDCT
+				}
+				back := inv(fwd(r, typ, norm), typ, norm)
+				for i := range r {
+					if math.Abs(back[i]-r[i]) > 1e-9*math.Max(1, float64(a)) {
+						t.Fatalf("n=%d type %d %v cosine=%v: round trip index %d: %v want %v", a, typ, norm, cosine, i, back[i], r[i])
+					}
+				}
+			}
+			if total > 0 {
+				dn := make([]float64, total)
+				for i := range dn {
+					dn[i] = float64(i%7) - 3
+				}
+				bn := IDCTN(DCTN(dn, shape, typ, norm), shape, typ, norm)
+				for i := range dn {
+					if math.Abs(bn[i]-dn[i]) > 1e-9*math.Max(1, float64(total)) {
+						t.Fatalf("shape %v type %d %v: DCTN round trip index %d", shape, typ, norm, i)
+					}
+				}
 			}
 		}
 		fuzzOptions(t, a, b, seed)
