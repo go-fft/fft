@@ -143,3 +143,7 @@ func radix16TableAMD64(avx2, avx512, intel bool) map[int][]int {
 	}
 	return t
 }
+
+// parThresholdNDefault is parThreshold: the change of Round 21 was measured
+// on arm64 only.
+func parThresholdNDefault() int { return parThreshold }

@@ -26,3 +26,7 @@ func oddRadicesFirstDefault() bool { return false }
 // parMinChunkDefault is the 8192 elements chosen in 2026-09 (BENCHMARKS.md,
 // Round 3), kept here: the change of Round 17 was measured on amd64 only.
 func parMinChunkDefault() int { return 1 << 13 }
+
+// parThresholdNDefault is parThreshold: the change of Round 21 was measured
+// on arm64 only.
+func parThresholdNDefault() int { return parThreshold }

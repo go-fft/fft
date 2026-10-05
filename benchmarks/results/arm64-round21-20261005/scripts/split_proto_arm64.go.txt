@@ -1,0 +1,99 @@
+package kernels
+
+// PROTOTYPE (Round 21): block-split layout between passes.
+
+var (
+	skPassIS    = [9]skPassFn{2: skPass2NEONIS, 4: skPass4NEONIS, 8: skPass8NEONIS}
+	skPassISInv = [9]skPassFn{2: skPass2NEONInvIS, 4: skPass4NEONInvIS, 8: skPass8NEONInvIS}
+	skPassSS    = [9]skPassFn{2: skPass2NEONSS, 4: skPass4NEONSS, 8: skPass8NEONSS}
+	skPassSSInv = [9]skPassFn{2: skPass2NEONInvSS, 4: skPass4NEONInvSS, 8: skPass8NEONInvSS}
+	skLastSI    = [9]skLastFn{2: skLast2NEONSI, 4: skLast4NEONSI}
+	skLastSIInv = [9]skLastFn{2: skLast2NEONInvSI, 4: skLast4NEONInvSI}
+)
+
+// SplitOK reports whether a pass can run in the prototype: mode 1 IS, 2 SS
+// (ido even), 3 SI last (ido 1, l1 even).
+func SplitOK(r, ido, l1, mode int) bool {
+	if r >= 9 {
+		return false
+	}
+	if mode == 3 {
+		return ido == 1 && l1%2 == 0 && skLastSI[r] != nil
+	}
+	return ido >= 2 && ido%2 == 0 && skPassIS[r] != nil
+}
+
+// StockhamPassSplit runs one pass in the prototype layout.
+func StockhamPassSplit(r, ido, l1 int, cc, ch, tw []complex128, inverse bool, mode int) {
+	n := r * ido * l1
+	_, _ = cc[n-1], ch[n-1]
+	switch mode {
+	case 3:
+		f := skLastSI[r]
+		if inverse {
+			f = skLastSIInv[r]
+		}
+		f(&cc[0], &ch[0], l1)
+		return
+	case 1:
+		f := skPassIS[r]
+		if inverse {
+			f = skPassISInv[r]
+		}
+		f(&cc[0], &ch[0], &tw[0], ido, l1)
+	case 2:
+		f := skPassSS[r]
+		if inverse {
+			f = skPassSSInv[r]
+		}
+		f(&cc[0], &ch[0], &tw[0], ido, l1)
+	}
+}
+
+//go:noescape
+func skPass2NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skLast2NEONSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast4NEONSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast2NEONInvSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast4NEONInvSI(cc, ch *complex128, l1 int)

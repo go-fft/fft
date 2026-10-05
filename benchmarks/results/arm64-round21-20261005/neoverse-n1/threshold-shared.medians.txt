@@ -1,0 +1,16 @@
+             R21Threshold/128/c128_t16384             n=7 med=      325179.0 spread=1.043
+             R21Threshold/128/c64_t16384              n=7 med=      479256.0 spread=1.047
+             R21Threshold/128/c128_t65536             n=7 med=      203058.0 spread=1.492
+             R21Threshold/128/c64_t65536              n=7 med=      366776.0 spread=1.083
+             R21Threshold/192/c128_t16384             n=7 med=      541263.0 spread=1.078
+             R21Threshold/192/c64_t16384              n=7 med=      832613.0 spread=1.094
+             R21Threshold/192/c128_t65536             n=7 med=      557654.0 spread=1.608
+             R21Threshold/192/c64_t65536              n=7 med=     1110152.0 spread=1.060
+             R21Threshold/256/c128_t16384             n=7 med=      707672.0 spread=1.090
+             R21Threshold/256/c64_t16384              n=7 med=      829486.0 spread=1.084
+             R21Threshold/256/c128_t65536             n=7 med=      709127.0 spread=1.071
+             R21Threshold/256/c64_t65536              n=7 med=      832439.0 spread=1.095
+             R21Threshold/512/c128_t16384             n=7 med=     1470942.0 spread=1.206
+             R21Threshold/512/c64_t16384              n=7 med=     1737346.0 spread=1.161
+             R21Threshold/512/c128_t65536             n=7 med=     1445098.0 spread=1.201
+             R21Threshold/512/c64_t65536              n=7 med=     1740247.0 spread=1.090

@@ -22,6 +22,12 @@ import "math"
 // the 576-byte scratch gap (see offTheSets), which a gap of 2112 bytes or
 // more removed on the M4 and did not change on N1. The gap was left as it is
 // (Round 18 of BENCHMARKS.md, 2026-10-05).
+//
+// Since Round 21 a power of two keeps its data block-split between passes
+// (kernels.StockhamSplitModes), so only its first pass deinterleaves and only
+// its last interleaves: on Neoverse-N1, main time ÷ new time 1.07 (2^18) to
+// 1.24 (2048), the same bits. The columns of an N-D transform run as strips of
+// batched NEON passes (PlanN's stripAxes) instead of being gathered.
 func pow2StockhamMaxDefault() int { return math.MaxInt }
 
 // r8MaxPow2Default and pow2OneRadix8Max factor a power of two 2^e on arm64 as radix-4
@@ -48,5 +54,16 @@ const pow2OneRadix8Max = 8192
 func oddRadicesFirstDefault() bool { return false }
 
 // parMinChunkDefault is the 8192 elements chosen in 2026-09 (BENCHMARKS.md,
-// Round 3), kept here: the change of Round 17 was measured on amd64 only.
+// Round 3). On arm64 it is the threshold that changed (parThresholdNDefault):
+// raising the floor instead, as amd64 did in Round 17, cost Neoverse-N1 13%
+// at 256×256 (4 goroutines instead of 8: 884 against 777 µs, 2026-10-05).
 func parMinChunkDefault() int { return 1 << 13 }
+
+// parThresholdNDefault is 65536 elements: a complex128 PlanN (FFT2, FFTN) of
+// fewer elements, 2-D smaller than 256×256, runs on one goroutine. On Neoverse-N1 (cfarm424, 64 cores, all of them,
+// median of seven rounds, 2026-10-05) splitting less than that work lost
+// wherever it split: 128×128 took 357 µs on two goroutines against 211 µs on
+// one; 128×256 516 (four) and 642 (two) against 480; 192×192 579 and 730
+// against 553. From 256×256 more goroutines won: 777 µs on eight against 1142
+// on one, and 512×512 1.63 ms against 4.80. (BENCHMARKS.md, Round 21.)
+func parThresholdNDefault() int { return 1 << 16 }

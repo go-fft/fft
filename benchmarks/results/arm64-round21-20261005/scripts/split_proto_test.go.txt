@@ -1,0 +1,107 @@
+package fft
+
+// PROTOTYPE (Round 21): the data kept block-split between passes.
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
+
+func (p *skPlan) splitFits() bool {
+	s := len(p.stages)
+	if s < 2 {
+		return false
+	}
+	for k, st := range p.stages {
+		mode := 2
+		if k == s-1 {
+			mode = 3
+		}
+		if !kernels.SplitOK(st.r, st.ido, st.l1, mode) {
+			return false
+		}
+	}
+	return true
+}
+
+// transformSplit is transform (out of place) with the data block-split
+// between passes: the first pass reads interleaved and writes split, the
+// passes between read and write split, the last reads split and writes
+// interleaved.
+func (p *skPlan) transformSplit(dst, src []complex128, inverse bool) {
+	bp := p.scratch.Get().(*[]complex128)
+	s := len(p.stages)
+	scr := (*bp)[:p.n]
+	if takesGap(p.n) {
+		scr = offTheSets(*bp, dst, p.n)
+	}
+	in := src
+	for k := range p.stages {
+		out := scr
+		if (s-1-k)%2 == 0 {
+			out = dst
+		}
+		st := &p.stages[k]
+		tw := st.twX
+		if inverse {
+			tw = st.twXc
+		}
+		mode := 2
+		switch k {
+		case 0:
+			mode = 1
+		case s - 1:
+			mode = 3
+		}
+		kernels.StockhamPassSplit(st.r, st.ido, st.l1, in, out, tw, inverse, mode)
+		in = out
+	}
+	p.scratch.Put(bp)
+}
+
+var splitSizes = []int{64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 1 << 17, 1 << 18, 1 << 20}
+
+func TestSplitProtoBitIdentical(t *testing.T) {
+	for _, n := range splitSizes {
+		p := newSKPlan(n)
+		if !p.splitFits() {
+			t.Logf("n=%d: does not fit %v", n, skFactorize(n))
+			continue
+		}
+		for s, x := range neonSignals(n) {
+			for _, inv := range []bool{false, true} {
+				a, b := make([]complex128, n), make([]complex128, n)
+				p.transform(a, x, inv)
+				p.transformSplit(b, x, inv)
+				for i := range a {
+					if !neonSameBits(a[i], b[i]) {
+						t.Fatalf("n=%d signal %d inv=%v i=%d: %v vs %v", n, s, inv, i, b[i], a[i])
+					}
+				}
+			}
+		}
+	}
+}
+
+func BenchmarkSplit(b *testing.B) {
+	for _, n := range splitSizes {
+		p := newSKPlan(n)
+		if !p.splitFits() {
+			continue
+		}
+		x := benchComplex(n)
+		dst := make([]complex128, n)
+		b.Run(fmt.Sprintf("%d/inter", n), func(b *testing.B) {
+			for b.Loop() {
+				p.transform(dst, x, false)
+			}
+		})
+		b.Run(fmt.Sprintf("%d/split", n), func(b *testing.B) {
+			for b.Loop() {
+				p.transformSplit(dst, x, false)
+			}
+		})
+	}
+}

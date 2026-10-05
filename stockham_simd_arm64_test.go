@@ -146,7 +146,14 @@ func TestStockhamEachPassMatchesScalarNEON(t *testing.T) {
 						scalar := make([]complex128, n)
 						st.passScalar(scalar, x, inverse)
 						simd := make([]complex128, n)
-						st.pass(simd, x, inverse)
+						in := x
+						if st.split >= 2 { // the kernel reads block-split
+							in = toSplit(x)
+						}
+						st.pass(simd, in, inverse)
+						if st.split == 1 || st.split == 2 { // and writes block-split
+							simd = fromSplit(simd)
+						}
 						for i := range scalar {
 							if !neonMatch(simd[i], scalar[i]) {
 								t.Fatalf("n=%d factors %v pass %d (r=%d ido=%d) signal %d inverse=%v index %d: %v vs scalar %v",
@@ -171,4 +178,150 @@ func neonMatch(a, b complex128) bool {
 	}
 	near := func(x, y float64) bool { return x == y || math.Abs(x-y) <= 1e-12*(1+math.Abs(y)) }
 	return raceEnabled && near(real(a), real(b)) && near(imag(a), imag(b))
+}
+
+// TestStockhamBatchMatchesLinesNEON holds the batched pass kernels to the 1-D
+// passes, line by line and bit for bit: every batched radix, l1 and ido (1,
+// the final pass, through odd and even), batches of 1 to 9 lines (an odd one
+// ends with a lone lane), and point strides wider than the batch on either
+// side, forward and inverse, on every neonSignals signal. Each line of the
+// batch is gathered, run through the stage's 1-D pass (st.pass: the NEON
+// kernel where there is one, the Go pass otherwise) and compared with the
+// batch's output for that line. Outputs start as a sentinel, so a kernel that
+// wrote between the rows of the strip fails too.
+func TestStockhamBatchMatchesLinesNEON(t *testing.T) {
+	defer func(v bool) { kernels.UseStockhamBatchNEON = v }(kernels.UseStockhamBatchNEON)
+	kernels.UseStockhamBatchNEON = true
+	sentinel := complex(-7.25, 3.5)
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		for _, l1 := range []int{1, 2, 3, 5} {
+			for _, ido := range []int{1, 2, 3, 4, 5, 7, 8, 13} {
+				var factors []int
+				stage := 0
+				if l1 > 1 {
+					factors, stage = append(factors, l1), 1
+				}
+				factors = append(factors, r)
+				if ido > 1 {
+					factors = append(factors, ido)
+				}
+				n := r * ido * l1
+				st := newSKPlanFactors(n, factors).stages[stage]
+				if st.r != r || st.l1 != l1 || st.ido != ido {
+					t.Fatalf("stage %+v, want r=%d l1=%d ido=%d", st, r, l1, ido)
+				}
+				st.split = 0 // the 1-D pass on interleaved lines
+				fwd, conj := st.batchTwiddles()
+				for _, w := range []int{1, 2, 3, 4, 5, 8, 9} {
+					for _, gap := range [][2]int{{0, 0}, {3, 0}, {0, 1}, {2, 5}} {
+						sIn, sOut := w+gap[0], w+gap[1]
+						size := (n-1)*sIn + w
+						for s, x := range neonSignals(size) {
+							for _, inverse := range []bool{false, true} {
+								tw := fwd
+								if inverse {
+									tw = conj
+								}
+								out := make([]complex128, (n-1)*sOut+w)
+								for i := range out {
+									out[i] = sentinel
+								}
+								if !kernels.StockhamBatchPass(r, ido, l1, x, out, tw, w, sIn, sOut, inverse) {
+									t.Fatalf("r=%d: no batched kernel", r)
+								}
+								line, want := make([]complex128, n), make([]complex128, n)
+								for c := 0; c < w; c++ {
+									for p := range line {
+										line[p] = x[p*sIn+c]
+									}
+									st.pass(want, line, inverse)
+									for p := range want {
+										if got := out[p*sOut+c]; !neonMatch(got, want[p]) {
+											t.Fatalf("r=%d l1=%d ido=%d w=%d sIn=%d sOut=%d signal %d inverse=%v line %d point %d: batch %v vs 1-D %v",
+												r, l1, ido, w, sIn, sOut, s, inverse, c, p, got, want[p])
+										}
+									}
+								}
+								for p := 0; p < n-1; p++ {
+									for c := w; c < sOut; c++ {
+										if out[p*sOut+c] != sentinel {
+											t.Fatalf("r=%d l1=%d ido=%d w=%d sOut=%d: wrote between rows at point %d, column %d", r, l1, ido, w, sOut, p, c)
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	// A radix without a batched kernel is refused, and the Go pass runs.
+	if kernels.StockhamBatchPass(7, 1, 1, make([]complex128, 7), make([]complex128, 7), nil, 1, 1, 1, false) {
+		t.Fatal("radix 7 has no batched kernel")
+	}
+	kernels.UseStockhamBatchNEON = false
+	if kernels.StockhamBatchPass(4, 1, 1, make([]complex128, 4), make([]complex128, 4), nil, 1, 1, 1, false) {
+		t.Fatal("UseStockhamBatchNEON off: the kernel ran")
+	}
+}
+
+// toSplit returns x in the block-split layout of the split kernels: the pair
+// of points 2q, 2q+1 as re(2q), re(2q+1), im(2q), im(2q+1). len(x) is even.
+func toSplit(x []complex128) []complex128 {
+	y := make([]complex128, len(x))
+	for q := 0; q < len(x); q += 2 {
+		y[q] = complex(real(x[q]), real(x[q+1]))
+		y[q+1] = complex(imag(x[q]), imag(x[q+1]))
+	}
+	return y
+}
+
+// fromSplit is toSplit's inverse.
+func fromSplit(y []complex128) []complex128 {
+	x := make([]complex128, len(y))
+	for q := 0; q < len(y); q += 2 {
+		x[q] = complex(real(y[q]), real(y[q+1]))
+		x[q+1] = complex(imag(y[q]), imag(y[q+1]))
+	}
+	return x
+}
+
+// TestStockhamBatchGoPassNEON runs the Go batched pass, which the kernels
+// replace here, against them: gc fuses its complex products differently from
+// the 1-D passes (scalarFuses), so the two agree to rounding, not to the bit,
+// and exactly where a value is not finite.
+func TestStockhamBatchGoPassNEON(t *testing.T) {
+	defer func(v bool) { kernels.UseStockhamBatchNEON = v }(kernels.UseStockhamBatchNEON)
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		for _, f := range [][]int{{r, 3}, {2, r}} {
+			n := f[0] * f[1]
+			p := newSKPlanFactors(n, f)
+			for k := range p.stages {
+				st := p.stages[k]
+				fwd, conj := st.batchTwiddles()
+				const w, sIn, sOut = 5, 7, 6
+				x := cmplxSignal((n-1)*sIn + w)
+				for _, inverse := range []bool{false, true} {
+					tw := fwd
+					if inverse {
+						tw = conj
+					}
+					var out [2][]complex128
+					for i, on := range []bool{true, false} {
+						kernels.UseStockhamBatchNEON = on
+						out[i] = make([]complex128, (n-1)*sOut+w)
+						st.passBatch(out[i], x, tw, w, sIn, sOut, inverse)
+					}
+					scale := maxPart(out[0])
+					for i := range out[0] {
+						near := func(a, b float64) bool { return math.Abs(a-b) <= 1e-12*scale }
+						if !near(real(out[0][i]), real(out[1][i])) || !near(imag(out[0][i]), imag(out[1][i])) {
+							t.Fatalf("radices %v pass %d inverse=%v index %d: kernel %v, Go %v", f, k, inverse, i, out[0][i], out[1][i])
+						}
+					}
+				}
+			}
+		}
+	}
 }

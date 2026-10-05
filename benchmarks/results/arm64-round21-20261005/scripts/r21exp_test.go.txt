@@ -1,0 +1,153 @@
+// The experiment file behind the gap, strip-width and placement runs. It
+// builds only against a tree with three experiment hooks, not in the pull
+// request: setGap made a variable, plann.go's stripWidth returning
+// expStripWidth when it is set, and (exp.mac/exp.n1, the M4 grid) a
+// variable expNoSplit that skips kernels.StockhamSplitModes.
+
+//go:build arm64
+
+package fft
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"testing"
+	"unsafe"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
+
+var expStripWidth = 0 // EXPERIMENT
+
+func init() {
+	if g := os.Getenv("GAP"); g != "" {
+		v, _ := strconv.Atoi(g)
+		setGap = uintptr(v)
+	}
+	if os.Getenv("BATCH") == "0" {
+		kernels.UseStockhamBatchNEON = false
+	}
+}
+
+func BenchmarkGapSK(b *testing.B) {
+	for _, n := range []int{1024, 2048, 4096, 8192, 16384, 32768, 65536, 1 << 17, 1 << 18, 1 << 20} {
+		p := newSKPlan(n)
+		x := benchComplex(n)
+		dst := make([]complex128, n)
+		b.Run(fmt.Sprint(n), func(b *testing.B) {
+			for b.Loop() {
+				p.transform(dst, x, false)
+			}
+		})
+	}
+}
+
+// BenchmarkSW sweeps the strip width on n×n plans, one goroutine: the column
+// pass as strips at w = 4, 8, 16, 32, 64, and gathered.
+func BenchmarkSW(b *testing.B) {
+	defer func(v bool) { stripAxes = v }(stripAxes)
+	for _, n := range []int{32, 64, 100, 128, 256, 512, 1000, 1024, 2048} {
+		src := benchComplex(n * n)
+		dst := make([]complex128, n*n)
+		copy(dst, src)
+		stripAxes = false
+		pl := NewPlanN(n, n)
+		blocks := n / blockWidth(n)
+		if n%blockWidth(n) != 0 {
+			blocks++
+		}
+		b.Run(fmt.Sprintf("%d/lines", n), func(b *testing.B) {
+			for b.Loop() {
+				pl.blockedLines(dst, dst, 0, 0, blocks, false)
+			}
+		})
+		stripAxes = true
+		for _, w := range []int{4, 8, 16, 32, 64} {
+			expStripWidth = w
+			ps := NewPlanN(n, n)
+			if ps.strips[0] == nil {
+				break
+			}
+			strips := (n + w - 1) / w
+			b.Run(fmt.Sprintf("%d/w%d", n, w), func(b *testing.B) {
+				for b.Loop() {
+					ps.stripLines(dst, dst, 0, 0, strips, false)
+				}
+			})
+		}
+		expStripWidth = 0
+	}
+}
+
+// BenchmarkFT times n×m plans on all cores under fan-out rules: parMinChunk
+// (m) and parThreshold (t).
+func BenchmarkFT(b *testing.B) {
+	defer func(v, t int) { parMinChunk, parThreshold = v, t }(parMinChunk, parThreshold)
+	for _, sh := range [][2]int{{64, 64}, {128, 128}, {128, 256}, {256, 128}, {192, 192}, {256, 256}, {512, 512}, {1024, 1024}} {
+		p := NewPlanN(sh[0], sh[1])
+		src := benchComplex(sh[0] * sh[1])
+		dst := make([]complex128, len(src))
+		for _, r := range [][2]int{{8192, 16384}, {16384, 16384}, {32768, 32768}, {8192, 32768}, {8192, 65536}, {16384, 65536}, {1 << 40, 1 << 40}} {
+			parMinChunk, parThreshold = r[0], r[1]
+			name := fmt.Sprintf("%dx%d/m%d_t%d", sh[0], sh[1], r[0], r[1])
+			if r[0] == 1<<40 {
+				name = fmt.Sprintf("%dx%d/serial", sh[0], sh[1])
+			}
+			b.Run(name, func(b *testing.B) {
+				for b.Loop() {
+					p.FFT(dst, src)
+				}
+			})
+		}
+	}
+}
+
+// BenchmarkPlace times whole n×n transforms with src, dst and the PlanN
+// scratch placed at chosen offsets (bytes, mod 16 KB) from a 64 KB-aligned base.
+func BenchmarkPlace(b *testing.B) {
+	defer func(v bool) { stripAxes = v }(stripAxes)
+	for _, n := range []int{64, 128, 256} {
+		N := n * n
+		arena := make([]complex128, 4*N+3*65536/16)
+		base := 0
+		for uintptr(unsafePtr(&arena[base]))%65536 != 0 {
+			base++
+		}
+		at := func(k, off int) []complex128 { // k-th region, off bytes
+			s := base + k*(N+65536/16) + off/16
+			return arena[s : s+N : s+N]
+		}
+		for _, mode := range []string{"strips", "lines"} {
+			stripAxes = mode == "strips"
+			p := NewPlanN(n, n)
+			bl := len(*(p.bufs.Get().(*[]complex128)))
+			for _, which := range []string{"buf", "src"} {
+				for off := 0; off < 16384; off += 1024 {
+					dst := at(0, 0)
+					src, boff := at(1, 0), 0
+					if which == "buf" {
+						boff = off
+					} else {
+						src = at(1, off)
+					}
+					s := base + 2*(N+65536/16) + boff/16
+					big := arena[s:]
+					if len(big) < bl {
+						b.Fatal("arena too small")
+					}
+					sl := big[:bl:bl]
+					copy(src, benchComplex(N))
+					b.Run(fmt.Sprintf("%d/%s/%s/%d", n, mode, which, off), func(b *testing.B) {
+						p.bufs.Put(&sl)
+						for b.Loop() {
+							p.FFT(dst, src)
+						}
+					})
+				}
+			}
+		}
+	}
+}
+
+func unsafePtr(p *complex128) uintptr { return uintptr(unsafe.Pointer(p)) }

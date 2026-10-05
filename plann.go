@@ -28,13 +28,19 @@ type PlanN struct {
 	// whose lines are transformed one by one.
 	strips [][][2][]complex128
 	bufs   sync.Pool
+	// colsOf2 marks RealPlan2's column plan, one step of a transform whose
+	// rows fan out by parallelizeLines: its axis follows the same rule, not
+	// parallelizeAxis's, so both steps decide alike. (With arm64's higher
+	// PlanN threshold, 256×256 real columns on one goroutine after rows on
+	// many took 858 µs against 584 µs, Neoverse-N1, 2026-10-05.)
+	colsOf2 bool
 }
 
 // stripAxes makes NewPlanN run a non-contiguous axis as batched Stockham
 // passes over strips of stripWidth neighbouring lines (stripLines) where it
 // can, instead of gathering lines into scratch. It is on where the batched
-// pass kernels run (AVX2), and a variable so the tests run both paths
-// everywhere.
+// pass kernels run (AVX2 on amd64, NEON on arm64), and a variable so the
+// tests run both paths everywhere.
 var stripAxes = kernels.StockhamBatchKernels()
 
 // stripWidth is how many neighbouring lines one strip of an axis of length n
@@ -185,7 +191,10 @@ func stripsFit(pl *Plan) bool {
 func (p *PlanN) transformAxis(dst, src []complex128, ax int, inverse bool) {
 	n := p.shape[ax]
 	lines := p.size / n
-	par := parallelizeLines(lines, n)
+	par := parallelizeAxis(lines, n)
+	if p.colsOf2 {
+		par = parallelizeLines(lines, n)
+	}
 	if p.stride[ax] == 1 {
 		// The last axis: each line is contiguous and is transformed where it
 		// lies — no gather, no scatter.

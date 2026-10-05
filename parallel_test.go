@@ -5,14 +5,17 @@ import (
 	"testing"
 )
 
-// withWorkers runs fn with parWorkers temporarily set to w, restoring it after.
+// withWorkers runs fn with parWorkers temporarily set to w (and parThresholdN
+// to parThreshold), restoring both after.
 // It lets the parallel and serial branches both be exercised deterministically
 // regardless of the host core count, so the coverage gate does not depend on
 // GOMAXPROCS.
 func withWorkers(w int, fn func()) {
-	saved := parWorkers
-	parWorkers = w
-	defer func() { parWorkers = saved }()
+	saved, th := parWorkers, parThresholdN
+	// The tests' grids were sized for parThreshold; arm64's PlanN threshold
+	// is higher (route_arm64.go), and would leave some on one goroutine.
+	parWorkers, parThresholdN = w, parThreshold
+	defer func() { parWorkers, parThresholdN = saved, th }()
 	fn()
 }
 

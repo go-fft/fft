@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"runtime"
 	"testing"
 )
 
@@ -23,14 +24,20 @@ func withStrips(on bool, shape ...int) *PlanN {
 	return NewPlanN(shape...)
 }
 
+// stripsExact: on arm64 the strips run the NEON batched kernels, which copy
+// the 1-D passes' fused products, so outside -race (which compiles the Go
+// passes with other fusions) strips and lines agree bit for bit there too.
+var stripsExact = runtime.GOARCH == "arm64" && !raceEnabled
+
 // agree is bit identity, or, where the scalar passes fuse multiply-adds
-// (scalarFuses), agreement of each part to a few ulps of the output's scale
-// when finite, and bit identity when not.
+// (scalarFuses) and the strips are not held to the bit (stripsExact),
+// agreement of each part to a few ulps of the output's scale when finite, and
+// bit identity when not.
 func agree(a, b complex128, scale float64) bool {
 	if sameBits(a, b) {
 		return true
 	}
-	if !scalarFuses {
+	if !scalarFuses || stripsExact {
 		return false
 	}
 	near := func(x, y float64) bool {
