@@ -265,7 +265,7 @@ job; the gate is never lowered and there is no coverage-gaming knob.
   each for a concrete checked reason (no assemblable vector FMA, and on ppc64le
   no vector double arithmetic at all — see above). 🔒
 
-### What the transforms run today (v0.1.5)
+### What the transforms run today (v0.2.0)
 
 The pointwise multiply above was the first kernel; it stayed off the hot path
 everywhere, because the compiler's scalar loop measured as fast. The kernels
