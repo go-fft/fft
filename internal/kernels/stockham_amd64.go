@@ -331,6 +331,11 @@ type skBatchFn func(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin
 // direction (unused when ido == 1). The arithmetic is the scalar pass's,
 // operation for operation, on every value of the batch.
 func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int, inverse bool) bool {
+	if w < 1 || sIn < w || sOut < w || ido < 1 || l1 < 1 {
+		// The kernels walk p·sIn+j for j < w; a stride below w, or an empty
+		// batch, is a layout the length check below cannot vouch for.
+		panic("kernels: StockhamBatchPass: need w >= 1, sIn and sOut >= w, ido and l1 >= 1")
+	}
 	if !UseStockhamBatchAVX2 || !stockhamSIMD(r) {
 		return false
 	}

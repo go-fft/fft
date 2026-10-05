@@ -2,35 +2,37 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-## Current numbers (2026-10-04)
+## Current numbers (2026-10-05, v0.8.0)
 
 Measured on three GCC Compile Farm hosts against FFTW 3.3.10 (built from source
 with the host's SIMD), numpy.fft 2.5.3 and scipy.fft 1.18.1 (pocketfft), and
-gonum v0.16.0. Every transform first passed the correctness gate (24/24 against
-`numpy.fft`, `rtol=1e-9`). The full reports and raw inputs are in
-[`benchmarks/results/`](benchmarks/results/): v0.1.5 on Zen 3 and Neoverse-N1,
-v0.1.7 on Cascade Lake, built with go1.26.4. None of those machines runs
-different code under v0.2.0, and the Go 1.27.1 it requires moves these rows by
-less than 2% overall (Round 16). go-fft time ÷ FFTW time, below 1 means go-fft
-is faster:
+gonum, with go1.27.1. Every transform first passed the correctness gate (24/24
+against `numpy.fft`, `rtol=1e-9`). Zen 3 and Cascade Lake: Round 17's run
+([`round17-amd64-small-20261005/`](benchmarks/results/round17-amd64-small-20261005/)),
+every row on one core. Neoverse-N1: Round 18's run
+([`arm64-neon-stockham-20261005/`](benchmarks/results/arm64-neon-stockham-20261005/)),
+1-D on one core and 2-D on all cores, before v0.8.0's column passes. go-fft time
+÷ FFTW time, below 1 means go-fft is faster (bold: at or above FFTW, within 5%):
 
-| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64) | Xeon Cascade Lake (AVX-512) |
+| transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64, NEON) | Xeon Cascade Lake (AVX-512) |
 |:--|--:|--:|--:|
-| complex 256 | 1.45 | 1.64 | 1.42 |
-| complex 4,096 | 1.23 | 1.16 | 1.11 |
-| complex 65,536 | **0.97** | **0.85** | 1.57 |
-| complex 1,048,576 | **0.63** | **0.59** | 1.16 |
-| complex 1,000 (2³·5³) | 1.27 | 1.55 | 1.42 |
-| complex 1,009 (prime, Rader) | **0.64** | **0.57** | **0.65** |
-| complex 10,007 (prime, Bluestein) | 1.24 | 1.34 | **0.96** |
-| RFFT 4,096 | 1.29 | 1.26 | 1.24 |
-| RFFT 1,048,576 | **0.99** | **0.75** | 1.54 |
-| 2-D 128×128 | 1.96 | 2.48 | 1.67 |
-| 2-D 1024×1024 | **0.36** | **0.14** | **0.33** |
+| complex 256 | 1.41 | 1.26 | 1.36 |
+| complex 4,096 | 1.27 | **0.83** | **1.01** |
+| complex 65,536 | **1.02** | **0.67** | 1.53 |
+| complex 1,048,576 | **0.58** | **0.51** | 1.09 |
+| complex 1,000 (2³·5³) | 1.09 | 1.07 | 1.23 |
+| complex 1,009 (prime, Rader) | **0.65** | **0.49** | **0.61** |
+| complex 10,007 (prime, Bluestein) | 1.20 | **0.89** | **0.93** |
+| RFFT 4,096 | 1.29 | **1.03** | 1.22 |
+| RFFT 1,048,576 | **0.93** | **0.60** | 1.53 |
+| 2-D 128×128 | **0.89** | 1.99 | 1.21 |
+| 2-D 1024×1024 | **0.91** | **0.13** | **0.71** |
 
-- **Against FFTW:** at or above it on 6 of the 24 rows on Zen 3, and on 7 of 24 on Neoverse-N1.
-- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows on Zen 3; on Neoverse-N1, on 23 and 20 of 24.
-- **Cascade Lake:** at or above FFTW on 5 of 24 rows, and at or above numpy and scipy on all 24. Its large 1-D transforms trail FFTW (complex 65536 at 1.57×, RFFT 2^20 at 1.54×), unlike Zen 3's: complex throughput falls from 18.6 GFLOP/s at 4096 to 8.3 at 65536. Round 13 looked for the cause and did not establish it.
+- **Against FFTW:** at or above it on 9 of the 24 rows on Zen 3, 13 on Neoverse-N1 and 4 on Cascade Lake (5 the day before: FFTW's own times moved by up to 14% between the two days).
+- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows on Zen 3 and Cascade Lake; on Neoverse-N1, on 23 and 22 of 24.
+- **Cascade Lake:** its large 1-D transforms still trail FFTW (complex 65536 at 1.53×, RFFT 2^20 at 1.53×), unlike Zen 3's. Round 13 looked for the cause and did not establish it.
+- **Neoverse-N1, 2-D 64² and 128²:** they ran through the parallel path, slower there than one core (128²: 394 µs against 212 µs). v0.8.0 raised the threshold on amd64 only.
+- **The previous table** (2026-10-04, v0.1.5/v0.1.7, go1.26.4) is in the git history of this file and in the dated rounds below.
 
 The dated rounds below (from "Stockham round" on) record how the code got
 there, with every measurement behind each kept or dropped change.
