@@ -245,6 +245,124 @@ func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) b
 	return true
 }
 
+type skLastRunFn func(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+// The final-pass kernels of the fft package's blocked schedule, by radix, per
+// width (genStockhamLastRun).
+var (
+	skLastRun256 = [9]skLastRunFn{2: skLastRun2AVX2, 4: skLastRun4AVX2, 8: skLastRun8AVX2}
+	skLastRun512 = [9]skLastRunFn{2: skLastRun2AVX512, 4: skLastRun4AVX512, 8: skLastRun8AVX512}
+)
+
+// StockhamLastRun runs the final pass (ido == 1) of radix r over runs·run
+// blocks of r points read one after the other from cc, and reports true, or
+// reports false (and does nothing) when no kernel can: no AVX2, a radix other
+// than 2, 4 or 8, or run not a positive multiple of 4. Output j of block
+// q·run + c (c < run) goes to ch[q·gap + c + j·os]: the outputs land in runs
+// of run consecutive points, gap apart, instead of one contiguous stream per
+// j. The arithmetic is StockhamPass's final pass, operation for operation;
+// wide allows the AVX-512 kernel as it does there.
+func StockhamLastRun(r int, cc, ch []complex128, os, runs, run, gap int, inverse, wide bool) bool {
+	if !UseStockhamAVX2 || runs < 1 || run < 4 || run%4 != 0 || skLastRun256[r] == nil {
+		return false
+	}
+	_, _ = cc[runs*run*r-1], ch[(runs-1)*gap+run-1+(r-1)*os] // the kernels trust these lengths
+	w := stockhamWidth(r, 1, true, UseStockhamAVX512 && wide)
+	k, _, _ := stockhamKernels(r, w, inverse)
+	stockhamLastRunKernel(r, w)(&cc[0], &ch[0], k, os, runs, run, gap)
+	return true
+}
+
+// stockhamLastRunKernel returns the radix-r StockhamLastRun kernel of a width
+// stockhamWidth chose; a pure function, tested for both widths on any machine.
+func stockhamLastRunKernel(r, w int) skLastRunFn {
+	if w == 512 {
+		return skLastRun512[r]
+	}
+	return skLastRun256[r]
+}
+
+type skStridedFn func(cc, ch, tw *complex128, k *float64, cnt, nb, sin, sout, din, dout, dtw, bf, br int)
+
+// The strided pass kernels by radix, per width (genStockhamStrided).
+var (
+	skStrided256 = [9]skStridedFn{4: skStrided4AVX2, 8: skStrided8AVX2}
+	skStrided512 = [9]skStridedFn{4: skStrided4AVX512, 8: skStrided8AVX512}
+)
+
+// StockhamStrided runs part of a Stockham pass of radix r (ido >= 4) with
+// every stride given, and reports true, or reports false (and does nothing)
+// when no kernel can: no AVX2, a radix other than 4 or 8, or cnt not a
+// positive multiple of 4. It runs nb blocks of cnt points: point i of block b
+// reads its inputs cc[b·bin + i + m·sin] (m < r), applies the pass's
+// butterfly, multiplies output j >= 1 by its twiddle and writes
+// ch[b·bout + i + j·sout]. tw is the pass's table (StockhamTwiddles) from the
+// group of the block's first point on, and block b's twiddles start btw
+// entries after block b-1's. first0 and firstRest say whether the first point
+// of block 0, and of the other blocks, is the pass's point i = 0, which is
+// not multiplied (the plain pass keeps it exact the same way). The arithmetic
+// is StockhamPass's, operation for operation.
+func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bout, btw int, first0, firstRest, inverse, wide bool) bool {
+	if !UseStockhamAVX2 || nb < 1 || cnt < 4 || cnt%4 != 0 || skStrided256[r] == nil {
+		return false
+	}
+	// The kernels trust these lengths.
+	_, _ = cc[(nb-1)*bin+(r-1)*sin+cnt-1], ch[(nb-1)*bout+(r-1)*sout+cnt-1]
+	_ = tw[(nb-1)*btw+(r-1)*cnt-1]
+	w := stockhamWidth(r, cnt, true, UseStockhamAVX512 && wide)
+	k, _, _ := stockhamKernels(r, w, inverse)
+	stockhamStridedKernel(r, w)(&cc[0], &ch[0], &tw[0], k, cnt, nb, sin, sout,
+		16*(bin-cnt), 16*(bout-cnt), 16*btw, flag(first0), flag(firstRest))
+	return true
+}
+
+// flag is 1 for true, 0 for false.
+func flag(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+// stockhamStridedKernel returns the radix-r StockhamStrided kernel of a width
+// stockhamWidth chose; a pure function, tested for both widths on any machine.
+func stockhamStridedKernel(r, w int) skStridedFn {
+	if w == 512 {
+		return skStrided512[r]
+	}
+	return skStrided256[r]
+}
+
+//go:noescape
+func skStrided4AVX2(cc, ch, tw *complex128, k *float64, cnt, nb, sin, sout, din, dout, dtw, bf, br int)
+
+//go:noescape
+func skStrided8AVX2(cc, ch, tw *complex128, k *float64, cnt, nb, sin, sout, din, dout, dtw, bf, br int)
+
+//go:noescape
+func skStrided4AVX512(cc, ch, tw *complex128, k *float64, cnt, nb, sin, sout, din, dout, dtw, bf, br int)
+
+//go:noescape
+func skStrided8AVX512(cc, ch, tw *complex128, k *float64, cnt, nb, sin, sout, din, dout, dtw, bf, br int)
+
+//go:noescape
+func skLastRun2AVX2(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+//go:noescape
+func skLastRun4AVX2(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+//go:noescape
+func skLastRun8AVX2(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+//go:noescape
+func skLastRun2AVX512(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+//go:noescape
+func skLastRun4AVX512(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+//go:noescape
+func skLastRun8AVX512(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
 //go:noescape
 func skPass2AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 

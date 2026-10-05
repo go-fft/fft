@@ -1,0 +1,26 @@
+ 17:16:17 up 24 days,  1:41,  7 users,  load average: 3.15, 2.91, 2.84
+=== RUN   TestRound20Probe
+cascade n=32768 plain                    4.914 ns/pt [4.878 4.991]
+cascade n=32768 L8192_t2_b16_wtrue_c0    4.816 ns/pt [4.810 4.832]
+cascade n=32768 L8192_t2_b16_wtrue_c256  4.807 ns/pt [4.801 6.125]
+cascade n=32768 plain_avx2               4.905 ns/pt [4.884 5.058]
+cascade n=65536 plain                    4.526 ns/pt [4.492 4.631]
+cascade n=65536 L8192_t2_b8_wtrue_c0     5.066 ns/pt [5.060 5.131]
+cascade n=65536 L8192_t2_b8_wtrue_c256   5.113 ns/pt [5.104 5.575]
+cascade n=65536 plain_avx2               4.504 ns/pt [4.487 4.583]
+cascade n=131072 plain                    4.971 ns/pt [4.902 5.151]
+cascade n=131072 L8192_t2_b4_wtrue_c0     6.018 ns/pt [5.697 13.292]
+cascade n=131072 L8192_t2_b4_wtrue_c256   5.672 ns/pt [5.646 5.760]
+cascade n=131072 plain_avx2               4.976 ns/pt [4.907 5.119]
+cascade n=262144 plain                    5.369 ns/pt [5.327 5.630]
+cascade n=262144 L8192_t3_b16_wtrue_c0    5.425 ns/pt [5.396 14.225]
+cascade n=262144 L8192_t3_b16_wtrue_c256  6.582 ns/pt [6.562 6.620]
+cascade n=262144 plain_avx2               5.361 ns/pt [5.347 5.392]
+cascade n=1048576 plain                    6.561 ns/pt [6.515 6.651]
+cascade n=1048576 L8192_t3_b4_wtrue_c0     7.140 ns/pt [7.097 11.920]
+cascade n=1048576 L8192_t3_b4_wtrue_c256   8.260 ns/pt [8.199 8.337]
+cascade n=1048576 plain_avx2               6.539 ns/pt [6.526 6.627]
+--- PASS: TestRound20Probe (9.22s)
+PASS
+ 17:16:26 up 24 days,  1:41,  7 users,  load average: 3.12, 2.91, 2.84
+ALLDONE

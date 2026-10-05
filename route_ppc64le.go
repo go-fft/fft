@@ -35,3 +35,7 @@ func parMinChunkDefault() int { return 1 << 13 }
 // parThresholdNDefault is parThreshold: the change of Round 21 was measured
 // on arm64 only.
 func parThresholdNDefault() int { return parThreshold }
+
+// cascadeMinDefault is 0: the blocked schedule (cascade.go) was measured on
+// amd64 only, so every length runs breadth first here.
+func cascadeMinDefault() int { return 0 }

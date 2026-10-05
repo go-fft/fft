@@ -4,6 +4,14 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-05, Round 20: large transforms on Cascade Lake
+
+`round20-cascade-large-20261005` holds the host probes (clock, latency,
+bandwidth, FFTW's own scaling), the pass-by-pass and schedule experiments,
+the interleaved A/B runs (Cascade Lake, Zen 3) and two pinned parity runs on
+Cascade Lake, `main` and the blocked schedule, each correct 24/24. See its
+README.
+
 ## 2026-10-05, Round 19: a radix-16 pass on amd64
 
 `round19-radix16-20261005` holds the factorization sweeps, per-pass timings,
