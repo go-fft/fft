@@ -85,6 +85,77 @@ Empty input returns an empty slice; length 1 returns a copy. `RFFT` keeps only
 the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric
 (`X[N-k] = conj(X[k])`); `IRFFT` takes the target length `n` explicitly.
 
+### numpy's optional arguments: `n`, `norm`, `axes`
+
+Every transform has a `...With` variant taking an `fft.Options`, whose fields
+are numpy's keyword arguments and whose zero value is numpy's defaults — so
+`FFTWith(x, fft.Options{})` is `FFT(x)` and a call names only what it changes.
+The plain functions keep their signatures. A field that does not apply (`N` on
+an N-D transform, `Axes` on a 1-D one) panics rather than being ignored.
+
+```go
+o := fft.Options{
+	N:    1024,           // numpy n: truncate or zero-pad the input (1-D only)
+	Norm: fft.NormOrtho,  // numpy norm: NormBackward (zero value), NormOrtho, NormForward
+	Axes: nil,            // numpy axes: nil = all; negative counts from the end (N-D only)
+}
+
+X := fft.FFTWith(x, fft.Options{N: 1024, Norm: fft.NormOrtho}) // numpy.fft.fft(x, n, norm=)
+y := fft.IFFTWith(X, fft.Options{Norm: fft.NormOrtho})        // numpy.fft.ifft
+R := fft.RFFTWith(r, fft.Options{N: 1024})                     // numpy.fft.rfft(r, n)
+z := fft.IRFFTWith(R, fft.Options{})                           // numpy.fft.irfft: N=0 → 2*(len(R)-1)
+
+// Hermitian-symmetric input (numpy.fft.hfft / ihfft), any Norm:
+h := fft.HFFT(half, n)        // real spectrum of the signal whose first half is `half`
+g := fft.IHFFT(h)             // back to the half signal; HFFTWith/IHFFTWith take Options
+
+// N-D, with axes and norm (numpy.fft.fftn/ifftn/fft2/ifft2(axes=, norm=)):
+F := fft.FFTNWith(data, shape, fft.Options{Axes: []int{0, 2}, Norm: fft.NormForward})
+d := fft.IFFTNWith(F, shape, fft.Options{Axes: []int{0, 2}, Norm: fft.NormForward})
+F2 := fft.FFT2With(img, [2]int{rows, cols}, fft.Options{Norm: fft.NormOrtho})
+
+// Batched 1-D transforms: many signals of one length, one plan — numpy's
+// fft(x, axis=-1) on a rows×n matrix. Rows run across goroutines when large.
+B := fft.FFTNWith(signals, []int{rows, n}, fft.Options{Axes: []int{-1}})
+RB := fft.RFFTNWith(realSignals, []int{rows, n}, fft.Options{Axes: []int{-1}})
+
+// Real N-D (numpy.fft.rfftn/irfftn): the real transform runs along the LAST
+// axis listed (the last axis by default), which keeps n/2+1 bins.
+S := fft.RFFTN(vol, []int{d0, d1, d2})          // shape d0×d1×(d2/2+1)
+v := fft.IRFFTN(S, []int{d0, d1, d2})           // the REAL output's shape
+S2 := fft.RFFTNWith(vol, shape, fft.Options{Axes: []int{2, 0}, Norm: fft.NormOrtho})
+v2 := fft.IRFFTNWith(S2, shape, fft.Options{Axes: []int{2, 0}, Norm: fft.NormOrtho})
+// RFFT2With / IRFFT2With are the 2-D cases.
+
+// Plans take the Norm per call (their length is fixed, so n and axes do not apply):
+p.FFTNorm(dst, src, fft.NormOrtho)    // also Plan.IFFTNorm, RealPlan.RFFTNorm/IRFFTNorm,
+pn.IFFTNorm(dst, src, fft.NormOrtho)  // PlanN.FFTNorm/IFFTNorm, RealPlan2.RFFTNorm/IRFFTNorm
+
+// Zero frequency to the centre (numpy.fft.fftshift / ifftshift), generic over
+// the element type:
+c := fft.FFTShift(X)                          // also fft.FFTShift(fft.FFTFreq(n, d))
+X = fft.IFFTShift(c)                          // inverse; differs from FFTShift for odd n
+C := fft.FFTShiftN(F, shape, nil)             // every axis, or the listed ones
+F = fft.IFFTShiftN(C, shape, nil)
+
+// The length to zero-pad to (scipy.fft.next_fast_len):
+m := fft.NextFastLen(len(x), false)  // smallest 7-smooth length >= len(x)
+mr := fft.NextFastLen(len(r), true)  // smallest EVEN 7-smooth length (real transforms)
+```
+
+`NextFastLen` follows this library's engines, not scipy's: lengths
+`2^a·3^b·5^c·7^d` run entirely on specialized radix-2/3/4/5/7/8 passes, while a
+factor 11 or 13 takes a general O(p²) pass and a larger prime goes to
+Rader/Bluestein — several times slower per point. A real transform of odd length
+cannot use the half-length packing, so the real rule also requires an even
+length.
+
+Where this differs from numpy: an `N` of zero means "numpy's default" rather
+than an error, and a transform of zero points returns an empty slice (numpy
+raises); an axis listed twice is refused (numpy's `fftn` transforms it twice);
+`IRFFTN`/`IRFFTNWith` take the real output's shape instead of numpy's
+`s`, and the N-D transforms do not pad or crop axes (numpy's `s` argument).
+
 ## Performance
 
 **How a length is transformed.**
