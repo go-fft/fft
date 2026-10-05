@@ -7,12 +7,23 @@ import (
 	"github.com/go-fft/fft"
 )
 
+// tidy turns the zeros of v positive for printing: whether an exactly
+// cancelling sum comes out +0 or -0 depends on the CPU's fused multiply-add
+// (loong64 and amd64 differ), and the sign of zero carries no information here.
+func tidy(v []complex64) []complex64 {
+	out := make([]complex64, len(v))
+	for i, z := range v {
+		out[i] = complex(real(z)+0, imag(z)+0)
+	}
+	return out
+}
+
 // FFT32 and IFFT32 are FFT and IFFT for complex64 data.
 func ExampleFFT32() {
 	x := []complex64{1, 2, 3, 4}
 	X := fft.FFT32(x)
-	fmt.Println(X)
-	fmt.Println(fft.IFFT32(X))
+	fmt.Println(tidy(X))
+	fmt.Println(tidy(fft.IFFT32(X)))
 	// Output:
 	// [(10+0i) (-2+2i) (-2+0i) (-2-2i)]
 	// [(1+0i) (2+0i) (3+0i) (4+0i)]
@@ -23,7 +34,7 @@ func ExampleFFT32() {
 func ExampleRFFT32() {
 	x := []float32{1, 2, 3, 4}
 	X := fft.RFFT32(x)
-	fmt.Println(X)
+	fmt.Println(tidy(X))
 	fmt.Println(fft.IRFFT32(X, len(x)))
 	// Output:
 	// [(10+0i) (-2+2i) (-2+0i)]
@@ -36,8 +47,8 @@ func ExamplePlan32_FFTNorm() {
 	p := fft.NewPlan32(4)
 	x := []complex64{1, 1, 1, 1}
 	X := p.FFTNorm(make([]complex64, 4), x, fft.NormOrtho)
-	fmt.Println(X)
-	fmt.Println(p.IFFTNorm(make([]complex64, 4), X, fft.NormOrtho))
+	fmt.Println(tidy(X))
+	fmt.Println(tidy(p.IFFTNorm(make([]complex64, 4), X, fft.NormOrtho)))
 	// Output:
 	// [(2+0i) (0+0i) (0+0i) (0+0i)]
 	// [(1+0i) (1+0i) (1+0i) (1+0i)]
