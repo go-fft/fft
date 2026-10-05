@@ -1245,3 +1245,162 @@ The batched pass reads 16 streams a whole column stride apart, the 4 KB conflict
 The gap that remains at 256 and 1024 is the one Round 17 named. FFTW's codelets fuse every twiddle product with FMA, which bit identity closes to this library. Beyond that, the operation count of the interleaved layout leaves little to gain from larger butterflies.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round19-radix16-20261005/`](benchmarks/results/round19-radix16-20261005/).
+
+### Round 21 — arm64: the columns as NEON strips, the data kept split between passes, the fan-out threshold (2026-10-05)
+
+Round 18 left three things open on arm64: the 2-D rows that ran slower on many
+cores than on one, the scratch gap that cost the Apple M4 some radix-4 passes,
+and KFR's split layout. Measured on Neoverse-N1 (cfarm424, 64 cores, load
+average below 1.1 at the start of every one-core round; one pinned core,
+`GOMAXPROCS=1 taskset -c 40`, unless "all cores" is said, which is all 64),
+interleaved A/B, median of five to fifteen rounds.
+
+**Where a 2-D transform's time went**, main, one core, µs (`neoverse-n1/parts-a.txt`):
+
+| n×n | whole | rows | columns, gathered | columns, Go batched pass |
+|:--|--:|--:|--:|--:|
+| 64 | 46 | 19 | 25 | 92 |
+| 128 | 183 | 78 | 103 | 397 |
+| 512 | 4,725 | 1,734 | 2,735 | 9,081 |
+| 1024 | 23,472 | 8,581 | 15,157 | 47,182 |
+
+The columns cost 1.3× (128) to 1.8× (1024) the rows, the difference being the
+gather and the scatter. Round 17's strips were off on arm64: their Go batched
+pass, which ran there, is four times slower than the gathered lines.
+
+**1. NEON batched passes for the columns (kept).** `genStockhamBatchNEON`
+emits `skBatch{2,3,4,5,8}NEON` from the 1-D kernels' butterfly bodies: two
+neighbouring lines per register pair (one `VLD2` of a point's row), the point's
+twiddle loaded already broadcast and split by `VLD2R`, point 0 not multiplied,
+an odd last line alone in lane 0. Every lane runs the arithmetic of the 1-D
+kernels, fused products included, so strips and lines are now the same bits on
+arm64: `TestStockhamBatchMatchesLinesNEON` (every radix, l1, ido 1–13, 1–9
+lines, strides wider than the strip, the eight Round 18 signals) and
+`TestStripsMatchLines`, which holds whole plans to the bit on arm64 outside
+`-race`. Four mutations of the generator (the imaginary product fused the
+other way, the lone line stored swapped, a block step short by one stream,
+output 0 multiplied by a twiddle) each fail the first test, and the Go batched pass, which
+fuses differently, fails the second.
+
+Column pass, gathered lines time ÷ strip time, one core, seven rounds (`neoverse-n1/stripwidth.ratios.txt`):
+
+| n×n | 32 | 64 | 100 | 128 | 256 | 512 | 1000 | 1024 | 2048 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| w = 8 / 16 / 32 | 2.45/2.60/**2.68** | 1.48/1.51/**1.55** | 1.39/1.41/**1.42** | 1.27/**1.30**/1.26 | 1.08/1.11/**1.18** | 1.10/1.23/**1.27** | 1.30/**1.46**/1.42 | 1.05/1.35/**1.43** | 1.52/1.80/**1.85** |
+
+`stripWidth` (16 up to 512, 32 above) was kept: on N1 32 would gain 6% at 256
+and 3% at 512 on the column pass alone, within its spread at 512, and it was
+not measured on the M4.
+
+One trap: whole 128×128 transforms with strips were bimodal from process to
+process, 157 or 190 µs (lines: 180), and placing src, dst and the strip
+scratch at every 1 KB offset modulo 16 KB inside one process moved nothing
+(157–159 µs, `placement.medians.txt`). The slow mode is not a virtual-address
+alias; physical placement in the 1 MB L2 is the remaining suspect, not tested.
+It shows in the spreads below.
+
+**2. The fan-out threshold (raised on arm64, for complex128 PlanN).** All
+cores, µs, median of seven rounds, strips on (`fanout-rules.medians.txt`):
+
+| | 8192 / 16384 (main) | floor 16384 (amd64's rule) | floor 32768 | threshold 65536, floor 8192 | one goroutine |
+|:--|--:|--:|--:|--:|--:|
+| 128×128 (16384) | 357 (2 goroutines) | 223 | 265 | **211** | 220 |
+| 128×256 | 516 (4) | 642 (2) | 477 | 485 | 480 |
+| 192×192 | 579 (4) | 730 (2) | 554 | 595 | 553 |
+| 256×256 | 784 (8) | 884 (4) | 1,327 | **777** (8) | 1,142 |
+| 512×512 | 1,744 | 1,734 | 2,057 | **1,628** | 4,801 |
+| 1024×1024 | 4,507 | 4,155 | 4,288 | 4,201 | 24,141 |
+
+Two goroutines lost wherever they were used; eight and more won. amd64's
+answer (a larger floor per goroutine) turns 256×256 into four goroutines and
+loses 13% there. So arm64 keeps the 8192 floor and runs a PlanN below 65536
+elements on one goroutine (`parThresholdN`). Scope: the axes of a complex128
+PlanN (FFT2, FFTN). RealPlan2's columns are a PlanN axis too, but its rows fan
+out by the shared rule: with the new threshold on its columns, 256×256 took
+858 µs against 584 (`threshold-realplan2-shared.medians.txt`), so they keep
+the shared rule (`PlanN.colsOf2`). complex64 plans keep it as well: unmeasured
+under the new value, and slower per element (Go passes), they lost at 192×192
+with it (1,110 against 833 µs, `threshold-shared.medians.txt`). After the
+change both real and complex64 rows agree between the two thresholds
+(`threshold-final.medians.txt`).
+
+**3. The data kept split between passes (kept).** KFR's idea, Round 18's
+"next step": a power of two keeps its data block-split between its passes.
+The pair of points 2q, 2q+1 occupies the 32 bytes it occupies interleaved,
+ordered re(2q), re(2q+1), im(2q), im(2q+1), so one `VLD1` of two registers
+gives what a `VLD2` makes of the interleaved pair, at the same address. The
+first pass reads interleaved and writes split, the passes between are split on
+both sides (`VLD1`/`VST1`: no deinterleave µops on N1), and the last reads
+split, pairs its two blocks with the `VZIP`s it already had, and writes
+interleaved. The arithmetic is unchanged, so the result is the same bits;
+`TestStockhamPassMatchesScalarNEON` and `TestStockhamEachPassMatchesScalarNEON`
+(converting each pass's input and output) hold it, and four mutations (the
+final pass's zips swapped, point 0 not restored, a split pass storing
+interleaved, the imaginary product fused the other way) each fail them. It
+needs every stream to start at an even point: an even ido for every pass but
+the last, and a last pass of radix 2 or 4 with an even l1, which leaves the
+powers of two from 16 points (`kernels.StockhamSplitModes`). The prototype,
+interleaved time ÷ split time, one core, seven rounds
+(`split-proto.ratios.txt`):
+
+| 64 | 256 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 | 2^17 | 2^18 | 2^20 |
+|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 1.22 | 1.26 | 1.28 | 1.24 | 1.22 | 1.19 | 1.18 | 1.16 | 1.13 | 1.11 | 1.12 | 1.14 |
+
+**4. The scratch gap (unchanged).** On N1, whole transforms of 1024 to 2^20
+points with the gap at 576, 1088, 2112 and 4032 bytes, the order of the gaps
+rotated every round, seven rounds, final kernels: every ratio 0.98–1.02
+except 2^18 (0.98–1.06, spreads 1.4–1.6) (`gap-final.ratios.txt`). A first
+run that always timed 576 first showed 2^18 losing 21–25% with every other
+gap; rotating the order removed it (`gap-a`, `gap-b`). So N1 does not care.
+The M4 decides, and it could not be measured: the workstation's one-minute
+load stayed between 4 and 22 from 17:53 to the end of this round (other
+sessions), and the gap grid (`scripts/mac.sh`) waits for a load below 3
+before each round. A per-architecture gap would be one constant in the route
+files; it is left for an idle Apple machine, as Round 18 left it.
+
+**End to end against main**, interleaved, main time ÷ new time
+(`ab-onecore.ratios.txt`, `ab-allcores.ratios.txt`; rows within their spread
+rerun over fifteen rounds, `ab15-*.ratios.txt`):
+
+| | one core | all cores |
+|:--|--:|--:|
+| complex 64 / 128 / 256 / 512 / 1024 | 1.16 / 1.18 / 1.23 / 1.23 / 1.22 | |
+| complex 2048 / 4096 / 8192 / 16384 | 1.24 / 1.21 / 1.19 / 1.18 | |
+| complex 65536 / 2^18 | 1.11 / 1.10 (15 rounds) | |
+| RFFT 256 / 1024 / 4096 | 1.11 / 1.16 / 1.17 | |
+| complex 1000, 1080, 1296, 1920, 2000, 6000, 1009, 10007; RFFT 1000 (15 rounds) | 0.976–1.001, all within their spreads | |
+| 2-D 32² / 64² / 128² | 1.46 / 1.35 / 1.24 | 1.47 / 1.35 / **2.06** |
+| 2-D 256² / 512² / 1024² | 1.19 / 1.29 / 1.22 | 1.03 / 1.05 / 0.99 (15 rounds, spreads 1.08–1.19) |
+
+The composites take none of the three changes (their last pass is an odd
+radix, and they are 1-D); 1296 read 0.995 over seven rounds and 0.976 over
+fifteen, with spreads of 1.12 and 1.14: no change. The all-core 1024² row is
+within its spread over fifteen rounds; it runs its columns as 32 strips, one
+goroutine each, where the gathered blocks gave 64 goroutines 128 blocks.
+
+**Against FFTW on Neoverse-N1**, parity harness, main (7264f35) and this
+branch run back to back the same evening (correctness 24/24 both;
+`parity-main/`, `parity-br/`). go-fft time ÷ FFTW time:
+
+| transform | main | now |
+|:--|--:|--:|
+| complex 256 | 1.25 | **1.01** |
+| complex 1,024 | 1.11 | **0.86** |
+| complex 4,096 / 65,536 / 2^20 | 0.83 / 0.68 / 0.54 | 0.68 / 0.58 / 0.46 |
+| RFFT 256 / 1,024 / 4,096 | 1.37 / 1.05 / 1.03 | 1.21 / **0.89** / **0.88** |
+| IRFFT 1,024 / 4,096 | 1.04 / 1.00 | 0.93 / 0.85 |
+| 2-D 64×64 | 1.57 | 1.13 |
+| 2-D 128×128 | 1.94 | **0.80** |
+| complex 1,000 / 1,080 / 1,920 / 1,296 | 1.07 / 1.17 / 1.16 / 1.01 | 1.08 / 1.20 / 1.17 / 1.07 |
+
+Rows at or above FFTW: 13/24 → 15/24; against numpy.fft and scipy.fft, 23/24 →
+24/24 each. The harness runs each Go row three times without pinning; the
+composite rows moved by no more than their A/B spreads.
+
+**loong64 was not measured.** cfarm401 timed out in the ssh banner exchange at
+17:53 CEST (TCP open, no banner in 15 s), and again at the end of the round
+(see below).
+
+Raw data, scripts and ratios:
+[`benchmarks/results/arm64-round21-20261005/`](benchmarks/results/arm64-round21-20261005/).

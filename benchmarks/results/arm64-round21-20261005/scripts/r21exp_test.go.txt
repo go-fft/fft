@@ -1,3 +1,9 @@
+// The experiment file behind the gap, strip-width and placement runs. It
+// builds only against a tree with three experiment hooks, not in the pull
+// request: setGap made a variable, plann.go's stripWidth returning
+// expStripWidth when it is set, and (exp.mac/exp.n1, the M4 grid) a
+// variable expNoSplit that skips kernels.StockhamSplitModes.
+
 //go:build arm64
 
 package fft

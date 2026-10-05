@@ -116,3 +116,14 @@ single-threaded except go-fft's 2-D rows, which use its multicore path
 128×128 ran at 8.5× FFTW on Zen 3 and 3.4× on Neoverse-N1. The fix is
 measured separately in BENCHMARKS.md ("Round 3", multicore fan-out): 128×128 is
 2.69× faster on Zen 3 and 1.39× faster on N1. The 1-D rows are unaffected by it.
+
+## 2026-10-05, perf-arm64-2: NEON strips, split layout, fan-out threshold (Round 21)
+
+`arm64-round21-20261005` holds the measurements behind Round 21 of
+BENCHMARKS.md on Neoverse-N1 (cfarm424): the 2-D decompositions, strip widths,
+fan-out rules and thresholds, the split-layout prototype, the scratch-gap grid,
+the interleaved A/B runs (`*.ratios.txt`, `*.medians.txt` from the scripts in
+`scripts/`), and two parity runs (`neoverse-n1/parity-main`,
+`neoverse-n1/parity-br`, main and the branch, each correct 24/24). There is
+no Apple M4 Max data: the workstation's load never fell below 3.
+
