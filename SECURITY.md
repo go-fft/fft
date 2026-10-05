@@ -45,9 +45,11 @@ should have been rejected, is not.
 Some functions allocate in proportion to a length the caller passes, not to
 the data the caller hands in:
 - `IRFFT(spectrum, n)` and `IRFFT2(data, shape)` return n (or
-  shape[0]·shape[1]) values whatever the spectrum's length;
+  shape[0]·shape[1]) values whatever the spectrum's length, and so do their
+  single-precision forms and the `...With` variants whose `Options.N` sets an
+  output length (`IRFFT32`, `IRFFT2_32`, `IRFFTN32`, `IRFFT32With`, `HFFT32`);
 - `NewPlan(n)`, `NewRealPlan(n)`, `NewPlanN` and `NewRealPlan2` build tables of
-  that size;
+  that size, as do their `32` forms;
 - `Hann(n)` and the other windows, and `FFTFreq(n, d)`, return n values.
 
 That is the numpy contract and the same as `make([]float64, n)`. But Go cannot

@@ -344,7 +344,10 @@ what was tried and dropped:
   batched 1-D transforms, and a `Norm` argument on every plan.
 - **DCT and DST** of types I–IV, forward, inverse and N-D, as scipy.fft defines
   them (v0.5.0), with reusable plans.
-- **Single precision** (v0.6.0): `Plan32`, `RealPlan32`, `FFT32`, `RFFT32`.
-  Not yet in float32: N-D, the `Options` variants, DCT/DST and SIMD kernels.
+- **Single precision** (v0.6.0): `Plan32`, `RealPlan32`, `FFT32`, `RFFT32`;
+  then N-D and 2-D (`FFTN32`, `RFFTN32`, `FFT2_32`, `RFFT2_32`, `PlanN32`,
+  `RealPlan2_32`), the `Options` variants (`FFT32With`, …, `HFFT32`) and the
+  DCT/DST (`DCT32`, `DSTN32`, `DCTPlan32`, …), checked against scipy's float32
+  results.
 - **Not planned:** numpy's `s` (per-axis crop/pad) for N-D, `orthogonalize=False`
   for the DCT/DST.
