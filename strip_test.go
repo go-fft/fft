@@ -6,13 +6,14 @@ import (
 )
 
 // stripShapes are the N-D shapes the strip tests run: every batched radix
-// (2, 3, 4, 5, 8) on a strided axis, strips narrower than stripWidth, an odd
+// (2, 3, 4, 5, 8, and 16 on amd64 with AVX2) on a strided axis, strips narrower than stripWidth, an odd
 // number of lines (the 128-bit tail of the kernels), single-column axes, and
 // axes that keep the gather path (radix 7, a single pass, Bluestein).
 var stripShapes = [][]int{
 	{6, 4}, {16, 8}, {40, 5}, {64, 64}, {128, 128}, {12, 1}, {45, 3}, {1000, 2},
 	{4, 6, 5}, {10, 3, 7}, {2, 16, 9}, {48, 1, 6}, {3, 4},
 	{14, 6}, {8, 8}, {17, 4}, {1, 9}, {16, 40}, {6, 33}, {1024, 35},
+	{256, 3}, {128, 5}, {2048, 3}, // radix 16 where radix16Table has it
 }
 
 // withStrips builds a plan with the strip path forced on or off.

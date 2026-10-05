@@ -1,0 +1,71 @@
+=== round 1 load 1.28 1.64 3.17
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16ND/128/cols16=true         	    3595	    100118 ns/op
+BenchmarkRadix16ND/128/cols16=false        	    3150	    113423 ns/op
+BenchmarkRadix16ND/256/cols16=true         	     646	    555622 ns/op
+BenchmarkRadix16ND/256/cols16=false        	     754	    474491 ns/op
+BenchmarkRadix16ND/1024/cols16=true        	      21	  16303271 ns/op
+BenchmarkRadix16ND/1024/cols16=false       	      21	  16399429 ns/op
+BenchmarkRadix16ND/2048/cols16=true        	       4	  80062818 ns/op
+BenchmarkRadix16ND/2048/cols16=false       	       5	  72993969 ns/op
+PASS
+=== round 2 load 1.42 1.66 3.17
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16ND/128/cols16=true         	    3601	     99864 ns/op
+BenchmarkRadix16ND/128/cols16=false        	    3175	    113452 ns/op
+BenchmarkRadix16ND/256/cols16=true         	     646	    555765 ns/op
+BenchmarkRadix16ND/256/cols16=false        	     758	    472265 ns/op
+BenchmarkRadix16ND/1024/cols16=true        	      22	  15759578 ns/op
+BenchmarkRadix16ND/1024/cols16=false       	      21	  16150624 ns/op
+BenchmarkRadix16ND/2048/cols16=true        	       4	  78843082 ns/op
+BenchmarkRadix16ND/2048/cols16=false       	       5	  73803472 ns/op
+PASS
+=== round 3 load 1.47 1.67 3.16
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16ND/128/cols16=true         	    3573	    100866 ns/op
+BenchmarkRadix16ND/128/cols16=false        	    3166	    113348 ns/op
+BenchmarkRadix16ND/256/cols16=true         	     645	    556596 ns/op
+BenchmarkRadix16ND/256/cols16=false        	     758	    472451 ns/op
+BenchmarkRadix16ND/1024/cols16=true        	      21	  15933899 ns/op
+BenchmarkRadix16ND/1024/cols16=false       	      22	  15743690 ns/op
+BenchmarkRadix16ND/2048/cols16=true        	       4	  78898181 ns/op
+BenchmarkRadix16ND/2048/cols16=false       	       5	  73493394 ns/op
+PASS
+=== round 4 load 1.51 1.67 3.16
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16ND/128/cols16=true         	    3584	    100445 ns/op
+BenchmarkRadix16ND/128/cols16=false        	    3153	    113323 ns/op
+BenchmarkRadix16ND/256/cols16=true         	     644	    557675 ns/op
+BenchmarkRadix16ND/256/cols16=false        	     756	    473477 ns/op
+BenchmarkRadix16ND/1024/cols16=true        	      22	  15740533 ns/op
+BenchmarkRadix16ND/1024/cols16=false       	      21	  16079616 ns/op
+BenchmarkRadix16ND/2048/cols16=true        	       4	  79245653 ns/op
+BenchmarkRadix16ND/2048/cols16=false       	       5	  73973046 ns/op
+PASS
+=== round 5 load 1.55 1.68 3.15
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16ND/128/cols16=true         	    3574	    100807 ns/op
+BenchmarkRadix16ND/128/cols16=false        	    3170	    113179 ns/op
+BenchmarkRadix16ND/256/cols16=true         	     646	    555836 ns/op
+BenchmarkRadix16ND/256/cols16=false        	     758	    472073 ns/op
+BenchmarkRadix16ND/1024/cols16=true        	      21	  15938582 ns/op
+BenchmarkRadix16ND/1024/cols16=false       	      21	  16047202 ns/op
+BenchmarkRadix16ND/2048/cols16=true        	       4	  79487228 ns/op
+BenchmarkRadix16ND/2048/cols16=false       	       5	  73802881 ns/op
+PASS
+=== DONE load 1.55 1.68 3.15

@@ -1,0 +1,241 @@
+=== round 1 load 1.28 2.58 4.54
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16Rules/32/cur-4x8         	 2230970	       107.3 ns/op
+BenchmarkRadix16Rules/32/16x2            	 1957998	       122.6 ns/op
+BenchmarkRadix16Rules/32/2x16            	 2191126	       109.7 ns/op
+BenchmarkRadix16Rules/32/4x8             	 2224656	       108.0 ns/op
+BenchmarkRadix16Rules/32/8x4             	 2161218	       111.1 ns/op
+BenchmarkRadix16Rules/64/cur-8x8         	 1380456	       173.8 ns/op
+BenchmarkRadix16Rules/64/16x4            	 1366228	       175.6 ns/op
+BenchmarkRadix16Rules/64/4x16            	 1379176	       174.1 ns/op
+BenchmarkRadix16Rules/64/8x8             	 1424799	       168.4 ns/op
+BenchmarkRadix16Rules/128/cur-4x4x8      	  698421	       342.4 ns/op
+BenchmarkRadix16Rules/128/16x8           	  792457	       301.7 ns/op
+BenchmarkRadix16Rules/128/8x16           	  778220	       308.2 ns/op
+BenchmarkRadix16Rules/256/cur-4x8x8      	  358750	       668.1 ns/op
+BenchmarkRadix16Rules/256/16x16          	  389505	       616.3 ns/op
+BenchmarkRadix16Rules/512/cur-8x8x8      	  167007	      1431 ns/op
+BenchmarkRadix16Rules/512/16x16x2        	  137722	      1741 ns/op
+BenchmarkRadix16Rules/512/16x2x16        	  143372	      1669 ns/op
+BenchmarkRadix16Rules/512/2x16x16        	  153082	      1565 ns/op
+BenchmarkRadix16Rules/512/16x4x8         	  156901	      1525 ns/op
+BenchmarkRadix16Rules/512/16x8x4         	  152595	      1570 ns/op
+BenchmarkRadix16Rules/512/4x16x8         	  164278	      1455 ns/op
+BenchmarkRadix16Rules/512/4x8x16         	  168706	      1423 ns/op
+BenchmarkRadix16Rules/512/8x16x4         	  160030	      1494 ns/op
+BenchmarkRadix16Rules/512/8x4x16         	  168423	      1427 ns/op
+BenchmarkRadix16Rules/1024/cur-4x4x8x8   	   56462	      4247 ns/op
+BenchmarkRadix16Rules/1024/16x16x4       	   60828	      3937 ns/op
+BenchmarkRadix16Rules/1024/16x4x16       	   59695	      4014 ns/op
+BenchmarkRadix16Rules/1024/4x16x16       	   65082	      3680 ns/op
+BenchmarkRadix16Rules/1024/16x8x8        	   64047	      3740 ns/op
+BenchmarkRadix16Rules/1024/8x16x8        	   67077	      3573 ns/op
+BenchmarkRadix16Rules/1024/8x8x16        	   67707	      3539 ns/op
+BenchmarkRadix16Rules/2048/cur-4x8x8x8   	   22298	     10759 ns/op
+BenchmarkRadix16Rules/2048/16x16x8       	   25321	      9471 ns/op
+BenchmarkRadix16Rules/2048/16x8x16       	   26426	      9073 ns/op
+BenchmarkRadix16Rules/2048/8x16x16       	   26835	      8941 ns/op
+BenchmarkRadix16Rules/4096/cur-8x8x8x8   	   10000	     23497 ns/op
+BenchmarkRadix16Rules/4096/16x16x16      	    8157	     29336 ns/op
+BenchmarkRadix16Rules/32768/cur-8x8x8x8x8         	     768	    311990 ns/op
+BenchmarkRadix16Rules/32768/16x16x16x8            	     649	    367814 ns/op
+BenchmarkRadix16Rules/32768/16x16x8x16            	     610	    391325 ns/op
+BenchmarkRadix16Rules/32768/16x8x16x16            	     655	    363826 ns/op
+BenchmarkRadix16Rules/32768/8x16x16x16            	     624	    383749 ns/op
+PASS
+=== round 2 load 1.52 2.57 4.51
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16Rules/32/cur-4x8         	 2232376	       107.3 ns/op
+BenchmarkRadix16Rules/32/16x2            	 1958043	       122.5 ns/op
+BenchmarkRadix16Rules/32/2x16            	 2191065	       109.7 ns/op
+BenchmarkRadix16Rules/32/4x8             	 2221140	       108.1 ns/op
+BenchmarkRadix16Rules/32/8x4             	 2160582	       111.1 ns/op
+BenchmarkRadix16Rules/64/cur-8x8         	 1378264	       174.1 ns/op
+BenchmarkRadix16Rules/64/16x4            	 1365776	       175.8 ns/op
+BenchmarkRadix16Rules/64/4x16            	 1377387	       174.2 ns/op
+BenchmarkRadix16Rules/64/8x8             	 1423215	       168.7 ns/op
+BenchmarkRadix16Rules/128/cur-4x4x8      	  694389	       346.1 ns/op
+BenchmarkRadix16Rules/128/16x8           	  793291	       301.6 ns/op
+BenchmarkRadix16Rules/128/8x16           	  774088	       308.6 ns/op
+BenchmarkRadix16Rules/256/cur-4x8x8      	  358416	       668.9 ns/op
+BenchmarkRadix16Rules/256/16x16          	  386121	       615.8 ns/op
+BenchmarkRadix16Rules/512/cur-8x8x8      	  167672	      1427 ns/op
+BenchmarkRadix16Rules/512/16x16x2        	  137946	      1733 ns/op
+BenchmarkRadix16Rules/512/16x2x16        	  142617	      1681 ns/op
+BenchmarkRadix16Rules/512/2x16x16        	  152448	      1569 ns/op
+BenchmarkRadix16Rules/512/16x4x8         	  157258	      1525 ns/op
+BenchmarkRadix16Rules/512/16x8x4         	  151699	      1571 ns/op
+BenchmarkRadix16Rules/512/4x16x8         	  165064	      1454 ns/op
+BenchmarkRadix16Rules/512/4x8x16         	  168688	      1422 ns/op
+BenchmarkRadix16Rules/512/8x16x4         	  160058	      1495 ns/op
+BenchmarkRadix16Rules/512/8x4x16         	  167554	      1432 ns/op
+BenchmarkRadix16Rules/1024/cur-4x4x8x8   	   56487	      4245 ns/op
+BenchmarkRadix16Rules/1024/16x16x4       	   60876	      3936 ns/op
+BenchmarkRadix16Rules/1024/16x4x16       	   59664	      4017 ns/op
+BenchmarkRadix16Rules/1024/4x16x16       	   64914	      3684 ns/op
+BenchmarkRadix16Rules/1024/16x8x8        	   64044	      3735 ns/op
+BenchmarkRadix16Rules/1024/8x16x8        	   67107	      3569 ns/op
+BenchmarkRadix16Rules/1024/8x8x16        	   67724	      3539 ns/op
+BenchmarkRadix16Rules/2048/cur-4x8x8x8   	   22243	     10780 ns/op
+BenchmarkRadix16Rules/2048/16x16x8       	   25034	      9585 ns/op
+BenchmarkRadix16Rules/2048/16x8x16       	   26334	      9106 ns/op
+BenchmarkRadix16Rules/2048/8x16x16       	   27013	      8868 ns/op
+BenchmarkRadix16Rules/4096/cur-8x8x8x8   	   10000	     23480 ns/op
+BenchmarkRadix16Rules/4096/16x16x16      	    8104	     29517 ns/op
+BenchmarkRadix16Rules/32768/cur-8x8x8x8x8         	     792	    302279 ns/op
+BenchmarkRadix16Rules/32768/16x16x16x8            	     597	    400865 ns/op
+BenchmarkRadix16Rules/32768/16x16x8x16            	     609	    390983 ns/op
+BenchmarkRadix16Rules/32768/16x8x16x16            	     656	    362950 ns/op
+BenchmarkRadix16Rules/32768/8x16x16x16            	     628	    380198 ns/op
+PASS
+=== round 3 load 1.60 2.55 4.48
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16Rules/32/cur-4x8         	 2231850	       107.3 ns/op
+BenchmarkRadix16Rules/32/16x2            	 1957909	       122.6 ns/op
+BenchmarkRadix16Rules/32/2x16            	 2189689	       109.7 ns/op
+BenchmarkRadix16Rules/32/4x8             	 2219860	       108.2 ns/op
+BenchmarkRadix16Rules/32/8x4             	 2160313	       111.1 ns/op
+BenchmarkRadix16Rules/64/cur-8x8         	 1378551	       174.1 ns/op
+BenchmarkRadix16Rules/64/16x4            	 1365885	       175.7 ns/op
+BenchmarkRadix16Rules/64/4x16            	 1378245	       174.2 ns/op
+BenchmarkRadix16Rules/64/8x8             	 1423525	       168.6 ns/op
+BenchmarkRadix16Rules/128/cur-4x4x8      	  699835	       342.8 ns/op
+BenchmarkRadix16Rules/128/16x8           	  790736	       301.0 ns/op
+BenchmarkRadix16Rules/128/8x16           	  774524	       308.4 ns/op
+BenchmarkRadix16Rules/256/cur-4x8x8      	  359011	       668.4 ns/op
+BenchmarkRadix16Rules/256/16x16          	  387054	       615.9 ns/op
+BenchmarkRadix16Rules/512/cur-8x8x8      	  166836	      1434 ns/op
+BenchmarkRadix16Rules/512/16x16x2        	  136659	      1746 ns/op
+BenchmarkRadix16Rules/512/16x2x16        	  142604	      1678 ns/op
+BenchmarkRadix16Rules/512/2x16x16        	  153030	      1562 ns/op
+BenchmarkRadix16Rules/512/16x4x8         	  156993	      1526 ns/op
+BenchmarkRadix16Rules/512/16x8x4         	  151384	      1576 ns/op
+BenchmarkRadix16Rules/512/4x16x8         	  162723	      1471 ns/op
+BenchmarkRadix16Rules/512/4x8x16         	  166591	      1439 ns/op
+BenchmarkRadix16Rules/512/8x16x4         	  159020	      1504 ns/op
+BenchmarkRadix16Rules/512/8x4x16         	  166640	      1438 ns/op
+BenchmarkRadix16Rules/1024/cur-4x4x8x8   	   56470	      4244 ns/op
+BenchmarkRadix16Rules/1024/16x16x4       	   60762	      3942 ns/op
+BenchmarkRadix16Rules/1024/16x4x16       	   59727	      4011 ns/op
+BenchmarkRadix16Rules/1024/4x16x16       	   64976	      3680 ns/op
+BenchmarkRadix16Rules/1024/16x8x8        	   64146	      3737 ns/op
+BenchmarkRadix16Rules/1024/8x16x8        	   67140	      3567 ns/op
+BenchmarkRadix16Rules/1024/8x8x16        	   67828	      3534 ns/op
+BenchmarkRadix16Rules/2048/cur-4x8x8x8   	   22158	     10821 ns/op
+BenchmarkRadix16Rules/2048/16x16x8       	   25287	      9486 ns/op
+BenchmarkRadix16Rules/2048/16x8x16       	   25822	      9289 ns/op
+BenchmarkRadix16Rules/2048/8x16x16       	   27019	      8872 ns/op
+BenchmarkRadix16Rules/4096/cur-8x8x8x8   	   10000	     23534 ns/op
+BenchmarkRadix16Rules/4096/16x16x16      	    8052	     29709 ns/op
+BenchmarkRadix16Rules/32768/cur-8x8x8x8x8         	     775	    309205 ns/op
+BenchmarkRadix16Rules/32768/16x16x16x8            	     590	    405261 ns/op
+BenchmarkRadix16Rules/32768/16x16x8x16            	     585	    406266 ns/op
+BenchmarkRadix16Rules/32768/16x8x16x16            	     596	    399723 ns/op
+BenchmarkRadix16Rules/32768/8x16x16x16            	     634	    376401 ns/op
+PASS
+=== round 4 load 1.69 2.52 4.44
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16Rules/32/cur-4x8         	 2231136	       107.4 ns/op
+BenchmarkRadix16Rules/32/16x2            	 1957212	       122.6 ns/op
+BenchmarkRadix16Rules/32/2x16            	 2189646	       109.7 ns/op
+BenchmarkRadix16Rules/32/4x8             	 2217926	       108.2 ns/op
+BenchmarkRadix16Rules/32/8x4             	 2159452	       111.1 ns/op
+BenchmarkRadix16Rules/64/cur-8x8         	 1378161	       174.2 ns/op
+BenchmarkRadix16Rules/64/16x4            	 1364912	       175.8 ns/op
+BenchmarkRadix16Rules/64/4x16            	 1377794	       174.2 ns/op
+BenchmarkRadix16Rules/64/8x8             	 1423404	       168.7 ns/op
+BenchmarkRadix16Rules/128/cur-4x4x8      	  697411	       342.7 ns/op
+BenchmarkRadix16Rules/128/16x8           	  793626	       301.7 ns/op
+BenchmarkRadix16Rules/128/8x16           	  777481	       308.5 ns/op
+BenchmarkRadix16Rules/256/cur-4x8x8      	  358544	       668.8 ns/op
+BenchmarkRadix16Rules/256/16x16          	  385838	       614.8 ns/op
+BenchmarkRadix16Rules/512/cur-8x8x8      	  168036	      1427 ns/op
+BenchmarkRadix16Rules/512/16x16x2        	  137722	      1735 ns/op
+BenchmarkRadix16Rules/512/16x2x16        	  136429	      1749 ns/op
+BenchmarkRadix16Rules/512/2x16x16        	  153787	      1560 ns/op
+BenchmarkRadix16Rules/512/16x4x8         	  153020	      1564 ns/op
+BenchmarkRadix16Rules/512/16x8x4         	  151965	      1574 ns/op
+BenchmarkRadix16Rules/512/4x16x8         	  160105	      1494 ns/op
+BenchmarkRadix16Rules/512/4x8x16         	  168352	      1425 ns/op
+BenchmarkRadix16Rules/512/8x16x4         	  156511	      1530 ns/op
+BenchmarkRadix16Rules/512/8x4x16         	  167395	      1428 ns/op
+BenchmarkRadix16Rules/1024/cur-4x4x8x8   	   56455	      4243 ns/op
+BenchmarkRadix16Rules/1024/16x16x4       	   60776	      3941 ns/op
+BenchmarkRadix16Rules/1024/16x4x16       	   59643	      4015 ns/op
+BenchmarkRadix16Rules/1024/4x16x16       	   64948	      3685 ns/op
+BenchmarkRadix16Rules/1024/16x8x8        	   64148	      3736 ns/op
+BenchmarkRadix16Rules/1024/8x16x8        	   66998	      3569 ns/op
+BenchmarkRadix16Rules/1024/8x8x16        	   67713	      3540 ns/op
+BenchmarkRadix16Rules/2048/cur-4x8x8x8   	   22242	     10785 ns/op
+BenchmarkRadix16Rules/2048/16x16x8       	   25257	      9494 ns/op
+BenchmarkRadix16Rules/2048/16x8x16       	   26460	      9063 ns/op
+BenchmarkRadix16Rules/2048/8x16x16       	   27060	      8863 ns/op
+BenchmarkRadix16Rules/4096/cur-8x8x8x8   	   10000	     23514 ns/op
+BenchmarkRadix16Rules/4096/16x16x16      	    8142	     29222 ns/op
+BenchmarkRadix16Rules/32768/cur-8x8x8x8x8         	     762	    313980 ns/op
+BenchmarkRadix16Rules/32768/16x16x16x8            	     649	    369291 ns/op
+BenchmarkRadix16Rules/32768/16x16x8x16            	     612	    389438 ns/op
+BenchmarkRadix16Rules/32768/16x8x16x16            	     658	    361951 ns/op
+BenchmarkRadix16Rules/32768/8x16x16x16            	     628	    380315 ns/op
+PASS
+=== round 5 load 1.83 2.51 4.41
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkRadix16Rules/32/cur-4x8         	 2231672	       107.3 ns/op
+BenchmarkRadix16Rules/32/16x2            	 1957312	       122.6 ns/op
+BenchmarkRadix16Rules/32/2x16            	 2190522	       109.6 ns/op
+BenchmarkRadix16Rules/32/4x8             	 2221672	       108.1 ns/op
+BenchmarkRadix16Rules/32/8x4             	 2161224	       111.1 ns/op
+BenchmarkRadix16Rules/64/cur-8x8         	 1379366	       174.0 ns/op
+BenchmarkRadix16Rules/64/16x4            	 1365955	       175.7 ns/op
+BenchmarkRadix16Rules/64/4x16            	 1378710	       174.1 ns/op
+BenchmarkRadix16Rules/64/8x8             	 1423867	       168.6 ns/op
+BenchmarkRadix16Rules/128/cur-4x4x8      	  698568	       342.7 ns/op
+BenchmarkRadix16Rules/128/16x8           	  795493	       301.6 ns/op
+BenchmarkRadix16Rules/128/8x16           	  771645	       310.1 ns/op
+BenchmarkRadix16Rules/256/cur-4x8x8      	  358478	       668.4 ns/op
+BenchmarkRadix16Rules/256/16x16          	  388669	       615.8 ns/op
+BenchmarkRadix16Rules/512/cur-8x8x8      	  167853	      1426 ns/op
+BenchmarkRadix16Rules/512/16x16x2        	  138183	      1735 ns/op
+BenchmarkRadix16Rules/512/16x2x16        	  142981	      1672 ns/op
+BenchmarkRadix16Rules/512/2x16x16        	  153037	      1562 ns/op
+BenchmarkRadix16Rules/512/16x4x8         	  156486	      1530 ns/op
+BenchmarkRadix16Rules/512/16x8x4         	  152034	      1571 ns/op
+BenchmarkRadix16Rules/512/4x16x8         	  164458	      1456 ns/op
+BenchmarkRadix16Rules/512/4x8x16         	  168740	      1422 ns/op
+BenchmarkRadix16Rules/512/8x16x4         	  159405	      1502 ns/op
+BenchmarkRadix16Rules/512/8x4x16         	  168003	      1427 ns/op
+BenchmarkRadix16Rules/1024/cur-4x4x8x8   	   56407	      4251 ns/op
+BenchmarkRadix16Rules/1024/16x16x4       	   60830	      3935 ns/op
+BenchmarkRadix16Rules/1024/16x4x16       	   59646	      4016 ns/op
+BenchmarkRadix16Rules/1024/4x16x16       	   64896	      3688 ns/op
+BenchmarkRadix16Rules/1024/16x8x8        	   64088	      3740 ns/op
+BenchmarkRadix16Rules/1024/8x16x8        	   67065	      3573 ns/op
+BenchmarkRadix16Rules/1024/8x8x16        	   67728	      3538 ns/op
+BenchmarkRadix16Rules/2048/cur-4x8x8x8   	   22221	     10789 ns/op
+BenchmarkRadix16Rules/2048/16x16x8       	   25369	      9451 ns/op
+BenchmarkRadix16Rules/2048/16x8x16       	   25990	      9225 ns/op
+BenchmarkRadix16Rules/2048/8x16x16       	   27093	      8854 ns/op
+BenchmarkRadix16Rules/4096/cur-8x8x8x8   	   10000	     23671 ns/op
+BenchmarkRadix16Rules/4096/16x16x16      	    8095	     29420 ns/op
+BenchmarkRadix16Rules/32768/cur-8x8x8x8x8         	     790	    302402 ns/op
+BenchmarkRadix16Rules/32768/16x16x16x8            	     594	    403972 ns/op
+BenchmarkRadix16Rules/32768/16x16x8x16            	     589	    405160 ns/op
+BenchmarkRadix16Rules/32768/16x8x16x16            	     661	    362159 ns/op
+BenchmarkRadix16Rules/32768/8x16x16x16            	     628	    379585 ns/op
+PASS
+=== DONE load 1.85 2.50 4.38

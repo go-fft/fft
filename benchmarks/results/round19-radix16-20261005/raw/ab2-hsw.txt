@@ -1,0 +1,351 @@
+=== round 1 bin fft-mains.test load 1.20 1.40 2.76
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2053078	       175.4 ns/op
+BenchmarkAB/C/128        	 1000000	       352.0 ns/op
+BenchmarkAB/C/256        	  534852	       671.5 ns/op
+BenchmarkAB/C/512        	  251500	      1434 ns/op
+BenchmarkAB/C/1024       	   84804	      4249 ns/op
+BenchmarkAB/C/2048       	   32397	     10917 ns/op
+BenchmarkAB/C/4096       	   15651	     23004 ns/op
+BenchmarkAB/C/8192       	    5763	     62296 ns/op
+BenchmarkAB/C/16384      	    2512	    143237 ns/op
+BenchmarkAB/C/65536      	     513	    699076 ns/op
+BenchmarkAB/C/262144     	     106	   3386661 ns/op
+BenchmarkAB/C/1000       	   84421	      4246 ns/op
+BenchmarkAB/C/1080       	   69204	      5215 ns/op
+BenchmarkAB/C/1296       	   50306	      7153 ns/op
+BenchmarkAB/C/1920       	   39067	      9207 ns/op
+BenchmarkAB/C/2000       	   35152	     10235 ns/op
+BenchmarkAB/C/6000       	    8149	     44040 ns/op
+BenchmarkAB/C/1009       	   16407	     21938 ns/op
+BenchmarkAB/C/10007      	     794	    452883 ns/op
+BenchmarkAB/R/256        	  638865	       563.1 ns/op
+BenchmarkAB/R/1024       	  159751	      2253 ns/op
+BenchmarkAB/R/4096       	   24615	     14582 ns/op
+BenchmarkAB/R/1000       	  130189	      2757 ns/op
+BenchmarkAB/2D/32        	   68670	      5241 ns/op
+BenchmarkAB/2D/64        	   17199	     20928 ns/op
+BenchmarkAB/2D/128       	    3072	    117128 ns/op
+BenchmarkAB/2D/256       	     742	    483459 ns/op
+BenchmarkAB/2D/512       	     164	   2105659 ns/op
+BenchmarkAB/2D/1024      	      21	  16011832 ns/op
+PASS
+=== round 1 bin fft-r16f.test load 1.38 1.43 2.74
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2071458	       173.7 ns/op
+BenchmarkAB/C/128        	 1000000	       318.4 ns/op
+BenchmarkAB/C/256        	  579465	       619.1 ns/op
+BenchmarkAB/C/512        	  250448	      1437 ns/op
+BenchmarkAB/C/1024       	  101284	      3555 ns/op
+BenchmarkAB/C/2048       	   40491	      8888 ns/op
+BenchmarkAB/C/4096       	   15380	     23418 ns/op
+BenchmarkAB/C/8192       	    5754	     62569 ns/op
+BenchmarkAB/C/16384      	    2487	    144563 ns/op
+BenchmarkAB/C/65536      	     513	    700186 ns/op
+BenchmarkAB/C/262144     	     105	   3392962 ns/op
+BenchmarkAB/C/1000       	   84501	      4251 ns/op
+BenchmarkAB/C/1080       	   69195	      5196 ns/op
+BenchmarkAB/C/1296       	   50203	      7166 ns/op
+BenchmarkAB/C/1920       	   38960	      9236 ns/op
+BenchmarkAB/C/2000       	   35194	     10216 ns/op
+BenchmarkAB/C/6000       	    8329	     43174 ns/op
+BenchmarkAB/C/1009       	   16418	     21926 ns/op
+BenchmarkAB/C/10007      	     794	    452406 ns/op
+BenchmarkAB/R/256        	  699174	       515.0 ns/op
+BenchmarkAB/R/1024       	  160819	      2236 ns/op
+BenchmarkAB/R/4096       	   29478	     12214 ns/op
+BenchmarkAB/R/1000       	  131211	      2739 ns/op
+BenchmarkAB/2D/32        	   68988	      5216 ns/op
+BenchmarkAB/2D/64        	   17005	     21178 ns/op
+BenchmarkAB/2D/128       	    3201	    112371 ns/op
+BenchmarkAB/2D/256       	     753	    476994 ns/op
+BenchmarkAB/2D/512       	     160	   2430047 ns/op
+BenchmarkAB/2D/1024      	      20	  16569227 ns/op
+PASS
+=== round 2 bin fft-r16f.test load 1.47 1.45 2.73
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2071633	       173.8 ns/op
+BenchmarkAB/C/128        	 1000000	       318.4 ns/op
+BenchmarkAB/C/256        	  579692	       619.6 ns/op
+BenchmarkAB/C/512        	  245336	      1465 ns/op
+BenchmarkAB/C/1024       	  101176	      3552 ns/op
+BenchmarkAB/C/2048       	   40348	      8918 ns/op
+BenchmarkAB/C/4096       	   15573	     23118 ns/op
+BenchmarkAB/C/8192       	    5773	     62445 ns/op
+BenchmarkAB/C/16384      	    2484	    144838 ns/op
+BenchmarkAB/C/65536      	     513	    699409 ns/op
+BenchmarkAB/C/262144     	     110	   3339935 ns/op
+BenchmarkAB/C/1000       	   83763	      4264 ns/op
+BenchmarkAB/C/1080       	   69086	      5212 ns/op
+BenchmarkAB/C/1296       	   50283	      7147 ns/op
+BenchmarkAB/C/1920       	   39010	      9218 ns/op
+BenchmarkAB/C/2000       	   35112	     10251 ns/op
+BenchmarkAB/C/6000       	    8628	     41580 ns/op
+BenchmarkAB/C/1009       	   16370	     21992 ns/op
+BenchmarkAB/C/10007      	     793	    452982 ns/op
+BenchmarkAB/R/256        	  696432	       515.7 ns/op
+BenchmarkAB/R/1024       	  158824	      2263 ns/op
+BenchmarkAB/R/4096       	   29271	     12292 ns/op
+BenchmarkAB/R/1000       	  131221	      2741 ns/op
+BenchmarkAB/2D/32        	   68727	      5235 ns/op
+BenchmarkAB/2D/64        	   17420	     20665 ns/op
+BenchmarkAB/2D/128       	    3182	    113016 ns/op
+BenchmarkAB/2D/256       	     757	    475023 ns/op
+BenchmarkAB/2D/512       	     164	   2088168 ns/op
+BenchmarkAB/2D/1024      	      21	  16222218 ns/op
+PASS
+=== round 2 bin fft-mains.test load 1.59 1.48 2.72
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2055260	       174.9 ns/op
+BenchmarkAB/C/128        	 1000000	       351.8 ns/op
+BenchmarkAB/C/256        	  534009	       670.7 ns/op
+BenchmarkAB/C/512        	  251275	      1432 ns/op
+BenchmarkAB/C/1024       	   85008	      4233 ns/op
+BenchmarkAB/C/2048       	   33229	     10829 ns/op
+BenchmarkAB/C/4096       	   15589	     23091 ns/op
+BenchmarkAB/C/8192       	    5734	     62598 ns/op
+BenchmarkAB/C/16384      	    2486	    143595 ns/op
+BenchmarkAB/C/65536      	     513	    698693 ns/op
+BenchmarkAB/C/262144     	     115	   3243801 ns/op
+BenchmarkAB/C/1000       	   84198	      4235 ns/op
+BenchmarkAB/C/1080       	   69404	      5193 ns/op
+BenchmarkAB/C/1296       	   50122	      7174 ns/op
+BenchmarkAB/C/1920       	   39168	      9180 ns/op
+BenchmarkAB/C/2000       	   35037	     10266 ns/op
+BenchmarkAB/C/6000       	    8416	     42544 ns/op
+BenchmarkAB/C/1009       	   16309	     22068 ns/op
+BenchmarkAB/C/10007      	     788	    456404 ns/op
+BenchmarkAB/R/256        	  637839	       562.8 ns/op
+BenchmarkAB/R/1024       	  160165	      2248 ns/op
+BenchmarkAB/R/4096       	   25434	     14150 ns/op
+BenchmarkAB/R/1000       	  129981	      2766 ns/op
+BenchmarkAB/2D/32        	   68941	      5223 ns/op
+BenchmarkAB/2D/64        	   17559	     20491 ns/op
+BenchmarkAB/2D/128       	    3090	    116379 ns/op
+BenchmarkAB/2D/256       	     744	    483319 ns/op
+BenchmarkAB/2D/512       	     168	   2142413 ns/op
+BenchmarkAB/2D/1024      	      22	  15920404 ns/op
+PASS
+=== round 3 bin fft-mains.test load 1.65 1.50 2.71
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2052556	       175.3 ns/op
+BenchmarkAB/C/128        	 1000000	       351.9 ns/op
+BenchmarkAB/C/256        	  535317	       671.0 ns/op
+BenchmarkAB/C/512        	  251180	      1433 ns/op
+BenchmarkAB/C/1024       	   84597	      4249 ns/op
+BenchmarkAB/C/2048       	   33154	     10841 ns/op
+BenchmarkAB/C/4096       	   14857	     24239 ns/op
+BenchmarkAB/C/8192       	    5739	     62661 ns/op
+BenchmarkAB/C/16384      	    2502	    142579 ns/op
+BenchmarkAB/C/65536      	     512	    700641 ns/op
+BenchmarkAB/C/262144     	     115	   3141733 ns/op
+BenchmarkAB/C/1000       	   84550	      4239 ns/op
+BenchmarkAB/C/1080       	   69351	      5192 ns/op
+BenchmarkAB/C/1296       	   49861	      7218 ns/op
+BenchmarkAB/C/1920       	   38425	      9359 ns/op
+BenchmarkAB/C/2000       	   35094	     10249 ns/op
+BenchmarkAB/C/6000       	    8688	     41330 ns/op
+BenchmarkAB/C/1009       	   16323	     22046 ns/op
+BenchmarkAB/C/10007      	     787	    456425 ns/op
+BenchmarkAB/R/256        	  638629	       563.1 ns/op
+BenchmarkAB/R/1024       	  159255	      2261 ns/op
+BenchmarkAB/R/4096       	   25124	     14332 ns/op
+BenchmarkAB/R/1000       	  129952	      2759 ns/op
+BenchmarkAB/2D/32        	   68932	      5235 ns/op
+BenchmarkAB/2D/64        	   17331	     20760 ns/op
+BenchmarkAB/2D/128       	    3076	    116785 ns/op
+BenchmarkAB/2D/256       	     744	    482396 ns/op
+BenchmarkAB/2D/512       	     168	   2239246 ns/op
+BenchmarkAB/2D/1024      	      22	  15691238 ns/op
+PASS
+=== round 3 bin fft-r16f.test load 1.89 1.56 2.71
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2071556	       173.7 ns/op
+BenchmarkAB/C/128        	 1000000	       319.2 ns/op
+BenchmarkAB/C/256        	  580570	       619.9 ns/op
+BenchmarkAB/C/512        	  251202	      1433 ns/op
+BenchmarkAB/C/1024       	  100965	      3559 ns/op
+BenchmarkAB/C/2048       	   40446	      8891 ns/op
+BenchmarkAB/C/4096       	   15418	     23355 ns/op
+BenchmarkAB/C/8192       	    5721	     62581 ns/op
+BenchmarkAB/C/16384      	    2526	    142300 ns/op
+BenchmarkAB/C/65536      	     518	    693426 ns/op
+BenchmarkAB/C/262144     	      97	   3336731 ns/op
+BenchmarkAB/C/1000       	   84688	      4243 ns/op
+BenchmarkAB/C/1080       	   68834	      5218 ns/op
+BenchmarkAB/C/1296       	   50070	      7182 ns/op
+BenchmarkAB/C/1920       	   38635	      9309 ns/op
+BenchmarkAB/C/2000       	   35185	     10229 ns/op
+BenchmarkAB/C/6000       	    8638	     41610 ns/op
+BenchmarkAB/C/1009       	   16338	     21957 ns/op
+BenchmarkAB/C/10007      	     793	    453654 ns/op
+BenchmarkAB/R/256        	  697863	       515.1 ns/op
+BenchmarkAB/R/1024       	  159956	      2244 ns/op
+BenchmarkAB/R/4096       	   29328	     12291 ns/op
+BenchmarkAB/R/1000       	  130615	      2744 ns/op
+BenchmarkAB/2D/32        	   68804	      5227 ns/op
+BenchmarkAB/2D/64        	   17245	     20877 ns/op
+BenchmarkAB/2D/128       	    3187	    112430 ns/op
+BenchmarkAB/2D/256       	     757	    474951 ns/op
+BenchmarkAB/2D/512       	     164	   2111177 ns/op
+BenchmarkAB/2D/1024      	      21	  16191774 ns/op
+PASS
+=== round 4 bin fft-r16f.test load 1.92 1.58 2.70
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2070910	       173.8 ns/op
+BenchmarkAB/C/128        	 1000000	       318.4 ns/op
+BenchmarkAB/C/256        	  579302	       620.0 ns/op
+BenchmarkAB/C/512        	  250162	      1440 ns/op
+BenchmarkAB/C/1024       	  100736	      3569 ns/op
+BenchmarkAB/C/2048       	   40450	      8898 ns/op
+BenchmarkAB/C/4096       	   15312	     23517 ns/op
+BenchmarkAB/C/8192       	    5720	     62746 ns/op
+BenchmarkAB/C/16384      	    2523	    142627 ns/op
+BenchmarkAB/C/65536      	     513	    699557 ns/op
+BenchmarkAB/C/262144     	     106	   3384035 ns/op
+BenchmarkAB/C/1000       	   83572	      4282 ns/op
+BenchmarkAB/C/1080       	   69277	      5204 ns/op
+BenchmarkAB/C/1296       	   50298	      7154 ns/op
+BenchmarkAB/C/1920       	   38989	      9222 ns/op
+BenchmarkAB/C/2000       	   35126	     10248 ns/op
+BenchmarkAB/C/6000       	    8779	     40901 ns/op
+BenchmarkAB/C/1009       	   16400	     21990 ns/op
+BenchmarkAB/C/10007      	     783	    458265 ns/op
+BenchmarkAB/R/256        	  697669	       515.1 ns/op
+BenchmarkAB/R/1024       	  160406	      2243 ns/op
+BenchmarkAB/R/4096       	   28521	     12622 ns/op
+BenchmarkAB/R/1000       	  130957	      2744 ns/op
+BenchmarkAB/2D/32        	   68629	      5244 ns/op
+BenchmarkAB/2D/64        	   16788	     21438 ns/op
+BenchmarkAB/2D/128       	    3199	    112365 ns/op
+BenchmarkAB/2D/256       	     758	    473981 ns/op
+BenchmarkAB/2D/512       	     163	   2168771 ns/op
+BenchmarkAB/2D/1024      	      21	  16239156 ns/op
+PASS
+=== round 4 bin fft-mains.test load 1.93 1.59 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2051544	       175.6 ns/op
+BenchmarkAB/C/128        	 1000000	       353.5 ns/op
+BenchmarkAB/C/256        	  533528	       674.3 ns/op
+BenchmarkAB/C/512        	  248295	      1446 ns/op
+BenchmarkAB/C/1024       	   84850	      4243 ns/op
+BenchmarkAB/C/2048       	   33338	     10786 ns/op
+BenchmarkAB/C/4096       	   15556	     23142 ns/op
+BenchmarkAB/C/8192       	    5858	     61372 ns/op
+BenchmarkAB/C/16384      	    2509	    143397 ns/op
+BenchmarkAB/C/65536      	     519	    691928 ns/op
+BenchmarkAB/C/262144     	     106	   3327925 ns/op
+BenchmarkAB/C/1000       	   84229	      4246 ns/op
+BenchmarkAB/C/1080       	   69181	      5212 ns/op
+BenchmarkAB/C/1296       	   50283	      7150 ns/op
+BenchmarkAB/C/1920       	   39100	      9204 ns/op
+BenchmarkAB/C/2000       	   35024	     10272 ns/op
+BenchmarkAB/C/6000       	    8833	     40551 ns/op
+BenchmarkAB/C/1009       	   16410	     21922 ns/op
+BenchmarkAB/C/10007      	     790	    454510 ns/op
+BenchmarkAB/R/256        	  638173	       563.1 ns/op
+BenchmarkAB/R/1024       	  159055	      2262 ns/op
+BenchmarkAB/R/4096       	   25038	     14340 ns/op
+BenchmarkAB/R/1000       	  129715	      2768 ns/op
+BenchmarkAB/2D/32        	   68804	      5233 ns/op
+BenchmarkAB/2D/64        	   16950	     21227 ns/op
+BenchmarkAB/2D/128       	    3061	    117093 ns/op
+BenchmarkAB/2D/256       	     742	    484385 ns/op
+BenchmarkAB/2D/512       	     153	   2260152 ns/op
+BenchmarkAB/2D/1024      	      21	  15751462 ns/op
+PASS
+=== round 5 bin fft-mains.test load 1.95 1.61 2.68
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2050484	       175.8 ns/op
+BenchmarkAB/C/128        	 1000000	       354.0 ns/op
+BenchmarkAB/C/256        	  533151	       674.9 ns/op
+BenchmarkAB/C/512        	  248702	      1443 ns/op
+BenchmarkAB/C/1024       	   84698	      4244 ns/op
+BenchmarkAB/C/2048       	   33204	     10828 ns/op
+BenchmarkAB/C/4096       	   15576	     23112 ns/op
+BenchmarkAB/C/8192       	    5757	     62422 ns/op
+BenchmarkAB/C/16384      	    2492	    144231 ns/op
+BenchmarkAB/C/65536      	     514	    698450 ns/op
+BenchmarkAB/C/262144     	     108	   3346071 ns/op
+BenchmarkAB/C/1000       	   84613	      4241 ns/op
+BenchmarkAB/C/1080       	   69126	      5214 ns/op
+BenchmarkAB/C/1296       	   50344	      7143 ns/op
+BenchmarkAB/C/1920       	   38966	      9226 ns/op
+BenchmarkAB/C/2000       	   35040	     10266 ns/op
+BenchmarkAB/C/6000       	    8486	     42142 ns/op
+BenchmarkAB/C/1009       	   16320	     22036 ns/op
+BenchmarkAB/C/10007      	     781	    459736 ns/op
+BenchmarkAB/R/256        	  639633	       562.9 ns/op
+BenchmarkAB/R/1024       	  159138	      2261 ns/op
+BenchmarkAB/R/4096       	   25239	     14256 ns/op
+BenchmarkAB/R/1000       	  129690	      2773 ns/op
+BenchmarkAB/2D/32        	   68636	      5242 ns/op
+BenchmarkAB/2D/64        	   17104	     21049 ns/op
+BenchmarkAB/2D/128       	    3085	    116512 ns/op
+BenchmarkAB/2D/256       	     741	    484479 ns/op
+BenchmarkAB/2D/512       	     166	   2237290 ns/op
+BenchmarkAB/2D/1024      	      20	  16167708 ns/op
+PASS
+=== round 5 bin fft-r16f.test load 1.95 1.63 2.67
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkAB/C/64         	 2066084	       174.3 ns/op
+BenchmarkAB/C/128        	 1000000	       318.9 ns/op
+BenchmarkAB/C/256        	  580002	       619.2 ns/op
+BenchmarkAB/C/512        	  248982	      1445 ns/op
+BenchmarkAB/C/1024       	  100092	      3591 ns/op
+BenchmarkAB/C/2048       	   40578	      8871 ns/op
+BenchmarkAB/C/4096       	   15553	     23147 ns/op
+BenchmarkAB/C/8192       	    5746	     62711 ns/op
+BenchmarkAB/C/16384      	    2498	    143062 ns/op
+BenchmarkAB/C/65536      	     513	    699479 ns/op
+BenchmarkAB/C/262144     	     108	   3306242 ns/op
+BenchmarkAB/C/1000       	   83928	      4252 ns/op
+BenchmarkAB/C/1080       	   69247	      5187 ns/op
+BenchmarkAB/C/1296       	   50180	      7164 ns/op
+BenchmarkAB/C/1920       	   38959	      9231 ns/op
+BenchmarkAB/C/2000       	   35143	     10240 ns/op
+BenchmarkAB/C/6000       	    8820	     40609 ns/op
+BenchmarkAB/C/1009       	   16362	     21998 ns/op
+BenchmarkAB/C/10007      	     788	    455856 ns/op
+BenchmarkAB/R/256        	  697513	       515.4 ns/op
+BenchmarkAB/R/1024       	  158978	      2263 ns/op
+BenchmarkAB/R/4096       	   29917	     12028 ns/op
+BenchmarkAB/R/1000       	  128377	      2798 ns/op
+BenchmarkAB/2D/32        	   68678	      5241 ns/op
+BenchmarkAB/2D/64        	   17356	     20740 ns/op
+BenchmarkAB/2D/128       	    3199	    112342 ns/op
+BenchmarkAB/2D/256       	     759	    473196 ns/op
+BenchmarkAB/2D/512       	     150	   2571859 ns/op
+BenchmarkAB/2D/1024      	      20	  16850442 ns/op
+PASS
+=== DONE load 1.97 1.65 2.66

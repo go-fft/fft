@@ -4,6 +4,13 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-05, Round 19: a radix-16 pass on amd64
+
+`round19-radix16-20261005` holds the factorization sweeps, per-pass timings,
+interleaved A/B runs and scripts of BENCHMARKS.md's Round 19 (Zen 3, cfarm420;
+Haswell, cfarm13), and two pinned single-core parity runs on Zen 3, of main
+and of the branch. See its README.
+
 ## 2026-10-05, Round 17: small and mid sizes on amd64
 
 `round17-amd64-small-20261005` holds the interleaved A/B runs, sweeps and

@@ -1,0 +1,331 @@
+=== round 1 bin fft-r16b.test load 2.36 2.81 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  602690	       407.0 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2012738	       106.5 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1520289	       156.7 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2405218	       103.7 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  511513	       397.2 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1000000	       216.0 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1595008	       150.2 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1313569	       187.0 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2798856	        84.28 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2899947	        87.33 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	  898825	       339.9 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3521061	        75.49 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3810466	        64.40 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4012426	        57.58 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  118892	      2014 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  522750	       460.5 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  556048	       437.0 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  388534	       615.3 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  590684	       395.2 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  120644	      1972 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  469957	       511.8 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  298754	       800.2 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  420634	       570.5 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  116709	      2048 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  278768	       966.2 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  292771	       793.6 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  925989	       259.7 ns/op
+PASS
+=== round 1 bin fft-r16c.test load 2.41 2.81 2.70
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  560455	       432.3 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2208919	       108.6 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1529539	       158.1 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2284986	       108.2 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  636727	       382.7 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1227206	       196.2 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1590360	       150.4 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1252396	       203.1 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2897690	        83.54 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2578212	        83.64 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1204322	       199.2 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3902725	        62.14 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3899167	        61.71 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4024017	        63.05 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  118670	      2244 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  518580	       455.9 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  562485	       423.9 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  391502	       615.1 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  615099	       388.6 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  123624	      1945 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  458319	       543.6 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  319926	       753.7 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  410751	       625.7 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  116323	      2048 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  245414	      1018 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  285802	       755.8 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  935055	       260.7 ns/op
+PASS
+=== round 2 bin fft-r16c.test load 2.50 2.82 2.70
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  532160	       386.0 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2235061	       108.3 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1530583	       159.7 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2289260	       165.0 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  635882	       376.2 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1218730	       200.9 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1546713	       162.2 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1292952	       223.4 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2888192	        87.18 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2590929	        87.41 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1204911	       199.2 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3915415	        61.57 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3369204	        67.48 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4129117	        58.77 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  116404	      2060 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  512283	       963.3 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  566445	       427.2 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  392650	       616.2 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  602014	       403.4 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  124975	      1977 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  480195	       496.3 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  325591	       822.9 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  351456	       597.6 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  116680	      2042 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  247921	      1042 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  324823	       949.2 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  919909	       309.4 ns/op
+PASS
+=== round 2 bin fft-r16b.test load 2.73 2.86 2.71
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  564973	       391.0 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2215036	       109.8 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1486136	       167.9 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2268760	       103.4 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  598591	       397.5 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1000000	       214.6 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1576438	       152.2 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1310149	       182.9 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2885804	        84.19 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2615882	        83.37 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1212526	       197.6 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3938108	        62.08 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3781262	        63.16 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 3742304	        67.12 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  115479	      2032 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  511819	       485.1 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  554904	       431.7 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  387068	       622.7 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  603991	       442.3 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  120244	      1980 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  473617	       513.1 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  293200	       806.6 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  420309	       571.7 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  114072	      2112 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  263244	       910.5 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  296701	       807.4 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  924121	       260.0 ns/op
+PASS
+=== round 3 bin fft-r16b.test load 2.76 2.86 2.72
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  517280	       396.1 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2183385	       107.8 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1508019	       161.1 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2370003	       105.5 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  601947	       425.7 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	  905977	       248.3 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1514658	       164.8 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1261351	       188.8 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2864502	        89.33 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2877481	        83.22 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1206411	       196.0 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3932370	        60.98 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3887877	        61.64 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4332249	        57.65 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  118348	      2103 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  516856	       459.6 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  543436	       441.0 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  394611	       607.1 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  601819	       393.5 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  119110	      2100 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  475676	       489.0 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  301474	      1000 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  417114	       581.1 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  117596	      2083 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  272906	       878.3 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  300540	       922.9 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  921018	       260.4 ns/op
+PASS
+=== round 3 bin fft-r16c.test load 2.95 2.90 2.73
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  489715	       426.9 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2068302	       109.4 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1504033	       159.7 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2247826	       104.5 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  639283	       373.8 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1000000	       232.6 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1576671	       163.3 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1300164	       183.2 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2808487	        82.44 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2914378	        85.04 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1000000	       200.1 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3552061	        62.63 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3799111	        61.63 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4163457	        58.65 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  116624	      2051 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  510957	       468.0 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  561008	       426.3 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  390487	       612.3 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  620616	       395.8 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  122952	      1962 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  476906	       542.7 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  327374	       773.6 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  423984	       680.1 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  104168	      2091 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  253658	       975.5 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  328942	       727.0 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  906819	       263.2 ns/op
+PASS
+=== round 4 bin fft-r16c.test load 3.11 2.94 2.74
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  561805	       450.9 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2112352	       115.2 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1539784	       156.1 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2377147	       107.8 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  622074	       385.8 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1000000	       205.1 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1562336	       155.7 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1291599	       184.6 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2901669	        82.72 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2863184	        82.80 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1000000	       207.3 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3085971	        68.42 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3590222	        64.35 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4303195	        56.14 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  118790	      2064 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  520740	       472.8 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  558590	       428.8 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  387267	       624.3 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  618651	       465.8 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  126024	      1897 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  469189	       504.9 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  325813	       734.3 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  422272	       636.4 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  113229	      2202 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  248422	       965.2 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  317707	       754.2 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  863414	       265.8 ns/op
+PASS
+=== round 4 bin fft-r16b.test load 3.18 2.95 2.75
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  550852	       396.4 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2222216	       112.3 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1456508	       158.4 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2292834	       106.0 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  601239	       398.2 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1000000	       216.2 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1602187	       159.6 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1297916	       186.5 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2894593	        83.01 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2872168	        84.70 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1032615	       198.8 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3882702	        70.11 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3875288	        63.12 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4173222	        57.37 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  117831	      2024 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  511268	       486.5 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  553192	       453.5 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  390606	       613.7 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  622813	       388.3 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  119654	      1990 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  479660	       496.0 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  271548	       803.5 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  418272	       567.9 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  113557	      2069 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  263032	       911.2 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  290181	       826.4 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  846327	       259.4 ns/op
+PASS
+=== round 5 bin fft-r16b.test load 3.31 2.99 2.77
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  559934	       391.6 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 2218914	       107.9 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1395273	       158.5 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2030883	       118.6 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  591240	       467.3 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1000000	       218.8 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1512969	       157.2 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1273657	       183.1 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2896705	        83.53 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2894370	        87.44 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1211710	       196.8 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3915284	        61.41 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3880141	        61.77 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4154278	        56.99 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  109525	      2019 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  517771	       459.9 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  513908	       429.1 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  393412	       611.3 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  592280	       411.8 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  112617	      2012 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  463672	       517.6 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  300643	       801.8 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  416653	       573.5 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  116036	      2072 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  278440	       925.7 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  291506	       816.7 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  810637	       266.4 ns/op
+PASS
+=== round 5 bin fft-r16c.test load 3.44 3.02 2.78
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkRadix16Passes/256/4x8x8/whole         	  550825	       398.5 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass0_r4_ido64         	 1916239	       107.6 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass1_r8_ido8          	 1518722	       167.5 ns/op
+BenchmarkRadix16Passes/256/4x8x8/pass2_r8_ido1          	 2286655	       105.3 ns/op
+BenchmarkRadix16Passes/256/16x16/whole                  	  641671	       379.8 ns/op
+BenchmarkRadix16Passes/256/16x16/pass0_r16_ido16        	 1205890	       202.1 ns/op
+BenchmarkRadix16Passes/256/16x16/pass1_r16_ido1         	 1472697	       154.9 ns/op
+BenchmarkRadix16Passes/128/8x16/whole                   	 1305657	       201.4 ns/op
+BenchmarkRadix16Passes/128/8x16/pass0_r8_ido16          	 2898922	        84.30 ns/op
+BenchmarkRadix16Passes/128/8x16/pass1_r16_ido1          	 2645241	        87.94 ns/op
+BenchmarkRadix16Passes/128/4x4x8/whole                  	 1000000	       218.9 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass0_r4_ido32         	 3903129	        61.11 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass1_r4_ido8          	 3890104	        61.65 ns/op
+BenchmarkRadix16Passes/128/4x4x8/pass2_r8_ido1          	 4285719	        56.15 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/whole               	  120002	      2425 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass0_r4_ido256     	  526491	       485.0 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass1_r4_ido64      	  569115	       420.8 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass2_r8_ido8       	  387962	       628.7 ns/op
+BenchmarkRadix16Passes/1024/4x4x8x8/pass3_r8_ido1       	  602802	       448.6 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/whole               	  124293	      1938 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass0_r4_ido256     	  481203	       535.8 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass1_r16_ido16     	  319081	       767.5 ns/op
+BenchmarkRadix16Passes/1024/4x16x16/pass2_r16_ido1      	  412610	       575.4 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/whole               	  113866	      2084 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass0_r16_ido64     	  251584	       952.8 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass1_r16_ido4      	  328836	       735.0 ns/op
+BenchmarkRadix16Passes/1024/16x16x4/pass2_r4_ido1       	  907048	       273.3 ns/op
+PASS
+=== DONE load 3.68 3.09 2.80

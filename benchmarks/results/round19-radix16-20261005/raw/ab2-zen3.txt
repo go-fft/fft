@@ -1,0 +1,691 @@
+=== round 1 bin fft-mains.test load 2.67 2.80 2.91
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3558390	       102.8 ns/op
+BenchmarkAB/C/128        	 1784145	       198.4 ns/op
+BenchmarkAB/C/256        	  881030	       414.4 ns/op
+BenchmarkAB/C/512        	  430254	       826.5 ns/op
+BenchmarkAB/C/1024       	  178306	      2104 ns/op
+BenchmarkAB/C/2048       	   67700	      5322 ns/op
+BenchmarkAB/C/4096       	   28123	     12935 ns/op
+BenchmarkAB/C/1000       	  143548	      2361 ns/op
+BenchmarkAB/R/256        	 1000000	       307.9 ns/op
+BenchmarkAB/R/1024       	  288860	      1239 ns/op
+BenchmarkAB/R/4096       	   53235	      6754 ns/op
+BenchmarkAB/R/1000       	  245294	      1806 ns/op
+BenchmarkAB/2D/64        	   33481	     11073 ns/op
+BenchmarkAB/2D/128       	    6364	     56364 ns/op
+BenchmarkAB/2D/256       	    1234	    312273 ns/op
+BenchmarkAB/2D/512       	     271	   1279018 ns/op
+BenchmarkAB/2D/1024      	      58	   5989813 ns/op
+PASS
+=== round 1 bin fft-r16f.test load 2.88 2.84 2.92
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3446317	       103.6 ns/op
+BenchmarkAB/C/128        	 1821548	       196.9 ns/op
+BenchmarkAB/C/256        	  944918	       380.9 ns/op
+BenchmarkAB/C/512        	  434635	       858.5 ns/op
+BenchmarkAB/C/1024       	  176660	      1995 ns/op
+BenchmarkAB/C/2048       	   65476	      5396 ns/op
+BenchmarkAB/C/4096       	   27465	     13553 ns/op
+BenchmarkAB/C/1000       	  152988	      2356 ns/op
+BenchmarkAB/R/256        	 1000000	       304.9 ns/op
+BenchmarkAB/R/1024       	  286363	      1248 ns/op
+BenchmarkAB/R/4096       	   53283	      8866 ns/op
+BenchmarkAB/R/1000       	  241596	      1818 ns/op
+BenchmarkAB/2D/64        	   32160	     11564 ns/op
+BenchmarkAB/2D/128       	    6502	     56151 ns/op
+BenchmarkAB/2D/256       	    1231	    281812 ns/op
+BenchmarkAB/2D/512       	     274	   1325867 ns/op
+BenchmarkAB/2D/1024      	      55	   6367139 ns/op
+PASS
+=== round 2 bin fft-r16f.test load 2.97 2.86 2.93
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3451844	       103.5 ns/op
+BenchmarkAB/C/128        	 1834249	       195.8 ns/op
+BenchmarkAB/C/256        	  936248	       381.0 ns/op
+BenchmarkAB/C/512        	  435902	       837.7 ns/op
+BenchmarkAB/C/1024       	  182883	      1976 ns/op
+BenchmarkAB/C/2048       	   67472	      5295 ns/op
+BenchmarkAB/C/4096       	   28137	     12836 ns/op
+BenchmarkAB/C/1000       	  152067	      2349 ns/op
+BenchmarkAB/R/256        	 1000000	       307.4 ns/op
+BenchmarkAB/R/1024       	  288852	      1261 ns/op
+BenchmarkAB/R/4096       	   53332	      6710 ns/op
+BenchmarkAB/R/1000       	  246416	      1488 ns/op
+BenchmarkAB/2D/64        	   32274	     11408 ns/op
+BenchmarkAB/2D/128       	    5370	     59737 ns/op
+BenchmarkAB/2D/256       	    1204	    286586 ns/op
+BenchmarkAB/2D/512       	     252	   1319731 ns/op
+BenchmarkAB/2D/1024      	      57	   6321647 ns/op
+PASS
+=== round 2 bin fft-mains.test load 3.05 2.88 2.93
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3539211	       101.0 ns/op
+BenchmarkAB/C/128        	 1791870	       200.0 ns/op
+BenchmarkAB/C/256        	  832206	       411.3 ns/op
+BenchmarkAB/C/512        	  425854	       857.0 ns/op
+BenchmarkAB/C/1024       	  177318	      2071 ns/op
+BenchmarkAB/C/2048       	   65635	      5604 ns/op
+BenchmarkAB/C/4096       	   27247	     12967 ns/op
+BenchmarkAB/C/1000       	  153937	      2362 ns/op
+BenchmarkAB/R/256        	 1000000	       306.0 ns/op
+BenchmarkAB/R/1024       	  287499	      1284 ns/op
+BenchmarkAB/R/4096       	   53785	      6709 ns/op
+BenchmarkAB/R/1000       	  243316	      1484 ns/op
+BenchmarkAB/2D/64        	   31911	     13424 ns/op
+BenchmarkAB/2D/128       	    6387	     58639 ns/op
+BenchmarkAB/2D/256       	    1243	    296944 ns/op
+BenchmarkAB/2D/512       	     277	   1299084 ns/op
+BenchmarkAB/2D/1024      	      60	   6029070 ns/op
+PASS
+=== round 3 bin fft-mains.test load 3.20 2.92 2.95
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3200161	       104.8 ns/op
+BenchmarkAB/C/128        	 1778901	       214.6 ns/op
+BenchmarkAB/C/256        	  848995	       422.3 ns/op
+BenchmarkAB/C/512        	  424324	       943.0 ns/op
+BenchmarkAB/C/1024       	  176901	      2035 ns/op
+BenchmarkAB/C/2048       	   68383	      5258 ns/op
+BenchmarkAB/C/4096       	   27956	     12908 ns/op
+BenchmarkAB/C/1000       	  154320	      2339 ns/op
+BenchmarkAB/R/256        	 1000000	       390.6 ns/op
+BenchmarkAB/R/1024       	  277696	      1285 ns/op
+BenchmarkAB/R/4096       	   51138	      6816 ns/op
+BenchmarkAB/R/1000       	  231103	      1538 ns/op
+BenchmarkAB/2D/64        	   32924	     10951 ns/op
+BenchmarkAB/2D/128       	    6416	     75603 ns/op
+BenchmarkAB/2D/256       	    1231	    290740 ns/op
+BenchmarkAB/2D/512       	     268	   1316093 ns/op
+BenchmarkAB/2D/1024      	      54	   6677579 ns/op
+PASS
+=== round 3 bin fft-r16f.test load 3.26 2.94 2.95
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3359514	       112.1 ns/op
+BenchmarkAB/C/128        	 1765209	       205.5 ns/op
+BenchmarkAB/C/256        	  922444	       410.1 ns/op
+BenchmarkAB/C/512        	  430334	       852.4 ns/op
+BenchmarkAB/C/1024       	  184845	      2082 ns/op
+BenchmarkAB/C/2048       	   68025	      5390 ns/op
+BenchmarkAB/C/4096       	   27340	     14066 ns/op
+BenchmarkAB/C/1000       	  152065	      2411 ns/op
+BenchmarkAB/R/256        	 1108587	       323.4 ns/op
+BenchmarkAB/R/1024       	  284312	      1500 ns/op
+BenchmarkAB/R/4096       	   43652	      7221 ns/op
+BenchmarkAB/R/1000       	  239776	      1489 ns/op
+BenchmarkAB/2D/64        	   28634	     11640 ns/op
+BenchmarkAB/2D/128       	    6246	     58435 ns/op
+BenchmarkAB/2D/256       	    1102	    294357 ns/op
+BenchmarkAB/2D/512       	     270	   1325654 ns/op
+BenchmarkAB/2D/1024      	      49	   7029322 ns/op
+PASS
+=== round 4 bin fft-r16f.test load 3.45 2.99 2.97
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3390327	       108.8 ns/op
+BenchmarkAB/C/128        	 1772872	       206.7 ns/op
+BenchmarkAB/C/256        	  908118	       405.3 ns/op
+BenchmarkAB/C/512        	  425936	       864.9 ns/op
+BenchmarkAB/C/1024       	  172035	      1947 ns/op
+BenchmarkAB/C/2048       	   67466	      5275 ns/op
+BenchmarkAB/C/4096       	   27501	     13065 ns/op
+BenchmarkAB/C/1000       	  152979	      2384 ns/op
+BenchmarkAB/R/256        	 1000000	       316.1 ns/op
+BenchmarkAB/R/1024       	  284158	      1267 ns/op
+BenchmarkAB/R/4096       	   47584	      6967 ns/op
+BenchmarkAB/R/1000       	  241261	      1508 ns/op
+BenchmarkAB/2D/64        	   32376	     12111 ns/op
+BenchmarkAB/2D/128       	    6513	     56931 ns/op
+BenchmarkAB/2D/256       	    1266	    295389 ns/op
+BenchmarkAB/2D/512       	     260	   1381553 ns/op
+BenchmarkAB/2D/1024      	      54	   6095583 ns/op
+PASS
+=== round 4 bin fft-mains.test load 3.62 3.04 2.99
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3481784	       102.8 ns/op
+BenchmarkAB/C/128        	 1768204	       202.7 ns/op
+BenchmarkAB/C/256        	  865356	       443.0 ns/op
+BenchmarkAB/C/512        	  433234	       846.7 ns/op
+BenchmarkAB/C/1024       	  173185	      2178 ns/op
+BenchmarkAB/C/2048       	   67300	      5325 ns/op
+BenchmarkAB/C/4096       	   27360	     13258 ns/op
+BenchmarkAB/C/1000       	  123045	      2445 ns/op
+BenchmarkAB/R/256        	 1000000	       312.1 ns/op
+BenchmarkAB/R/1024       	  288667	      1273 ns/op
+BenchmarkAB/R/4096       	   51385	      6896 ns/op
+BenchmarkAB/R/1000       	  240318	      1851 ns/op
+BenchmarkAB/2D/64        	   32541	     11189 ns/op
+BenchmarkAB/2D/128       	    6157	     56162 ns/op
+BenchmarkAB/2D/256       	    1244	    295473 ns/op
+BenchmarkAB/2D/512       	     265	   1411981 ns/op
+BenchmarkAB/2D/1024      	      54	   6328168 ns/op
+PASS
+=== round 5 bin fft-mains.test load 3.73 3.07 3.00
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3296500	       109.8 ns/op
+BenchmarkAB/C/128        	 1698160	       209.4 ns/op
+BenchmarkAB/C/256        	  766923	       415.7 ns/op
+BenchmarkAB/C/512        	  433560	       866.3 ns/op
+BenchmarkAB/C/1024       	  173930	      2394 ns/op
+BenchmarkAB/C/2048       	   68408	      5389 ns/op
+BenchmarkAB/C/4096       	   27618	     13010 ns/op
+BenchmarkAB/C/1000       	  151345	      2367 ns/op
+BenchmarkAB/R/256        	 1000000	       364.9 ns/op
+BenchmarkAB/R/1024       	  279850	      1258 ns/op
+BenchmarkAB/R/4096       	   49143	      7381 ns/op
+BenchmarkAB/R/1000       	  233488	      1823 ns/op
+BenchmarkAB/2D/64        	   27990	     14792 ns/op
+BenchmarkAB/2D/128       	    6091	     58483 ns/op
+BenchmarkAB/2D/256       	    1244	    317091 ns/op
+BenchmarkAB/2D/512       	     280	   1335296 ns/op
+BenchmarkAB/2D/1024      	      58	   5982413 ns/op
+PASS
+=== round 5 bin fft-r16f.test load 3.77 3.10 3.01
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3484129	       103.2 ns/op
+BenchmarkAB/C/128        	 1823628	       201.0 ns/op
+BenchmarkAB/C/256        	  936530	       383.6 ns/op
+BenchmarkAB/C/512        	  422720	       832.2 ns/op
+BenchmarkAB/C/1024       	  186193	      1934 ns/op
+BenchmarkAB/C/2048       	   67063	      5309 ns/op
+BenchmarkAB/C/4096       	   27470	     13089 ns/op
+BenchmarkAB/C/1000       	  150709	      2451 ns/op
+BenchmarkAB/R/256        	 1000000	       317.3 ns/op
+BenchmarkAB/R/1024       	  288752	      1257 ns/op
+BenchmarkAB/R/4096       	   53007	      9245 ns/op
+BenchmarkAB/R/1000       	  244311	      1722 ns/op
+BenchmarkAB/2D/64        	   32318	     11445 ns/op
+BenchmarkAB/2D/128       	    6627	     54688 ns/op
+BenchmarkAB/2D/256       	    1282	    285623 ns/op
+BenchmarkAB/2D/512       	     272	   1295887 ns/op
+BenchmarkAB/2D/1024      	      54	   6278906 ns/op
+PASS
+=== round 6 bin fft-r16f.test load 3.79 3.12 3.01
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3354997	       104.2 ns/op
+BenchmarkAB/C/128        	 1804606	       231.0 ns/op
+BenchmarkAB/C/256        	  921164	       383.3 ns/op
+BenchmarkAB/C/512        	  435124	       868.8 ns/op
+BenchmarkAB/C/1024       	  184814	      1932 ns/op
+BenchmarkAB/C/2048       	   67339	      5340 ns/op
+BenchmarkAB/C/4096       	   27208	     13437 ns/op
+BenchmarkAB/C/1000       	  149890	      2386 ns/op
+BenchmarkAB/R/256        	 1000000	       310.1 ns/op
+BenchmarkAB/R/1024       	  287618	      1364 ns/op
+BenchmarkAB/R/4096       	   53451	      6912 ns/op
+BenchmarkAB/R/1000       	  244161	      1479 ns/op
+BenchmarkAB/2D/64        	   32774	     11385 ns/op
+BenchmarkAB/2D/128       	    6447	     56538 ns/op
+BenchmarkAB/2D/256       	    1248	    287542 ns/op
+BenchmarkAB/2D/512       	     268	   1358578 ns/op
+BenchmarkAB/2D/1024      	      57	   6134838 ns/op
+PASS
+=== round 6 bin fft-mains.test load 3.82 3.15 3.02
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3551140	       102.6 ns/op
+BenchmarkAB/C/128        	 1764830	       206.9 ns/op
+BenchmarkAB/C/256        	  883029	       408.3 ns/op
+BenchmarkAB/C/512        	  422535	       955.3 ns/op
+BenchmarkAB/C/1024       	  170808	      2293 ns/op
+BenchmarkAB/C/2048       	   69022	      5218 ns/op
+BenchmarkAB/C/4096       	   27901	     12818 ns/op
+BenchmarkAB/C/1000       	  150270	      2368 ns/op
+BenchmarkAB/R/256        	 1000000	       319.9 ns/op
+BenchmarkAB/R/1024       	  284821	      1246 ns/op
+BenchmarkAB/R/4096       	   53288	      8031 ns/op
+BenchmarkAB/R/1000       	  241380	      1542 ns/op
+BenchmarkAB/2D/64        	   33212	     10754 ns/op
+BenchmarkAB/2D/128       	    5506	     58350 ns/op
+BenchmarkAB/2D/256       	    1226	    301435 ns/op
+BenchmarkAB/2D/512       	     274	   1302850 ns/op
+BenchmarkAB/2D/1024      	      58	   6482456 ns/op
+PASS
+=== round 7 bin fft-mains.test load 4.16 3.23 3.05
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3367362	       103.8 ns/op
+BenchmarkAB/C/128        	 1759018	       201.2 ns/op
+BenchmarkAB/C/256        	  834837	       414.8 ns/op
+BenchmarkAB/C/512        	  431235	       859.7 ns/op
+BenchmarkAB/C/1024       	  176235	      2020 ns/op
+BenchmarkAB/C/2048       	   69078	      5214 ns/op
+BenchmarkAB/C/4096       	   28220	     12733 ns/op
+BenchmarkAB/C/1000       	  154230	      2342 ns/op
+BenchmarkAB/R/256        	 1000000	       308.9 ns/op
+BenchmarkAB/R/1024       	  287257	      1249 ns/op
+BenchmarkAB/R/4096       	   53290	      6771 ns/op
+BenchmarkAB/R/1000       	  242755	      1481 ns/op
+BenchmarkAB/2D/64        	   33472	     10751 ns/op
+BenchmarkAB/2D/128       	    6240	     56474 ns/op
+BenchmarkAB/2D/256       	    1224	    290240 ns/op
+BenchmarkAB/2D/512       	     279	   1271551 ns/op
+BenchmarkAB/2D/1024      	      60	   6022444 ns/op
+PASS
+=== round 7 bin fft-r16f.test load 4.81 3.40 3.11
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3437464	       102.8 ns/op
+BenchmarkAB/C/128        	 1827282	       197.5 ns/op
+BenchmarkAB/C/256        	  944160	       379.4 ns/op
+BenchmarkAB/C/512        	  429745	       837.2 ns/op
+BenchmarkAB/C/1024       	  185938	      1932 ns/op
+BenchmarkAB/C/2048       	   67707	      5284 ns/op
+BenchmarkAB/C/4096       	   27460	     12921 ns/op
+BenchmarkAB/C/1000       	  154856	      2335 ns/op
+BenchmarkAB/R/256        	 1000000	       311.3 ns/op
+BenchmarkAB/R/1024       	  280108	      1949 ns/op
+BenchmarkAB/R/4096       	   52138	      6775 ns/op
+BenchmarkAB/R/1000       	  242716	      1488 ns/op
+BenchmarkAB/2D/64        	   31558	     11104 ns/op
+BenchmarkAB/2D/128       	    6612	     54262 ns/op
+BenchmarkAB/2D/256       	    1288	    281075 ns/op
+BenchmarkAB/2D/512       	     280	   1291585 ns/op
+BenchmarkAB/2D/1024      	      51	   6132164 ns/op
+PASS
+=== round 8 bin fft-r16f.test load 4.91 3.45 3.13
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3501055	       116.8 ns/op
+BenchmarkAB/C/128        	 1826395	       197.6 ns/op
+BenchmarkAB/C/256        	  942175	       384.3 ns/op
+BenchmarkAB/C/512        	  425448	       856.8 ns/op
+BenchmarkAB/C/1024       	  183756	      2066 ns/op
+BenchmarkAB/C/2048       	   67921	      5333 ns/op
+BenchmarkAB/C/4096       	   27765	     12892 ns/op
+BenchmarkAB/C/1000       	  153224	      2346 ns/op
+BenchmarkAB/R/256        	 1000000	       331.8 ns/op
+BenchmarkAB/R/1024       	  288642	      1318 ns/op
+BenchmarkAB/R/4096       	   52890	      6865 ns/op
+BenchmarkAB/R/1000       	  244660	      1542 ns/op
+BenchmarkAB/2D/64        	   31998	     11079 ns/op
+BenchmarkAB/2D/128       	    6602	     55153 ns/op
+BenchmarkAB/2D/256       	    1258	    287196 ns/op
+BenchmarkAB/2D/512       	     272	   1324235 ns/op
+BenchmarkAB/2D/1024      	      58	   6107390 ns/op
+PASS
+=== round 8 bin fft-mains.test load 4.99 3.51 3.15
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3563132	       109.3 ns/op
+BenchmarkAB/C/128        	 1808766	       219.2 ns/op
+BenchmarkAB/C/256        	  838542	       429.3 ns/op
+BenchmarkAB/C/512        	  351525	       857.0 ns/op
+BenchmarkAB/C/1024       	  176049	      2050 ns/op
+BenchmarkAB/C/2048       	   69385	      5258 ns/op
+BenchmarkAB/C/4096       	   28278	     12711 ns/op
+BenchmarkAB/C/1000       	  153906	      2491 ns/op
+BenchmarkAB/R/256        	 1000000	       307.9 ns/op
+BenchmarkAB/R/1024       	  245000	      1334 ns/op
+BenchmarkAB/R/4096       	   53562	      9087 ns/op
+BenchmarkAB/R/1000       	  206647	      1490 ns/op
+BenchmarkAB/2D/64        	   30414	     11118 ns/op
+BenchmarkAB/2D/128       	    6459	     55668 ns/op
+BenchmarkAB/2D/256       	    1209	    293559 ns/op
+BenchmarkAB/2D/512       	     279	   1309881 ns/op
+BenchmarkAB/2D/1024      	      58	   6075400 ns/op
+PASS
+=== round 9 bin fft-mains.test load 4.91 3.52 3.16
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3535165	       111.0 ns/op
+BenchmarkAB/C/128        	 1760637	       203.0 ns/op
+BenchmarkAB/C/256        	  667623	       484.2 ns/op
+BenchmarkAB/C/512        	  422614	       871.5 ns/op
+BenchmarkAB/C/1024       	  175274	      2037 ns/op
+BenchmarkAB/C/2048       	   68803	      5235 ns/op
+BenchmarkAB/C/4096       	   27894	     12925 ns/op
+BenchmarkAB/C/1000       	  152272	      2373 ns/op
+BenchmarkAB/R/256        	 1000000	       311.3 ns/op
+BenchmarkAB/R/1024       	  286863	      1290 ns/op
+BenchmarkAB/R/4096       	   51489	      7913 ns/op
+BenchmarkAB/R/1000       	  221170	      1728 ns/op
+BenchmarkAB/2D/64        	   32631	     11670 ns/op
+BenchmarkAB/2D/128       	    6412	     55202 ns/op
+BenchmarkAB/2D/256       	    1255	    286208 ns/op
+BenchmarkAB/2D/512       	     278	   1294129 ns/op
+BenchmarkAB/2D/1024      	      57	   6215976 ns/op
+PASS
+=== round 9 bin fft-r16f.test load 5.17 3.62 3.19
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3490857	       103.3 ns/op
+BenchmarkAB/C/128        	 1784510	       198.1 ns/op
+BenchmarkAB/C/256        	  933195	       380.3 ns/op
+BenchmarkAB/C/512        	  427364	       852.1 ns/op
+BenchmarkAB/C/1024       	  184165	      1957 ns/op
+BenchmarkAB/C/2048       	   69409	      5213 ns/op
+BenchmarkAB/C/4096       	   26856	     13361 ns/op
+BenchmarkAB/C/1000       	  143156	      2508 ns/op
+BenchmarkAB/R/256        	 1000000	       333.7 ns/op
+BenchmarkAB/R/1024       	  281803	      1449 ns/op
+BenchmarkAB/R/4096       	   53607	      6709 ns/op
+BenchmarkAB/R/1000       	  245766	      1462 ns/op
+BenchmarkAB/2D/64        	   32576	     11128 ns/op
+BenchmarkAB/2D/128       	    6642	     54341 ns/op
+BenchmarkAB/2D/256       	    1297	    276529 ns/op
+BenchmarkAB/2D/512       	     277	   1303318 ns/op
+BenchmarkAB/2D/1024      	      58	   6135429 ns/op
+PASS
+=== round 10 bin fft-r16f.test load 5.00 3.61 3.19
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3418306	       104.4 ns/op
+BenchmarkAB/C/128        	 1740186	       212.7 ns/op
+BenchmarkAB/C/256        	  919990	       421.0 ns/op
+BenchmarkAB/C/512        	  425187	       841.3 ns/op
+BenchmarkAB/C/1024       	  181612	      1934 ns/op
+BenchmarkAB/C/2048       	   68623	      5232 ns/op
+BenchmarkAB/C/4096       	   28352	     12726 ns/op
+BenchmarkAB/C/1000       	  153730	      2309 ns/op
+BenchmarkAB/R/256        	 1000000	       308.0 ns/op
+BenchmarkAB/R/1024       	  272814	      1259 ns/op
+BenchmarkAB/R/4096       	   53047	      6803 ns/op
+BenchmarkAB/R/1000       	  244930	      1484 ns/op
+BenchmarkAB/2D/64        	   32067	     11044 ns/op
+BenchmarkAB/2D/128       	    6570	     57938 ns/op
+BenchmarkAB/2D/256       	    1188	    294998 ns/op
+BenchmarkAB/2D/512       	     279	   1293428 ns/op
+BenchmarkAB/2D/1024      	      58	   6171308 ns/op
+PASS
+=== round 10 bin fft-mains.test load 5.08 3.67 3.22
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3530058	       103.0 ns/op
+BenchmarkAB/C/128        	 1805577	       201.6 ns/op
+BenchmarkAB/C/256        	  867577	       415.3 ns/op
+BenchmarkAB/C/512        	  427282	       840.4 ns/op
+BenchmarkAB/C/1024       	  175814	      2121 ns/op
+BenchmarkAB/C/2048       	   69146	      5231 ns/op
+BenchmarkAB/C/4096       	   27902	     12921 ns/op
+BenchmarkAB/C/1000       	  149107	      2487 ns/op
+BenchmarkAB/R/256        	  971491	       323.1 ns/op
+BenchmarkAB/R/1024       	  282109	      1322 ns/op
+BenchmarkAB/R/4096       	   49740	      7833 ns/op
+BenchmarkAB/R/1000       	  234328	      1575 ns/op
+BenchmarkAB/2D/64        	   33055	     10990 ns/op
+BenchmarkAB/2D/128       	    6520	     55658 ns/op
+BenchmarkAB/2D/256       	    1251	    289665 ns/op
+BenchmarkAB/2D/512       	     272	   1332736 ns/op
+BenchmarkAB/2D/1024      	      60	   5969829 ns/op
+PASS
+=== round 11 bin fft-mains.test load 4.99 3.68 3.22
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3487440	       113.5 ns/op
+BenchmarkAB/C/128        	 1788326	       206.7 ns/op
+BenchmarkAB/C/256        	  877707	       412.3 ns/op
+BenchmarkAB/C/512        	  428947	       870.4 ns/op
+BenchmarkAB/C/1024       	  174998	      2051 ns/op
+BenchmarkAB/C/2048       	   65875	      5583 ns/op
+BenchmarkAB/C/4096       	   27054	     13236 ns/op
+BenchmarkAB/C/1000       	  151198	      2352 ns/op
+BenchmarkAB/R/256        	 1000000	       308.2 ns/op
+BenchmarkAB/R/1024       	  291014	      1237 ns/op
+BenchmarkAB/R/4096       	   53781	      6708 ns/op
+BenchmarkAB/R/1000       	  241773	      1613 ns/op
+BenchmarkAB/2D/64        	   31074	     11170 ns/op
+BenchmarkAB/2D/128       	    6462	     58146 ns/op
+BenchmarkAB/2D/256       	    1264	    290217 ns/op
+BenchmarkAB/2D/512       	     272	   1351285 ns/op
+BenchmarkAB/2D/1024      	      58	   6207775 ns/op
+PASS
+=== round 11 bin fft-r16f.test load 4.84 3.69 3.23
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3272874	       112.5 ns/op
+BenchmarkAB/C/128        	 1798032	       213.1 ns/op
+BenchmarkAB/C/256        	  902295	       389.3 ns/op
+BenchmarkAB/C/512        	  426691	       836.7 ns/op
+BenchmarkAB/C/1024       	  185865	      1993 ns/op
+BenchmarkAB/C/2048       	   69070	      5397 ns/op
+BenchmarkAB/C/4096       	   27794	     13018 ns/op
+BenchmarkAB/C/1000       	  152252	      2418 ns/op
+BenchmarkAB/R/256        	 1000000	       335.1 ns/op
+BenchmarkAB/R/1024       	  230628	      2296 ns/op
+BenchmarkAB/R/4096       	   53648	      6699 ns/op
+BenchmarkAB/R/1000       	  239654	      1553 ns/op
+BenchmarkAB/2D/64        	   32418	     11112 ns/op
+BenchmarkAB/2D/128       	    6970	     51766 ns/op
+BenchmarkAB/2D/256       	    1276	    281244 ns/op
+BenchmarkAB/2D/512       	     272	   1316988 ns/op
+BenchmarkAB/2D/1024      	      56	   6170882 ns/op
+PASS
+=== round 12 bin fft-r16f.test load 4.77 3.69 3.23
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 2929971	       102.5 ns/op
+BenchmarkAB/C/128        	 1749520	       198.5 ns/op
+BenchmarkAB/C/256        	  938966	       381.5 ns/op
+BenchmarkAB/C/512        	  429784	       837.5 ns/op
+BenchmarkAB/C/1024       	  185475	      1951 ns/op
+BenchmarkAB/C/2048       	   69411	      5197 ns/op
+BenchmarkAB/C/4096       	   28188	     12750 ns/op
+BenchmarkAB/C/1000       	  152971	      2338 ns/op
+BenchmarkAB/R/256        	 1000000	       334.7 ns/op
+BenchmarkAB/R/1024       	  282558	      1260 ns/op
+BenchmarkAB/R/4096       	   52989	      6968 ns/op
+BenchmarkAB/R/1000       	  243620	      1501 ns/op
+BenchmarkAB/2D/64        	   28501	     11212 ns/op
+BenchmarkAB/2D/128       	    6488	     54778 ns/op
+BenchmarkAB/2D/256       	    1286	    278866 ns/op
+BenchmarkAB/2D/512       	     268	   1319005 ns/op
+BenchmarkAB/2D/1024      	      56	   6445093 ns/op
+PASS
+=== round 12 bin fft-mains.test load 4.73 3.72 3.25
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3509354	       102.8 ns/op
+BenchmarkAB/C/128        	 1709980	       211.1 ns/op
+BenchmarkAB/C/256        	  865851	       419.3 ns/op
+BenchmarkAB/C/512        	  420921	       836.0 ns/op
+BenchmarkAB/C/1024       	  173418	      2075 ns/op
+BenchmarkAB/C/2048       	   67470	      5333 ns/op
+BenchmarkAB/C/4096       	   27781	     12944 ns/op
+BenchmarkAB/C/1000       	  154516	      2343 ns/op
+BenchmarkAB/R/256        	 1000000	       308.4 ns/op
+BenchmarkAB/R/1024       	  282855	      1241 ns/op
+BenchmarkAB/R/4096       	   53484	      6770 ns/op
+BenchmarkAB/R/1000       	  240074	      1924 ns/op
+BenchmarkAB/2D/64        	   33054	     10856 ns/op
+BenchmarkAB/2D/128       	    6315	     60735 ns/op
+BenchmarkAB/2D/256       	    1239	    289953 ns/op
+BenchmarkAB/2D/512       	     276	   1286296 ns/op
+BenchmarkAB/2D/1024      	      58	   6631319 ns/op
+PASS
+=== round 13 bin fft-mains.test load 4.67 3.73 3.25
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3430983	       101.4 ns/op
+BenchmarkAB/C/128        	 1755724	       226.1 ns/op
+BenchmarkAB/C/256        	  866197	       421.8 ns/op
+BenchmarkAB/C/512        	  432429	       849.0 ns/op
+BenchmarkAB/C/1024       	  173328	      2061 ns/op
+BenchmarkAB/C/2048       	   68526	      5240 ns/op
+BenchmarkAB/C/4096       	   27519	     12848 ns/op
+BenchmarkAB/C/1000       	  152751	      2343 ns/op
+BenchmarkAB/R/256        	 1000000	       369.4 ns/op
+BenchmarkAB/R/1024       	  286932	      1330 ns/op
+BenchmarkAB/R/4096       	   52624	      6801 ns/op
+BenchmarkAB/R/1000       	  240130	      1481 ns/op
+BenchmarkAB/2D/64        	   33297	     12421 ns/op
+BenchmarkAB/2D/128       	    6709	     66634 ns/op
+BenchmarkAB/2D/256       	    1224	    291202 ns/op
+BenchmarkAB/2D/512       	     272	   1311364 ns/op
+BenchmarkAB/2D/1024      	      57	   5935846 ns/op
+PASS
+=== round 13 bin fft-r16f.test load 4.57 3.74 3.26
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3439375	       104.6 ns/op
+BenchmarkAB/C/128        	 1801611	       200.0 ns/op
+BenchmarkAB/C/256        	  918877	       390.4 ns/op
+BenchmarkAB/C/512        	  423655	       902.1 ns/op
+BenchmarkAB/C/1024       	  184641	      1944 ns/op
+BenchmarkAB/C/2048       	   66597	      5253 ns/op
+BenchmarkAB/C/4096       	   28084	     12921 ns/op
+BenchmarkAB/C/1000       	  152223	      2375 ns/op
+BenchmarkAB/R/256        	 1000000	       317.5 ns/op
+BenchmarkAB/R/1024       	  283756	      1249 ns/op
+BenchmarkAB/R/4096       	   53670	      8205 ns/op
+BenchmarkAB/R/1000       	  223459	      1479 ns/op
+BenchmarkAB/2D/64        	   32349	     11121 ns/op
+BenchmarkAB/2D/128       	    6651	     54647 ns/op
+BenchmarkAB/2D/256       	    1286	    280021 ns/op
+BenchmarkAB/2D/512       	     271	   1290399 ns/op
+BenchmarkAB/2D/1024      	      58	   6163080 ns/op
+PASS
+=== round 14 bin fft-r16f.test load 4.52 3.74 3.27
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3455580	       104.9 ns/op
+BenchmarkAB/C/128        	 1817335	       202.4 ns/op
+BenchmarkAB/C/256        	  929570	       381.0 ns/op
+BenchmarkAB/C/512        	  432946	       840.1 ns/op
+BenchmarkAB/C/1024       	  185427	      1925 ns/op
+BenchmarkAB/C/2048       	   68881	      5256 ns/op
+BenchmarkAB/C/4096       	   28314	     12753 ns/op
+BenchmarkAB/C/1000       	  154870	      2334 ns/op
+BenchmarkAB/R/256        	 1000000	       305.7 ns/op
+BenchmarkAB/R/1024       	  289112	      1262 ns/op
+BenchmarkAB/R/4096       	   53916	      6665 ns/op
+BenchmarkAB/R/1000       	  243865	      1469 ns/op
+BenchmarkAB/2D/64        	   32704	     11089 ns/op
+BenchmarkAB/2D/128       	    6955	     52006 ns/op
+BenchmarkAB/2D/256       	    1286	    279465 ns/op
+BenchmarkAB/2D/512       	     279	   1293651 ns/op
+BenchmarkAB/2D/1024      	      57	   6223387 ns/op
+PASS
+=== round 14 bin fft-mains.test load 4.44 3.75 3.27
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 2541600	       141.1 ns/op
+BenchmarkAB/C/128        	 1774488	       208.0 ns/op
+BenchmarkAB/C/256        	  797883	       454.7 ns/op
+BenchmarkAB/C/512        	  425964	       844.7 ns/op
+BenchmarkAB/C/1024       	  174247	      2106 ns/op
+BenchmarkAB/C/2048       	   68456	      5273 ns/op
+BenchmarkAB/C/4096       	   27838	     12992 ns/op
+BenchmarkAB/C/1000       	  151497	      2481 ns/op
+BenchmarkAB/R/256        	 1000000	       317.8 ns/op
+BenchmarkAB/R/1024       	  285637	      1256 ns/op
+BenchmarkAB/R/4096       	   52761	      7000 ns/op
+BenchmarkAB/R/1000       	  240968	      2066 ns/op
+BenchmarkAB/2D/64        	   32209	     10985 ns/op
+BenchmarkAB/2D/128       	    6424	     56247 ns/op
+BenchmarkAB/2D/256       	    1240	    288497 ns/op
+BenchmarkAB/2D/512       	     279	   1292579 ns/op
+BenchmarkAB/2D/1024      	      60	   6013761 ns/op
+PASS
+=== round 15 bin fft-mains.test load 4.41 3.75 3.28
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3545073	       101.5 ns/op
+BenchmarkAB/C/128        	 1754947	       219.2 ns/op
+BenchmarkAB/C/256        	  858600	       415.3 ns/op
+BenchmarkAB/C/512        	  431758	       827.7 ns/op
+BenchmarkAB/C/1024       	  177916	      2030 ns/op
+BenchmarkAB/C/2048       	   68037	      5300 ns/op
+BenchmarkAB/C/4096       	   25680	     12900 ns/op
+BenchmarkAB/C/1000       	  152708	      2352 ns/op
+BenchmarkAB/R/256        	 1000000	       309.5 ns/op
+BenchmarkAB/R/1024       	  287947	      1248 ns/op
+BenchmarkAB/R/4096       	   53293	      6741 ns/op
+BenchmarkAB/R/1000       	  242062	      1779 ns/op
+BenchmarkAB/2D/64        	   32311	     12705 ns/op
+BenchmarkAB/2D/128       	    6454	     55774 ns/op
+BenchmarkAB/2D/256       	    1201	    287441 ns/op
+BenchmarkAB/2D/512       	     277	   1300507 ns/op
+BenchmarkAB/2D/1024      	      55	   6170449 ns/op
+PASS
+=== round 15 bin fft-r16f.test load 4.34 3.76 3.29
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkAB/C/64         	 3425516	       106.1 ns/op
+BenchmarkAB/C/128        	 1713925	       206.3 ns/op
+BenchmarkAB/C/256        	  943419	       391.7 ns/op
+BenchmarkAB/C/512        	  425360	       863.3 ns/op
+BenchmarkAB/C/1024       	  180678	      1996 ns/op
+BenchmarkAB/C/2048       	   67615	      5418 ns/op
+BenchmarkAB/C/4096       	   27890	     13000 ns/op
+BenchmarkAB/C/1000       	  151983	      2389 ns/op
+BenchmarkAB/R/256        	 1000000	       307.5 ns/op
+BenchmarkAB/R/1024       	  288590	      1329 ns/op
+BenchmarkAB/R/4096       	   51012	     11814 ns/op
+BenchmarkAB/R/1000       	  215956	      1557 ns/op
+BenchmarkAB/2D/64        	   30288	     11520 ns/op
+BenchmarkAB/2D/128       	    6525	     54812 ns/op
+BenchmarkAB/2D/256       	    1279	    280895 ns/op
+BenchmarkAB/2D/512       	     270	   1329337 ns/op
+BenchmarkAB/2D/1024      	      57	   6107759 ns/op
+PASS
+=== DONE load 4.32 3.77 3.29

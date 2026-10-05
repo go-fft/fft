@@ -210,7 +210,9 @@ func convCost(m int) (float64, bool) {
 		return 0, false
 	}
 	cost := 0.0
-	for _, r := range skFactorize(m) {
+	// The radices of the cost model's fit: radix16Table, which came later,
+	// changes a few powers of two that the weights were not fitted on.
+	for _, r := range skFactorizeOrder(m, oddRadicesFirst) {
 		cost += passWeight[r]
 	}
 	return float64(m) * cost, true

@@ -69,7 +69,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 		st.twX, st.twXc = kernels.StockhamTwiddles(r, ido, l1, root)
 		switch r {
-		case 2, 3, 4, 5, 7, 8:
+		case 2, 3, 4, 5, 7, 8, 16:
 		default:
 			st.rt = make([]complex128, r)
 			st.rtc = make([]complex128, r)
@@ -104,7 +104,15 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // input and eight output streams sit at power-of-two strides and alias in the
 // cache. So a large power of two stays on radix 4; a length with an odd factor
 // has no such aliasing and keeps radix 8 (20160: 1.07×).
-func skFactorize(n int) []int { return skFactorizeOrder(n, oddRadicesFirst) }
+//
+// Where the amd64 radix-16 kernel runs, a few powers of two take radix-16
+// passes instead (radix16Table, Round 19).
+func skFactorize(n int) []int {
+	if f := radix16Table[n]; f != nil {
+		return slices.Clone(f)
+	}
+	return skFactorizeOrder(n, oddRadicesFirst)
+}
 
 // skFactorizeOrder is skFactorize with the order chosen: with oddFirst, the
 // radices 3 and 5 come first, then the powers of two in reverse (radix 4
@@ -336,6 +344,8 @@ func (st *skStage) passScalar(ch, cc []complex128, inverse bool) {
 		pass7(st.ido, st.l1, cc, ch, tw, inverse)
 	case 8:
 		pass8(st.ido, st.l1, cc, ch, tw, inverse)
+	case 16:
+		pass16(st.ido, st.l1, cc, ch, tw, inverse)
 	default:
 		rt := st.rt
 		if inverse {

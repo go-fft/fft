@@ -193,4 +193,7 @@ func TestStockhamBatchMatchesScalar(t *testing.T) {
 	if kernels.StockhamBatchPass(7, 1, 1, make([]complex128, 7), make([]complex128, 7), nil, 1, 1, 1, false) {
 		t.Fatal("radix 7 has no batched kernel")
 	}
+	if kernels.StockhamBatchPass(16, 1, 1, make([]complex128, 16), make([]complex128, 16), nil, 1, 1, 1, false) {
+		t.Fatal("radix 16 has no batched kernel")
+	}
 }
