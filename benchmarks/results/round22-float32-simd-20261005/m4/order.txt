@@ -1,0 +1,176 @@
+load { 2.96 3.11 3.52 }
+== order round 1
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkR22Order/64/pf         	 3841026	        61.13 ns/op
+BenchmarkR22Order/64/odd        	 4379944	        55.80 ns/op
+BenchmarkR22Order/256/pf        	 1000000	       216.6 ns/op
+BenchmarkR22Order/256/odd       	 1000000	       217.0 ns/op
+BenchmarkR22Order/512/pf        	  553882	       425.8 ns/op
+BenchmarkR22Order/512/odd       	  553036	       431.8 ns/op
+BenchmarkR22Order/1000/pf       	  230377	      1047 ns/op
+BenchmarkR22Order/1000/odd      	  213026	      1110 ns/op
+BenchmarkR22Order/1024/pf       	  245422	       981.5 ns/op
+BenchmarkR22Order/1024/odd      	  242977	       986.0 ns/op
+BenchmarkR22Order/1080/pf       	  200209	      1207 ns/op
+BenchmarkR22Order/1080/odd      	  195124	      1286 ns/op
+BenchmarkR22Order/1296/pf       	  136054	      1761 ns/op
+BenchmarkR22Order/1296/odd      	  162750	      1467 ns/op
+BenchmarkR22Order/1920/pf       	  114427	      2087 ns/op
+BenchmarkR22Order/1920/odd      	  118462	      2025 ns/op
+BenchmarkR22Order/2048/pf       	  117912	      2026 ns/op
+BenchmarkR22Order/2048/odd      	  115480	      2055 ns/op
+BenchmarkR22Order/4096/pf       	   51789	      4635 ns/op
+BenchmarkR22Order/4096/odd      	   52755	      4620 ns/op
+BenchmarkR22Order/8192/pf       	   22824	     10478 ns/op
+BenchmarkR22Order/8192/odd      	   23217	     10349 ns/op
+BenchmarkR22Order/20160/pf      	    6370	     37418 ns/op
+BenchmarkR22Order/20160/odd     	    6558	     36598 ns/op
+BenchmarkR22Order/65536/pf      	    2082	    115479 ns/op
+BenchmarkR22Order/65536/odd     	    2058	    116662 ns/op
+BenchmarkR22Order/1048576/pf    	      87	   2752507 ns/op
+BenchmarkR22Order/1048576/odd   	      86	   2741330 ns/op
+PASS
+load { 2.99 3.28 3.50 }
+== order round 2
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkR22Order/64/pf         	 3988572	        59.29 ns/op
+BenchmarkR22Order/64/odd        	 4353632	        55.01 ns/op
+BenchmarkR22Order/256/pf        	 1000000	       214.9 ns/op
+BenchmarkR22Order/256/odd       	 1000000	       214.3 ns/op
+BenchmarkR22Order/512/pf        	  570918	       421.2 ns/op
+BenchmarkR22Order/512/odd       	  558014	       428.3 ns/op
+BenchmarkR22Order/1000/pf       	  233304	      1034 ns/op
+BenchmarkR22Order/1000/odd      	  216190	      1097 ns/op
+BenchmarkR22Order/1024/pf       	  249069	       961.1 ns/op
+BenchmarkR22Order/1024/odd      	  248486	       970.3 ns/op
+BenchmarkR22Order/1080/pf       	  203512	      1189 ns/op
+BenchmarkR22Order/1080/odd      	  192907	      1270 ns/op
+BenchmarkR22Order/1296/pf       	  137520	      1716 ns/op
+BenchmarkR22Order/1296/odd      	  166492	      1446 ns/op
+BenchmarkR22Order/1920/pf       	  117531	      2053 ns/op
+BenchmarkR22Order/1920/odd      	  121876	      1994 ns/op
+BenchmarkR22Order/2048/pf       	  119428	      1991 ns/op
+BenchmarkR22Order/2048/odd      	  117550	      2019 ns/op
+BenchmarkR22Order/4096/pf       	   52309	      4579 ns/op
+BenchmarkR22Order/4096/odd      	   53197	      4582 ns/op
+BenchmarkR22Order/8192/pf       	   23541	     10319 ns/op
+BenchmarkR22Order/8192/odd      	   23413	     10194 ns/op
+BenchmarkR22Order/20160/pf      	    6433	     36975 ns/op
+BenchmarkR22Order/20160/odd     	    6651	     36536 ns/op
+BenchmarkR22Order/65536/pf      	    1898	    126307 ns/op
+BenchmarkR22Order/65536/odd     	    1910	    126258 ns/op
+BenchmarkR22Order/1048576/pf    	      86	   2727904 ns/op
+BenchmarkR22Order/1048576/odd   	      87	   2732852 ns/op
+PASS
+load { 2.91 3.24 3.48 }
+== order round 3
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkR22Order/64/pf         	 3964815	        59.42 ns/op
+BenchmarkR22Order/64/odd        	 4351162	        55.11 ns/op
+BenchmarkR22Order/256/pf        	 1000000	       214.3 ns/op
+BenchmarkR22Order/256/odd       	 1000000	       215.6 ns/op
+BenchmarkR22Order/512/pf        	  563462	       427.5 ns/op
+BenchmarkR22Order/512/odd       	  558128	       426.9 ns/op
+BenchmarkR22Order/1000/pf       	  230752	      1037 ns/op
+BenchmarkR22Order/1000/odd      	  216088	      1102 ns/op
+BenchmarkR22Order/1024/pf       	  246643	       968.3 ns/op
+BenchmarkR22Order/1024/odd      	  245313	       966.0 ns/op
+BenchmarkR22Order/1080/pf       	  199936	      1199 ns/op
+BenchmarkR22Order/1080/odd      	  189658	      1271 ns/op
+BenchmarkR22Order/1296/pf       	  137706	      1731 ns/op
+BenchmarkR22Order/1296/odd      	  164300	      1454 ns/op
+BenchmarkR22Order/1920/pf       	  116076	      2067 ns/op
+BenchmarkR22Order/1920/odd      	  120793	      2008 ns/op
+BenchmarkR22Order/2048/pf       	  121040	      2014 ns/op
+BenchmarkR22Order/2048/odd      	  117823	      2024 ns/op
+BenchmarkR22Order/4096/pf       	   51991	      4594 ns/op
+BenchmarkR22Order/4096/odd      	   51786	      4598 ns/op
+BenchmarkR22Order/8192/pf       	   23004	     10389 ns/op
+BenchmarkR22Order/8192/odd      	   23096	     10391 ns/op
+BenchmarkR22Order/20160/pf      	    6453	     37348 ns/op
+BenchmarkR22Order/20160/odd     	    6642	     36537 ns/op
+BenchmarkR22Order/65536/pf      	    1924	    126253 ns/op
+BenchmarkR22Order/65536/odd     	    1872	    129204 ns/op
+BenchmarkR22Order/1048576/pf    	      80	   2723633 ns/op
+BenchmarkR22Order/1048576/odd   	      84	   2708605 ns/op
+PASS
+load { 2.84 3.22 3.47 }
+== order round 4
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkR22Order/64/pf         	 4269363	        56.14 ns/op
+BenchmarkR22Order/64/odd        	 4336758	        56.08 ns/op
+BenchmarkR22Order/256/pf        	 1000000	       217.5 ns/op
+BenchmarkR22Order/256/odd       	 1000000	       219.1 ns/op
+BenchmarkR22Order/512/pf        	  556134	       427.3 ns/op
+BenchmarkR22Order/512/odd       	  553500	       433.4 ns/op
+BenchmarkR22Order/1000/pf       	  227589	      1050 ns/op
+BenchmarkR22Order/1000/odd      	  213793	      1115 ns/op
+BenchmarkR22Order/1024/pf       	  247399	       980.2 ns/op
+BenchmarkR22Order/1024/odd      	  245430	       980.3 ns/op
+BenchmarkR22Order/1080/pf       	  198986	      1210 ns/op
+BenchmarkR22Order/1080/odd      	  186283	      1287 ns/op
+BenchmarkR22Order/1296/pf       	  136168	      1773 ns/op
+BenchmarkR22Order/1296/odd      	  149757	      1487 ns/op
+BenchmarkR22Order/1920/pf       	  116344	      2077 ns/op
+BenchmarkR22Order/1920/odd      	  122269	      2016 ns/op
+BenchmarkR22Order/2048/pf       	  117412	      2021 ns/op
+BenchmarkR22Order/2048/odd      	  117831	      2045 ns/op
+BenchmarkR22Order/4096/pf       	   51894	      4606 ns/op
+BenchmarkR22Order/4096/odd      	   51901	      4628 ns/op
+BenchmarkR22Order/8192/pf       	   22837	     10440 ns/op
+BenchmarkR22Order/8192/odd      	   22834	     10501 ns/op
+BenchmarkR22Order/20160/pf      	    6440	     37277 ns/op
+BenchmarkR22Order/20160/odd     	    6556	     36897 ns/op
+BenchmarkR22Order/65536/pf      	    1860	    127466 ns/op
+BenchmarkR22Order/65536/odd     	    2073	    114805 ns/op
+BenchmarkR22Order/1048576/pf    	      81	   2752427 ns/op
+BenchmarkR22Order/1048576/odd   	      86	   2716541 ns/op
+PASS
+load { 2.90 3.22 3.40 }
+== order round 5
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkR22Order/64/pf         	 3966759	        59.40 ns/op
+BenchmarkR22Order/64/odd        	 4378483	        54.45 ns/op
+BenchmarkR22Order/256/pf        	 1000000	       210.3 ns/op
+BenchmarkR22Order/256/odd       	 1000000	       210.7 ns/op
+BenchmarkR22Order/512/pf        	  572103	       417.0 ns/op
+BenchmarkR22Order/512/odd       	  566599	       424.7 ns/op
+BenchmarkR22Order/1000/pf       	  232056	      1022 ns/op
+BenchmarkR22Order/1000/odd      	  221500	      1094 ns/op
+BenchmarkR22Order/1024/pf       	  248988	       960.4 ns/op
+BenchmarkR22Order/1024/odd      	  249962	       959.4 ns/op
+BenchmarkR22Order/1080/pf       	  201967	      1184 ns/op
+BenchmarkR22Order/1080/odd      	  189398	      1263 ns/op
+BenchmarkR22Order/1296/pf       	  139456	      1718 ns/op
+BenchmarkR22Order/1296/odd      	  167088	      1437 ns/op
+BenchmarkR22Order/1920/pf       	  117261	      2031 ns/op
+BenchmarkR22Order/1920/odd      	  124146	      1974 ns/op
+BenchmarkR22Order/2048/pf       	  120733	      1979 ns/op
+BenchmarkR22Order/2048/odd      	  119064	      2003 ns/op
+BenchmarkR22Order/4096/pf       	   53242	      4530 ns/op
+BenchmarkR22Order/4096/odd      	   52610	      4543 ns/op
+BenchmarkR22Order/8192/pf       	   23557	     10184 ns/op
+BenchmarkR22Order/8192/odd      	   24072	     10007 ns/op
+BenchmarkR22Order/20160/pf      	    6440	     37043 ns/op
+BenchmarkR22Order/20160/odd     	    6612	     36276 ns/op
+BenchmarkR22Order/65536/pf      	    1891	    124737 ns/op
+BenchmarkR22Order/65536/odd     	    2112	    113986 ns/op
+BenchmarkR22Order/1048576/pf    	      88	   2710777 ns/op
+BenchmarkR22Order/1048576/odd   	      90	   2689802 ns/op
+PASS
+DONE

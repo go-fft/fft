@@ -6,4 +6,4 @@ module github.com/go-fft/fft/internal/kernels/asmgen
 
 go 1.27.1
 
-require github.com/go-asmgen/asmgen v0.15.1
+require github.com/go-asmgen/asmgen v0.16.0

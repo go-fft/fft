@@ -1,0 +1,731 @@
+load { 2.95 3.39 3.94 }
+== e2e round 1 benchA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  489248	       430.1 ns/op
+BenchmarkComplex32_GoFFT/1024        	  112587	      2124 ns/op
+BenchmarkComplex32_GoFFT/4096        	   23334	     10302 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1034	    230907 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      42	   5216141 ns/op
+BenchmarkComplex32_GoFFT/1000        	   97300	      2520 ns/op
+BenchmarkComplex32_GoFFT/1080        	   89114	      2747 ns/op
+BenchmarkComplex32_GoFFT/1920        	   50102	      4724 ns/op
+BenchmarkComplex32_GoFFT/1009        	   35954	      6622 ns/op
+BenchmarkComplex32_GoFFT/1296        	   69672	      3451 ns/op
+BenchmarkComplex32_GoFFT/10007       	    1510	    160441 ns/op
+BenchmarkReal32_GoFFT/256            	  831024	       286.8 ns/op
+BenchmarkReal32_GoFFT/1024           	  191688	      1252 ns/op
+BenchmarkReal32_GoFFT/4096           	   41318	      5777 ns/op
+BenchmarkReal32_GoFFT/65536          	    1743	    138682 ns/op
+BenchmarkReal32_GoFFT/1048576        	      86	   2719146 ns/op
+BenchmarkReal32_GoFFT/1000           	  165470	      1438 ns/op
+BenchmarkReal32_GoFFT/1080           	  154670	      1576 ns/op
+BenchmarkReal32_GoFFT/1920           	   86856	      2773 ns/op
+BenchmarkCReal32_GoFFT/256           	  750204	       318.5 ns/op
+BenchmarkCReal32_GoFFT/1024          	  175896	      1358 ns/op
+BenchmarkCReal32_GoFFT/4096          	   38818	      6222 ns/op
+BenchmarkCReal32_GoFFT/65536         	    1581	    150545 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      80	   2880286 ns/op
+BenchmarkCReal32_GoFFT/1000          	  153825	      1552 ns/op
+BenchmarkCReal32_GoFFT/1080          	  142534	      1681 ns/op
+BenchmarkCReal32_GoFFT/1920          	   79752	      2993 ns/op
+BenchmarkComplex_GoFFT/256           	  811735	       297.8 ns/op
+BenchmarkComplex_GoFFT/1024          	  182696	      1303 ns/op
+BenchmarkComplex_GoFFT/4096          	   31220	      7718 ns/op
+BenchmarkComplex_GoFFT/65536         	     994	    241116 ns/op
+BenchmarkComplex_GoFFT/1048576       	      38	   5401782 ns/op
+BenchmarkComplex_GoFFT/1000          	  127047	      1873 ns/op
+BenchmarkComplex_GoFFT/1080          	  112329	      2138 ns/op
+BenchmarkComplex_GoFFT/1920          	   63654	      3776 ns/op
+BenchmarkComplex_GoFFT/1009          	   39310	      6034 ns/op
+BenchmarkComplex_GoFFT/1296          	   84838	      2852 ns/op
+BenchmarkComplex_GoFFT/10007         	    1920	    126451 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       221.5 ns/op
+BenchmarkReal_GoFFT/1024             	  267235	       897.5 ns/op
+BenchmarkReal_GoFFT/4096             	   57763	      4158 ns/op
+BenchmarkReal_GoFFT/65536            	    1900	    130213 ns/op
+BenchmarkReal_GoFFT/1048576          	      82	   2881352 ns/op
+BenchmarkReal_GoFFT/1000             	  204481	      1196 ns/op
+BenchmarkReal_GoFFT/1080             	  180692	      1358 ns/op
+BenchmarkReal_GoFFT/1920             	  112381	      2187 ns/op
+BenchmarkCReal_GoFFT/256             	  958018	       251.8 ns/op
+BenchmarkCReal_GoFFT/1024            	  236919	       998.1 ns/op
+BenchmarkCReal_GoFFT/4096            	   52788	      4539 ns/op
+BenchmarkCReal_GoFFT/65536           	    1639	    144636 ns/op
+BenchmarkCReal_GoFFT/1048576         	      79	   2983511 ns/op
+BenchmarkCReal_GoFFT/1000            	  191548	      1291 ns/op
+BenchmarkCReal_GoFFT/1080            	  164581	      1458 ns/op
+BenchmarkCReal_GoFFT/1920            	  100824	      2367 ns/op
+PASS
+== nd round 1 ftA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	     807	    287328 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1324	    184422 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    1573	    151683 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2174	    109802 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   26911	      8875 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32454	      7405 ns/op
+PASS
+== e2e round 1 benchB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  909739	       226.6 ns/op
+BenchmarkComplex32_GoFFT/1024        	  238323	      1005 ns/op
+BenchmarkComplex32_GoFFT/4096        	   51022	      4722 ns/op
+BenchmarkComplex32_GoFFT/65536       	    2007	    124253 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      74	   2861579 ns/op
+BenchmarkComplex32_GoFFT/1000        	  223170	      1071 ns/op
+BenchmarkComplex32_GoFFT/1080        	  202753	      1231 ns/op
+BenchmarkComplex32_GoFFT/1920        	  112339	      2137 ns/op
+BenchmarkComplex32_GoFFT/1009        	   50960	      4686 ns/op
+BenchmarkComplex32_GoFFT/1296        	  134263	      1791 ns/op
+BenchmarkComplex32_GoFFT/10007       	    3294	     75598 ns/op
+BenchmarkReal32_GoFFT/256            	 1319508	       180.9 ns/op
+BenchmarkReal32_GoFFT/1024           	  329766	       731.2 ns/op
+BenchmarkReal32_GoFFT/4096           	   74977	      3196 ns/op
+BenchmarkReal32_GoFFT/65536          	    2803	     86130 ns/op
+BenchmarkReal32_GoFFT/1048576        	     136	   1725956 ns/op
+BenchmarkReal32_GoFFT/1000           	  314629	       804.7 ns/op
+BenchmarkReal32_GoFFT/1080           	  266052	       903.6 ns/op
+BenchmarkReal32_GoFFT/1920           	  160353	      1508 ns/op
+BenchmarkCReal32_GoFFT/256           	 1000000	       214.2 ns/op
+BenchmarkCReal32_GoFFT/1024          	  282332	       846.2 ns/op
+BenchmarkCReal32_GoFFT/4096          	   65485	      3676 ns/op
+BenchmarkCReal32_GoFFT/65536         	    2602	     90652 ns/op
+BenchmarkCReal32_GoFFT/1048576       	     127	   1897788 ns/op
+BenchmarkCReal32_GoFFT/1000          	  261901	       919.2 ns/op
+BenchmarkCReal32_GoFFT/1080          	  238779	      1029 ns/op
+BenchmarkCReal32_GoFFT/1920          	  142723	      1710 ns/op
+BenchmarkComplex_GoFFT/256           	  799855	       298.0 ns/op
+BenchmarkComplex_GoFFT/1024          	  183540	      1312 ns/op
+BenchmarkComplex_GoFFT/4096          	   30625	      7842 ns/op
+BenchmarkComplex_GoFFT/65536         	     927	    255680 ns/op
+BenchmarkComplex_GoFFT/1048576       	      43	   5425139 ns/op
+BenchmarkComplex_GoFFT/1000          	  126694	      1878 ns/op
+BenchmarkComplex_GoFFT/1080          	  111080	      2153 ns/op
+BenchmarkComplex_GoFFT/1920          	   62990	      3796 ns/op
+BenchmarkComplex_GoFFT/1009          	   39418	      6051 ns/op
+BenchmarkComplex_GoFFT/1296          	   84136	      2896 ns/op
+BenchmarkComplex_GoFFT/10007         	    1982	    127027 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       221.8 ns/op
+BenchmarkReal_GoFFT/1024             	  266338	       904.6 ns/op
+BenchmarkReal_GoFFT/4096             	   58242	      4072 ns/op
+BenchmarkReal_GoFFT/65536            	    1737	    139136 ns/op
+BenchmarkReal_GoFFT/1048576          	      81	   2898969 ns/op
+BenchmarkReal_GoFFT/1000             	  201548	      1199 ns/op
+BenchmarkReal_GoFFT/1080             	  176128	      1361 ns/op
+BenchmarkReal_GoFFT/1920             	  109075	      2189 ns/op
+BenchmarkCReal_GoFFT/256             	  964564	       250.3 ns/op
+BenchmarkCReal_GoFFT/1024            	  240381	       996.5 ns/op
+BenchmarkCReal_GoFFT/4096            	   52286	      4587 ns/op
+BenchmarkCReal_GoFFT/65536           	    1653	    145278 ns/op
+BenchmarkCReal_GoFFT/1048576         	      67	   3015703 ns/op
+BenchmarkCReal_GoFFT/1000            	  185436	      1297 ns/op
+BenchmarkCReal_GoFFT/1080            	  169938	      1459 ns/op
+BenchmarkCReal_GoFFT/1920            	  102001	      2377 ns/op
+PASS
+== nd round 1 ftB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	    1518	    161413 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1284	    186391 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    2372	     99185 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2149	    110469 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   38600	      6270 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32194	      7436 ns/op
+PASS
+load-after { 3.04 3.36 3.91 }
+load { 2.92 3.20 3.73 }
+== e2e round 2 benchB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  973356	       214.7 ns/op
+BenchmarkComplex32_GoFFT/1024        	  248635	       962.8 ns/op
+BenchmarkComplex32_GoFFT/4096        	   53488	      4607 ns/op
+BenchmarkComplex32_GoFFT/65536       	    2000	    120092 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      86	   2480145 ns/op
+BenchmarkComplex32_GoFFT/1000        	  232669	      1038 ns/op
+BenchmarkComplex32_GoFFT/1080        	  200354	      1193 ns/op
+BenchmarkComplex32_GoFFT/1920        	  115896	      2062 ns/op
+BenchmarkComplex32_GoFFT/1009        	   53139	      4467 ns/op
+BenchmarkComplex32_GoFFT/1296        	  138399	      1735 ns/op
+BenchmarkComplex32_GoFFT/10007       	    3283	     73611 ns/op
+BenchmarkReal32_GoFFT/256            	 1353663	       175.8 ns/op
+BenchmarkReal32_GoFFT/1024           	  338842	       709.7 ns/op
+BenchmarkReal32_GoFFT/4096           	   76759	      3106 ns/op
+BenchmarkReal32_GoFFT/65536          	    3004	     80203 ns/op
+BenchmarkReal32_GoFFT/1048576        	     141	   1686401 ns/op
+BenchmarkReal32_GoFFT/1000           	  305220	       782.9 ns/op
+BenchmarkReal32_GoFFT/1080           	  272258	       882.5 ns/op
+BenchmarkReal32_GoFFT/1920           	  164506	      1447 ns/op
+BenchmarkCReal32_GoFFT/256           	 1000000	       210.7 ns/op
+BenchmarkCReal32_GoFFT/1024          	  290612	       841.0 ns/op
+BenchmarkCReal32_GoFFT/4096          	   67719	      3538 ns/op
+BenchmarkCReal32_GoFFT/65536         	    2720	     88653 ns/op
+BenchmarkCReal32_GoFFT/1048576       	     130	   1830726 ns/op
+BenchmarkCReal32_GoFFT/1000          	  264978	       904.2 ns/op
+BenchmarkCReal32_GoFFT/1080          	  232999	      1017 ns/op
+BenchmarkCReal32_GoFFT/1920          	  143808	      1679 ns/op
+BenchmarkComplex_GoFFT/256           	  808658	       294.0 ns/op
+BenchmarkComplex_GoFFT/1024          	  185419	      1283 ns/op
+BenchmarkComplex_GoFFT/4096          	   29629	      8101 ns/op
+BenchmarkComplex_GoFFT/65536         	     974	    244492 ns/op
+BenchmarkComplex_GoFFT/1048576       	      45	   5351280 ns/op
+BenchmarkComplex_GoFFT/1000          	  129800	      1832 ns/op
+BenchmarkComplex_GoFFT/1080          	  113636	      2104 ns/op
+BenchmarkComplex_GoFFT/1920          	   63717	      3721 ns/op
+BenchmarkComplex_GoFFT/1009          	   40270	      5910 ns/op
+BenchmarkComplex_GoFFT/1296          	   84538	      2805 ns/op
+BenchmarkComplex_GoFFT/10007         	    1948	    122521 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       218.3 ns/op
+BenchmarkReal_GoFFT/1024             	  268947	       890.2 ns/op
+BenchmarkReal_GoFFT/4096             	   58310	      4200 ns/op
+BenchmarkReal_GoFFT/65536            	    1762	    134752 ns/op
+BenchmarkReal_GoFFT/1048576          	      73	   2812163 ns/op
+BenchmarkReal_GoFFT/1000             	  204198	      1179 ns/op
+BenchmarkReal_GoFFT/1080             	  184809	      1332 ns/op
+BenchmarkReal_GoFFT/1920             	  114507	      2154 ns/op
+BenchmarkCReal_GoFFT/256             	  978925	       245.3 ns/op
+BenchmarkCReal_GoFFT/1024            	  243133	       985.6 ns/op
+BenchmarkCReal_GoFFT/4096            	   53080	      4466 ns/op
+BenchmarkCReal_GoFFT/65536           	    1737	    135714 ns/op
+BenchmarkCReal_GoFFT/1048576         	      68	   2958646 ns/op
+BenchmarkCReal_GoFFT/1000            	  187424	      1276 ns/op
+BenchmarkCReal_GoFFT/1080            	  166712	      1432 ns/op
+BenchmarkCReal_GoFFT/1920            	  104670	      2319 ns/op
+PASS
+== nd round 2 ftB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	    1573	    153001 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1323	    182041 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    2523	     95619 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2199	    108387 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   38299	      6241 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   33067	      7265 ns/op
+PASS
+== e2e round 2 benchA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  594524	       426.0 ns/op
+BenchmarkComplex32_GoFFT/1024        	  112614	      2113 ns/op
+BenchmarkComplex32_GoFFT/4096        	   23487	     10228 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1004	    236020 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      46	   4816999 ns/op
+BenchmarkComplex32_GoFFT/1000        	   97635	      2479 ns/op
+BenchmarkComplex32_GoFFT/1080        	   88822	      2712 ns/op
+BenchmarkComplex32_GoFFT/1920        	   51003	      4720 ns/op
+BenchmarkComplex32_GoFFT/1009        	   36336	      6600 ns/op
+BenchmarkComplex32_GoFFT/1296        	   69932	      3434 ns/op
+BenchmarkComplex32_GoFFT/10007       	    1507	    159440 ns/op
+BenchmarkReal32_GoFFT/256            	  830677	       286.6 ns/op
+BenchmarkReal32_GoFFT/1024           	  193126	      1248 ns/op
+BenchmarkReal32_GoFFT/4096           	   41769	      5725 ns/op
+BenchmarkReal32_GoFFT/65536          	    1719	    138923 ns/op
+BenchmarkReal32_GoFFT/1048576        	      84	   2772337 ns/op
+BenchmarkReal32_GoFFT/1000           	  169537	      1429 ns/op
+BenchmarkReal32_GoFFT/1080           	  153307	      1563 ns/op
+BenchmarkReal32_GoFFT/1920           	   86505	      2773 ns/op
+BenchmarkCReal32_GoFFT/256           	  826706	       315.0 ns/op
+BenchmarkCReal32_GoFFT/1024          	  177403	      1361 ns/op
+BenchmarkCReal32_GoFFT/4096          	   38996	      6157 ns/op
+BenchmarkCReal32_GoFFT/65536         	    1678	    144147 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      81	   2863243 ns/op
+BenchmarkCReal32_GoFFT/1000          	  155731	      1546 ns/op
+BenchmarkCReal32_GoFFT/1080          	  146468	      1669 ns/op
+BenchmarkCReal32_GoFFT/1920          	   80256	      2973 ns/op
+BenchmarkComplex_GoFFT/256           	  818030	       295.8 ns/op
+BenchmarkComplex_GoFFT/1024          	  190958	      1300 ns/op
+BenchmarkComplex_GoFFT/4096          	   29636	      8085 ns/op
+BenchmarkComplex_GoFFT/65536         	     958	    252240 ns/op
+BenchmarkComplex_GoFFT/1048576       	      40	   5307523 ns/op
+BenchmarkComplex_GoFFT/1000          	  132039	      1852 ns/op
+BenchmarkComplex_GoFFT/1080          	  113227	      2115 ns/op
+BenchmarkComplex_GoFFT/1920          	   64404	      3746 ns/op
+BenchmarkComplex_GoFFT/1009          	   40566	      5971 ns/op
+BenchmarkComplex_GoFFT/1296          	   84618	      2839 ns/op
+BenchmarkComplex_GoFFT/10007         	    1929	    125177 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       219.3 ns/op
+BenchmarkReal_GoFFT/1024             	  268218	       893.9 ns/op
+BenchmarkReal_GoFFT/4096             	   57703	      4138 ns/op
+BenchmarkReal_GoFFT/65536            	    1881	    128141 ns/op
+BenchmarkReal_GoFFT/1048576          	      82	   2862850 ns/op
+BenchmarkReal_GoFFT/1000             	  203104	      1178 ns/op
+BenchmarkReal_GoFFT/1080             	  175390	      1345 ns/op
+BenchmarkReal_GoFFT/1920             	  110883	      2156 ns/op
+BenchmarkCReal_GoFFT/256             	  966848	       251.5 ns/op
+BenchmarkCReal_GoFFT/1024            	  245124	       992.0 ns/op
+BenchmarkCReal_GoFFT/4096            	   54045	      4493 ns/op
+BenchmarkCReal_GoFFT/65536           	    1647	    144299 ns/op
+BenchmarkCReal_GoFFT/1048576         	      80	   2990592 ns/op
+BenchmarkCReal_GoFFT/1000            	  187338	      1288 ns/op
+BenchmarkCReal_GoFFT/1080            	  164151	      1447 ns/op
+BenchmarkCReal_GoFFT/1920            	  101076	      2354 ns/op
+PASS
+== nd round 2 ftA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	     930	    264648 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1296	    183119 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    1599	    151106 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2172	    109873 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   27324	      8828 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32773	      7347 ns/op
+PASS
+load-after { 3.01 3.20 3.70 }
+load { 2.71 3.12 3.66 }
+== e2e round 3 benchA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  516868	       425.3 ns/op
+BenchmarkComplex32_GoFFT/1024        	  114735	      2104 ns/op
+BenchmarkComplex32_GoFFT/4096        	   23424	     10191 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1041	    228514 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      44	   4928663 ns/op
+BenchmarkComplex32_GoFFT/1000        	   96370	      2482 ns/op
+BenchmarkComplex32_GoFFT/1080        	   88429	      2714 ns/op
+BenchmarkComplex32_GoFFT/1920        	   50844	      4701 ns/op
+BenchmarkComplex32_GoFFT/1009        	   36470	      6542 ns/op
+BenchmarkComplex32_GoFFT/1296        	   69373	      3395 ns/op
+BenchmarkComplex32_GoFFT/10007       	    1509	    159265 ns/op
+BenchmarkReal32_GoFFT/256            	  831552	       285.0 ns/op
+BenchmarkReal32_GoFFT/1024           	  188965	      1243 ns/op
+BenchmarkReal32_GoFFT/4096           	   42394	      5713 ns/op
+BenchmarkReal32_GoFFT/65536          	    1730	    139874 ns/op
+BenchmarkReal32_GoFFT/1048576        	      81	   2881648 ns/op
+BenchmarkReal32_GoFFT/1000           	  167690	      1428 ns/op
+BenchmarkReal32_GoFFT/1080           	  156685	      1565 ns/op
+BenchmarkReal32_GoFFT/1920           	   85701	      2763 ns/op
+BenchmarkCReal32_GoFFT/256           	  760958	       317.1 ns/op
+BenchmarkCReal32_GoFFT/1024          	  176240	      1355 ns/op
+BenchmarkCReal32_GoFFT/4096          	   38691	      6184 ns/op
+BenchmarkCReal32_GoFFT/65536         	    1651	    146510 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      82	   2875129 ns/op
+BenchmarkCReal32_GoFFT/1000          	  154776	      1554 ns/op
+BenchmarkCReal32_GoFFT/1080          	  142190	      1676 ns/op
+BenchmarkCReal32_GoFFT/1920          	   80894	      2997 ns/op
+BenchmarkComplex_GoFFT/256           	  810604	       295.6 ns/op
+BenchmarkComplex_GoFFT/1024          	  184494	      1300 ns/op
+BenchmarkComplex_GoFFT/4096          	   31797	      7604 ns/op
+BenchmarkComplex_GoFFT/65536         	     980	    254451 ns/op
+BenchmarkComplex_GoFFT/1048576       	      40	   5400866 ns/op
+BenchmarkComplex_GoFFT/1000          	  122103	      1853 ns/op
+BenchmarkComplex_GoFFT/1080          	  112317	      2134 ns/op
+BenchmarkComplex_GoFFT/1920          	   64380	      3746 ns/op
+BenchmarkComplex_GoFFT/1009          	   39774	      6020 ns/op
+BenchmarkComplex_GoFFT/1296          	   83184	      2852 ns/op
+BenchmarkComplex_GoFFT/10007         	    1902	    124692 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       219.7 ns/op
+BenchmarkReal_GoFFT/1024             	  269013	       894.8 ns/op
+BenchmarkReal_GoFFT/4096             	   57933	      4122 ns/op
+BenchmarkReal_GoFFT/65536            	    1822	    130715 ns/op
+BenchmarkReal_GoFFT/1048576          	      84	   2865487 ns/op
+BenchmarkReal_GoFFT/1000             	  203682	      1181 ns/op
+BenchmarkReal_GoFFT/1080             	  181570	      1337 ns/op
+BenchmarkReal_GoFFT/1920             	  113058	      2165 ns/op
+BenchmarkCReal_GoFFT/256             	  977828	       248.1 ns/op
+BenchmarkCReal_GoFFT/1024            	  238686	       994.3 ns/op
+BenchmarkCReal_GoFFT/4096            	   54296	      4465 ns/op
+BenchmarkCReal_GoFFT/65536           	    1647	    143327 ns/op
+BenchmarkCReal_GoFFT/1048576         	      80	   2973297 ns/op
+BenchmarkCReal_GoFFT/1000            	  186230	      1290 ns/op
+BenchmarkCReal_GoFFT/1080            	  168493	      1452 ns/op
+BenchmarkCReal_GoFFT/1920            	  101886	      2352 ns/op
+PASS
+== nd round 3 ftA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	     909	    264451 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1298	    183404 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    1590	    151507 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2198	    109492 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   27243	      8888 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32686	      7362 ns/op
+PASS
+== e2e round 3 benchB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	 1000000	       223.6 ns/op
+BenchmarkComplex32_GoFFT/1024        	  238684	       998.6 ns/op
+BenchmarkComplex32_GoFFT/4096        	   52036	      4699 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1904	    122706 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      76	   2803336 ns/op
+BenchmarkComplex32_GoFFT/1000        	  226200	      1066 ns/op
+BenchmarkComplex32_GoFFT/1080        	  195181	      1229 ns/op
+BenchmarkComplex32_GoFFT/1920        	  113271	      2126 ns/op
+BenchmarkComplex32_GoFFT/1009        	   51540	      4659 ns/op
+BenchmarkComplex32_GoFFT/1296        	  134492	      1774 ns/op
+BenchmarkComplex32_GoFFT/10007       	    3184	     75175 ns/op
+BenchmarkReal32_GoFFT/256            	 1327448	       182.4 ns/op
+BenchmarkReal32_GoFFT/1024           	  350419	       726.1 ns/op
+BenchmarkReal32_GoFFT/4096           	   76724	      3186 ns/op
+BenchmarkReal32_GoFFT/65536          	    2761	     85596 ns/op
+BenchmarkReal32_GoFFT/1048576        	     138	   1725987 ns/op
+BenchmarkReal32_GoFFT/1000           	  299400	       806.7 ns/op
+BenchmarkReal32_GoFFT/1080           	  267741	       904.5 ns/op
+BenchmarkReal32_GoFFT/1920           	  161414	      1489 ns/op
+BenchmarkCReal32_GoFFT/256           	 1000000	       214.7 ns/op
+BenchmarkCReal32_GoFFT/1024          	  283152	       846.2 ns/op
+BenchmarkCReal32_GoFFT/4096          	   65767	      3638 ns/op
+BenchmarkCReal32_GoFFT/65536         	    2674	     90758 ns/op
+BenchmarkCReal32_GoFFT/1048576       	     127	   1859716 ns/op
+BenchmarkCReal32_GoFFT/1000          	  262737	       914.9 ns/op
+BenchmarkCReal32_GoFFT/1080          	  234502	      1019 ns/op
+BenchmarkCReal32_GoFFT/1920          	  142676	      1699 ns/op
+BenchmarkComplex_GoFFT/256           	  813328	       296.2 ns/op
+BenchmarkComplex_GoFFT/1024          	  183802	      1310 ns/op
+BenchmarkComplex_GoFFT/4096          	   30621	      7894 ns/op
+BenchmarkComplex_GoFFT/65536         	     942	    254539 ns/op
+BenchmarkComplex_GoFFT/1048576       	      44	   5340436 ns/op
+BenchmarkComplex_GoFFT/1000          	  127543	      1864 ns/op
+BenchmarkComplex_GoFFT/1080          	  111771	      2124 ns/op
+BenchmarkComplex_GoFFT/1920          	   63732	      3762 ns/op
+BenchmarkComplex_GoFFT/1009          	   39778	      6038 ns/op
+BenchmarkComplex_GoFFT/1296          	   83068	      2865 ns/op
+BenchmarkComplex_GoFFT/10007         	    1950	    125530 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       222.4 ns/op
+BenchmarkReal_GoFFT/1024             	  266257	       897.6 ns/op
+BenchmarkReal_GoFFT/4096             	   57534	      4168 ns/op
+BenchmarkReal_GoFFT/65536            	    1748	    136690 ns/op
+BenchmarkReal_GoFFT/1048576          	      82	   2900926 ns/op
+BenchmarkReal_GoFFT/1000             	  201512	      1191 ns/op
+BenchmarkReal_GoFFT/1080             	  176878	      1349 ns/op
+BenchmarkReal_GoFFT/1920             	  109341	      2183 ns/op
+BenchmarkCReal_GoFFT/256             	  984782	       249.9 ns/op
+BenchmarkCReal_GoFFT/1024            	  240782	       997.7 ns/op
+BenchmarkCReal_GoFFT/4096            	   53890	      4501 ns/op
+BenchmarkCReal_GoFFT/65536           	    1695	    139213 ns/op
+BenchmarkCReal_GoFFT/1048576         	      79	   2984337 ns/op
+BenchmarkCReal_GoFFT/1000            	  186230	      1292 ns/op
+BenchmarkCReal_GoFFT/1080            	  165008	      1456 ns/op
+BenchmarkCReal_GoFFT/1920            	  103201	      2374 ns/op
+PASS
+== nd round 3 ftB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	    1590	    156902 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1302	    184814 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    2494	     97576 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2164	    110086 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   38698	      6222 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32676	      7363 ns/op
+PASS
+load-after { 3.17 3.20 3.67 }
+load { 2.66 3.07 3.60 }
+== e2e round 4 benchB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  972847	       219.2 ns/op
+BenchmarkComplex32_GoFFT/1024        	  245146	       983.6 ns/op
+BenchmarkComplex32_GoFFT/4096        	   51301	      4636 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1897	    126770 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      79	   2796689 ns/op
+BenchmarkComplex32_GoFFT/1000        	  234265	      1063 ns/op
+BenchmarkComplex32_GoFFT/1080        	  196696	      1215 ns/op
+BenchmarkComplex32_GoFFT/1920        	  114050	      2096 ns/op
+BenchmarkComplex32_GoFFT/1009        	   51550	      4604 ns/op
+BenchmarkComplex32_GoFFT/1296        	  140121	      1762 ns/op
+BenchmarkComplex32_GoFFT/10007       	    3219	     74779 ns/op
+BenchmarkReal32_GoFFT/256            	 1337350	       179.0 ns/op
+BenchmarkReal32_GoFFT/1024           	  331034	       721.9 ns/op
+BenchmarkReal32_GoFFT/4096           	   76012	      3160 ns/op
+BenchmarkReal32_GoFFT/65536          	    2992	     81516 ns/op
+BenchmarkReal32_GoFFT/1048576        	     139	   1720169 ns/op
+BenchmarkReal32_GoFFT/1000           	  302158	       798.9 ns/op
+BenchmarkReal32_GoFFT/1080           	  269908	       900.7 ns/op
+BenchmarkReal32_GoFFT/1920           	  165388	      1472 ns/op
+BenchmarkCReal32_GoFFT/256           	 1000000	       212.4 ns/op
+BenchmarkCReal32_GoFFT/1024          	  285981	       838.5 ns/op
+BenchmarkCReal32_GoFFT/4096          	   66937	      3612 ns/op
+BenchmarkCReal32_GoFFT/65536         	    2679	     89551 ns/op
+BenchmarkCReal32_GoFFT/1048576       	     128	   1862459 ns/op
+BenchmarkCReal32_GoFFT/1000          	  263317	       908.6 ns/op
+BenchmarkCReal32_GoFFT/1080          	  232590	      1033 ns/op
+BenchmarkCReal32_GoFFT/1920          	  141588	      1692 ns/op
+BenchmarkComplex_GoFFT/256           	  814144	       297.0 ns/op
+BenchmarkComplex_GoFFT/1024          	  183709	      1303 ns/op
+BenchmarkComplex_GoFFT/4096          	   29924	      8065 ns/op
+BenchmarkComplex_GoFFT/65536         	     937	    253162 ns/op
+BenchmarkComplex_GoFFT/1048576       	      44	   5386169 ns/op
+BenchmarkComplex_GoFFT/1000          	  133180	      1867 ns/op
+BenchmarkComplex_GoFFT/1080          	  112567	      2131 ns/op
+BenchmarkComplex_GoFFT/1920          	   63310	      3757 ns/op
+BenchmarkComplex_GoFFT/1009          	   40056	      5980 ns/op
+BenchmarkComplex_GoFFT/1296          	   84724	      2843 ns/op
+BenchmarkComplex_GoFFT/10007         	    1918	    125352 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       222.2 ns/op
+BenchmarkReal_GoFFT/1024             	  266566	       897.9 ns/op
+BenchmarkReal_GoFFT/4096             	   57382	      4175 ns/op
+BenchmarkReal_GoFFT/65536            	    1748	    135612 ns/op
+BenchmarkReal_GoFFT/1048576          	      84	   2852874 ns/op
+BenchmarkReal_GoFFT/1000             	  203490	      1197 ns/op
+BenchmarkReal_GoFFT/1080             	  175476	      1340 ns/op
+BenchmarkReal_GoFFT/1920             	  110689	      2179 ns/op
+BenchmarkCReal_GoFFT/256             	 1000000	       250.5 ns/op
+BenchmarkCReal_GoFFT/1024            	  241830	       996.6 ns/op
+BenchmarkCReal_GoFFT/4096            	   52563	      4519 ns/op
+BenchmarkCReal_GoFFT/65536           	    1648	    142735 ns/op
+BenchmarkCReal_GoFFT/1048576         	      80	   2974036 ns/op
+BenchmarkCReal_GoFFT/1000            	  186446	      1296 ns/op
+BenchmarkCReal_GoFFT/1080            	  166831	      1454 ns/op
+BenchmarkCReal_GoFFT/1920            	  102280	      2366 ns/op
+PASS
+== nd round 4 ftB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	    1556	    157373 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1298	    183881 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    2407	     98300 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2161	    109730 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   38901	      6252 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32440	      7426 ns/op
+PASS
+== e2e round 4 benchA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  556489	       429.7 ns/op
+BenchmarkComplex32_GoFFT/1024        	  113198	      2134 ns/op
+BenchmarkComplex32_GoFFT/4096        	   23251	     10323 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1035	    230387 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      44	   4998797 ns/op
+BenchmarkComplex32_GoFFT/1000        	   96393	      2513 ns/op
+BenchmarkComplex32_GoFFT/1080        	   87133	      2749 ns/op
+BenchmarkComplex32_GoFFT/1920        	   50265	      4758 ns/op
+BenchmarkComplex32_GoFFT/1009        	   35745	      6622 ns/op
+BenchmarkComplex32_GoFFT/1296        	   69973	      3451 ns/op
+BenchmarkComplex32_GoFFT/10007       	    1515	    161239 ns/op
+BenchmarkReal32_GoFFT/256            	  828360	       287.5 ns/op
+BenchmarkReal32_GoFFT/1024           	  200331	      1247 ns/op
+BenchmarkReal32_GoFFT/4096           	   41467	      5787 ns/op
+BenchmarkReal32_GoFFT/65536          	    1748	    136601 ns/op
+BenchmarkReal32_GoFFT/1048576        	      81	   2853166 ns/op
+BenchmarkReal32_GoFFT/1000           	  165546	      1447 ns/op
+BenchmarkReal32_GoFFT/1080           	  151468	      1564 ns/op
+BenchmarkReal32_GoFFT/1920           	   86434	      2799 ns/op
+BenchmarkCReal32_GoFFT/256           	  751281	       317.8 ns/op
+BenchmarkCReal32_GoFFT/1024          	  175776	      1360 ns/op
+BenchmarkCReal32_GoFFT/4096          	   38445	      6186 ns/op
+BenchmarkCReal32_GoFFT/65536         	    1648	    145150 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      81	   2871693 ns/op
+BenchmarkCReal32_GoFFT/1000          	  153915	      1550 ns/op
+BenchmarkCReal32_GoFFT/1080          	  141549	      1686 ns/op
+BenchmarkCReal32_GoFFT/1920          	   81282	      2987 ns/op
+BenchmarkComplex_GoFFT/256           	  803156	       296.4 ns/op
+BenchmarkComplex_GoFFT/1024          	  184288	      1302 ns/op
+BenchmarkComplex_GoFFT/4096          	   29134	      8208 ns/op
+BenchmarkComplex_GoFFT/65536         	     942	    255935 ns/op
+BenchmarkComplex_GoFFT/1048576       	      44	   5446539 ns/op
+BenchmarkComplex_GoFFT/1000          	  121354	      1867 ns/op
+BenchmarkComplex_GoFFT/1080          	  112060	      2139 ns/op
+BenchmarkComplex_GoFFT/1920          	   64328	      3797 ns/op
+BenchmarkComplex_GoFFT/1009          	   39370	      6079 ns/op
+BenchmarkComplex_GoFFT/1296          	   83558	      2862 ns/op
+BenchmarkComplex_GoFFT/10007         	    1914	    126075 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       221.9 ns/op
+BenchmarkReal_GoFFT/1024             	  266535	       899.7 ns/op
+BenchmarkReal_GoFFT/4096             	   58006	      4142 ns/op
+BenchmarkReal_GoFFT/65536            	    1729	    137984 ns/op
+BenchmarkReal_GoFFT/1048576          	      81	   2916543 ns/op
+BenchmarkReal_GoFFT/1000             	  200955	      1195 ns/op
+BenchmarkReal_GoFFT/1080             	  178383	      1347 ns/op
+BenchmarkReal_GoFFT/1920             	  112448	      2189 ns/op
+BenchmarkCReal_GoFFT/256             	  973744	       250.7 ns/op
+BenchmarkCReal_GoFFT/1024            	  242964	       999.5 ns/op
+BenchmarkCReal_GoFFT/4096            	   52918	      4509 ns/op
+BenchmarkCReal_GoFFT/65536           	    1633	    144143 ns/op
+BenchmarkCReal_GoFFT/1048576         	      79	   2991606 ns/op
+BenchmarkCReal_GoFFT/1000            	  186432	      1293 ns/op
+BenchmarkCReal_GoFFT/1080            	  164376	      1450 ns/op
+BenchmarkCReal_GoFFT/1920            	  100796	      2366 ns/op
+PASS
+== nd round 4 ftA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	     919	    263851 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1293	    184898 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    1586	    150953 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2172	    110631 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   26725	      8928 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32324	      7386 ns/op
+PASS
+load-after { 2.65 3.03 3.57 }
+load { 2.65 3.03 3.57 }
+== e2e round 5 benchA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  577761	       432.4 ns/op
+BenchmarkComplex32_GoFFT/1024        	  114460	      2143 ns/op
+BenchmarkComplex32_GoFFT/4096        	   23376	     10302 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1002	    237487 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      43	   5125315 ns/op
+BenchmarkComplex32_GoFFT/1000        	   95890	      2524 ns/op
+BenchmarkComplex32_GoFFT/1080        	   87793	      2749 ns/op
+BenchmarkComplex32_GoFFT/1920        	   50630	      4752 ns/op
+BenchmarkComplex32_GoFFT/1009        	   35833	      6685 ns/op
+BenchmarkComplex32_GoFFT/1296        	   68814	      3463 ns/op
+BenchmarkComplex32_GoFFT/10007       	    1491	    160278 ns/op
+BenchmarkReal32_GoFFT/256            	  826480	       289.1 ns/op
+BenchmarkReal32_GoFFT/1024           	  191671	      1251 ns/op
+BenchmarkReal32_GoFFT/4096           	   41564	      5804 ns/op
+BenchmarkReal32_GoFFT/65536          	    1734	    137530 ns/op
+BenchmarkReal32_GoFFT/1048576        	      84	   2770656 ns/op
+BenchmarkReal32_GoFFT/1000           	  164749	      1443 ns/op
+BenchmarkReal32_GoFFT/1080           	  154640	      1573 ns/op
+BenchmarkReal32_GoFFT/1920           	   85812	      2786 ns/op
+BenchmarkCReal32_GoFFT/256           	  763794	       317.8 ns/op
+BenchmarkCReal32_GoFFT/1024          	  175480	      1364 ns/op
+BenchmarkCReal32_GoFFT/4096          	   38677	      6242 ns/op
+BenchmarkCReal32_GoFFT/65536         	    1656	    146718 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      81	   2882622 ns/op
+BenchmarkCReal32_GoFFT/1000          	  151244	      1557 ns/op
+BenchmarkCReal32_GoFFT/1080          	  141536	      1690 ns/op
+BenchmarkCReal32_GoFFT/1920          	   79411	      3007 ns/op
+BenchmarkComplex_GoFFT/256           	  807490	       298.9 ns/op
+BenchmarkComplex_GoFFT/1024          	  183615	      1305 ns/op
+BenchmarkComplex_GoFFT/4096          	   31080	      7738 ns/op
+BenchmarkComplex_GoFFT/65536         	     960	    240532 ns/op
+BenchmarkComplex_GoFFT/1048576       	      39	   5457845 ns/op
+BenchmarkComplex_GoFFT/1000          	  126532	      1876 ns/op
+BenchmarkComplex_GoFFT/1080          	  111273	      2153 ns/op
+BenchmarkComplex_GoFFT/1920          	   63424	      3804 ns/op
+BenchmarkComplex_GoFFT/1009          	   39745	      6076 ns/op
+BenchmarkComplex_GoFFT/1296          	   82663	      2864 ns/op
+BenchmarkComplex_GoFFT/10007         	    1911	    126591 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       221.9 ns/op
+BenchmarkReal_GoFFT/1024             	  266359	       899.1 ns/op
+BenchmarkReal_GoFFT/4096             	   57778	      4144 ns/op
+BenchmarkReal_GoFFT/65536            	    1711	    138310 ns/op
+BenchmarkReal_GoFFT/1048576          	      81	   2909766 ns/op
+BenchmarkReal_GoFFT/1000             	  199972	      1197 ns/op
+BenchmarkReal_GoFFT/1080             	  176695	      1356 ns/op
+BenchmarkReal_GoFFT/1920             	  111957	      2185 ns/op
+BenchmarkCReal_GoFFT/256             	  958545	       251.2 ns/op
+BenchmarkCReal_GoFFT/1024            	  240319	       997.0 ns/op
+BenchmarkCReal_GoFFT/4096            	   53287	      4498 ns/op
+BenchmarkCReal_GoFFT/65536           	    1622	    146453 ns/op
+BenchmarkCReal_GoFFT/1048576         	      79	   2994206 ns/op
+BenchmarkCReal_GoFFT/1000            	  184674	      1297 ns/op
+BenchmarkCReal_GoFFT/1080            	  163708	      1459 ns/op
+BenchmarkCReal_GoFFT/1920            	  102860	      2378 ns/op
+PASS
+== nd round 5 ftA
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	     907	    264119 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1275	    185493 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    1587	    152015 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2154	    110330 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   26877	      8926 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   32701	      7352 ns/op
+PASS
+== e2e round 5 benchB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Apple M4 Max
+BenchmarkComplex32_GoFFT/256         	  972232	       226.6 ns/op
+BenchmarkComplex32_GoFFT/1024        	  236112	      1012 ns/op
+BenchmarkComplex32_GoFFT/4096        	   50192	      4723 ns/op
+BenchmarkComplex32_GoFFT/65536       	    1920	    124964 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      82	   2565474 ns/op
+BenchmarkComplex32_GoFFT/1000        	  217832	      1076 ns/op
+BenchmarkComplex32_GoFFT/1080        	  192662	      1243 ns/op
+BenchmarkComplex32_GoFFT/1920        	  111763	      2135 ns/op
+BenchmarkComplex32_GoFFT/1009        	   51436	      4721 ns/op
+BenchmarkComplex32_GoFFT/1296        	  133239	      1796 ns/op
+BenchmarkComplex32_GoFFT/10007       	    3146	     76149 ns/op
+BenchmarkReal32_GoFFT/256            	 1325691	       181.7 ns/op
+BenchmarkReal32_GoFFT/1024           	  327502	       733.0 ns/op
+BenchmarkReal32_GoFFT/4096           	   75354	      3221 ns/op
+BenchmarkReal32_GoFFT/65536          	    2744	     86484 ns/op
+BenchmarkReal32_GoFFT/1048576        	     136	   1743442 ns/op
+BenchmarkReal32_GoFFT/1000           	  294646	       810.8 ns/op
+BenchmarkReal32_GoFFT/1080           	  263557	       907.5 ns/op
+BenchmarkReal32_GoFFT/1920           	  158882	      1500 ns/op
+BenchmarkCReal32_GoFFT/256           	 1000000	       215.0 ns/op
+BenchmarkCReal32_GoFFT/1024          	  280495	       848.4 ns/op
+BenchmarkCReal32_GoFFT/4096          	   66099	      3673 ns/op
+BenchmarkCReal32_GoFFT/65536         	    2617	     91876 ns/op
+BenchmarkCReal32_GoFFT/1048576       	     127	   1889301 ns/op
+BenchmarkCReal32_GoFFT/1000          	  260568	       921.5 ns/op
+BenchmarkCReal32_GoFFT/1080          	  228740	      1045 ns/op
+BenchmarkCReal32_GoFFT/1920          	  140091	      1709 ns/op
+BenchmarkComplex_GoFFT/256           	  796954	       298.9 ns/op
+BenchmarkComplex_GoFFT/1024          	  184347	      1308 ns/op
+BenchmarkComplex_GoFFT/4096          	   29715	      8083 ns/op
+BenchmarkComplex_GoFFT/65536         	     939	    257356 ns/op
+BenchmarkComplex_GoFFT/1048576       	      44	   5369299 ns/op
+BenchmarkComplex_GoFFT/1000          	  125149	      1883 ns/op
+BenchmarkComplex_GoFFT/1080          	  111470	      2162 ns/op
+BenchmarkComplex_GoFFT/1920          	   62600	      3807 ns/op
+BenchmarkComplex_GoFFT/1009          	   39296	      6059 ns/op
+BenchmarkComplex_GoFFT/1296          	   83043	      2893 ns/op
+BenchmarkComplex_GoFFT/10007         	    1904	    125805 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       222.2 ns/op
+BenchmarkReal_GoFFT/1024             	  265152	       899.8 ns/op
+BenchmarkReal_GoFFT/4096             	   57493	      4136 ns/op
+BenchmarkReal_GoFFT/65536            	    1724	    138675 ns/op
+BenchmarkReal_GoFFT/1048576          	      80	   2917141 ns/op
+BenchmarkReal_GoFFT/1000             	  201360	      1195 ns/op
+BenchmarkReal_GoFFT/1080             	  177388	      1368 ns/op
+BenchmarkReal_GoFFT/1920             	  109174	      2186 ns/op
+BenchmarkCReal_GoFFT/256             	  959631	       250.3 ns/op
+BenchmarkCReal_GoFFT/1024            	  239494	       998.3 ns/op
+BenchmarkCReal_GoFFT/4096            	   53059	      4470 ns/op
+BenchmarkCReal_GoFFT/65536           	    1705	    139250 ns/op
+BenchmarkCReal_GoFFT/1048576         	      79	   3039134 ns/op
+BenchmarkCReal_GoFFT/1000            	  184718	      1298 ns/op
+BenchmarkCReal_GoFFT/1080            	  161746	      1481 ns/op
+BenchmarkCReal_GoFFT/1920            	  100732	      2378 ns/op
+PASS
+== nd round 5 ftB
+goos: darwin
+goarch: arm64
+pkg: github.com/go-fft/fft
+cpu: Apple M4 Max
+BenchmarkF32ND/PlanN-[256_256]-f32         	    1492	    161663 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64         	    1282	    187167 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32       	    2361	    101345 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64       	    2168	    111207 ns/op
+BenchmarkF32ND/DCT2-4096-f32               	   38157	      6323 ns/op
+BenchmarkF32ND/DCT2-4096-f64               	   31942	      7491 ns/op
+PASS
+load-after { 3.59 3.21 3.61 }
+DONE

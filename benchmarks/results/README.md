@@ -135,3 +135,10 @@ the interleaved A/B runs (`*.ratios.txt`, `*.medians.txt` from the scripts in
 `neoverse-n1/parity-br`, main and the branch, each correct 24/24). There is
 no Apple M4 Max data: the workstation's load never fell below 3.
 
+## 2026-10-05, float32-simd: float32 Stockham passes on AVX2 and NEON (Round 22)
+
+`round22-float32-simd-20261005` holds the measurements behind Round 22 of
+BENCHMARKS.md: main's float32 against float64 on Zen 3 (cfarm420), the float32
+passes timed alone (Go against kernel), the radix-order comparison, and the
+interleaved end-to-end A/B runs, on Zen 3 (one pinned core) and on an Apple
+M4 Max (rounds started at a 1-minute load below 3). See its README.

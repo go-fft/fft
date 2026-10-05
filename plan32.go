@@ -2,6 +2,8 @@ package fft
 
 import (
 	"sync"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
 
 // A Plan32 is the single-precision counterpart of Plan: a reusable transform
@@ -187,6 +189,9 @@ type skStage32 struct {
 	r, l1, ido int
 	tw, twc    []complex64
 	rt, rtc    []complex64
+	// twK, twKc are the pass's twiddles in the layout of the float32 pass
+	// kernels (kernels.StockhamTwiddles32), nil when no kernel runs it.
+	twK, twKc []complex64
 }
 
 // skPlan32 is the single-precision Stockham plan for one smooth length.
@@ -199,13 +204,22 @@ type skPlan32 struct {
 // newSKPlan32 builds the plan with the float64 engine's factorization. Every
 // twiddle is taken from the float64 root table and rounded once.
 func newSKPlan32(n int) *skPlan32 {
+	// skFactorize's radix order, per architecture (oddRadicesFirst):
+	// odd-first on amd64 with AVX2, where the float32 kernels ran composite
+	// lengths 1.06–1.43× faster in that order than in pocketfft's (1000, 1080,
+	// 1296, 1920, 8192, 20160) and powers of two at the same speed (Zen 3,
+	// BENCHMARKS.md Round 22); pocketfft's elsewhere. Not skFactorize itself:
+	// its radix-16 table is for the float64 radix-16 kernel, and a float32
+	// radix-16 pass would run as the O(r²) general pass.
+	return newSKPlan32Factors(n, skFactorizeOrder(n, oddRadicesFirst))
+}
+
+// newSKPlan32Factors builds the plan for the given radix order.
+func newSKPlan32Factors(n int, factors []int) *skPlan32 {
 	root := twiddleTable(n)
 	p := &skPlan32{n: n}
 	l1 := 1
-	// The pocketfft order: the odd-first order of skFactorize on amd64 was
-	// measured for the complex128 AVX2 pass kernels only (Round 17), and
-	// these passes are Go code.
-	for _, r := range skFactorizeOrder(n, false) {
+	for _, r := range factors {
 		ido := n / (l1 * r)
 		st := skStage32{r: r, l1: l1, ido: ido}
 		if ido > 1 {
@@ -219,6 +233,7 @@ func newSKPlan32(n int) *skPlan32 {
 				}
 			}
 		}
+		st.twK, st.twKc = kernels.StockhamTwiddles32(r, ido, l1, root)
 		switch r {
 		case 2, 3, 4, 5, 7, 8:
 		default:
@@ -259,7 +274,22 @@ func (p *skPlan32) transform(dst, src []complex64, inverse bool) {
 	p.scratch.Put(bp)
 }
 
+// pass runs the stage on a float32 pass kernel when one runs it
+// (kernels.StockhamPass32), otherwise on the Go pass; the two are
+// bit-identical.
 func (st *skStage32) pass(ch, cc []complex64, inverse bool) {
+	twK := st.twK
+	if inverse {
+		twK = st.twKc
+	}
+	if kernels.StockhamPass32(st.r, st.ido, st.l1, cc, ch, twK, inverse) {
+		return
+	}
+	st.passScalar(ch, cc, inverse)
+}
+
+// passScalar runs the stage on its Go pass.
+func (st *skStage32) passScalar(ch, cc []complex64, inverse bool) {
 	tw := st.tw
 	if inverse {
 		tw = st.twc

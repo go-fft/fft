@@ -252,7 +252,9 @@ error is within `eps32·log2(N)` of the exact transform, relative to the
 vector's 2-norm (`eps32 = 2⁻²³`; N is the number of points combined: the
 product of the transformed axes, or the DCT/DST's logical size), on every
 length and shape tested, and the results agree with scipy's own float32 ones
-(`testdata/scipy_f32.json`).
+(`testdata/scipy_f32.json`). On amd64 with AVX2 and on arm64, the float32
+Stockham passes of radix 2, 3, 4, 5 and 8 run on SIMD kernels, four complex64
+per register, bit-identical to the Go passes (BENCHMARKS.md, Round 22).
 
 ## Performance
 
