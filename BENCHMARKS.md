@@ -966,6 +966,6 @@ FFTW's own times agree between the two runs (complex 256: 1,156 and 1,151 ns; 40
 
 **Also fixed: the NEON complex multiply on signed zeros.** `cmulNEON` formed each rounded product as `VFMLA` into a zeroed accumulator, because Go 1.26 had no `VFMUL`. That is the product rounded once, except for its sign: +0 + (−0) = +0, so (−0)·1 came out +0 where `CMulScalar` gives −0. The shared CMul tests never produce a signed zero. The kernel now uses `VFMUL`, and `TestCMulSignedZeroNEON` covers all 256 combinations of ±0, ±1. It fails on the old kernel. The kernel is not on the transform path.
 
-**loong64 was not measured.** cfarm401 accepted TCP connections on its ssh port, but sent no ssh banner within 15–30 s at 14:00, 14:21 and 14:37 CEST. So its load could not even be read; the last reading, 2026-10-04, was 146 on 32 cores. loong64 keeps the pow2 kernel.
+**loong64 was not measured.** cfarm401 accepted TCP connections on its ssh port, but sent no ssh banner within 15–30 s at 14:00, 14:21, 14:37 and 15:01 CEST. So its load could not even be read; the last reading, 2026-10-04, was 146 on 32 cores. loong64 keeps the pow2 kernel.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/arm64-neon-stockham-20261005/`](benchmarks/results/arm64-neon-stockham-20261005/).
