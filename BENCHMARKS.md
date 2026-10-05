@@ -1354,8 +1354,8 @@ except 2^18 (0.98–1.06, spreads 1.4–1.6) (`gap-final.ratios.txt`). A first
 run that always timed 576 first showed 2^18 losing 21–25% with every other
 gap; rotating the order removed it (`gap-a`, `gap-b`). So N1 does not care.
 The M4 decides, and it could not be measured: the workstation's one-minute
-load stayed between 4 and 22 from 17:53 to the end of this round (other
-sessions), and the gap grid (`scripts/mac.sh`) waits for a load below 3
+load stayed between 4 and 22 from 17:53 to 19:18, when this round ended
+(other sessions), and the gap grid (`scripts/mac.sh`) waits for a load below 3
 before each round. A per-architecture gap would be one constant in the route
 files; it is left for an idle Apple machine, as Round 18 left it.
 
