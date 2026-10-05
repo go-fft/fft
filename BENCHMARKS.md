@@ -941,7 +941,7 @@ Through whole transforms with the kernels on, 2112 bytes instead of 576 measured
 
 | | geomean | range | rows inside the spread |
 |:--|--:|:--|:--|
-| Neoverse-N1 (cfarm424, load < 1, `taskset -c 40`) | **1.276** | 1.128–1.509 | complex 1296 (1.305, one outlier round); 1.311 with spread 1.03 in an earlier five-round run of the same code |
+| Neoverse-N1 (cfarm424, load < 1, `taskset -c 40`) | **1.276** | 1.128–1.509 | complex 1296 (1.305, one outlier round): 1.308 over fifteen rounds, spread 1.07 |
 | Apple M4 Max (shared, load 3–4) | 1.153 | 1.013–1.398 | the 65536 and 2^20 rows, 2-D 512² and 1024², and five small rows: read as no change |
 
 The four N1 rows that an earlier five-round run left inside their spread were timed over fifteen rounds: complex 1009 1.176, complex 2^20 1.178, IRFFT 1080 1.232, 2-D 128² 1.312, all outside their spreads (`ab15.ratios.txt`).

@@ -1,0 +1,33 @@
+ 12:59:37 up 98 days, 23:48,  7 users,  load average: 0.14, 0.70, 0.80
+main BenchmarkComplex_GoFFT/1296         	   39171	     15184 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51595	     11609 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39422	     16139 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51842	     11675 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39292	     15263 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51260	     12280 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39297	     15082 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51783	     11531 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39795	     15930 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51681	     11547 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39783	     15065 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51928	     12082 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39853	     15046 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51786	     11521 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39824	     15816 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   52056	     11534 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39805	     15062 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51849	     12055 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39776	     15044 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51961	     11531 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39784	     15805 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51829	     11532 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39758	     15074 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51931	     12055 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39764	     15074 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51828	     11529 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39789	     15867 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51820	     11542 ns/op
+main BenchmarkComplex_GoFFT/1296         	   39692	     15102 ns/op
+neon BenchmarkComplex_GoFFT/1296         	   51728	     12067 ns/op
+ 13:00:01 up 98 days, 23:48,  7 users,  load average: 0.38, 0.71, 0.80
+DONE

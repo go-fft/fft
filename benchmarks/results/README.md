@@ -15,8 +15,8 @@ core) and on an Apple M4 Max (shared, load average 3-5, not pinned):
   and `pass-v2` are the first radix-4 kernel and its `LDP`+`ZIP` variant
   (`zip` rows), `pass-final` the code of the pull request.
 - `*/ab-*.txt`: interleaved A/B of main against the branch on every go-fft row
-  of the parity harness (`scripts/ab.sh`, `ab15.sh` for the fifteen-round
-  rerun, `scripts/aban.py`).
+  of the parity harness (`scripts/ab.sh`, `ab15.sh` and `ab15-1296.sh` for the
+  fifteen-round reruns, `scripts/aban.py`).
 - `*/gap-*.txt`, `apple-m4-max/passgap-*.txt`: the scratch-gap experiment, on
   whole transforms (`scripts/gapexp_test.go.txt`, with `setGap` made a
   variable) and pass by pass (`BenchmarkSKPassNEON` with the scratch placed
