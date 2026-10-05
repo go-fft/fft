@@ -110,3 +110,36 @@ func parMinChunkAMD64(avx2 bool) int {
 	}
 	return 1 << 13
 }
+
+// radix16TableDefault is radix16TableAMD64 for this machine.
+func radix16TableDefault() map[int][]int {
+	return radix16TableAMD64(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512, kernels.IntelCPU)
+}
+
+// radix16TableAMD64 gives the powers of two that take radix-16 passes, with
+// their factorization, when the AVX2 kernels run and the AVX-512 ones do not.
+// Every factorization of 16^q times a radix 2, 4 or 8, or 16^(q-1) times two
+// radix-4/8 passes, in every order, was timed against the current rule from
+// 32 to 4096 points (Round 19, one core; Zen 3 load 3–4, seven rounds;
+// Haswell load 1–2, five rounds). Current time ÷ best common candidate:
+//
+//	n        128 (16·8)  256 (16·16)  512   1024 (8·8·16)  2048 (8·16·16)  4096
+//	Zen 3    1.08        1.05         none  1.05           0.77            0.53
+//	Haswell  1.14        1.09         none  1.20           1.22            0.80
+//
+// 32, 64 and 512 have no radix-16 factorization that wins on both, and from
+// 4096 the sixteen output streams of a pass, n/16 points apart, fall into
+// one L1 set (Round 8's conflict, now with more streams than ways). 2048
+// goes to radix 16 on Intel only, as the radix-8 rule does (r8MaxPow2AMD64).
+// AVX-512 machines keep their rule: there is no 512-bit radix-16 kernel, and
+// a transform that mixes widths lost in Round 6.
+func radix16TableAMD64(avx2, avx512, intel bool) map[int][]int {
+	if !avx2 || avx512 {
+		return nil
+	}
+	t := map[int][]int{128: {16, 8}, 256: {16, 16}, 1024: {8, 8, 16}}
+	if intel {
+		t[2048] = []int{8, 16, 16}
+	}
+	return t
+}

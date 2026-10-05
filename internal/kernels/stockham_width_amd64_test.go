@@ -20,6 +20,8 @@ func TestStockhamWidth(t *testing.T) {
 		{4, 64, true, false, 256}, {8, 1, true, false, 256},
 		{7, 64, true, true, 0}, {11, 64, true, false, 0}, // no kernel at all
 		{4, 64, false, false, 0},
+		{16, 1, true, true, 256}, {16, 16, true, true, 256}, {16, 16, true, false, 256}, // no 512-bit radix 16
+		{16, 16, false, false, 0},
 	} {
 		if got := stockhamWidth(c.r, c.ido, c.avx2, c.wide512); got != c.want {
 			t.Errorf("stockhamWidth(r=%d, ido=%d, avx2=%v, wide512=%v) = %d, want %d", c.r, c.ido, c.avx2, c.wide512, got, c.want)
@@ -55,8 +57,8 @@ func TestStockhamKernels(t *testing.T) {
 		w       int
 		inverse bool
 		k       *float64
-		pass    [9]skPassFn
-		last    [9]skLastFn
+		pass    [17]skPassFn
+		last    [17]skLastFn
 	}{
 		{256, false, &skFwd[0][0], skPass256, skLast256},
 		{256, true, &skInv[0][0], skPass256, skLast256},

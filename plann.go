@@ -105,6 +105,9 @@ func (p *PlanN) initScratch() {
 	bl := lineBlock * (p.maxLen + linePad)
 	p.strips = make([][][2][]complex128, len(p.shape))
 	for ax, n := range p.shape {
+		if ax < len(p.shape)-1 && p.axes[ax] != nil && radix16Table[n] != nil {
+			p.axes[ax] = cachedPlanNo16(n)
+		}
 		if ax < len(p.shape)-1 && p.axes[ax] != nil && stripAxes && stripsFit(p.axes[ax]) {
 			sts := p.axes[ax].sk.stages
 			p.strips[ax] = make([][2][]complex128, len(sts))

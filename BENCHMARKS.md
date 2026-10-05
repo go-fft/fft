@@ -1152,3 +1152,96 @@ FFTW's own times agree between the two runs (complex 256: 1,156 and 1,151 ns; 40
 **loong64 was not measured.** cfarm401 accepted TCP connections on its ssh port, but sent no ssh banner within 15–30 s at 14:00, 14:21, 14:37 and 15:01 CEST. So its load could not even be read; the last reading, 2026-10-04, was 146 on 32 cores. loong64 keeps the pow2 kernel.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/arm64-neon-stockham-20261005/`](benchmarks/results/arm64-neon-stockham-20261005/).
+
+### Round 19 — a radix-16 pass on amd64 (2026-10-05)
+
+**The question.** Round 17 left complex 256 at 1.36–1.41× FFTW's time, almost all of it in the passes, and estimated that a radix-16 pass would do about 12% fewer floating-point operations than the radix-4/8 passes it replaces. This round built the pass, counted its operations from the generated code, timed every factorization with it, and routed it to the sizes where it won on both AVX2 hosts at hand. Hosts: Zen 3 (cfarm420, 128-thread VM, load 2.4–5.2 throughout) and Haswell (Xeon E5-2620 v3, cfarm13, bare metal, load 1.1–2.0 during these runs). Cascade Lake was not available to this round, so nothing here touches the AVX-512 route.
+
+**What other libraries do.**
+- **FFTW 3.3.10:** its 16-point codelets (`n1_16`, `t1_16`, and the SIMD `n1fv_16`, `t1fv_16`) are the 4×4 split: four radix-4 butterflies, the internal twiddles W16^(n2·k1), four more. `n1fv_16` counts 72 vector additions and 12 multiplications (68, 8 and 4 FMA with FMA); `t1fv_16` adds the 15 twiddle products, 87 additions and 42 multiplications (53, 30 and 34 FMA).
+- **pocketfft** (`pocketfft_hdronly.h`): passes 2, 3, 4, 5, 7, 8, 11 and the general one. No radix 16.
+
+**The pass.** `radix16.go` holds the Go reference (`bfly16`, `pass16`, `pass16last`), the same 4×4 split as FFTW's. The internal twiddle W16^4 is the exact rotation `rotS`; the others (e = 1, 2, 3, 6, 9) are `radix16Rot`, c·a + swap(a)·(−s·sin θ, s·sin θ): four packed operations, with the direction folded into two constant rows. go-asmgen v0.15.1 generates `skPass16AVX2` and `skLast16AVX2` (`genStockham16`, `genStockham16Last`); no go-asmgen change was needed.
+- **Registers:** 16 YMM registers cannot hold the 16 stage-1 values and the working set. The values of k1 = 2 and 3 are spilled to a 256-byte frame and read back, 8 stores and 8 loads per butterfly.
+- **Addressing:** 16 input and 16 output streams use four base registers each, so the loop counters live in the frame too.
+- **Twiddles pre-duplicated:** the radix-16 table stores (wr, wr) and (wi, wi). Each product takes its halves as memory operands, and swapping y is its only shuffle. Round 17 rejected this layout for every pass because it doubles the table on large transforms. Radix 16 runs only up to 2048 points, and there the twiddled pass got 7% faster on Zen 3 (202 against 216 ns at 256; `raw/ab-dup.txt`).
+
+**Bit identity.** The kernels match the Go pass bit for bit at GOAMD64 < v3, like every other pass kernel. `TestRadix16EachPassMatchesScalar` compares each radix-16 pass alone with the Go pass, output for output, for l1 ∈ {1, 2, 3, 4, 5, 9} and ido from 1 to 33 (every remainder mod 4, with and without four-point groups). It runs on seven signals: the four of `simdSignals`, random draws from {±0} and from {±0, ±1}, and odd multiples of the smallest subnormal. `TestRadix16TransformMatchesScalar` checks 18 whole factorizations, in place and not, and `TestRadix16AgainstNaive` holds them to the O(n²) DFT on every architecture. All of them pass on Zen 3 and Haswell. Four deliberate mutations of the generator were each caught:
+- e = 3 using e = 1's sine row;
+- no i = 0 blend for output 5;
+- the single-point tail reading a two-point twiddle group;
+- an inexact add and subtract after the W16^4 rotation.
+
+**The operation count, measured.** Counted from the generated code (FP-port instructions: adds, subtracts, multiplies, shuffles, sign flips), per value per bit of the transform:
+
+| pass | twiddled | final (no twiddles) |
+|:--|--:|--:|
+| radix 4 | 1.56 | |
+| radix 8 | 1.52 | 0.79 |
+| radix 16, twiddles as stored for the other passes | 1.48 | 0.89 |
+| radix 16, pre-duplicated twiddles (shipped) | **1.36** | 0.89 |
+
+So the twiddled radix-16 pass does 11% fewer operations than radix 8, close to Round 17's estimate, but only with the pre-duplicated table. The final radix-16 pass does 13% more than a final radix-8 pass. The 16-point butterfly is dearer per bit: its eight general internal twiddles cost four operations each, where radix 8's ±45° rotations are cheaper. FFTW's own SIMD codelets, in their non-FMA counts, say the same. Vector operations per point per bit:
+- **Twiddled:** `t1fv_16` (87 additions, 42 multiplications) costs 2.02 and `t1fv_8` (33 and 16) 2.04.
+- **No twiddles:** `n1fv_16` (72 and 12) costs 1.31 and `n1fv_8` (26 and 2) 1.17.
+
+A larger codelet saves twiddle products, and its butterfly gives them back.
+
+Each pass timed alone at 256 points on Zen 3 (ns, `raw/passes-zen3.txt`, `raw/ab-dup.txt`):
+
+| | twiddled passes | final pass | whole |
+|:--|:--|:--|--:|
+| current (4·8·8) | 108 (r4, ido 64) + 159 (r8, ido 8) | 108 (r8) | 396 |
+| 16·16 | 202 (r16, ido 16) | 156 (r16) | 380 |
+
+Per bit of the transform, the twiddled radix-16 pass costs 50 ns against 53–54 ns for the radix-4 and radix-8 ones. The final radix-16 pass costs 39 ns against 36 ns. The gain comes from the twiddles and from one memory pass fewer. It does not come from the butterfly.
+
+**Which factorizations.** Every ordering of 16^q with a radix 2, 4 or 8 for the remaining bits, and of 16^(q−1) with two radix-4/8 passes, was timed against the current rule from 32 points to 2^20. `raw/rules-zen3.txt` has the spill-only kernel up to 2^20; `raw/rules-zen3-dup.txt` (seven rounds) and `raw/rules-hsw.txt` (five rounds, to 4096) have the final kernel. Current time ÷ the best candidate common to both hosts:
+
+| n | 128 (16·8) | 256 (16·16) | 512 | 1024 (8·8·16) | 2048 (8·16·16) | 4096 (16·16·16) |
+|:--|--:|--:|--:|--:|--:|--:|
+| Zen 3 | 1.08 | 1.05 | none (best 1.02) | 1.05 | **0.77** | **0.53** |
+| Haswell | 1.14 | 1.09 | none (1.00) | 1.20 | 1.22 | 0.80 |
+
+- **32 and 64:** radix 16 never won.
+- **From 4096:** it lost badly. On Zen 3 the best candidate took 1.87× the current time at 4096 and 1.34–1.74× from 8192 to 2^20. A radix-16 pass writes 16 streams n/16 points apart. From 4096 points they are 4 KB apart, so all 16 fall in one L1 set of an 8-way cache. That is Round 8's conflict with twice the streams, which the 576-byte scratch gap cannot separate. It is the same cause Round 13 suspected for the Go radix-16 pass on Neoverse-N1 and POWER9.
+- **2048:** Zen 3 loses and Haswell gains, the vendor split Round 12 found for radix 8, so 2048 takes radix 16 on Intel only.
+
+The rule (`radix16TableAMD64`, `route_amd64.go`) therefore applies only when the AVX2 kernels run and the AVX-512 kernels do not. 128 → 16·8, 256 → 16·16, 1024 → 8·8·16, and on Intel also 2048 → 8·16·16. Every other length, and every other architecture, keeps its factorization. The Bluestein and Rader cost model (`convCost`) keeps the factorization its weights were fitted on.
+
+**Columns of N-D plans: no radix 16.** A batched radix-16 kernel (`skBatch16AVX2`) was built for the strips of Round 17, so that the columns of a 2-D plan would keep the 1-D factorization. Each line still got exactly its 1-D arithmetic. n×n time with radix-16 columns ÷ without:
+- **Haswell:** 0.89 at 128, 1.18 at 256, 0.99 at 1024, 1.07 at 2048 (`raw/nd-hsw.txt`).
+- **Zen 3:** every 2-D row from 128 to 1024 was 9–15% slower than main with it (`raw/ab-zen3-batchcols.txt`).
+
+The batched pass reads 16 streams a whole column stride apart, the 4 KB conflict again. The kernel was dropped. An N-D plan's axes other than the last now take the factorization without radix 16 (`cachedPlanNo16`), on the strip path and the gather path alike, so the two stay bit-identical (`TestStripsMatchLines`, with 256×3, 128×5 and 2048×3 added).
+
+**Not built.**
+- **AVX-512:** no AVX-512 host was available to verify a kernel, so none ships. Its 32 registers would remove the spill, which is the obvious next step on Cascade Lake.
+- **A fused straight-line codelet for 256 or 512:** the measurements above make it unpromising. The whole 256-point transform is the sum of its passes plus about 15 ns. 256 values do not fit in 16 registers, so a fused codelet would still be two radix-16 stages with the intermediate in memory, the same work as the two passes.
+- **Split real and imaginary data:** what would cut the operations is the layout KFR uses inside its passes (Round 18). The ±i rotations become free, and a twiddle product costs 6 operations per four points instead of 10. Counted for a radix-4 inner pass, that is about 1.06 operations per value per bit against 1.52 for radix 8 here. That is a different engine.
+
+**End to end against main.** Every go-fft row of `BenchmarkAB` (the Round 17 row set), interleaved, one pinned core, main time ÷ branch time:
+
+| | C 128 | C 256 | C 1024 | C 2048 | RFFT 256 | RFFT 4096 | 2-D 128² | 2-D 256² | every other row |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|:--|
+| Haswell, 5 rounds (spread ≤ 1.02) | **1.106** | **1.084** | **1.192** | **1.218** | **1.093** | **1.166** | 1.039 | 1.018 | 0.980–1.014 |
+| Zen 3, 15 rounds | 1.029 (spread 1.18) | **1.084** | **1.062** | 0.996 | 0.985 (spread 1.28) | 0.986 | 1.030 | 1.032 | 0.985–1.03, within spread |
+
+- **RFFT 4096 on Haswell:** it runs a 2048-point complex transform, which takes radix 16 on Intel.
+- **Rows inside their spread:** on Haswell, 2-D 1024² (0.980, spreads 1.03 and 1.04) and C 6000 (1.014, spread 1.09).
+- **Zen 3:** this VM's spread reached 1.84 on some rows at load 5. Its C 128 and RFFT 256 rows show no gain beyond that noise, though the factorization sweep had 128 at 1.08.
+
+**Against FFTW on Zen 3.** The parity harness ran for main, then for the branch, back to back on one pinned core (load 3.2–3.8; `zen3-parity-main/`, `zen3-parity-r16/`). Correctness was 24/24 on both. go-fft time ÷ FFTW time:
+
+| | complex 256 | 1,024 | 4,096 | RFFT 256 | 1,024 | 4,096 | IRFFT 256 | 1,024 | 4,096 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| main | 1.54 | 1.33 | 1.17 | 1.39 | 1.27 | 1.30 | 1.14 | 1.11 | 1.15 |
+| branch | 1.40 | 1.27 | 1.29 | 1.39 | 1.30 | 1.27 | 0.85 | 1.09 | 1.14 |
+
+- **Complex 256 and 1024:** go-fft went from 422 to 392 ns and from 2,031 to 1,929 ns, with FFTW at 273/279 and 1,529/1,513. That matches the A/B.
+- **Complex 4096:** the code did not change there. go-fft read 12,844 against 13,465 ns and FFTW 10,983 against 10,439, so the ratio moved by noise alone.
+- **IRFFT 256:** go-fft's time barely moved (326 against 352 ns); FFTW's own time went from 286 to 412 ns between the two runs, so its 0.85 is not a gain. Rows at or above FFTW parity read 12 and 15 of 24 for the same reason.
+
+The gap that remains at 256 and 1024 is the one Round 17 named. FFTW's codelets fuse every twiddle product with FMA, which bit identity closes to this library. Beyond that, the operation count of the interleaved layout leaves little to gain from larger butterflies.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round19-radix16-20261005/`](benchmarks/results/round19-radix16-20261005/).

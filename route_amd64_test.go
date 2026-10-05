@@ -32,3 +32,26 @@ func TestParMinChunkAMD64(t *testing.T) {
 		t.Error("parMinChunkAMD64: want 16384 with AVX2, 8192 without")
 	}
 }
+
+// TestRadix16TableAMD64 pins which machines take radix-16 passes and the
+// factorizations they take.
+func TestRadix16TableAMD64(t *testing.T) {
+	if radix16TableAMD64(false, false, true) != nil || radix16TableAMD64(true, true, true) != nil || radix16TableAMD64(false, true, false) != nil {
+		t.Error("radix 16 without AVX2, or with AVX-512")
+	}
+	amd, intel := radix16TableAMD64(true, false, false), radix16TableAMD64(true, false, true)
+	if len(amd) != 3 || len(intel) != 4 || intel[2048] == nil || amd[2048] != nil {
+		t.Errorf("tables: AMD %v, Intel %v", amd, intel)
+	}
+	for _, tab := range []map[int][]int{amd, intel} {
+		for n, f := range tab {
+			p := 1
+			for _, r := range f {
+				p *= r
+			}
+			if p != n {
+				t.Errorf("%d factored as %v", n, f)
+			}
+		}
+	}
+}
