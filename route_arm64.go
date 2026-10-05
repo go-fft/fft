@@ -22,6 +22,12 @@ import "math"
 // the 576-byte scratch gap (see offTheSets), which a gap of 2112 bytes or
 // more removed on the M4 and did not change on N1. The gap was left as it is
 // (Round 18 of BENCHMARKS.md, 2026-10-05).
+//
+// Since Round 21 a power of two keeps its data block-split between passes
+// (kernels.StockhamSplitModes), so only its first pass deinterleaves and only
+// its last interleaves: on Neoverse-N1, main time ÷ new time 1.07 (2^18) to
+// 1.24 (2048), the same bits. The columns of an N-D transform run as strips of
+// batched NEON passes (PlanN's stripAxes) instead of being gathered.
 func pow2StockhamMaxDefault() int { return math.MaxInt }
 
 // r8MaxPow2Default and pow2OneRadix8Max factor a power of two 2^e on arm64 as radix-4

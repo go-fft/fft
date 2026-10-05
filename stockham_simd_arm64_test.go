@@ -286,3 +286,42 @@ func fromSplit(y []complex128) []complex128 {
 	}
 	return x
 }
+
+// TestStockhamBatchGoPassNEON runs the Go batched pass, which the kernels
+// replace here, against them: gc fuses its complex products differently from
+// the 1-D passes (scalarFuses), so the two agree to rounding, not to the bit,
+// and exactly where a value is not finite.
+func TestStockhamBatchGoPassNEON(t *testing.T) {
+	defer func(v bool) { kernels.UseStockhamBatchNEON = v }(kernels.UseStockhamBatchNEON)
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		for _, f := range [][]int{{r, 3}, {2, r}} {
+			n := f[0] * f[1]
+			p := newSKPlanFactors(n, f)
+			for k := range p.stages {
+				st := p.stages[k]
+				fwd, conj := st.batchTwiddles()
+				const w, sIn, sOut = 5, 7, 6
+				x := cmplxSignal((n-1)*sIn + w)
+				for _, inverse := range []bool{false, true} {
+					tw := fwd
+					if inverse {
+						tw = conj
+					}
+					var out [2][]complex128
+					for i, on := range []bool{true, false} {
+						kernels.UseStockhamBatchNEON = on
+						out[i] = make([]complex128, (n-1)*sOut+w)
+						st.passBatch(out[i], x, tw, w, sIn, sOut, inverse)
+					}
+					scale := maxPart(out[0])
+					for i := range out[0] {
+						near := func(a, b float64) bool { return math.Abs(a-b) <= 1e-12*scale }
+						if !near(real(out[0][i]), real(out[1][i])) || !near(imag(out[0][i]), imag(out[1][i])) {
+							t.Fatalf("radices %v pass %d inverse=%v index %d: kernel %v, Go %v", f, k, inverse, i, out[0][i], out[1][i])
+						}
+					}
+				}
+			}
+		}
+	}
+}
