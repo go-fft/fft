@@ -1,0 +1,301 @@
+ 15:58:15 up 24 days, 23 min,  7 users,  load average: 2.42, 2.40, 2.37
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkComplex32_GoFFT/256         	  205346	      1776 ns/op
+BenchmarkComplex32_GoFFT/1024        	   46446	      7525 ns/op
+BenchmarkComplex32_GoFFT/4096        	    6578	     54910 ns/op
+BenchmarkComplex32_GoFFT/65536       	     380	    945041 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      16	  20379876 ns/op
+BenchmarkComplex32_GoFFT/1000        	   42208	      8823 ns/op
+BenchmarkComplex32_GoFFT/1080        	   39910	      9019 ns/op
+BenchmarkComplex32_GoFFT/1920        	   22338	     16159 ns/op
+BenchmarkComplex32_GoFFT/1009        	   17276	     20829 ns/op
+BenchmarkComplex32_GoFFT/1296        	   29526	     11575 ns/op
+BenchmarkComplex32_GoFFT/10007       	     499	    726850 ns/op
+BenchmarkReal32_GoFFT/256            	  390766	       929.0 ns/op
+BenchmarkReal32_GoFFT/1024           	   86982	      4106 ns/op
+BenchmarkReal32_GoFFT/4096           	   16465	     22187 ns/op
+BenchmarkReal32_GoFFT/65536          	     638	    528674 ns/op
+BenchmarkReal32_GoFFT/1048576        	      31	  11766946 ns/op
+BenchmarkReal32_GoFFT/1000           	   68617	      5024 ns/op
+BenchmarkReal32_GoFFT/1080           	   71971	      5084 ns/op
+BenchmarkReal32_GoFFT/1920           	   39613	      9030 ns/op
+BenchmarkCReal32_GoFFT/256           	  340110	      1097 ns/op
+BenchmarkCReal32_GoFFT/1024          	   77046	      4596 ns/op
+BenchmarkCReal32_GoFFT/4096          	   13837	     25273 ns/op
+BenchmarkCReal32_GoFFT/65536         	     643	    589216 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      30	  11824455 ns/op
+BenchmarkCReal32_GoFFT/1000          	   66460	      5189 ns/op
+BenchmarkCReal32_GoFFT/1080          	   64236	      6236 ns/op
+BenchmarkCReal32_GoFFT/1920          	   35229	     10688 ns/op
+BenchmarkComplex_GoFFT/256           	  861496	       419.2 ns/op
+BenchmarkComplex_GoFFT/1024          	  176126	      2036 ns/op
+BenchmarkComplex_GoFFT/4096          	   28674	     12553 ns/op
+BenchmarkComplex_GoFFT/65536         	    1244	    293479 ns/op
+BenchmarkComplex_GoFFT/1048576       	      50	   6871926 ns/op
+BenchmarkComplex_GoFFT/1000          	  145089	      2373 ns/op
+BenchmarkComplex_GoFFT/1080          	  122964	      2826 ns/op
+BenchmarkComplex_GoFFT/1920          	   75310	      4881 ns/op
+BenchmarkComplex_GoFFT/1009          	   27558	     13143 ns/op
+BenchmarkComplex_GoFFT/1296          	  101653	      3624 ns/op
+BenchmarkComplex_GoFFT/10007         	    1310	    255992 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       313.8 ns/op
+BenchmarkReal_GoFFT/1024             	  289444	      1248 ns/op
+BenchmarkReal_GoFFT/4096             	   51526	      6906 ns/op
+BenchmarkReal_GoFFT/65536            	    2142	    174363 ns/op
+BenchmarkReal_GoFFT/1048576          	      97	   3513437 ns/op
+BenchmarkReal_GoFFT/1000             	  241137	      1504 ns/op
+BenchmarkReal_GoFFT/1080             	  207315	      1772 ns/op
+BenchmarkReal_GoFFT/1920             	  127461	      2877 ns/op
+BenchmarkCReal_GoFFT/256             	 1000000	       340.7 ns/op
+BenchmarkCReal_GoFFT/1024            	  280233	      1476 ns/op
+BenchmarkCReal_GoFFT/4096            	   52362	      9452 ns/op
+BenchmarkCReal_GoFFT/65536           	    2150	    169454 ns/op
+BenchmarkCReal_GoFFT/1048576         	      96	   3557572 ns/op
+BenchmarkCReal_GoFFT/1000            	  216315	      1906 ns/op
+BenchmarkCReal_GoFFT/1080            	  204826	      1741 ns/op
+BenchmarkCReal_GoFFT/1920            	  125151	      2845 ns/op
+PASS
+ 15:58:39 up 24 days, 23 min,  7 users,  load average: 2.62, 2.45, 2.39
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkComplex32_GoFFT/256         	  194592	      1818 ns/op
+BenchmarkComplex32_GoFFT/1024        	   47965	      8156 ns/op
+BenchmarkComplex32_GoFFT/4096        	    6550	     54904 ns/op
+BenchmarkComplex32_GoFFT/65536       	     378	    967167 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      16	  20564581 ns/op
+BenchmarkComplex32_GoFFT/1000        	   41992	      8951 ns/op
+BenchmarkComplex32_GoFFT/1080        	   39534	      9162 ns/op
+BenchmarkComplex32_GoFFT/1920        	   22143	     18781 ns/op
+BenchmarkComplex32_GoFFT/1009        	   17275	     21174 ns/op
+BenchmarkComplex32_GoFFT/1296        	   30776	     11726 ns/op
+BenchmarkComplex32_GoFFT/10007       	     493	    729586 ns/op
+BenchmarkReal32_GoFFT/256            	  386678	       936.1 ns/op
+BenchmarkReal32_GoFFT/1024           	   85960	      4261 ns/op
+BenchmarkReal32_GoFFT/4096           	   15754	     21935 ns/op
+BenchmarkReal32_GoFFT/65536          	     675	    532776 ns/op
+BenchmarkReal32_GoFFT/1048576        	      31	  11469868 ns/op
+BenchmarkReal32_GoFFT/1000           	   76614	      4667 ns/op
+BenchmarkReal32_GoFFT/1080           	   71958	      5004 ns/op
+BenchmarkReal32_GoFFT/1920           	   39642	      9017 ns/op
+BenchmarkCReal32_GoFFT/256           	  342088	      1050 ns/op
+BenchmarkCReal32_GoFFT/1024          	   78390	      4628 ns/op
+BenchmarkCReal32_GoFFT/4096          	   15142	     23589 ns/op
+BenchmarkCReal32_GoFFT/65536         	     643	    557787 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      30	  11692915 ns/op
+BenchmarkCReal32_GoFFT/1000          	   69364	      5148 ns/op
+BenchmarkCReal32_GoFFT/1080          	   65403	      5528 ns/op
+BenchmarkCReal32_GoFFT/1920          	   35366	     10495 ns/op
+BenchmarkComplex_GoFFT/256           	  870925	       455.3 ns/op
+BenchmarkComplex_GoFFT/1024          	  160345	      2066 ns/op
+BenchmarkComplex_GoFFT/4096          	   28245	     12916 ns/op
+BenchmarkComplex_GoFFT/65536         	    1258	    300241 ns/op
+BenchmarkComplex_GoFFT/1048576       	      54	   7619913 ns/op
+BenchmarkComplex_GoFFT/1000          	  142620	      2404 ns/op
+BenchmarkComplex_GoFFT/1080          	  119336	      2819 ns/op
+BenchmarkComplex_GoFFT/1920          	   75985	      4721 ns/op
+BenchmarkComplex_GoFFT/1009          	   27896	     13080 ns/op
+BenchmarkComplex_GoFFT/1296          	   99272	      3778 ns/op
+BenchmarkComplex_GoFFT/10007         	    1406	    345375 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       333.8 ns/op
+BenchmarkReal_GoFFT/1024             	  284317	      1248 ns/op
+BenchmarkReal_GoFFT/4096             	   53149	      6753 ns/op
+BenchmarkReal_GoFFT/65536            	    2146	    170495 ns/op
+BenchmarkReal_GoFFT/1048576          	      96	   3662757 ns/op
+BenchmarkReal_GoFFT/1000             	  234194	      1544 ns/op
+BenchmarkReal_GoFFT/1080             	  206764	      1731 ns/op
+BenchmarkReal_GoFFT/1920             	  120201	      2949 ns/op
+BenchmarkCReal_GoFFT/256             	 1000000	       342.8 ns/op
+BenchmarkCReal_GoFFT/1024            	  281634	      1415 ns/op
+BenchmarkCReal_GoFFT/4096            	   52190	      6891 ns/op
+BenchmarkCReal_GoFFT/65536           	    2200	    172827 ns/op
+BenchmarkCReal_GoFFT/1048576         	      99	   3642922 ns/op
+BenchmarkCReal_GoFFT/1000            	  236139	      1510 ns/op
+BenchmarkCReal_GoFFT/1080            	  208966	      1767 ns/op
+BenchmarkCReal_GoFFT/1920            	  125134	      2888 ns/op
+PASS
+ 15:59:04 up 24 days, 24 min,  7 users,  load average: 2.81, 2.51, 2.41
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkComplex32_GoFFT/256         	  205581	      1812 ns/op
+BenchmarkComplex32_GoFFT/1024        	   48108	      7576 ns/op
+BenchmarkComplex32_GoFFT/4096        	    6579	     55653 ns/op
+BenchmarkComplex32_GoFFT/65536       	     379	    947272 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      16	  20524472 ns/op
+BenchmarkComplex32_GoFFT/1000        	   39949	     10132 ns/op
+BenchmarkComplex32_GoFFT/1080        	   39529	      9511 ns/op
+BenchmarkComplex32_GoFFT/1920        	   22245	     20404 ns/op
+BenchmarkComplex32_GoFFT/1009        	   16152	     20717 ns/op
+BenchmarkComplex32_GoFFT/1296        	   31094	     11585 ns/op
+BenchmarkComplex32_GoFFT/10007       	     494	    728002 ns/op
+BenchmarkReal32_GoFFT/256            	  388374	       922.1 ns/op
+BenchmarkReal32_GoFFT/1024           	   87580	      4150 ns/op
+BenchmarkReal32_GoFFT/4096           	   16550	     21879 ns/op
+BenchmarkReal32_GoFFT/65536          	     674	    535259 ns/op
+BenchmarkReal32_GoFFT/1048576        	      31	  11068828 ns/op
+BenchmarkReal32_GoFFT/1000           	   76754	      4671 ns/op
+BenchmarkReal32_GoFFT/1080           	   72145	      5165 ns/op
+BenchmarkReal32_GoFFT/1920           	   37556	      9091 ns/op
+BenchmarkCReal32_GoFFT/256           	  339278	      1060 ns/op
+BenchmarkCReal32_GoFFT/1024          	   77901	      4673 ns/op
+BenchmarkCReal32_GoFFT/4096          	   14852	     24311 ns/op
+BenchmarkCReal32_GoFFT/65536         	     627	    575794 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      30	  13267536 ns/op
+BenchmarkCReal32_GoFFT/1000          	   68662	      5151 ns/op
+BenchmarkCReal32_GoFFT/1080          	   65226	      5531 ns/op
+BenchmarkCReal32_GoFFT/1920          	   36338	      9899 ns/op
+BenchmarkComplex_GoFFT/256           	  860764	       421.6 ns/op
+BenchmarkComplex_GoFFT/1024          	  176280	      2080 ns/op
+BenchmarkComplex_GoFFT/4096          	   28191	     12698 ns/op
+BenchmarkComplex_GoFFT/65536         	    1262	    283634 ns/op
+BenchmarkComplex_GoFFT/1048576       	      55	   6499105 ns/op
+BenchmarkComplex_GoFFT/1000          	  144421	      2378 ns/op
+BenchmarkComplex_GoFFT/1080          	  123903	      2803 ns/op
+BenchmarkComplex_GoFFT/1920          	   76720	      4735 ns/op
+BenchmarkComplex_GoFFT/1009          	   28092	     12838 ns/op
+BenchmarkComplex_GoFFT/1296          	  101715	      3538 ns/op
+BenchmarkComplex_GoFFT/10007         	    1461	    248115 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       316.4 ns/op
+BenchmarkReal_GoFFT/1024             	  289724	      1240 ns/op
+BenchmarkReal_GoFFT/4096             	   52638	      6964 ns/op
+BenchmarkReal_GoFFT/65536            	    1995	    173295 ns/op
+BenchmarkReal_GoFFT/1048576          	     104	   3391343 ns/op
+BenchmarkReal_GoFFT/1000             	  225738	      1489 ns/op
+BenchmarkReal_GoFFT/1080             	  209796	      1708 ns/op
+BenchmarkReal_GoFFT/1920             	  127077	      2819 ns/op
+BenchmarkCReal_GoFFT/256             	 1000000	       327.3 ns/op
+BenchmarkCReal_GoFFT/1024            	  282062	      1270 ns/op
+BenchmarkCReal_GoFFT/4096            	   53161	      6848 ns/op
+BenchmarkCReal_GoFFT/65536           	    2194	    163460 ns/op
+BenchmarkCReal_GoFFT/1048576         	     102	   3684604 ns/op
+BenchmarkCReal_GoFFT/1000            	  221136	      1931 ns/op
+BenchmarkCReal_GoFFT/1080            	  206554	      1735 ns/op
+BenchmarkCReal_GoFFT/1920            	  126518	      2920 ns/op
+PASS
+ 15:59:29 up 24 days, 24 min,  7 users,  load average: 2.88, 2.55, 2.43
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkComplex32_GoFFT/256         	  196826	      1748 ns/op
+BenchmarkComplex32_GoFFT/1024        	   48282	      7629 ns/op
+BenchmarkComplex32_GoFFT/4096        	    6168	     55393 ns/op
+BenchmarkComplex32_GoFFT/65536       	     379	    946733 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      16	  20522762 ns/op
+BenchmarkComplex32_GoFFT/1000        	   42153	      8668 ns/op
+BenchmarkComplex32_GoFFT/1080        	   39842	      9785 ns/op
+BenchmarkComplex32_GoFFT/1920        	   22094	     16126 ns/op
+BenchmarkComplex32_GoFFT/1009        	   17402	     21057 ns/op
+BenchmarkComplex32_GoFFT/1296        	   30691	     11728 ns/op
+BenchmarkComplex32_GoFFT/10007       	     493	    742533 ns/op
+BenchmarkReal32_GoFFT/256            	  382464	       927.3 ns/op
+BenchmarkReal32_GoFFT/1024           	   87860	      4101 ns/op
+BenchmarkReal32_GoFFT/4096           	   16478	     21793 ns/op
+BenchmarkReal32_GoFFT/65536          	     672	    535151 ns/op
+BenchmarkReal32_GoFFT/1048576        	      31	  11202206 ns/op
+BenchmarkReal32_GoFFT/1000           	   76078	      4751 ns/op
+BenchmarkReal32_GoFFT/1080           	   72121	      5034 ns/op
+BenchmarkReal32_GoFFT/1920           	   39835	      9929 ns/op
+BenchmarkCReal32_GoFFT/256           	  343424	      1090 ns/op
+BenchmarkCReal32_GoFFT/1024          	   73147	      4631 ns/op
+BenchmarkCReal32_GoFFT/4096          	   14972	     27450 ns/op
+BenchmarkCReal32_GoFFT/65536         	     639	    563160 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      30	  12193267 ns/op
+BenchmarkCReal32_GoFFT/1000          	   66988	      5490 ns/op
+BenchmarkCReal32_GoFFT/1080          	   61683	      5831 ns/op
+BenchmarkCReal32_GoFFT/1920          	   36201	      9956 ns/op
+BenchmarkComplex_GoFFT/256           	  870062	       434.0 ns/op
+BenchmarkComplex_GoFFT/1024          	  176620	      2073 ns/op
+BenchmarkComplex_GoFFT/4096          	   27691	     12884 ns/op
+BenchmarkComplex_GoFFT/65536         	    1252	    285617 ns/op
+BenchmarkComplex_GoFFT/1048576       	      51	   7359904 ns/op
+BenchmarkComplex_GoFFT/1000          	  142632	      2427 ns/op
+BenchmarkComplex_GoFFT/1080          	  126571	      2792 ns/op
+BenchmarkComplex_GoFFT/1920          	   77059	      4702 ns/op
+BenchmarkComplex_GoFFT/1009          	   27914	     13000 ns/op
+BenchmarkComplex_GoFFT/1296          	  101847	      3591 ns/op
+BenchmarkComplex_GoFFT/10007         	    1419	    250621 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       311.9 ns/op
+BenchmarkReal_GoFFT/1024             	  259554	      1408 ns/op
+BenchmarkReal_GoFFT/4096             	   52664	      6783 ns/op
+BenchmarkReal_GoFFT/65536            	    2073	    173924 ns/op
+BenchmarkReal_GoFFT/1048576          	      98	   3422435 ns/op
+BenchmarkReal_GoFFT/1000             	  242149	      1567 ns/op
+BenchmarkReal_GoFFT/1080             	  213435	      1696 ns/op
+BenchmarkReal_GoFFT/1920             	  128233	      2971 ns/op
+BenchmarkCReal_GoFFT/256             	 1000000	       328.5 ns/op
+BenchmarkCReal_GoFFT/1024            	  283378	      1285 ns/op
+BenchmarkCReal_GoFFT/4096            	   52706	      6942 ns/op
+BenchmarkCReal_GoFFT/65536           	    2169	    165931 ns/op
+BenchmarkCReal_GoFFT/1048576         	     104	   3760606 ns/op
+BenchmarkCReal_GoFFT/1000            	  203920	      1713 ns/op
+BenchmarkCReal_GoFFT/1080            	  208057	      1751 ns/op
+BenchmarkCReal_GoFFT/1920            	  116714	      2947 ns/op
+PASS
+ 15:59:52 up 24 days, 25 min,  7 users,  load average: 3.00, 2.60, 2.45
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkComplex32_GoFFT/256         	  194803	      1874 ns/op
+BenchmarkComplex32_GoFFT/1024        	   48120	      7551 ns/op
+BenchmarkComplex32_GoFFT/4096        	    6519	     57083 ns/op
+BenchmarkComplex32_GoFFT/65536       	     374	    978268 ns/op
+BenchmarkComplex32_GoFFT/1048576     	      16	  21850404 ns/op
+BenchmarkComplex32_GoFFT/1000        	   42064	      8532 ns/op
+BenchmarkComplex32_GoFFT/1080        	   39914	      9033 ns/op
+BenchmarkComplex32_GoFFT/1920        	   22276	     16129 ns/op
+BenchmarkComplex32_GoFFT/1009        	   17406	     20889 ns/op
+BenchmarkComplex32_GoFFT/1296        	   29546	     11637 ns/op
+BenchmarkComplex32_GoFFT/10007       	     496	    721143 ns/op
+BenchmarkReal32_GoFFT/256            	  390330	       921.1 ns/op
+BenchmarkReal32_GoFFT/1024           	   87666	      4537 ns/op
+BenchmarkReal32_GoFFT/4096           	   15888	     21851 ns/op
+BenchmarkReal32_GoFFT/65536          	     666	    541458 ns/op
+BenchmarkReal32_GoFFT/1048576        	      31	  11388337 ns/op
+BenchmarkReal32_GoFFT/1000           	   76824	      4664 ns/op
+BenchmarkReal32_GoFFT/1080           	   72082	      4999 ns/op
+BenchmarkReal32_GoFFT/1920           	   40089	      8989 ns/op
+BenchmarkCReal32_GoFFT/256           	  342793	      1048 ns/op
+BenchmarkCReal32_GoFFT/1024          	   78675	      4650 ns/op
+BenchmarkCReal32_GoFFT/4096          	   12940	     23643 ns/op
+BenchmarkCReal32_GoFFT/65536         	     640	    560572 ns/op
+BenchmarkCReal32_GoFFT/1048576       	      30	  12341269 ns/op
+BenchmarkCReal32_GoFFT/1000          	   70029	      5428 ns/op
+BenchmarkCReal32_GoFFT/1080          	   65484	      5503 ns/op
+BenchmarkCReal32_GoFFT/1920          	   36489	     10725 ns/op
+BenchmarkComplex_GoFFT/256           	  857060	       417.5 ns/op
+BenchmarkComplex_GoFFT/1024          	  175266	      2106 ns/op
+BenchmarkComplex_GoFFT/4096          	   28178	     12804 ns/op
+BenchmarkComplex_GoFFT/65536         	    1243	    287919 ns/op
+BenchmarkComplex_GoFFT/1048576       	      55	   6354350 ns/op
+BenchmarkComplex_GoFFT/1000          	  140868	      2595 ns/op
+BenchmarkComplex_GoFFT/1080          	  128588	      2756 ns/op
+BenchmarkComplex_GoFFT/1920          	   54207	      6277 ns/op
+BenchmarkComplex_GoFFT/1009          	   26956	     13116 ns/op
+BenchmarkComplex_GoFFT/1296          	  101287	      4271 ns/op
+BenchmarkComplex_GoFFT/10007         	    1438	    253697 ns/op
+BenchmarkReal_GoFFT/256              	 1000000	       323.0 ns/op
+BenchmarkReal_GoFFT/1024             	  278212	      1239 ns/op
+BenchmarkReal_GoFFT/4096             	   53751	      6674 ns/op
+BenchmarkReal_GoFFT/65536            	    2128	    162361 ns/op
+BenchmarkReal_GoFFT/1048576          	     102	   3460354 ns/op
+BenchmarkReal_GoFFT/1000             	  228138	      1508 ns/op
+BenchmarkReal_GoFFT/1080             	  208770	      1853 ns/op
+BenchmarkReal_GoFFT/1920             	  124951	      2828 ns/op
+BenchmarkCReal_GoFFT/256             	 1000000	       332.7 ns/op
+BenchmarkCReal_GoFFT/1024            	  283119	      1301 ns/op
+BenchmarkCReal_GoFFT/4096            	   51556	      8280 ns/op
+BenchmarkCReal_GoFFT/65536           	    2174	    171564 ns/op
+BenchmarkCReal_GoFFT/1048576         	     103	   3933006 ns/op
+BenchmarkCReal_GoFFT/1000            	  230244	      1536 ns/op
+BenchmarkCReal_GoFFT/1080            	  208926	      1797 ns/op
+BenchmarkCReal_GoFFT/1920            	  126754	      2837 ns/op
+PASS
+DONE

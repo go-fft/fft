@@ -1,0 +1,175 @@
+== order round 1
+ 16:31:22 up 24 days, 56 min,  7 users,  load average: 2.49, 2.77, 2.90
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR22Order/64/pf         	 3396746	        69.94 ns/op
+BenchmarkR22Order/64/odd        	 3443406	        70.80 ns/op
+BenchmarkR22Order/256/pf        	  951673	       246.8 ns/op
+BenchmarkR22Order/256/odd       	  948716	       250.9 ns/op
+BenchmarkR22Order/512/pf        	  504582	       477.3 ns/op
+BenchmarkR22Order/512/odd       	  495573	       486.9 ns/op
+BenchmarkR22Order/1000/pf       	  159498	      1503 ns/op
+BenchmarkR22Order/1000/odd      	  196172	      1240 ns/op
+BenchmarkR22Order/1024/pf       	  213927	      1117 ns/op
+BenchmarkR22Order/1024/odd      	  226510	      1072 ns/op
+BenchmarkR22Order/1080/pf       	  130900	      1830 ns/op
+BenchmarkR22Order/1080/odd      	  164877	      1453 ns/op
+BenchmarkR22Order/1296/pf       	   91774	      2613 ns/op
+BenchmarkR22Order/1296/odd      	  130226	      1835 ns/op
+BenchmarkR22Order/1920/pf       	   80210	      2991 ns/op
+BenchmarkR22Order/1920/odd      	   96374	      2498 ns/op
+BenchmarkR22Order/2048/pf       	   99988	      2387 ns/op
+BenchmarkR22Order/2048/odd      	  101043	      2369 ns/op
+BenchmarkR22Order/4096/pf       	   32214	      7270 ns/op
+BenchmarkR22Order/4096/odd      	   33471	      7346 ns/op
+BenchmarkR22Order/8192/pf       	   15534	     15455 ns/op
+BenchmarkR22Order/8192/odd      	   17588	     13635 ns/op
+BenchmarkR22Order/20160/pf      	    2626	     97105 ns/op
+BenchmarkR22Order/20160/odd     	    2686	     87225 ns/op
+BenchmarkR22Order/65536/pf      	    1572	    147845 ns/op
+BenchmarkR22Order/65536/odd     	    1608	    147806 ns/op
+BenchmarkR22Order/1048576/pf    	      73	   3195021 ns/op
+BenchmarkR22Order/1048576/odd   	      76	   3121468 ns/op
+PASS
+== order round 2
+ 16:31:29 up 24 days, 56 min,  7 users,  load average: 2.53, 2.78, 2.90
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR22Order/64/pf         	 3406221	        73.28 ns/op
+BenchmarkR22Order/64/odd        	 3439250	        69.60 ns/op
+BenchmarkR22Order/256/pf        	  963358	       250.0 ns/op
+BenchmarkR22Order/256/odd       	  941655	       253.4 ns/op
+BenchmarkR22Order/512/pf        	  503253	       482.8 ns/op
+BenchmarkR22Order/512/odd       	  495258	       479.8 ns/op
+BenchmarkR22Order/1000/pf       	  161203	      1489 ns/op
+BenchmarkR22Order/1000/odd      	  197845	      1228 ns/op
+BenchmarkR22Order/1024/pf       	  200054	      1153 ns/op
+BenchmarkR22Order/1024/odd      	  228380	      1052 ns/op
+BenchmarkR22Order/1080/pf       	  130754	      1822 ns/op
+BenchmarkR22Order/1080/odd      	  164834	      1452 ns/op
+BenchmarkR22Order/1296/pf       	   90416	      2655 ns/op
+BenchmarkR22Order/1296/odd      	  130180	      1841 ns/op
+BenchmarkR22Order/1920/pf       	   79207	      3088 ns/op
+BenchmarkR22Order/1920/odd      	   95304	      2505 ns/op
+BenchmarkR22Order/2048/pf       	  100009	      2509 ns/op
+BenchmarkR22Order/2048/odd      	   98294	      2392 ns/op
+BenchmarkR22Order/4096/pf       	   33720	      7113 ns/op
+BenchmarkR22Order/4096/odd      	   34094	      7051 ns/op
+BenchmarkR22Order/8192/pf       	   15886	     15092 ns/op
+BenchmarkR22Order/8192/odd      	   17398	     13919 ns/op
+BenchmarkR22Order/20160/pf      	    2684	     88650 ns/op
+BenchmarkR22Order/20160/odd     	    2836	     84458 ns/op
+BenchmarkR22Order/65536/pf      	    1638	    145377 ns/op
+BenchmarkR22Order/65536/odd     	    1665	    143577 ns/op
+BenchmarkR22Order/1048576/pf    	      60	   3395897 ns/op
+BenchmarkR22Order/1048576/odd   	      68	   3432592 ns/op
+PASS
+== order round 3
+ 16:31:36 up 24 days, 56 min,  7 users,  load average: 2.65, 2.80, 2.91
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR22Order/64/pf         	 2383797	        85.43 ns/op
+BenchmarkR22Order/64/odd        	 3218110	        74.05 ns/op
+BenchmarkR22Order/256/pf        	  955249	       243.7 ns/op
+BenchmarkR22Order/256/odd       	  948750	       249.6 ns/op
+BenchmarkR22Order/512/pf        	  504668	       494.8 ns/op
+BenchmarkR22Order/512/odd       	  502426	       475.7 ns/op
+BenchmarkR22Order/1000/pf       	  154942	      1494 ns/op
+BenchmarkR22Order/1000/odd      	  195892	      1231 ns/op
+BenchmarkR22Order/1024/pf       	  215120	      1139 ns/op
+BenchmarkR22Order/1024/odd      	  226708	      1059 ns/op
+BenchmarkR22Order/1080/pf       	  131664	      1823 ns/op
+BenchmarkR22Order/1080/odd      	  164132	      1443 ns/op
+BenchmarkR22Order/1296/pf       	   84938	      2713 ns/op
+BenchmarkR22Order/1296/odd      	  129576	      1907 ns/op
+BenchmarkR22Order/1920/pf       	   79810	      3002 ns/op
+BenchmarkR22Order/1920/odd      	   91489	      2575 ns/op
+BenchmarkR22Order/2048/pf       	   97636	      2443 ns/op
+BenchmarkR22Order/2048/odd      	   98658	      2406 ns/op
+BenchmarkR22Order/4096/pf       	   32989	      7240 ns/op
+BenchmarkR22Order/4096/odd      	   33512	      7121 ns/op
+BenchmarkR22Order/8192/pf       	   13844	     20487 ns/op
+BenchmarkR22Order/8192/odd      	   17487	     13651 ns/op
+BenchmarkR22Order/20160/pf      	    2649	     90220 ns/op
+BenchmarkR22Order/20160/odd     	    2804	     87742 ns/op
+BenchmarkR22Order/65536/pf      	    1573	    155980 ns/op
+BenchmarkR22Order/65536/odd     	    1630	    150262 ns/op
+BenchmarkR22Order/1048576/pf    	      70	   3199018 ns/op
+BenchmarkR22Order/1048576/odd   	      70	   3362675 ns/op
+PASS
+== order round 4
+ 16:31:42 up 24 days, 56 min,  8 users,  load average: 2.78, 2.82, 2.92
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR22Order/64/pf         	 2865908	        75.67 ns/op
+BenchmarkR22Order/64/odd        	 3452658	        71.00 ns/op
+BenchmarkR22Order/256/pf        	  959062	       244.8 ns/op
+BenchmarkR22Order/256/odd       	  966610	       249.3 ns/op
+BenchmarkR22Order/512/pf        	  498387	       481.0 ns/op
+BenchmarkR22Order/512/odd       	  502630	       485.5 ns/op
+BenchmarkR22Order/1000/pf       	  156272	      1542 ns/op
+BenchmarkR22Order/1000/odd      	  196566	      1212 ns/op
+BenchmarkR22Order/1024/pf       	  210716	      1500 ns/op
+BenchmarkR22Order/1024/odd      	  212620	      1154 ns/op
+BenchmarkR22Order/1080/pf       	  121621	      1935 ns/op
+BenchmarkR22Order/1080/odd      	  156885	      1509 ns/op
+BenchmarkR22Order/1296/pf       	   92148	      2719 ns/op
+BenchmarkR22Order/1296/odd      	  120966	      1951 ns/op
+BenchmarkR22Order/1920/pf       	   76216	      3127 ns/op
+BenchmarkR22Order/1920/odd      	   95300	      2697 ns/op
+BenchmarkR22Order/2048/pf       	   97321	      2432 ns/op
+BenchmarkR22Order/2048/odd      	  100257	      2409 ns/op
+BenchmarkR22Order/4096/pf       	   33342	      7200 ns/op
+BenchmarkR22Order/4096/odd      	   33466	      7197 ns/op
+BenchmarkR22Order/8192/pf       	   15852	     15843 ns/op
+BenchmarkR22Order/8192/odd      	   17512	     13660 ns/op
+BenchmarkR22Order/20160/pf      	    2635	     91189 ns/op
+BenchmarkR22Order/20160/odd     	    2764	     85423 ns/op
+BenchmarkR22Order/65536/pf      	    1628	    146672 ns/op
+BenchmarkR22Order/65536/odd     	    1628	    150127 ns/op
+BenchmarkR22Order/1048576/pf    	      67	   3440465 ns/op
+BenchmarkR22Order/1048576/odd   	      69	   3410121 ns/op
+PASS
+== order round 5
+ 16:31:49 up 24 days, 56 min,  8 users,  load average: 2.88, 2.84, 2.92
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR22Order/64/pf         	 2740402	        85.43 ns/op
+BenchmarkR22Order/64/odd        	 3278925	        71.04 ns/op
+BenchmarkR22Order/256/pf        	  957333	       243.9 ns/op
+BenchmarkR22Order/256/odd       	  904822	       251.9 ns/op
+BenchmarkR22Order/512/pf        	  503263	       483.7 ns/op
+BenchmarkR22Order/512/odd       	  506128	       484.8 ns/op
+BenchmarkR22Order/1000/pf       	  156986	      1512 ns/op
+BenchmarkR22Order/1000/odd      	  197719	      1832 ns/op
+BenchmarkR22Order/1024/pf       	  213037	      1333 ns/op
+BenchmarkR22Order/1024/odd      	  227322	      1056 ns/op
+BenchmarkR22Order/1080/pf       	  131956	      1890 ns/op
+BenchmarkR22Order/1080/odd      	  162752	      1462 ns/op
+BenchmarkR22Order/1296/pf       	   91833	      2692 ns/op
+BenchmarkR22Order/1296/odd      	  131014	      1885 ns/op
+BenchmarkR22Order/1920/pf       	   80352	      3011 ns/op
+BenchmarkR22Order/1920/odd      	   95154	      2566 ns/op
+BenchmarkR22Order/2048/pf       	   97923	      2433 ns/op
+BenchmarkR22Order/2048/odd      	  100728	      2414 ns/op
+BenchmarkR22Order/4096/pf       	   33792	      7065 ns/op
+BenchmarkR22Order/4096/odd      	   33121	      7265 ns/op
+BenchmarkR22Order/8192/pf       	   15760	     15206 ns/op
+BenchmarkR22Order/8192/odd      	   18042	     13298 ns/op
+BenchmarkR22Order/20160/pf      	    2690	     89186 ns/op
+BenchmarkR22Order/20160/odd     	    2786	     84886 ns/op
+BenchmarkR22Order/65536/pf      	    1585	    147971 ns/op
+BenchmarkR22Order/65536/odd     	    1495	    160518 ns/op
+BenchmarkR22Order/1048576/pf    	      72	   3158171 ns/op
+BenchmarkR22Order/1048576/odd   	      75	   3168613 ns/op
+PASS
