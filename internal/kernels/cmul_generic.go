@@ -19,11 +19,13 @@ package kernels
 // cfarm95). The two handled here — loong64, ppc64le — keep the validated scalar
 // path, each for a concrete, checked reason, NOT for lack of trying:
 //
-//   - loong64: the Go loong64 assembler exposes LSX vector FLOATING-POINT only
-//     as unary ops (VFSQRTD, VFRINTD, VFRECIPD, …) — there is no vector float
-//     add, multiply, or fused multiply-add to build a complex product from. A
-//     bit-identical SIMD kernel is therefore not expressible; the scalar path
-//     (which the compiler already fuses to FMSUBD/FMADDD) is the correct one.
+//   - loong64: the scalar path compiles to fused FMSUBD/FMADDD, so a
+//     bit-identical vector kernel needs vector FMA. The Go loong64 assembler
+//     has none (vfmadd.d is not assemblable, checked with Go 1.27.1); it has
+//     assembled vector double add, subtract and multiply (VADDD/VSUBD/VMULD =
+//     vfadd.d/vfsub.d/vfmul.d) since Go 1.26, but separately rounded products
+//     differ from the fused ones by an ULP. Before Go 1.26 it had vector
+//     floating point only as unary ops.
 //
 //   - ppc64le: the Go ppc64 assembler exposes no vector DOUBLE arithmetic (the
 //     VSX surface is loads/stores, logicals, permutes, and conversions —

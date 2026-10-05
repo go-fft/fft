@@ -77,10 +77,10 @@ func main() {
 	)
 	b := riscv64.NewFunc("cmulRVV", sig, 0)
 	b.LoadArg("a", "X5"). // X5 = &a[0]
-		LoadArg("b", "X6"). // X6 = &b[0]
-		LoadArg("n", "X7"). // X7 = remaining element count
-		Raw("loop:").
-		Raw("BEQZ X7, done").
+				LoadArg("b", "X6"). // X6 = &b[0]
+				LoadArg("n", "X7"). // X7 = remaining element count
+				Raw("loop:").
+				Raw("BEQZ X7, done").
 		// vl = min(X7, VLMAX) for e64/m1; vl returned in X10.
 		Raw("VSETVLI X7, E64, M1, TA, MA, X10").
 		// Deinterleave a -> V8=reals, V9=imags; b -> V10=reals, V11=imags.

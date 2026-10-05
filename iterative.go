@@ -282,7 +282,7 @@ func (p *itPlan) stagesOn(a []complex128, from, to int, inverse bool) {
 // loop gc compiles to scalar SSE2; this kernel only runs on amd64 CPUs without
 // AVX2, which send powers of two here); every other arch
 // runs an inlinable Go loop, compiled to scalar code (gc does not vectorize; on
-// arm64/s390x/riscv64 it fuses multiply-adds). A hand NEON kernel measured only
+// arm64, ppc64le, riscv64, loong64 and s390x it fuses multiply-adds). A hand NEON kernel measured only
 // level with that loop — see kernels/butterfly_scalaralias.go and BENCHMARKS.md.
 func radix2Stage(a []complex128, n, span int, tw []complex128) {
 	kernels.Radix2Stage(a, n, span, tw)

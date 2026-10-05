@@ -54,9 +54,11 @@ permissions:
 # V at RUN TIME and runs the SCALAR path here, and the SIMD-vs-scalar test SKIPs
 # its RVV comparison ("no RVV") — so this qemu job stays green while the RVV
 # proof is supplied by cfarm95. loong64/ppc64le keep the validated scalar path
-# (LSX/VSX expose no vector double arithmetic in the Go assembler — see
-# cmul_generic.go). Shipping even a 1-ULP-different kernel is a correctness
-# divergence the project rejects. See docs/plan-fft.md (Phase 4).
+# (the Go assembler has no loong64 vector FMA, and no ppc64le vector double
+# arithmetic — see cmul_generic.go). Shipping even a 1-ULP-different kernel is a
+# correctness divergence the project rejects. See docs/plan-fft.md (Phase 4).
+# These kernels ship and are tested, but none is on the transforms' hot path:
+# the scalar loop measured as fast (README, BENCHMARKS.md).
 jobs:
   # Pure-Go coverage gate: build, vet, race-test, enforce 100% statement
   # coverage of the portable core. Runs on amd64 (ubuntu/windows) and arm64
@@ -75,6 +77,11 @@ jobs:
         with:
           go-version: '1.27.1'
       - run: go version
+      - name: gofmt
+        shell: bash
+        run: |
+          unformatted=$(gofmt -l .)
+          [ -z "$unformatted" ] || { echo "::error::not gofmt-formatted:"; echo "$unformatted"; exit 1; }
       - run: go vet ./...
       - run: go build ./...
       - name: Test + 100% coverage gate

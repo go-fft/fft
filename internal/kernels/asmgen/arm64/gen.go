@@ -65,14 +65,14 @@ func main() {
 		Raw("loop2:").
 		Raw("CMP $2, R2").
 		Raw("BLT tail").
-		Raw("VLD2 (R0), [V0.D2, V1.D2]"). // V0=[ar0,ar1] V1=[ai0,ai1]
-		Raw("VLD2 (R1), [V2.D2, V3.D2]"). // V2=[br0,br1] V3=[bi0,bi1]
+		Raw("VLD2 (R0), [V0.D2, V1.D2]").   // V0=[ar0,ar1] V1=[ai0,ai1]
+		Raw("VLD2 (R1), [V2.D2, V3.D2]").   // V2=[br0,br1] V3=[bi0,bi1]
 		Raw("VEOR V4.B16, V4.B16, V4.B16"). // re acc = 0
 		Raw("VEOR V5.B16, V5.B16, V5.B16"). // im acc = 0
-		Raw("VFMLA V2.D2, V0.D2, V4.D2"). // re += ar*br
-		Raw("VFMLS V3.D2, V1.D2, V4.D2"). // re -= ai*bi  (fused, matches oracle FMSUBD)
-		Raw("VFMLA V3.D2, V0.D2, V5.D2"). // im += ar*bi
-		Raw("VFMLA V2.D2, V1.D2, V5.D2"). // im += ai*br  (fused, matches oracle FMADDD)
+		Raw("VFMLA V2.D2, V0.D2, V4.D2").   // re += ar*br
+		Raw("VFMLS V3.D2, V1.D2, V4.D2").   // re -= ai*bi  (fused, matches oracle FMSUBD)
+		Raw("VFMLA V3.D2, V0.D2, V5.D2").   // im += ar*bi
+		Raw("VFMLA V2.D2, V1.D2, V5.D2").   // im += ai*br  (fused, matches oracle FMADDD)
 		Raw("VST2 [V4.D2, V5.D2], (R0)").
 		Raw("ADD $32, R0").
 		Raw("ADD $32, R1").
@@ -80,13 +80,13 @@ func main() {
 		Raw("B loop2").
 		Raw("tail:").
 		Raw("CBZ R2, done").
-		Raw("FMOVD (R0), F0"). // ar
-		Raw("FMOVD 8(R0), F1"). // ai
-		Raw("FMOVD (R1), F2"). // br
-		Raw("FMOVD 8(R1), F3"). // bi
-		Raw("FMULD F2, F0, F4"). // ar*br
+		Raw("FMOVD (R0), F0").        // ar
+		Raw("FMOVD 8(R0), F1").       // ai
+		Raw("FMOVD (R1), F2").        // br
+		Raw("FMOVD 8(R1), F3").       // bi
+		Raw("FMULD F2, F0, F4").      // ar*br
 		Raw("FMSUBD F1, F4, F3, F4"). // F4 - ai*bi  (fused, matches oracle)
-		Raw("FMULD F3, F0, F5"). // ar*bi
+		Raw("FMULD F3, F0, F5").      // ar*bi
 		Raw("FMADDD F2, F5, F1, F5"). // F5 + ai*br  (fused, matches oracle)
 		Raw("FMOVD F4, (R0)").
 		Raw("FMOVD F5, 8(R0)").

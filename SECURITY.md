@@ -12,7 +12,9 @@ the smallest input that shows the problem.
 
 ## Supported versions
 
-Only the latest `v0.1.x` release receives fixes. The module follows semantic
+Only the latest `v0.2.x` release receives fixes. It requires Go 1.27.1 or
+later, so the standard library it runs on carries that release's security
+fixes; v0.1.x (Go 1.26.4) is no longer maintained. The module follows semantic
 versioning; while it is at v0, a fix ships as a patch release.
 
 ## What deserves a report
