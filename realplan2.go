@@ -22,6 +22,7 @@ func NewRealPlan2(rows, cols int) *RealPlan2 {
 	p := &RealPlan2{rows: rows, cols: cols, rcols: cols/2 + 1}
 	p.row = cachedRealPlan(cols)
 	p.col = NewPlanN(rows, p.rcols)
+	p.col.colsOf2 = true
 	size := rows * p.rcols
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
 	return p

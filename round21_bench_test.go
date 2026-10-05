@@ -79,11 +79,12 @@ func BenchmarkR21Parts2D(b *testing.B) {
 	}
 }
 
-// BenchmarkR21Threshold times n×n plans, complex128 and complex64, on all
-// cores with parThreshold at 16384 (the other architectures') and 65536
-// (arm64's).
+// BenchmarkR21Threshold times n×n plans on all cores with parThresholdN at
+// 16384 (the other architectures') and 65536 (arm64's): complex128 PlanN,
+// and, for reference, RealPlan2 and complex64 PlanN32, which keep
+// parThreshold (both rows of each should agree).
 func BenchmarkR21Threshold(b *testing.B) {
-	defer func(v int) { parThreshold = v }(parThreshold)
+	defer func(v int) { parThresholdN = v }(parThresholdN)
 	for _, n := range []int{128, 192, 256, 512} {
 		p := NewPlanN(n, n)
 		src := benchComplex(n * n)
@@ -94,8 +95,16 @@ func BenchmarkR21Threshold(b *testing.B) {
 			src32[i] = complex64(v)
 		}
 		dst32 := make([]complex64, n*n)
+		rp := NewRealPlan2(n, n)
+		rsrc := benchReal(n * n)
+		rdst := make([]complex128, rp.SpectrumLen())
 		for _, t := range []int{1 << 14, 1 << 16} {
-			parThreshold = t
+			parThresholdN = t
+			b.Run(strconv.Itoa(n)+"/real_t"+strconv.Itoa(t), func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					rp.RFFT(rdst, rsrc)
+				}
+			})
 			b.Run(strconv.Itoa(n)+"/c128_t"+strconv.Itoa(t), func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p.FFT(dst, src)

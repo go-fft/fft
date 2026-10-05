@@ -1,0 +1,135 @@
+round 1 1.05 1.30 1.17 1/609 1316197
+r=1 v=main BenchmarkAB/2D/64-64         	    5492	     56290 ns/op
+r=1 v=main BenchmarkAB/2D/256-64        	     444	    729168 ns/op
+r=1 v=main BenchmarkAB/2D/512-64        	     225	   1599606 ns/op
+r=1 v=main BenchmarkAB/2D/1024-64       	      96	   3713230 ns/op
+r=1 v=br BenchmarkAB/2D/64-64         	    7599	     41169 ns/op
+r=1 v=br BenchmarkAB/2D/256-64        	     480	    713136 ns/op
+r=1 v=br BenchmarkAB/2D/512-64        	     242	   1471957 ns/op
+r=1 v=br BenchmarkAB/2D/1024-64       	      96	   3966609 ns/op
+round 2 1.78 1.46 1.22 1/609 1316273
+r=2 v=br BenchmarkAB/2D/64-64         	    7413	     43081 ns/op
+r=2 v=br BenchmarkAB/2D/256-64        	     514	    721665 ns/op
+r=2 v=br BenchmarkAB/2D/512-64        	     252	   1507677 ns/op
+r=2 v=br BenchmarkAB/2D/1024-64       	      98	   3800225 ns/op
+r=2 v=main BenchmarkAB/2D/64-64         	    5553	     60073 ns/op
+r=2 v=main BenchmarkAB/2D/256-64        	     486	    739209 ns/op
+r=2 v=main BenchmarkAB/2D/512-64        	     253	   1549299 ns/op
+r=2 v=main BenchmarkAB/2D/1024-64       	      80	   3780590 ns/op
+round 3 3.03 1.77 1.33 1/609 1316350
+r=3 v=main BenchmarkAB/2D/64-64         	    5733	     55411 ns/op
+r=3 v=main BenchmarkAB/2D/256-64        	     511	    736312 ns/op
+r=3 v=main BenchmarkAB/2D/512-64        	     231	   1546841 ns/op
+r=3 v=main BenchmarkAB/2D/1024-64       	      94	   3742001 ns/op
+r=3 v=br BenchmarkAB/2D/64-64         	    7382	     41487 ns/op
+r=3 v=br BenchmarkAB/2D/256-64        	     519	    710812 ns/op
+r=3 v=br BenchmarkAB/2D/512-64        	     248	   1449344 ns/op
+r=3 v=br BenchmarkAB/2D/1024-64       	      97	   3771588 ns/op
+round 4 2.65 1.75 1.33 1/609 1316426
+r=4 v=br BenchmarkAB/2D/64-64         	    7448	     41284 ns/op
+r=4 v=br BenchmarkAB/2D/256-64        	     542	    704749 ns/op
+r=4 v=br BenchmarkAB/2D/512-64        	     237	   1510500 ns/op
+r=4 v=br BenchmarkAB/2D/1024-64       	      93	   3675125 ns/op
+r=4 v=main BenchmarkAB/2D/64-64         	    5479	     56011 ns/op
+r=4 v=main BenchmarkAB/2D/256-64        	     511	    721158 ns/op
+r=4 v=main BenchmarkAB/2D/512-64        	     241	   1505151 ns/op
+r=4 v=main BenchmarkAB/2D/1024-64       	      91	   3665196 ns/op
+round 5 3.03 1.89 1.38 1/608 1316503
+r=5 v=main BenchmarkAB/2D/64-64         	    5935	     54915 ns/op
+r=5 v=main BenchmarkAB/2D/256-64        	     508	    736789 ns/op
+r=5 v=main BenchmarkAB/2D/512-64        	     242	   1478056 ns/op
+r=5 v=main BenchmarkAB/2D/1024-64       	      99	   3691937 ns/op
+r=5 v=br BenchmarkAB/2D/64-64         	    7542	     40771 ns/op
+r=5 v=br BenchmarkAB/2D/256-64        	     561	    693779 ns/op
+r=5 v=br BenchmarkAB/2D/512-64        	     248	   1425652 ns/op
+r=5 v=br BenchmarkAB/2D/1024-64       	      82	   3805504 ns/op
+round 6 2.72 1.86 1.38 1/609 1316582
+r=6 v=br BenchmarkAB/2D/64-64         	    7384	     41488 ns/op
+r=6 v=br BenchmarkAB/2D/256-64        	     525	    700411 ns/op
+r=6 v=br BenchmarkAB/2D/512-64        	     248	   1440830 ns/op
+r=6 v=br BenchmarkAB/2D/1024-64       	      90	   3743738 ns/op
+r=6 v=main BenchmarkAB/2D/64-64         	    5334	     56783 ns/op
+r=6 v=main BenchmarkAB/2D/256-64        	     490	    735186 ns/op
+r=6 v=main BenchmarkAB/2D/512-64        	     231	   1538365 ns/op
+r=6 v=main BenchmarkAB/2D/1024-64       	      97	   3721965 ns/op
+round 7 2.33 1.82 1.37 1/608 1316662
+r=7 v=main BenchmarkAB/2D/64-64         	    5692	     55277 ns/op
+r=7 v=main BenchmarkAB/2D/256-64        	     504	    709116 ns/op
+r=7 v=main BenchmarkAB/2D/512-64        	     243	   1490991 ns/op
+r=7 v=main BenchmarkAB/2D/1024-64       	      98	   3714444 ns/op
+r=7 v=br BenchmarkAB/2D/64-64         	    7462	     41320 ns/op
+r=7 v=br BenchmarkAB/2D/256-64        	     537	    716722 ns/op
+r=7 v=br BenchmarkAB/2D/512-64        	     243	   1464146 ns/op
+r=7 v=br BenchmarkAB/2D/1024-64       	      98	   3709742 ns/op
+round 8 2.51 1.89 1.40 1/608 1316738
+r=8 v=br BenchmarkAB/2D/64-64         	    7779	     42220 ns/op
+r=8 v=br BenchmarkAB/2D/256-64        	     524	    691539 ns/op
+r=8 v=br BenchmarkAB/2D/512-64        	     243	   1607813 ns/op
+r=8 v=br BenchmarkAB/2D/1024-64       	      90	   3698817 ns/op
+r=8 v=main BenchmarkAB/2D/64-64         	    5691	     55689 ns/op
+r=8 v=main BenchmarkAB/2D/256-64        	     436	    718173 ns/op
+r=8 v=main BenchmarkAB/2D/512-64        	     244	   1512942 ns/op
+r=8 v=main BenchmarkAB/2D/1024-64       	      96	   3627511 ns/op
+round 9 2.18 1.85 1.40 1/608 1316814
+r=9 v=main BenchmarkAB/2D/64-64         	    6403	     54498 ns/op
+r=9 v=main BenchmarkAB/2D/256-64        	     476	    719066 ns/op
+r=9 v=main BenchmarkAB/2D/512-64        	     230	   1550062 ns/op
+r=9 v=main BenchmarkAB/2D/1024-64       	      94	   3653571 ns/op
+r=9 v=br BenchmarkAB/2D/64-64         	    7476	     41364 ns/op
+r=9 v=br BenchmarkAB/2D/256-64        	     520	    699330 ns/op
+r=9 v=br BenchmarkAB/2D/512-64        	     249	   1418422 ns/op
+r=9 v=br BenchmarkAB/2D/1024-64       	      96	   3436799 ns/op
+round 10 2.12 1.85 1.40 1/608 1316891
+r=10 v=br BenchmarkAB/2D/64-64         	   10098	     40515 ns/op
+r=10 v=br BenchmarkAB/2D/256-64        	     542	    699682 ns/op
+r=10 v=br BenchmarkAB/2D/512-64        	     244	   1426786 ns/op
+r=10 v=br BenchmarkAB/2D/1024-64       	      96	   3611710 ns/op
+r=10 v=main BenchmarkAB/2D/64-64         	    5554	     55801 ns/op
+r=10 v=main BenchmarkAB/2D/256-64        	     500	    735000 ns/op
+r=10 v=main BenchmarkAB/2D/512-64        	     242	   1623452 ns/op
+r=10 v=main BenchmarkAB/2D/1024-64       	      97	   3668739 ns/op
+round 11 2.68 2.00 1.46 2/608 1317336
+r=11 v=main BenchmarkAB/2D/64-64         	    5550	     56037 ns/op
+r=11 v=main BenchmarkAB/2D/256-64        	     488	    731726 ns/op
+r=11 v=main BenchmarkAB/2D/512-64        	     237	   1548057 ns/op
+r=11 v=main BenchmarkAB/2D/1024-64       	      97	   3707197 ns/op
+r=11 v=br BenchmarkAB/2D/64-64         	    7462	     41436 ns/op
+r=11 v=br BenchmarkAB/2D/256-64        	     502	    725451 ns/op
+r=11 v=br BenchmarkAB/2D/512-64        	     246	   1521695 ns/op
+r=11 v=br BenchmarkAB/2D/1024-64       	      97	   3862127 ns/op
+round 12 2.42 1.97 1.46 1/609 1317414
+r=12 v=br BenchmarkAB/2D/64-64         	    7557	     42418 ns/op
+r=12 v=br BenchmarkAB/2D/256-64        	     530	    705028 ns/op
+r=12 v=br BenchmarkAB/2D/512-64        	     229	   1345813 ns/op
+r=12 v=br BenchmarkAB/2D/1024-64       	      96	   3706233 ns/op
+r=12 v=main BenchmarkAB/2D/64-64         	    6061	     55150 ns/op
+r=12 v=main BenchmarkAB/2D/256-64        	     466	    762837 ns/op
+r=12 v=main BenchmarkAB/2D/512-64        	     240	   1537048 ns/op
+r=12 v=main BenchmarkAB/2D/1024-64       	      97	   3694185 ns/op
+round 13 2.31 1.97 1.46 2/609 1317495
+r=13 v=main BenchmarkAB/2D/64-64         	    5433	     56205 ns/op
+r=13 v=main BenchmarkAB/2D/256-64        	     487	    733733 ns/op
+r=13 v=main BenchmarkAB/2D/512-64        	     235	   1569299 ns/op
+r=13 v=main BenchmarkAB/2D/1024-64       	      93	   3810855 ns/op
+r=13 v=br BenchmarkAB/2D/64-64         	   10645	     33781 ns/op
+r=13 v=br BenchmarkAB/2D/256-64        	     529	    718427 ns/op
+r=13 v=br BenchmarkAB/2D/512-64        	     246	   1460221 ns/op
+r=13 v=br BenchmarkAB/2D/1024-64       	      96	   3730356 ns/op
+round 14 2.97 2.15 1.53 1/609 1317575
+r=14 v=br BenchmarkAB/2D/64-64         	    7316	     41603 ns/op
+r=14 v=br BenchmarkAB/2D/256-64        	     489	    737521 ns/op
+r=14 v=br BenchmarkAB/2D/512-64        	     240	   1473383 ns/op
+r=14 v=br BenchmarkAB/2D/1024-64       	      96	   4067032 ns/op
+r=14 v=main BenchmarkAB/2D/64-64         	    5451	     56267 ns/op
+r=14 v=main BenchmarkAB/2D/256-64        	     493	    731289 ns/op
+r=14 v=main BenchmarkAB/2D/512-64        	     235	   1505879 ns/op
+r=14 v=main BenchmarkAB/2D/1024-64       	      97	   3289766 ns/op
+round 15 2.60 2.11 1.53 1/608 1317653
+r=15 v=main BenchmarkAB/2D/64-64         	    6093	     55255 ns/op
+r=15 v=main BenchmarkAB/2D/256-64        	     499	    731791 ns/op
+r=15 v=main BenchmarkAB/2D/512-64        	     237	   1516689 ns/op
+r=15 v=main BenchmarkAB/2D/1024-64       	      97	   3604782 ns/op
+r=15 v=br BenchmarkAB/2D/64-64         	    7587	     41297 ns/op
+r=15 v=br BenchmarkAB/2D/256-64        	     502	    708735 ns/op
+r=15 v=br BenchmarkAB/2D/512-64        	     241	   1440290 ns/op
+r=15 v=br BenchmarkAB/2D/1024-64       	      84	   3778170 ns/op

@@ -21,9 +21,14 @@ var parWorkers = runtime.GOMAXPROCS(0)
 // roughly the element count touched) below which parallelization is skipped.
 // Spawning goroutines for tiny grids costs more than it saves; this floor was
 // chosen so the cross-over sits where the parallel path measurably wins on the
-// benchmark host. It is per-architecture (route_*.go): 16384 elements, and
-// 65536 on arm64.
-var parThreshold = parThresholdDefault()
+// benchmark host.
+const parThreshold = 1 << 14
+
+// parThresholdN is parThreshold for the axes of a complex128 PlanN (and so
+// FFT2 and FFTN, but not RealPlan2's columns, see PlanN.colsOf2), where it
+// was measured again with the batched column passes; it is per-architecture
+// (route_*.go): parThreshold everywhere but arm64.
+var parThresholdN = parThresholdNDefault()
 
 // parMinChunk is the least work (elements touched) one goroutine is given;
 // it is per-architecture (route_*.go).
@@ -68,4 +73,10 @@ func parChunks(n, itemLen int, body func(lo, hi int)) {
 // length lineLen each is large enough to be worth running across goroutines.
 func parallelizeLines(lineCount, lineLen int) bool {
 	return parWorkers > 1 && lineCount > 1 && lineCount*lineLen >= parThreshold
+}
+
+// parallelizeAxis is parallelizeLines for an axis of a complex128 PlanN, with
+// parThresholdN.
+func parallelizeAxis(lineCount, lineLen int) bool {
+	return parWorkers > 1 && lineCount > 1 && lineCount*lineLen >= parThresholdN
 }

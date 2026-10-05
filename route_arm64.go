@@ -54,16 +54,16 @@ const pow2OneRadix8Max = 8192
 func oddRadicesFirstDefault() bool { return false }
 
 // parMinChunkDefault is the 8192 elements chosen in 2026-09 (BENCHMARKS.md,
-// Round 3). On arm64 it is the threshold that changed (parThresholdDefault):
+// Round 3). On arm64 it is the threshold that changed (parThresholdNDefault):
 // raising the floor instead, as amd64 did in Round 17, cost Neoverse-N1 13%
-// at 256×256 (4 goroutines instead of 8: 898 against 777 µs, 2026-10-05).
+// at 256×256 (4 goroutines instead of 8: 884 against 777 µs, 2026-10-05).
 func parMinChunkDefault() int { return 1 << 13 }
 
-// parThresholdDefault is 65536 elements: a 2-D transform smaller than 256×256
-// runs on one goroutine. On Neoverse-N1 (cfarm424, 64 cores, all of them,
+// parThresholdNDefault is 65536 elements: a complex128 PlanN (FFT2, FFTN) of
+// fewer elements, 2-D smaller than 256×256, runs on one goroutine. On Neoverse-N1 (cfarm424, 64 cores, all of them,
 // median of seven rounds, 2026-10-05) splitting less than that work lost
 // wherever it split: 128×128 took 357 µs on two goroutines against 211 µs on
 // one; 128×256 516 (four) and 642 (two) against 480; 192×192 579 and 730
 // against 553. From 256×256 more goroutines won: 777 µs on eight against 1142
 // on one, and 512×512 1.63 ms against 4.80. (BENCHMARKS.md, Round 21.)
-func parThresholdDefault() int { return 1 << 16 }
+func parThresholdNDefault() int { return 1 << 16 }
