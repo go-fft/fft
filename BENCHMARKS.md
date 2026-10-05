@@ -1399,8 +1399,9 @@ Rows at or above FFTW: 13/24 â†’ 15/24; against numpy.fft and scipy.fft, 23/24 â
 composite rows moved by no more than their A/B spreads.
 
 **loong64 was not measured.** cfarm401 timed out in the ssh banner exchange at
-17:53 CEST (TCP open, no banner in 15 s), and again at the end of the round
-(see below).
+17:53 CEST (no banner in 15 s). At 19:17 it answered, with a load average of
+148 on its 32 cores (148.00 / 148.01 / 148.00, up 1124 days), where the
+measurement needs below 4. loong64 keeps the pow2 kernel.
 
 Raw data, scripts and ratios:
 [`benchmarks/results/arm64-round21-20261005/`](benchmarks/results/arm64-round21-20261005/).
