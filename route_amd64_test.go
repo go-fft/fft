@@ -26,3 +26,9 @@ func TestR8MaxPow2AMD64(t *testing.T) {
 		}
 	}
 }
+
+func TestParMinChunkAMD64(t *testing.T) {
+	if parMinChunkAMD64(true) != 1<<14 || parMinChunkAMD64(false) != 1<<13 {
+		t.Error("parMinChunkAMD64: want 16384 with AVX2, 8192 without")
+	}
+}

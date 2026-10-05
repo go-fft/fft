@@ -225,7 +225,9 @@ are float64 only for now.
   butterflies on amd64).
 - **Real transforms** run a half-length complex transform and one untangle pass.
 - **N-D transforms** run the 1-D transform along each axis, spread across cores
-  above a work threshold.
+  above a work threshold. On amd64 with AVX2, an axis other than the last runs
+  as batched passes over strips of 16 or 32 neighbouring lines, read and
+  written where they lie in the array, instead of gathering each line.
 
 Twiddle factors are computed once per length and cached.
 

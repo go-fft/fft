@@ -307,3 +307,59 @@ func skPass8AVX512(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
 func skLast8AVX512(cc, ch *complex128, k *float64, l1 int)
+
+// UseStockhamBatchAVX2 reports whether StockhamBatchPass takes the AVX2
+// kernels; a variable so the tests can compare them with the Go pass.
+var UseStockhamBatchAVX2 = useAVX2
+
+// StockhamBatchKernels reports whether StockhamBatchPass has kernels on this
+// machine (AVX2), which is when the fft package runs a non-contiguous axis as
+// batched passes instead of gathering its lines.
+func StockhamBatchKernels() bool { return useAVX2 }
+
+// skBatch256 holds the batched pass kernels by radix (genStockhamBatchAVX2).
+var skBatch256 = [9]skBatchFn{2: skBatch2AVX2, 3: skBatch3AVX2, 4: skBatch4AVX2, 5: skBatch5AVX2, 8: skBatch8AVX2}
+
+type skBatchFn func(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+// StockhamBatchPass runs one Stockham pass of radix r over a batch of w
+// transforms laid out side by side, and reports true, or reports false (and
+// does nothing) when no kernel can: no AVX2, or a radix without a kernel.
+// Point p of the batch is the w values cc[p·sIn : p·sIn+w] on input and
+// ch[p·sOut : p·sOut+w] on output (sIn, sOut >= w), so a pass reads or writes
+// a strip of an N-D array in place. tw is StockhamBatchTwiddles' table for the
+// direction (unused when ido == 1). The arithmetic is the scalar pass's,
+// operation for operation, on every value of the batch.
+func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int, inverse bool) bool {
+	if !UseStockhamBatchAVX2 || !stockhamSIMD(r) {
+		return false
+	}
+	n := r * ido * l1
+	_, _ = cc[(n-1)*sIn+w-1], ch[(n-1)*sOut+w-1] // the kernels trust these lengths
+	t := &skFwd[0][0]
+	if inverse {
+		t = &skInv[0][0]
+	}
+	tp := (*complex128)(nil)
+	if ido > 1 {
+		_ = tw[(ido-1)*(r-1)-1]
+		tp = &tw[0]
+	}
+	skBatch256[r](&cc[0], &ch[0], tp, t, ido, l1, w/2, w&1, 16*ido*sIn, 16*l1*ido*sOut, 16*(sIn-w), 16*(sOut-w))
+	return true
+}
+
+//go:noescape
+func skBatch2AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch3AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch4AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch5AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch8AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)

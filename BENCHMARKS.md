@@ -861,6 +861,187 @@ go1.27.1 time ÷ go1.26.4 time, geometric mean over 32 rows:
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/go1.27.1-vs-go1.26.4-20261005-v0.2.0/`](benchmarks/results/go1.27.1-vs-go1.26.4-20261005-v0.2.0/).
 
+### Round 17 — small and mid sizes on amd64: the column pass, the radix order, the fan-out (2026-10-05)
+
+The rows furthest behind FFTW on amd64 were the small and mid sizes: complex
+256 at 1.45× (Zen 3) and 1.42× (Cascade Lake), 1000 at 1.27× and 1.42×, and
+2-D 128×128 at 1.96× and 1.67×. This round located the time first, then
+measured each lever with interleaved A/B runs (one pinned core unless stated,
+five rounds, median; rows within their max/min spread rerun over fifteen).
+Hosts: Zen 3 (cfarm420, a 128-thread VM, load 2.4–5.4 throughout), Cascade
+Lake (cfarm151, 8 vCPUs, load below 1.3). Haswell (cfarm13) carried a load of
+23–27 on 24 threads from 14:10 on, so it ran the tests and the first
+decomposition (load 3–9) but no A/B.
+
+**Where the time goes**, on `main`, ns:
+
+| | whole call | its passes, each timed alone | the call without its passes |
+|:--|:--|:--|--:|
+| Zen 3, 256 | 406 | 156 (r8, ido 32) + 161 (r8, ido 4) + 67 (r4, last) | 14 |
+| Zen 3, 1000 | 2,659 | 640 (r8) + 649 (r5, ido 25) + 759 (r5, ido 5) + 404 (r5, last) | 14 |
+| Cascade Lake, 256 | 517 | 173 + 187 + 114 | 14 |
+| Haswell, 256 (loaded) | 722 | 254 + 278 + 128 | 21 |
+
+| 2-D, one core, µs | whole | rows | columns | the copy of src into dst |
+|:--|--:|--:|--:|--:|
+| Zen 3, 128×128 | 95.7 | 30.4 | 57.7 | 5.9 |
+| Cascade Lake, 128×128 | 144.9 | 45.6 | 92.2 | 5.7 |
+| Haswell, 128×128 (loaded) | 204.0 | 59.4 | 118.5 | 20.8 |
+
+- **1-D:** 95% of a 256-point call is in its passes; the fixed part (pool,
+  scratch placement, dispatch) is 14 ns. A radix-8 AVX2 body (two points of
+  each of the eight streams) is 96 instructions, of which 73 use the FP ports, and 35 of those
+  are the seven twiddle multiplies. The radix-5 pass with ido 5 is the
+  dearest of 1000's passes: five points run as two pairs and a 128-bit single.
+- **2-D:** the columns cost twice the rows. A column block is gathered,
+  transformed line by line and scattered back, and the gather and scatter
+  cost as much as the transforms. The copy of src into dst is another 6%.
+
+**1. The columns as batched passes (kept).** An axis other than the last is
+now transformed in strips of w neighbouring lines. Point p of the strip is w
+consecutive values, so one Stockham pass of radix r runs over the whole
+strip: the first pass reads it out of the array where it lies, the passes
+between ping-pong in scratch, and the last writes it back. Nothing is
+gathered or scattered. New kernels, `skBatch{2,3,4,5,8}AVX2`
+(`genStockhamBatchAVX2`), run the existing butterfly bodies two lines per
+YMM register:
+
+- A point's twiddle is the same for the whole row, so it is broadcast from
+  memory (`VBROADCASTSD`, a plain load), and the complex product costs one
+  shuffle.
+- Point i = 0 is not multiplied at all, as in the scalar pass, so there is no
+  blend.
+
+Each line gets exactly the arithmetic of its own 1-D transform:
+`TestStockhamBatchMatchesScalar` holds the kernels to the Go batched pass bit
+for bit (every batched radix, l1 ∈ {1, 2, 3, 5}, ido ∈ {1 … 13}, 1–8 lines,
+strides wider than the strip, the generic, ±0 and ∞ signals), and
+`TestStripsMatchLines` holds whole N-D and real 2-D plans to the
+line-by-line path, bit for bit, in place and not. They pass on Zen 3,
+Cascade Lake and Haswell. A wrong twiddle offset, multiplying point 0, or the
+wrong direction table each fails them. On architectures where gc fuses
+multiply-adds, the Go batched pass and the scalar passes may fuse different
+products, so there the comparison allows a few ulps; the batched path is
+only on with the AVX2 kernels, which never fuse.
+
+The first axis also reads src directly, which removes the copy, and an
+in-place transform with an odd number of passes (every 2-D row of 128 or 512
+points) now alternates between two scratch halves instead of copying the
+row first. The rows of a chunk share one scratch buffer. These three were
+measured together with the strips, not apart.
+
+Strip width, line-by-line time ÷ strip time, one core:
+
+| n×n | 16 | 32 | 64 | 100 | 128 | 256 | 512 | 1000 | 1024 | 2048 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| Zen 3, w = 4 / 8 / 16 / 32 | 1.71/1.87/**1.95**/1.93 | 1.68/1.79/1.87/**1.88** | 1.63/1.78/**1.83**/1.68 | 1.66/1.66/**1.68**/1.67 | 1.32/1.44/**1.59**/1.57 | 1.14/1.30/1.23/**1.36** | 0.98/**1.26**/1.18/1.10 | 1.24/1.27/1.21/**1.37** | 0.98/1.16/1.01/**1.21** | 0.98/2.41/3.50/**3.54** |
+| Cascade Lake | 1.75/1.93/2.04/**2.05** | 1.78/1.90/**1.91**/1.86 | 1.60/1.66/**1.70**/1.62 | 1.65/1.71/1.73/**1.75** | 1.46/1.53/**1.54**/1.50 | 1.18/1.26/**1.27**/1.24 | 1.05/1.22/1.21/**1.27** | 1.02/1.16/1.17/**1.24** | 0.87/0.89/0.89/**1.06** | 1.93/1.98/2.00/**2.71** |
+
+The width is 16 up to 512 points and 32 above (`stripWidth`). At 2048×2048
+the gathered columns were the slowest part by far: 121 ms on Zen 3, against
+34 ms in strips of 32.
+
+**2. The radix order (kept on amd64 with AVX2).** pocketfft's order, which
+this engine took, puts the powers of two first and the odd primes last, so
+the odd butterflies run on the short, late passes. Every ordering of the
+radices of twelve lengths was timed. Time over the best ordering, geometric
+mean (worst):
+
+| rule | Zen 3 | Cascade Lake |
+|:--|--:|--:|
+| powers of two first, odd primes ascending (the current rule) | 1.063 (1.147) | 1.082 (1.188) |
+| odd primes ascending, then the powers of two | 1.014 (1.035) | 1.026 (1.076) |
+| odd primes ascending, then the powers of two reversed (radix 4 before 8) | **1.008** (1.030) | **1.013** (1.049) |
+| odd primes descending, then the powers of two reversed | 1.012 (1.087) | 1.007 (1.039) |
+
+The third rule makes the final pass, the one without twiddles, a radix-8
+pass. End to end it gained 1.10–1.13× (Zen 3) and 1.08–1.17× (Cascade Lake)
+on the composites. But Rader 1009 lost (0.97 and 0.91): its convolution
+length is 1008 = 2⁴·3²·7, and radix 7 has no SIMD pass, so it is slow on a
+long early pass. So 7, 11 and 13 stay last. The rule is a route
+(`oddRadicesFirstDefault`); the other architectures keep the pocketfft
+order, which this round did not measure there.
+
+**3. Pre-duplicated twiddles (dropped).** Storing each twiddle as (wr, wr) and
+(wi, wi) lets a pass kernel load both halves with plain aligned loads, which
+saves the last shuffle of the product but doubles the twiddle bytes. Strips
+build time ÷ variant time: Zen 3 0.83–1.04, Cascade Lake 0.82–1.04. It won
+only at 128 and 256 on Cascade Lake (1.03–1.04), and lost most on the large
+transforms (65536: 0.83 on Zen 3; 2^18: 0.82 on Cascade Lake).
+
+**4. The fan-out floor (raised on amd64 with AVX2).** With the strips, one
+goroutine runs 128×128 faster than two. All cores, µs, by the least work
+one goroutine gets (`parMinChunk`):
+
+| | 8192 (two goroutines at 128×128) | 16384 | 32768 | 65536 |
+|:--|--:|--:|--:|--:|
+| Zen 3 (128 threads), 128×128 | 115 | **58** | 57 | 61 |
+| Zen 3, 256×256 | 279 | 294 | 343 | 304 |
+| Cascade Lake (8), 128×128 | 101 | **87** | 88 | 88 |
+| Cascade Lake, 256×256 | 230 | 237 | 352 | 475 |
+
+The floor is 16384 elements on amd64 with AVX2 and stays 8192 elsewhere.
+Round 9 refused a higher floor because Cascade Lake and POWER9 lost at
+128×128 with the gathered columns; with the strips, Cascade Lake wins.
+
+**5. The out-of-place path inline (kept).** Routing every call through the
+new two-buffer `run` cost Cascade Lake 5% at 64 points. Keeping the common
+case in `transform`, main time ÷ new time, fifteen rounds: 64 / 128 / 256
+points went from 0.951 / 1.014 / 1.015 to 1.010 / 1.045 / 1.038.
+
+**Not attempted:**
+- **A radix-16 codelet.** Counted from the 73 FP-port operations of a radix-8
+  body, 256 = 16·16 would remove about 12% of them, before spills. AVX2 has 16
+  registers, and a radix-16 body needs all of them for its inputs.
+- **AVX-512 batched kernels.** Cascade Lake runs the strips at 256 bits next
+  to 512-bit rows; it gained anyway.
+
+**End to end**, main time ÷ new time (final code; five rounds):
+
+| | Zen 3, one core | Cascade Lake, one core | Zen 3, all cores | Cascade Lake, all cores |
+|:--|--:|--:|--:|--:|
+| 2-D 32² / 64² / 128² | 2.50 / 1.96 / 1.71 | 2.24 / 1.89 / 1.68 | 2.52 / 1.97 / 2.56 | 2.34 / 1.92 / 1.66 |
+| 2-D 256² / 512² / 1024² | 2.34 / 1.81 / 1.56 | 2.23 / 1.18 / 1.37 | 1.23 / 1.67 / 1.39 | 2.14 / 4.11 / 3.16 |
+| complex 1000 / 1080 / 1296 / 1920 | 1.10 / 1.11 / 1.14 / 1.09 | 1.16 / 1.16 / 1.17 / 1.09 | | |
+| complex 2000 / 6000 | 1.10 / 1.09 | 1.11 / 1.12 | | |
+| complex 1009 (Rader) / 10007 (Bluestein) | 1.06 / 1.01 | 1.07 / 1.06 | | |
+| RFFT 1000 | 1.06 | 1.10 | | |
+| complex 64–4096, RFFT 256–4096 | 0.99–1.07 | 0.99–1.05 | | |
+| complex 8192 / 65536 / 2^18 | 1.04 / 1.05 / 1.00 | 1.04 / 1.08 / 0.99 | | |
+
+The all-core spreads on Zen 3 reached up to 3.9 (a shared 128-thread VM); on
+Cascade Lake they stayed at or below 1.24. No row lost beyond its spread.
+The power-of-two rows from 64 to 4096 are within their spread, except 64 on
+Zen 3 (1.07, spread 1.02).
+
+**Against FFTW**, the parity harness pinned to one core, so here the 2-D
+rows are single-core as well (`benchmarks/results/round17-amd64-small-20261005`).
+Correctness 24/24 on both. go-fft time ÷ FFTW time:
+
+| | Zen 3, before → now | Cascade Lake, before → now |
+|:--|--:|--:|
+| complex 256 | 1.45 → 1.41 | 1.42 → 1.36 |
+| complex 1,024 | 1.35 → 1.19 | 1.34 → 1.20 |
+| complex 4,096 | 1.23 → 1.27 | 1.11 → 1.01 |
+| complex 1,000 | 1.27 → **1.09** | 1.42 → 1.23 |
+| complex 1,080 / 1,296 / 1,920 | 1.32 / 1.36 / 1.29 → 1.24 / 1.19 / 1.22 | 1.56 / 1.76 / 1.61 → 1.37 / 1.52 / 1.45 |
+| RFFT 4,096 | 1.29 → 1.29 | 1.24 → 1.22 |
+| 2-D 64×64, one core / all cores | 2.20 → **0.90 / 0.93** | 2.26 → 1.21 / 1.18 |
+| 2-D 128×128, one core / all cores | 1.96 → **0.89 / 0.93** | 1.67 → 1.21 / 1.25 |
+| 2-D 256×256, one core / all cores | 1.16 → **1.00 / 0.77** | 1.04 → 1.07 / **0.55** |
+
+"Before" is the v0.1.5 (Zen 3) and v0.1.7 (Cascade Lake) report, with 2-D on
+all cores. FFTW's own times moved between the two days by up to 14% (Zen 3,
+1024: 1,525 → 1,734 ns; Cascade Lake, 1024: 2,078 → 2,307 ns). So the
+power-of-two rows, whose go-fft times did not change beyond the noise, moved
+because FFTW did. The composite and 2-D rows moved because go-fft did.
+
+**What remains.** Complex 256 is still 1.36–1.41× FFTW on one core, almost
+entirely in the passes: about half of a radix-8 body's FP operations are
+twiddle multiplies, which FFTW does with FMA and with fewer, larger codelets.
+Both are closed to this library: no FMA on amd64 (bit identity), and no
+radix-16 codelet attempted here.
+
 ### Round 18 — NEON Stockham passes on arm64 (2026-10-05)
 
 **What changed.** On arm64 the Stockham passes ran as Go code, which gc compiles to scalar instructions. Every radix-2, 3, 4, 5 and 8 pass, and every radix-2, 3, 4 and 5 final pass with an even block count, now runs on a NEON kernel generated by go-asmgen (`genStockhamPass`, `genStockhamLast` in `internal/kernels/asmgen/arm64/gen.go`, into `stockham_arm64.s`). Radix 7, the general radix, and a final pass with an odd block count stay in Go. Go 1.27 assembles the vector `VFADD`/`VFSUB`/`VFMUL`/`VFNEG` that Round 3's prototype had to encode as `WORD`s, and go-asmgen v0.15.1 emits them as mnemonics: the kernels contain no hand encoding.

@@ -321,7 +321,6 @@ func newPlanNAxes(shape, axes []int) *PlanN {
 		}
 		p.maxLen = max(p.maxLen, n)
 	}
-	bl := lineBlock * (p.maxLen + linePad)
-	p.bufs.New = func() any { b := make([]complex128, bl); return &b }
+	p.initScratch()
 	return p
 }

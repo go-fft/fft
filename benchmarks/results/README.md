@@ -4,6 +4,12 @@ Each directory holds one complete run of `benchmarks/run.sh` (on Linux,
 `remote/run.sh`): the generated report (`REPORT.md`) and the four raw inputs it
 was built from (`go_bench.txt`, `go_plan.txt`, `fftw.json`, `ref.json`).
 
+## 2026-10-05, Round 17: small and mid sizes on amd64
+
+`round17-amd64-small-20261005` holds the interleaved A/B runs, sweeps and
+scripts of BENCHMARKS.md's Round 17, and two pinned single-core parity runs
+(Zen 3, cfarm420; Cascade Lake, cfarm151), each correct 24/24. See its README.
+
 ## 2026-10-05, perf-arm64-neon: NEON Stockham passes (Round 18)
 
 `arm64-neon-stockham-20261005` holds the measurements behind Round 18 of

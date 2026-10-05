@@ -46,7 +46,7 @@ func (p *RealPlan2) RFFT(dst []complex128, src []float64) []complex128 {
 	}
 	// Step 2: the complex FFT down each column, in place.
 	if p.col.axes[0] != nil {
-		p.col.transformAxis(dst, 0, false)
+		p.col.transformAxis(dst, dst, 0, false)
 	}
 	return dst
 }
@@ -61,10 +61,12 @@ func (p *RealPlan2) IRFFT(dst []float64, src []complex128) []float64 {
 	bp := p.scratch.Get().(*[]complex128)
 	defer p.scratch.Put(bp)
 	half := *bp
-	copy(half, src)
-	// Step 1: the unnormalized complex inverse down each column.
+	// Step 1: the unnormalized complex inverse down each column, from src
+	// into half.
 	if p.col.axes[0] != nil {
-		p.col.transformAxis(half, 0, true)
+		p.col.transformAxis(half, src, 0, true)
+	} else {
+		copy(half, src)
 	}
 	// Step 2: the real inverse of each row (normalized by cols), then 1/rows.
 	if parallelizeLines(p.rows, p.cols) {

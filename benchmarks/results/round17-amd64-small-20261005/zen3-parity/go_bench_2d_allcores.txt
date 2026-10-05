@@ -1,0 +1,22 @@
+ 12:47:11 up 23 days, 21:12,  8 users,  load average: 2.99, 3.28, 3.10
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkFFT2Plan_GoFFT/64x64-128         	  108070	     11109 ns/op
+BenchmarkFFT2Plan_GoFFT/64x64-128         	  109639	     11223 ns/op
+BenchmarkFFT2Plan_GoFFT/64x64-128         	  110590	     12075 ns/op
+BenchmarkFFT2Plan_GoFFT/128x128-128       	   21208	     57275 ns/op
+BenchmarkFFT2Plan_GoFFT/128x128-128       	   19918	     56480 ns/op
+BenchmarkFFT2Plan_GoFFT/128x128-128       	   20956	     61693 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256-128       	    7173	    176617 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256-128       	    6157	    233859 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256-128       	    6288	    221255 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512-128       	    1822	    576245 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512-128       	    1904	    587629 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512-128       	    1694	    601584 ns/op
+BenchmarkFFT2Plan_GoFFT/1024x1024-128     	     810	   1397453 ns/op
+BenchmarkFFT2Plan_GoFFT/1024x1024-128     	     670	   1788290 ns/op
+BenchmarkFFT2Plan_GoFFT/1024x1024-128     	     612	   1984507 ns/op
+PASS
+ 12:47:36 up 23 days, 21:12,  8 users,  load average: 5.38, 3.83, 3.28

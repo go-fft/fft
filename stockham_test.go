@@ -222,16 +222,43 @@ func TestSkFactorizeAroundR8Max(t *testing.T) {
 	defer func() { r8MaxPow2 = saved }()
 	const e = 13
 	r8MaxPow2 = 1 << e
-	if got, want := fmt.Sprint(skFactorize(1<<e)), fmt.Sprint(radix8Maximal(e)); got != want {
+	if got, want := fmt.Sprint(skFactorizeOrder(1<<e, false)), fmt.Sprint(radix8Maximal(e)); got != want {
 		t.Errorf("at r8MaxPow2: skFactorize(2^%d) = %s, want radix 8 as far as it goes %s", e, got, want)
 	}
 	r8MaxPow2 = 1<<e - 1
-	if got, want := fmt.Sprint(skFactorize(1<<e)), fmt.Sprint(pow2Radices(e, 1<<e <= pow2OneRadix8Max)); got != want {
+	if got, want := fmt.Sprint(skFactorizeOrder(1<<e, false)), fmt.Sprint(pow2Radices(e, 1<<e <= pow2OneRadix8Max)); got != want {
 		t.Errorf("above r8MaxPow2: skFactorize(2^%d) = %s, want %s", e, got, want)
 	}
 	// An odd factor keeps radix 8 as far as it goes for the power of two.
-	if got, want := fmt.Sprint(skFactorize(3<<e)), fmt.Sprint(append(radix8Maximal(e), 3)); got != want {
-		t.Errorf("skFactorize(3·2^%d) = %s, want %s", e, got, want)
+	if got, want := fmt.Sprint(skFactorizeOrder(3<<e, false)), fmt.Sprint(append(radix8Maximal(e), 3)); got != want {
+		t.Errorf("skFactorizeOrder(3·2^%d, false) = %s, want %s", e, got, want)
+	}
+}
+
+// TestSkFactorizeOrder pins both orders: powers of two first then the odd
+// primes ascending, or the odd primes first then the powers of two reversed.
+func TestSkFactorizeOrder(t *testing.T) {
+	saved := r8MaxPow2
+	defer func() { r8MaxPow2 = saved }()
+	r8MaxPow2 = 4096
+	for _, c := range []struct {
+		n                   int
+		pow2First, oddFirst string
+	}{
+		{1000, "[8 5 5 5]", "[5 5 5 8]"},
+		{1080, "[8 3 3 3 5]", "[3 3 3 5 8]"},
+		{1920, "[8 4 4 3 5]", "[3 5 4 4 8]"},
+		{256, "[8 8 4]", "[4 8 8]"},
+		{1 << 15, "[4 4 4 4 4 4 4 2]", "[2 4 4 4 4 4 4 4]"},
+		{7 * 11 * 13, "[7 11 13]", "[7 11 13]"},
+		{1008, "[4 4 3 3 7]", "[3 3 4 4 7]"},
+	} {
+		if got := fmt.Sprint(skFactorizeOrder(c.n, false)); got != c.pow2First {
+			t.Errorf("skFactorizeOrder(%d, false) = %s, want %s", c.n, got, c.pow2First)
+		}
+		if got := fmt.Sprint(skFactorizeOrder(c.n, true)); got != c.oddFirst {
+			t.Errorf("skFactorizeOrder(%d, true) = %s, want %s", c.n, got, c.oddFirst)
+		}
 	}
 }
 

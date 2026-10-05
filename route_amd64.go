@@ -84,3 +84,29 @@ func r8MaxPow2AMD64(avx512, intel bool) int {
 // Cascade Lake (2026-09-30), rule A scored 1.082 over the best, C 1.129, B
 // 1.190.
 const pow2OneRadix8Max = 0
+
+// oddRadicesFirstDefault orders the passes 3s and 5s first, then the powers
+// of two with radix 4 before radix 8 (so the twiddle-free final pass is a
+// radix-8 one), then 7, 11, 13, when the AVX2 pass kernels run. Every
+// ordering of the radices of twelve lengths was timed (2026-10-05, time over
+// the best ordering, geometric mean): the pocketfft order scored 1.063 on Zen
+// 3 and 1.082 on Cascade Lake (1000: 1.108 and 1.164), this one 1.008 and
+// 1.013. End to end, composites gained 1.08–1.17× and powers of two moved
+// within the noise. Radix 7 went
+// last after Rader 1009, whose convolution length is 1008 = 2^4·3^2·7, lost
+// 5% with 7 among the first passes (it has no SIMD pass).
+func oddRadicesFirstDefault() bool { return kernels.UseStockhamAVX2 }
+
+// parMinChunkDefault is 16384 elements when the AVX2 kernels run, 8192
+// otherwise. With the batched column passes (PlanN's strips), 128×128 is
+// faster on one goroutine than on two: 58 against 115 µs on Zen 3 (128
+// threads) and 87 against 101 µs on Cascade Lake (8), all cores, 2026-10-05.
+// From 256×256 the two floors were within the noise of each other.
+func parMinChunkDefault() int { return parMinChunkAMD64(kernels.UseStockhamAVX2) }
+
+func parMinChunkAMD64(avx2 bool) int {
+	if avx2 {
+		return 1 << 14
+	}
+	return 1 << 13
+}

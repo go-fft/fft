@@ -1,0 +1,87 @@
+START  12:27:12 up 23 days, 20:52,  7 users,  load average: 2.36, 2.58, 2.72
+ord3.test BenchmarkFanout/64/m8192-128         	   21835	     10847 ns/op
+ord3.test BenchmarkFanout/64/m16384-128        	   21825	     10920 ns/op
+ord3.test BenchmarkFanout/64/m32768-128        	   21823	     11159 ns/op
+ord3.test BenchmarkFanout/64/m65536-128        	   21782	     10938 ns/op
+ord3.test BenchmarkFanout/128/m8192-128        	    2494	    126814 ns/op
+ord3.test BenchmarkFanout/128/m16384-128       	    4414	     57037 ns/op
+ord3.test BenchmarkFanout/128/m32768-128       	    4084	     56844 ns/op
+ord3.test BenchmarkFanout/128/m65536-128       	    3752	     56474 ns/op
+ord3.test BenchmarkFanout/256/m8192-128        	    1088	    278130 ns/op
+ord3.test BenchmarkFanout/256/m16384-128       	     904	    261967 ns/op
+ord3.test BenchmarkFanout/256/m32768-128       	    1195	    231973 ns/op
+ord3.test BenchmarkFanout/256/m65536-128       	     721	    303565 ns/op
+ord3.test BenchmarkFanout/512/m8192-128        	     350	    607479 ns/op
+ord3.test BenchmarkFanout/512/m16384-128       	     360	    595532 ns/op
+ord3.test BenchmarkFanout/512/m32768-128       	     364	    668907 ns/op
+ord3.test BenchmarkFanout/512/m65536-128       	     282	    866407 ns/op
+ROUND 1  12:27:17 up 23 days, 20:52,  7 users,  load average: 2.41, 2.59, 2.72
+ord3.test BenchmarkFanout/64/m8192-128         	   21403	     11004 ns/op
+ord3.test BenchmarkFanout/64/m16384-128        	   20324	     11034 ns/op
+ord3.test BenchmarkFanout/64/m32768-128        	   22365	     11439 ns/op
+ord3.test BenchmarkFanout/64/m65536-128        	   21778	     11110 ns/op
+ord3.test BenchmarkFanout/128/m8192-128        	    2264	     94982 ns/op
+ord3.test BenchmarkFanout/128/m16384-128       	    3456	     58087 ns/op
+ord3.test BenchmarkFanout/128/m32768-128       	    3950	     57709 ns/op
+ord3.test BenchmarkFanout/128/m65536-128       	    4185	     62136 ns/op
+ord3.test BenchmarkFanout/256/m8192-128        	     783	    276619 ns/op
+ord3.test BenchmarkFanout/256/m16384-128       	     792	    293813 ns/op
+ord3.test BenchmarkFanout/256/m32768-128       	     705	    346820 ns/op
+ord3.test BenchmarkFanout/256/m65536-128       	     782	    347924 ns/op
+ord3.test BenchmarkFanout/512/m8192-128        	     398	    624488 ns/op
+ord3.test BenchmarkFanout/512/m16384-128       	     382	    788439 ns/op
+ord3.test BenchmarkFanout/512/m32768-128       	     360	    758876 ns/op
+ord3.test BenchmarkFanout/512/m65536-128       	     265	    940842 ns/op
+ROUND 2  12:27:23 up 23 days, 20:52,  8 users,  load average: 2.45, 2.60, 2.72
+ord3.test BenchmarkFanout/64/m8192-128         	   21739	     11519 ns/op
+ord3.test BenchmarkFanout/64/m16384-128        	   21906	     10842 ns/op
+ord3.test BenchmarkFanout/64/m32768-128        	   21519	     11794 ns/op
+ord3.test BenchmarkFanout/64/m65536-128        	   20929	     11351 ns/op
+ord3.test BenchmarkFanout/128/m8192-128        	    2577	    120269 ns/op
+ord3.test BenchmarkFanout/128/m16384-128       	    3998	     62598 ns/op
+ord3.test BenchmarkFanout/128/m32768-128       	    4064	     57273 ns/op
+ord3.test BenchmarkFanout/128/m65536-128       	    4065	     60818 ns/op
+ord3.test BenchmarkFanout/256/m8192-128        	     718	    293259 ns/op
+ord3.test BenchmarkFanout/256/m16384-128       	     765	    277661 ns/op
+ord3.test BenchmarkFanout/256/m32768-128       	     770	    342827 ns/op
+ord3.test BenchmarkFanout/256/m65536-128       	     712	    290282 ns/op
+ord3.test BenchmarkFanout/512/m8192-128        	     334	    741003 ns/op
+ord3.test BenchmarkFanout/512/m16384-128       	     314	    680271 ns/op
+ord3.test BenchmarkFanout/512/m32768-128       	     510	    596222 ns/op
+ord3.test BenchmarkFanout/512/m65536-128       	     272	    773926 ns/op
+ROUND 3  12:27:29 up 23 days, 20:52,  7 users,  load average: 3.78, 2.87, 2.81
+ord3.test BenchmarkFanout/64/m8192-128         	   21696	     11375 ns/op
+ord3.test BenchmarkFanout/64/m16384-128        	   21386	     10999 ns/op
+ord3.test BenchmarkFanout/64/m32768-128        	   20379	     11024 ns/op
+ord3.test BenchmarkFanout/64/m65536-128        	   21372	     11027 ns/op
+ord3.test BenchmarkFanout/128/m8192-128        	    2694	     78280 ns/op
+ord3.test BenchmarkFanout/128/m16384-128       	    4116	     62056 ns/op
+ord3.test BenchmarkFanout/128/m32768-128       	    4196	     56762 ns/op
+ord3.test BenchmarkFanout/128/m65536-128       	    4164	     56932 ns/op
+ord3.test BenchmarkFanout/256/m8192-128        	     735	    293582 ns/op
+ord3.test BenchmarkFanout/256/m16384-128       	     702	    301282 ns/op
+ord3.test BenchmarkFanout/256/m32768-128       	     800	    356628 ns/op
+ord3.test BenchmarkFanout/256/m65536-128       	     772	    287570 ns/op
+ord3.test BenchmarkFanout/512/m8192-128        	     326	    629434 ns/op
+ord3.test BenchmarkFanout/512/m16384-128       	     382	    655450 ns/op
+ord3.test BenchmarkFanout/512/m32768-128       	     352	    670143 ns/op
+ord3.test BenchmarkFanout/512/m65536-128       	     304	    796396 ns/op
+ROUND 4  12:27:34 up 23 days, 20:52,  7 users,  load average: 4.59, 3.06, 2.87
+ord3.test BenchmarkFanout/64/m8192-128         	   21980	     11106 ns/op
+ord3.test BenchmarkFanout/64/m16384-128        	   21896	     11028 ns/op
+ord3.test BenchmarkFanout/64/m32768-128        	   21658	     11974 ns/op
+ord3.test BenchmarkFanout/64/m65536-128        	   22170	     10798 ns/op
+ord3.test BenchmarkFanout/128/m8192-128        	    3771	    115276 ns/op
+ord3.test BenchmarkFanout/128/m16384-128       	    4182	     56706 ns/op
+ord3.test BenchmarkFanout/128/m32768-128       	    4254	     57598 ns/op
+ord3.test BenchmarkFanout/128/m65536-128       	    3090	     68233 ns/op
+ord3.test BenchmarkFanout/256/m8192-128        	     744	    278734 ns/op
+ord3.test BenchmarkFanout/256/m16384-128       	     732	    325358 ns/op
+ord3.test BenchmarkFanout/256/m32768-128       	     830	    304086 ns/op
+ord3.test BenchmarkFanout/256/m65536-128       	     837	    307880 ns/op
+ord3.test BenchmarkFanout/512/m8192-128        	     342	    741908 ns/op
+ord3.test BenchmarkFanout/512/m16384-128       	     368	    643117 ns/op
+ord3.test BenchmarkFanout/512/m32768-128       	     350	    660045 ns/op
+ord3.test BenchmarkFanout/512/m65536-128       	     303	    740268 ns/op
+ROUND 5  12:27:40 up 23 days, 20:52,  7 users,  load average: 4.71, 3.11, 2.89
+DONE

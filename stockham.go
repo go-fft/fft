@@ -1,6 +1,7 @@
 package fft
 
 import (
+	"slices"
 	"sync"
 	"unsafe"
 
@@ -82,15 +83,16 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		l1 *= r
 	}
 	size := n
-	if takesGap(n) {
+	switch {
+	case takesGap(n):
 		size += setSpan // room to slide the window off dst's sets
+	case len(p.stages)%2 == 1:
+		size *= 2 // the in-place ping-pong (see run)
 	}
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
 	return p
 }
 
-// transform writes the unnormalized DFT of src into dst (conjugate roots when
-// inverse). dst may alias src.
 // skFactorize orders the radices for the passes. The powers of two come first
 // as radix-8 passes where that pays, then radix 4, with no lone radix-2 pass
 // unless the length has a single factor 2; the odd primes follow ascending, so
@@ -102,7 +104,13 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // input and eight output streams sit at power-of-two strides and alias in the
 // cache. So a large power of two stays on radix 4; a length with an odd factor
 // has no such aliasing and keeps radix 8 (20160: 1.07×).
-func skFactorize(n int) []int {
+func skFactorize(n int) []int { return skFactorizeOrder(n, oddRadicesFirst) }
+
+// skFactorizeOrder is skFactorize with the order chosen: with oddFirst, the
+// radices 3 and 5 come first, then the powers of two in reverse (radix 4
+// before radix 8), so the final pass, which has no twiddles, is a radix-8
+// pass where there is one; 7, 11 and 13, which have no SIMD pass, stay last.
+func skFactorizeOrder(n int, oddFirst bool) []int {
 	e, odd := 0, n
 	for odd%2 == 0 {
 		odd /= 2
@@ -114,14 +122,27 @@ func skFactorize(n int) []int {
 	} else {
 		f = pow2Radices(e, n <= pow2OneRadix8Max)
 	}
+	var o []int
 	for _, prime := range []int{3, 5, 7, 11, 13} {
 		for odd%prime == 0 {
-			f = append(f, prime)
+			o = append(o, prime)
 			odd /= prime
 		}
 	}
-	return f
+	if !oddFirst {
+		return append(f, o...)
+	}
+	k := 0
+	for k < len(o) && o[k] <= 5 {
+		k++
+	}
+	slices.Reverse(f)
+	return append(append(o[:k:k], f...), o[k:]...)
 }
+
+// oddRadicesFirst selects skFactorizeOrder's order; it is per-architecture
+// (route_*.go).
+var oddRadicesFirst = oddRadicesFirstDefault()
 
 // radix8Maximal factors 2^e into as many radix-8 passes as it can, then radix
 // 4, taking two radix-4 passes rather than one radix-2 pass when that fits.
@@ -175,20 +196,26 @@ var r8MaxPow2 = r8MaxPow2Default()
 // 1.19–1.34, 4096 1.49.
 func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
 
+// transform writes the unnormalized DFT of src into dst (conjugate roots when
+// inverse). dst may alias src.
+//
+// The common case, every pass count out of place and an even one in place,
+// runs here rather than through run: the call cost about 7 ns (5%) at 64
+// points on Cascade Lake, and inlining it measured 1.01–1.05× over the
+// previous release at 64–256 points there (Round 17).
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
+	s := len(p.stages)
+	if s%2 == 1 && &dst[0] == &src[0] {
+		p.run(dst, src, *bp, inverse)
+		p.scratch.Put(bp)
+		return
+	}
 	scr := (*bp)[:p.n]
 	if takesGap(p.n) {
 		scr = offTheSets(*bp, dst, p.n)
 	}
-	s := len(p.stages)
-	// Pass s writes dst when (S-1-s) is even, so the last pass lands in dst.
 	in := src
-	if s%2 == 1 && &dst[0] == &src[0] {
-		// Pass 0 would write dst while reading it: read a copy instead.
-		copy(scr, src)
-		in = scr
-	}
 	for k := range p.stages {
 		out := scr
 		if (s-1-k)%2 == 0 {
@@ -198,6 +225,45 @@ func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 		in = out
 	}
 	p.scratch.Put(bp)
+}
+
+// run is transform with the scratch buffer given: one from p.scratch.
+//
+// Pass k writes dst when s-1-k is even, so the last pass lands in dst. With
+// an odd pass count that makes pass 0 write dst, which it reads when the
+// transform is in place. The scratch buffer then holds two n-point halves
+// and the passes before the last alternate between them, except for the
+// lengths that place their scratch off dst's sets (takesGap): those copy src
+// to the scratch buffer and read it from there. In a 2-D transform every row
+// is transformed in place, so the copy was one more pass over the matrix: at
+// 128×128 on Zen 3, copying 16384 values alone took 6 µs against 96 µs for
+// the whole transform (2026-10-05).
+func (p *skPlan) run(dst, src, buf []complex128, inverse bool) {
+	n, s := p.n, len(p.stages)
+	gap := takesGap(n)
+	scr := buf[:n]
+	if gap {
+		scr = offTheSets(buf, dst, n)
+	}
+	in, even := src, dst // even: where the passes with s-1-k even write
+	if s%2 == 1 && &dst[0] == &src[0] {
+		if gap {
+			copy(scr, src)
+			in = scr
+		} else {
+			even = buf[n : 2*n]
+		}
+	}
+	for k := range p.stages {
+		out := scr
+		if k == s-1 {
+			out = dst
+		} else if (s-1-k)%2 == 0 {
+			out = even
+		}
+		p.stages[k].pass(out, in, inverse)
+		in = out
+	}
 }
 
 // Every pass writes its r output streams n/r points apart, and the first pass
@@ -733,5 +799,92 @@ func pass7last(l1 int, cc, ch []complex128, s float64) {
 		o1[k], o6[k] = r1+i1, r1-i1
 		o2[k], o5[k] = r2+i2, r2-i2
 		o3[k], o4[k] = r3+i3, r3-i3
+	}
+}
+
+// A batched pass runs one Stockham pass over w transforms side by side: the
+// lines of a non-contiguous axis of an N-D array, w neighbouring lines at a
+// time. Point p of the batch is the w values cc[p·sIn : p·sIn+w] (and
+// ch[p·sOut : p·sOut+w]), so the first pass reads a strip of the array where
+// it lies and the last one writes it back, with no gather or scatter.
+// Every value of the batch gets the scalar pass's arithmetic, operation for
+// operation, so the result is bit-identical to transforming each line alone.
+
+// batchRadix reports whether a batched pass of radix r exists: the radices
+// with a SIMD pass kernel.
+func batchRadix(r int) bool {
+	switch r {
+	case 2, 3, 4, 5, 8:
+		return true
+	}
+	return false
+}
+
+// batchTwiddles returns the stage's twiddles in the order a batched pass
+// reads them, forward and conjugate: for i = 1 .. ido-1, the r-1 twiddles of
+// point i one after the other. nil when ido == 1.
+func (st *skStage) batchTwiddles() (fwd, conj []complex128) {
+	if st.ido == 1 {
+		return nil, nil
+	}
+	m, r := st.ido-1, st.r
+	fwd = make([]complex128, m*(r-1))
+	conj = make([]complex128, m*(r-1))
+	for i := 0; i < m; i++ {
+		for j := 0; j < r-1; j++ {
+			fwd[i*(r-1)+j] = st.tw[j*m+i]
+			conj[i*(r-1)+j] = st.twc[j*m+i]
+		}
+	}
+	return fwd, conj
+}
+
+// passBatch runs the stage as a batched pass, on the SIMD kernel when there
+// is one. tw is batchTwiddles' table for the direction.
+func (st *skStage) passBatch(ch, cc, tw []complex128, w, sIn, sOut int, inverse bool) {
+	if !kernels.StockhamBatchPass(st.r, st.ido, st.l1, cc, ch, tw, w, sIn, sOut, inverse) {
+		st.passBatchScalar(ch, cc, tw, w, sIn, sOut, inverse)
+	}
+}
+
+// passBatchScalar is the Go batched pass: each value of the batch through the
+// butterfly the scalar pass uses (bfly2..bfly8, which pass2..pass8 inline),
+// then, for i > 0, its twiddle.
+func (st *skStage) passBatchScalar(ch, cc, tw []complex128, w, sIn, sOut int, inverse bool) {
+	r, ido, l1 := st.r, st.ido, st.l1
+	s := dirSign(inverse)
+	var x, y [8]complex128
+	for k := 0; k < l1; k++ {
+		for i := 0; i < ido; i++ {
+			for c := 0; c < w; c++ {
+				for j := 0; j < r; j++ {
+					x[j] = cc[(i+ido*(j+r*k))*sIn+c]
+				}
+				bflyR(&y, &x, r, s)
+				for j := 0; j < r; j++ {
+					v := y[j]
+					if i > 0 && j > 0 {
+						v *= tw[(i-1)*(r-1)+j-1]
+					}
+					ch[(i+ido*(k+l1*j))*sOut+c] = v
+				}
+			}
+		}
+	}
+}
+
+// bflyR is the size-r DFT of x[:r] into y[:r] for a batched radix.
+func bflyR(y, x *[8]complex128, r int, s float64) {
+	switch r {
+	case 2:
+		y[0], y[1] = x[0]+x[1], x[0]-x[1]
+	case 3:
+		y[0], y[1], y[2] = bfly3(x[0], x[1], x[2], s)
+	case 4:
+		y[0], y[1], y[2], y[3] = bfly4(x[0], x[1], x[2], x[3], s)
+	case 5:
+		y[0], y[1], y[2], y[3], y[4] = bfly5(x[0], x[1], x[2], x[3], x[4], s)
+	default:
+		bfly8(y, x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], s)
 	}
 }
