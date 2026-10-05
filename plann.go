@@ -1,6 +1,10 @@
 package fft
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
 
 // A PlanN is a reusable N-dimensional complex transform of a fixed row-major
 // (C-order) shape: the N-D counterpart of Plan, the way FFTW's
@@ -19,7 +23,31 @@ type PlanN struct {
 	size   int
 	axes   []*Plan // per-axis 1-D plans; nil for a length-1 axis
 	maxLen int     // longest axis
+	// strips[ax] holds, for an axis run as batched passes (see stripLines),
+	// each pass's batchTwiddles, forward then conjugate; nil for an axis
+	// whose lines are transformed one by one.
+	strips [][][2][]complex128
 	bufs   sync.Pool
+}
+
+// stripAxes makes NewPlanN run a non-contiguous axis as batched Stockham
+// passes over strips of stripWidth neighbouring lines (stripLines) where it
+// can, instead of gathering lines into scratch. It is on where the batched
+// pass kernels run (AVX2), and a variable so the tests run both paths
+// everywhere.
+var stripAxes = kernels.StockhamBatchKernels()
+
+// stripWidth is how many neighbouring lines one strip of an axis of length n
+// holds. Swept over 4/8/16/32 on n×n plans, one core (2026-10-05, line-by-line
+// time ÷ strip time): 16 was the best single width up to 512 on Zen 3 and
+// Cascade Lake, within 10% of each size's best (128: 1.59 and 1.54), and 32
+// above (1024: 1.21 and 1.06, where 16 gave 1.01 and 0.89; 2048: 3.54 and
+// 2.71).
+func stripWidth(n int) int {
+	if n <= 512 {
+		return 16
+	}
+	return 32
 }
 
 // lineBlock is the most neighbouring lines a non-contiguous axis gathers at
@@ -67,9 +95,26 @@ func NewPlanN(shape ...int) *PlanN {
 		}
 		p.maxLen = max(p.maxLen, n)
 	}
-	bl := lineBlock * (p.maxLen + linePad)
-	p.bufs.New = func() any { b := make([]complex128, bl); return &b }
+	p.initScratch()
 	return p
+}
+
+// initScratch sets up, once the axis plans are in place, the strips of the
+// axes that run as batched passes and the pool of scratch buffers.
+func (p *PlanN) initScratch() {
+	bl := lineBlock * (p.maxLen + linePad)
+	p.strips = make([][][2][]complex128, len(p.shape))
+	for ax, n := range p.shape {
+		if ax < len(p.shape)-1 && p.axes[ax] != nil && stripAxes && stripsFit(p.axes[ax]) {
+			sts := p.axes[ax].sk.stages
+			p.strips[ax] = make([][2][]complex128, len(sts))
+			for k := range sts {
+				p.strips[ax][k][0], p.strips[ax][k][1] = sts[k].batchTwiddles()
+			}
+			bl = max(bl, 2*n*stripWidth(n))
+		}
+	}
+	p.bufs.New = func() any { b := make([]complex128, bl); return &b }
 }
 
 // Shape returns a copy of the plan's shape.
@@ -101,21 +146,40 @@ func (p *PlanN) transform(dst, src []complex128, inverse bool) {
 	if len(dst) != p.size || len(src) != p.size {
 		panic("fft: PlanN slice length does not match the plan's shape")
 	}
-	if !aliases(dst, src) {
-		copy(dst, src)
-	}
+	// The first axis transformed reads src: no copy into dst first.
+	in := src
 	for ax := range p.shape {
 		if p.axes[ax] != nil {
-			p.transformAxis(dst, ax, inverse)
+			p.transformAxis(dst, in, ax, inverse)
+			in = dst
 		}
+	}
+	if !aliases(dst, in) {
+		copy(dst, in) // every axis has length 1
 	}
 }
 
-// transformAxis runs the unnormalized 1-D transform along every line of axis
-// ax of out, in place. The serial path calls the line workers directly: a
-// closure handed to parChunks escapes to the heap, which would cost a
-// steady-state allocation per axis, so one is only built to fan out.
-func (p *PlanN) transformAxis(out []complex128, ax int, inverse bool) {
+// stripsFit reports whether an axis plan can run as batched passes: a
+// Stockham plan of at least two passes (the first reads the array, the last
+// writes it), every one of a radix with a batched pass.
+func stripsFit(pl *Plan) bool {
+	if pl.sk == nil || len(pl.sk.stages) < 2 {
+		return false
+	}
+	for _, st := range pl.sk.stages {
+		if !batchRadix(st.r) {
+			return false
+		}
+	}
+	return true
+}
+
+// transformAxis writes into dst the unnormalized 1-D transform along every
+// line of axis ax of src; src is dst or does not overlap it. The serial path
+// calls the line workers directly: a closure handed to parChunks escapes to
+// the heap, which would cost a steady-state allocation per axis, so one is
+// only built to fan out.
+func (p *PlanN) transformAxis(dst, src []complex128, ax int, inverse bool) {
 	n := p.shape[ax]
 	lines := p.size / n
 	par := parallelizeLines(lines, n)
@@ -123,9 +187,19 @@ func (p *PlanN) transformAxis(out []complex128, ax int, inverse bool) {
 		// The last axis: each line is contiguous and is transformed where it
 		// lies — no gather, no scatter.
 		if par {
-			parChunks(lines, n, func(lo, hi int) { p.contiguousLines(out, ax, lo, hi, inverse) })
+			parChunks(lines, n, func(lo, hi int) { p.contiguousLines(dst, src, ax, lo, hi, inverse) })
 		} else {
-			p.contiguousLines(out, ax, 0, lines, inverse)
+			p.contiguousLines(dst, src, ax, 0, lines, inverse)
+		}
+		return
+	}
+	if p.strips[ax] != nil {
+		st, sw := p.stride[ax], stripWidth(n)
+		strips := p.size / (n * st) * ((st + sw - 1) / sw)
+		if par {
+			parChunks(strips, sw*n, func(lo, hi int) { p.stripLines(dst, src, ax, lo, hi, inverse) })
+		} else {
+			p.stripLines(dst, src, ax, 0, strips, inverse)
 		}
 		return
 	}
@@ -134,19 +208,63 @@ func (p *PlanN) transformAxis(out []complex128, ax int, inverse bool) {
 	last, bw := p.shape[len(p.shape)-1], blockWidth(n)
 	blocks := lines / last * ((last + bw - 1) / bw)
 	if par {
-		parChunks(blocks, bw*n, func(lo, hi int) { p.blockedLines(out, ax, lo, hi, inverse) })
+		parChunks(blocks, bw*n, func(lo, hi int) { p.blockedLines(dst, src, ax, lo, hi, inverse) })
 	} else {
-		p.blockedLines(out, ax, 0, blocks, inverse)
+		p.blockedLines(dst, src, ax, 0, blocks, inverse)
 	}
 }
 
-// contiguousLines transforms lines lo..hi-1 of the contiguous last axis.
-func (p *PlanN) contiguousLines(out []complex128, ax, lo, hi int, inverse bool) {
+// contiguousLines transforms lines lo..hi-1 of the contiguous last axis. A
+// Stockham axis takes its scratch buffer once for all of them.
+func (p *PlanN) contiguousLines(dst, src []complex128, ax, lo, hi int, inverse bool) {
 	n, plan := p.shape[ax], p.axes[ax]
-	for c := lo; c < hi; c++ {
-		line := out[c*n : (c+1)*n]
-		plan.execute(line, line, inverse)
+	if sk := plan.sk; sk != nil {
+		bp := sk.scratch.Get().(*[]complex128)
+		for c := lo; c < hi; c++ {
+			sk.run(dst[c*n:(c+1)*n], src[c*n:(c+1)*n], *bp, inverse)
+		}
+		sk.scratch.Put(bp)
+		return
 	}
+	for c := lo; c < hi; c++ {
+		plan.execute(dst[c*n:(c+1)*n], src[c*n:(c+1)*n], inverse)
+	}
+}
+
+// stripLines transforms strips lo..hi-1 of the non-contiguous axis ax as
+// batched Stockham passes. Strip s covers up to stripWidth neighbouring lines
+// of one run along the axes after ax (those lines start one element apart):
+// its first pass reads them out of src where they lie, the passes between
+// ping-pong in private scratch, and its last pass writes them into dst. Each
+// line gets exactly the arithmetic of its own 1-D transform.
+func (p *PlanN) stripLines(dst, src []complex128, ax, lo, hi int, inverse bool) {
+	n, st := p.shape[ax], p.stride[ax]
+	stages, tws := p.axes[ax].sk.stages, p.strips[ax]
+	dir := 0
+	if inverse {
+		dir = 1
+	}
+	sw := stripWidth(n)
+	per := (st + sw - 1) / sw
+	bp := p.bufs.Get().(*[]complex128)
+	a, b := (*bp)[:n*sw], (*bp)[n*sw:2*n*sw]
+	last := len(stages) - 1
+	for s := lo; s < hi; s++ {
+		c0 := s % per * sw
+		w := min(sw, st-c0)
+		base := s/per*n*st + c0
+		in, sIn := src[base:], st
+		for k := range stages {
+			out, sOut := a, w
+			if k == last {
+				out, sOut = dst[base:], st
+			}
+			stages[k].passBatch(out, in, tws[k][dir], w, sIn, sOut, inverse)
+			in, sIn = out, sOut
+			a, b = b, a
+		}
+	}
+	p.bufs.Put(bp)
 }
 
 // blockedLines transforms gather blocks lo..hi-1 of a non-contiguous axis
@@ -154,7 +272,7 @@ func (p *PlanN) contiguousLines(out []complex128, ax, lo, hi int, inverse bool) 
 // last axis; they are gathered element by element into private scratch (each
 // element i of the block is one contiguous read), transformed, and scattered
 // back.
-func (p *PlanN) blockedLines(out []complex128, ax, lo, hi int, inverse bool) {
+func (p *PlanN) blockedLines(dst, src []complex128, ax, lo, hi int, inverse bool) {
 	n, plan, st := p.shape[ax], p.axes[ax], p.stride[ax]
 	ld := n + linePad // scratch distance between gathered lines
 	last, bw := p.shape[len(p.shape)-1], blockWidth(n)
@@ -167,10 +285,10 @@ func (p *PlanN) blockedLines(out []complex128, ax, lo, hi int, inverse bool) {
 		w := min(bw, last-part*bw)
 		base := lineBase(c0, p.shape, p.stride, ax)
 		if w == lineBlock {
-			gather8(buf, out, base, st, ld, n)
+			gather8(buf, src, base, st, ld, n)
 		} else {
 			for i := 0; i < n; i++ {
-				row := out[base+i*st : base+i*st+w]
+				row := src[base+i*st : base+i*st+w]
 				for b, v := range row {
 					buf[b*ld+i] = v
 				}
@@ -181,10 +299,10 @@ func (p *PlanN) blockedLines(out []complex128, ax, lo, hi int, inverse bool) {
 			plan.execute(line, line, inverse)
 		}
 		if w == lineBlock {
-			scatter8(out, buf, base, st, ld, n)
+			scatter8(dst, buf, base, st, ld, n)
 		} else {
 			for i := 0; i < n; i++ {
-				row := out[base+i*st : base+i*st+w]
+				row := dst[base+i*st : base+i*st+w]
 				for b := range row {
 					row[b] = buf[b*ld+i]
 				}

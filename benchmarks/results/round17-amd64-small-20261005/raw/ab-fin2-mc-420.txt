@@ -1,0 +1,67 @@
+START  12:48:44 up 23 days, 21:13,  8 users,  load average: 3.70, 3.64, 3.26
+main.test BenchmarkAB/2D/32-128         	   34863	      7023 ns/op
+main.test BenchmarkAB/2D/64-128         	   10712	     23894 ns/op
+main.test BenchmarkAB/2D/128-128        	    1974	    196924 ns/op
+main.test BenchmarkAB/2D/256-128        	     588	    423950 ns/op
+main.test BenchmarkAB/2D/512-128        	     100	   2783533 ns/op
+main.test BenchmarkAB/2D/1024-128       	      67	   4690100 ns/op
+fin2.test BenchmarkAB/2D/32-128         	   76888	      2684 ns/op
+fin2.test BenchmarkAB/2D/64-128         	   18672	     11015 ns/op
+fin2.test BenchmarkAB/2D/128-128        	    4186	     55710 ns/op
+fin2.test BenchmarkAB/2D/256-128        	     915	    219375 ns/op
+fin2.test BenchmarkAB/2D/512-128        	     476	    488022 ns/op
+fin2.test BenchmarkAB/2D/1024-128       	     156	   1477626 ns/op
+ROUND 1  12:48:48 up 23 days, 21:13,  8 users,  load average: 3.70, 3.64, 3.26
+main.test BenchmarkAB/2D/32-128         	   35378	      7094 ns/op
+main.test BenchmarkAB/2D/64-128         	   10000	     21515 ns/op
+main.test BenchmarkAB/2D/128-128        	    1718	    147933 ns/op
+main.test BenchmarkAB/2D/256-128        	     624	    348828 ns/op
+main.test BenchmarkAB/2D/512-128        	     240	   1004129 ns/op
+main.test BenchmarkAB/2D/1024-128       	      86	   2431681 ns/op
+fin2.test BenchmarkAB/2D/32-128         	   83552	      2726 ns/op
+fin2.test BenchmarkAB/2D/64-128         	   18067	     12580 ns/op
+fin2.test BenchmarkAB/2D/128-128        	    4096	     59097 ns/op
+fin2.test BenchmarkAB/2D/256-128        	     812	    296466 ns/op
+fin2.test BenchmarkAB/2D/512-128        	     446	    602376 ns/op
+fin2.test BenchmarkAB/2D/1024-128       	     110	   2124836 ns/op
+ROUND 2  12:48:53 up 23 days, 21:14,  8 users,  load average: 3.64, 3.63, 3.25
+main.test BenchmarkAB/2D/32-128         	   38248	      6327 ns/op
+main.test BenchmarkAB/2D/64-128         	   10000	     21802 ns/op
+main.test BenchmarkAB/2D/128-128        	    1773	    138334 ns/op
+main.test BenchmarkAB/2D/256-128        	     684	    362738 ns/op
+main.test BenchmarkAB/2D/512-128        	     338	    722176 ns/op
+main.test BenchmarkAB/2D/1024-128       	      79	   2760280 ns/op
+fin2.test BenchmarkAB/2D/32-128         	   82275	      2692 ns/op
+fin2.test BenchmarkAB/2D/64-128         	   22030	     12530 ns/op
+fin2.test BenchmarkAB/2D/128-128        	    4180	     57748 ns/op
+fin2.test BenchmarkAB/2D/256-128        	    1086	    304662 ns/op
+fin2.test BenchmarkAB/2D/512-128        	     345	    668817 ns/op
+fin2.test BenchmarkAB/2D/1024-128       	      88	   2825229 ns/op
+ROUND 3  12:48:58 up 23 days, 21:14,  8 users,  load average: 3.67, 3.64, 3.26
+main.test BenchmarkAB/2D/32-128         	   38371	      6795 ns/op
+main.test BenchmarkAB/2D/64-128         	   10740	     21728 ns/op
+main.test BenchmarkAB/2D/128-128        	    1483	    186738 ns/op
+main.test BenchmarkAB/2D/256-128        	     609	    362957 ns/op
+main.test BenchmarkAB/2D/512-128        	     296	    850984 ns/op
+main.test BenchmarkAB/2D/1024-128       	      99	   2460315 ns/op
+fin2.test BenchmarkAB/2D/32-128         	   83020	      2831 ns/op
+fin2.test BenchmarkAB/2D/64-128         	   21195	     11058 ns/op
+fin2.test BenchmarkAB/2D/128-128        	    3968	     56572 ns/op
+fin2.test BenchmarkAB/2D/256-128        	     745	    295208 ns/op
+fin2.test BenchmarkAB/2D/512-128        	     331	    659274 ns/op
+fin2.test BenchmarkAB/2D/1024-128       	     144	   1808817 ns/op
+ROUND 4  12:49:02 up 23 days, 21:14,  8 users,  load average: 3.86, 3.68, 3.27
+main.test BenchmarkAB/2D/32-128         	   34509	      6872 ns/op
+main.test BenchmarkAB/2D/64-128         	   10677	     23105 ns/op
+main.test BenchmarkAB/2D/128-128        	    1603	    128141 ns/op
+main.test BenchmarkAB/2D/256-128        	     540	    388634 ns/op
+main.test BenchmarkAB/2D/512-128        	     214	   1037979 ns/op
+main.test BenchmarkAB/2D/1024-128       	      68	   5483301 ns/op
+fin2.test BenchmarkAB/2D/32-128         	   89532	      2766 ns/op
+fin2.test BenchmarkAB/2D/64-128         	   21703	     10906 ns/op
+fin2.test BenchmarkAB/2D/128-128        	    4240	     58393 ns/op
+fin2.test BenchmarkAB/2D/256-128        	     811	    253751 ns/op
+fin2.test BenchmarkAB/2D/512-128        	     351	    579064 ns/op
+fin2.test BenchmarkAB/2D/1024-128       	     122	   1988736 ns/op
+ROUND 5  12:49:06 up 23 days, 21:14,  8 users,  load average: 3.87, 3.68, 3.28
+DONE

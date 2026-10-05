@@ -1,0 +1,23 @@
+ 12:58:45  up 157 days  4:02,  1 user,  load average: 0.50, 0.79, 0.65
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkFFT2Plan_GoFFT/64x64-8         	   65354	     17690 ns/op
+BenchmarkFFT2Plan_GoFFT/64x64-8         	   68730	     17420 ns/op
+BenchmarkFFT2Plan_GoFFT/64x64-8         	   68913	     17308 ns/op
+BenchmarkFFT2Plan_GoFFT/128x128-8       	   13740	     87673 ns/op
+BenchmarkFFT2Plan_GoFFT/128x128-8       	   13393	     88872 ns/op
+BenchmarkFFT2Plan_GoFFT/128x128-8       	   13528	     93641 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256-8       	    4196	    251020 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256-8       	    4141	    258250 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256-8       	    4638	    246895 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512-8       	    2145	    652641 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512-8       	    1340	    859019 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512-8       	    1233	    847972 ns/op
+BenchmarkFFT2Plan_GoFFT/1024x1024-8     	     301	   4107503 ns/op
+BenchmarkFFT2Plan_GoFFT/1024x1024-8     	     285	   5584615 ns/op
+BenchmarkFFT2Plan_GoFFT/1024x1024-8     	     247	   5604964 ns/op
+PASS
+ 12:59:10  up 157 days  4:03,  1 user,  load average: 0.74, 0.82, 0.66
+DONE

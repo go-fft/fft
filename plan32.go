@@ -202,7 +202,10 @@ func newSKPlan32(n int) *skPlan32 {
 	root := twiddleTable(n)
 	p := &skPlan32{n: n}
 	l1 := 1
-	for _, r := range skFactorize(n) {
+	// The pocketfft order: the odd-first order of skFactorize on amd64 was
+	// measured for the complex128 AVX2 pass kernels only (Round 17), and
+	// these passes are Go code.
+	for _, r := range skFactorizeOrder(n, false) {
 		ido := n / (l1 * r)
 		st := skStage32{r: r, l1: l1, ido: ido}
 		if ido > 1 {

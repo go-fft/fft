@@ -45,11 +45,11 @@ func TestParChunksCoversRange(t *testing.T) {
 // one 128-point line each, 8.5× slower than FFTW (see BENCHMARKS.md).
 func TestParChunksCapsWorkersByWork(t *testing.T) {
 	for _, tc := range []struct{ n, itemLen, w, wantChunks int }{
-		{128, 128, 128, 2},           // 16384 elements: two chunks, not 128
-		{100, 1, 8, 1},               // far below one chunk: inline
-		{64, parMinChunk / 8, 32, 8}, // work for 8 chunks, 32 workers
-		{64, parMinChunk, 4, 4},      // plenty of work: the worker count rules
-		{3, 10 * parMinChunk, 16, 3}, // few heavy items: one chunk each
+		{128, parMinChunk / 64, 128, 2}, // two chunks of work: two chunks, not 128
+		{100, 1, 8, 1},                  // far below one chunk: inline
+		{64, parMinChunk / 8, 32, 8},    // work for 8 chunks, 32 workers
+		{64, parMinChunk, 4, 4},         // plenty of work: the worker count rules
+		{3, 10 * parMinChunk, 16, 3},    // few heavy items: one chunk each
 	} {
 		var mu sync.Mutex
 		chunks := 0

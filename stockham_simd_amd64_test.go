@@ -3,7 +3,6 @@
 package fft
 
 import (
-	"math"
 	"testing"
 
 	"github.com/go-fft/fft/internal/kernels"
@@ -65,42 +64,6 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 	}
 }
 
-// simdSignals returns the inputs the bit-identity test runs: a generic signal,
-// then signed zeros and infinities. A generic signal cannot tell a multiply by
-// one from no multiply, but -0 can: (-0)·1 - (-0)·0 = +0. So the zero and
-// infinite signals are what hold the kernels to the scalar i = 0 handling.
-func simdSignals(n int) [][]complex128 {
-	neg := math.Copysign(0, -1)
-	zeros := make([]complex128, n)
-	mixed := make([]complex128, n)
-	inf := cmplxSignal(n)
-	for i := range zeros {
-		zeros[i] = complex(neg, neg)
-		re, im := neg, 0.0
-		if i%3 == 0 {
-			re = 0
-		}
-		if i%2 == 0 {
-			im = neg
-		}
-		if i%5 == 0 {
-			re = -1
-		}
-		mixed[i] = complex(re, im)
-	}
-	inf[n/2] = complex(math.Inf(1), 0)
-	return [][]complex128{cmplxSignal(n), zeros, mixed, inf}
-}
-
-// sameBits compares bit patterns; two NaNs count as equal whatever their
-// payload, since IEEE 754 leaves the payload of an invalid operation open.
-func sameBits(a, b complex128) bool {
-	eq := func(x, y float64) bool {
-		return math.Float64bits(x) == math.Float64bits(y) || (math.IsNaN(x) && math.IsNaN(y))
-	}
-	return eq(real(a), real(b)) && eq(imag(a), imag(b))
-}
-
 // TestUntangleMatchesScalar holds the AVX2 real-FFT untangle to the Go loop,
 // bit for bit, at every half-length m up to 700 and a few large ones, on the
 // same generic, signed-zero and infinite signals as the pass kernels.
@@ -159,5 +122,75 @@ func TestRetangleMatchesScalar(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestStockhamBatchMatchesScalar holds the AVX2 batched pass kernels to the Go
+// batched pass, bit for bit, pass by pass: every batched radix at several
+// l1 and ido (1, the final pass, through odd and even), batches of 1 to 8
+// lines (the odd one runs the 128-bit tail), and point strides wider than the
+// batch on either side, forward and inverse, on the generic, signed-zero and
+// infinite signals. Outputs start as a sentinel, so a kernel that wrote
+// between the rows of the strip would fail too.
+func TestStockhamBatchMatchesScalar(t *testing.T) {
+	if !kernels.UseStockhamBatchAVX2 {
+		t.Skip("no AVX2 on this CPU: the Go batched pass runs and there is nothing to compare")
+	}
+	defer func(v bool) { kernels.UseStockhamBatchAVX2 = v }(kernels.UseStockhamBatchAVX2)
+	sentinel := complex(-7.25, 3.5)
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		for _, l1 := range []int{1, 2, 3, 5} {
+			for _, ido := range []int{1, 2, 3, 4, 5, 7, 8, 13} {
+				var factors []int
+				stage := 0
+				if l1 > 1 {
+					factors, stage = append(factors, l1), 1
+				}
+				factors = append(factors, r)
+				if ido > 1 {
+					factors = append(factors, ido)
+				}
+				n := r * ido * l1
+				st := newSKPlanFactors(n, factors).stages[stage]
+				if st.r != r || st.l1 != l1 || st.ido != ido {
+					t.Fatalf("stage %+v, want r=%d l1=%d ido=%d", st, r, l1, ido)
+				}
+				fwd, conj := st.batchTwiddles()
+				for _, w := range []int{1, 2, 3, 4, 5, 8} {
+					for _, gap := range [][2]int{{0, 0}, {3, 0}, {0, 1}, {2, 5}} {
+						sIn, sOut := w+gap[0], w+gap[1]
+						size := (n-1)*sIn + w
+						for s, x := range simdSignals(size) {
+							for _, inverse := range []bool{false, true} {
+								tw := fwd
+								if inverse {
+									tw = conj
+								}
+								var out [2][]complex128
+								for k, on := range []bool{false, true} {
+									kernels.UseStockhamBatchAVX2 = on
+									out[k] = make([]complex128, (n-1)*sOut+w)
+									for i := range out[k] {
+										out[k][i] = sentinel
+									}
+									st.passBatch(out[k], x, tw, w, sIn, sOut, inverse)
+								}
+								for i := range out[0] {
+									if !sameBits(out[1][i], out[0][i]) {
+										t.Fatalf("r=%d l1=%d ido=%d w=%d sIn=%d sOut=%d signal %d inverse=%v index %d: AVX2 %v vs Go %v",
+											r, l1, ido, w, sIn, sOut, s, inverse, i, out[1][i], out[0][i])
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	// A radix without a batched kernel is refused, and the Go pass runs.
+	kernels.UseStockhamBatchAVX2 = true
+	if kernels.StockhamBatchPass(7, 1, 1, make([]complex128, 7), make([]complex128, 7), nil, 1, 1, 1, false) {
+		t.Fatal("radix 7 has no batched kernel")
 	}
 }

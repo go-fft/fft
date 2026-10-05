@@ -24,8 +24,9 @@ var parWorkers = runtime.GOMAXPROCS(0)
 // benchmark host.
 const parThreshold = 1 << 14
 
-// parMinChunk is the least work (elements touched) one goroutine is given.
-var parMinChunk = 1 << 13
+// parMinChunk is the least work (elements touched) one goroutine is given;
+// it is per-architecture (route_*.go).
+var parMinChunk = parMinChunkDefault()
 
 // parChunks splits the half-open range [0,n) of items, each touching itemLen
 // elements, into contiguous chunks and invokes body(lo, hi) for each,

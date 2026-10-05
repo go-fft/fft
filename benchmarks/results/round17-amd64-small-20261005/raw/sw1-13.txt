@@ -1,0 +1,138 @@
+ 14:10:17 up 36 days, 12:53,  2 users,  load average: 24.86, 17.94, 12.08
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkDecomp2D/64x64/whole         	    6190	     39143 ns/op
+BenchmarkDecomp2D/64x64/rows          	   10000	     21832 ns/op
+BenchmarkDecomp2D/64x64/cols          	    6218	     38569 ns/op
+BenchmarkDecomp2D/64x64/strips        	   15490	     15259 ns/op
+BenchmarkDecomp2D/64x64/copy          	   66885	      3576 ns/op
+BenchmarkDecomp2D/128x128/whole       	    1158	    218760 ns/op
+BenchmarkDecomp2D/128x128/rows        	    2247	    137029 ns/op
+BenchmarkDecomp2D/128x128/cols        	    1090	    202126 ns/op
+BenchmarkDecomp2D/128x128/strips      	    2764	     78655 ns/op
+BenchmarkDecomp2D/128x128/copy        	   10000	     23577 ns/op
+BenchmarkDecomp2D/256x256/whole       	     325	    824787 ns/op
+BenchmarkDecomp2D/256x256/rows        	     592	    409760 ns/op
+BenchmarkDecomp2D/256x256/cols        	     270	    808509 ns/op
+BenchmarkDecomp2D/256x256/strips      	     550	    422122 ns/op
+BenchmarkDecomp2D/256x256/copy        	    2571	     92333 ns/op
+BenchmarkStripWidth/32/w0             	   10000	     20562 ns/op
+BenchmarkStripWidth/32/w2             	   16974	     14143 ns/op
+BenchmarkStripWidth/32/w4             	   19609	     12387 ns/op
+BenchmarkStripWidth/32/w8             	   20946	     11741 ns/op
+BenchmarkStripWidth/32/w16            	   21338	     11246 ns/op
+BenchmarkStripWidth/64/w0             	    3650	     65666 ns/op
+BenchmarkStripWidth/64/w2             	    5715	     43754 ns/op
+BenchmarkStripWidth/64/w4             	    6138	     39040 ns/op
+BenchmarkStripWidth/64/w8             	    6556	     37308 ns/op
+BenchmarkStripWidth/64/w16            	    6651	     36046 ns/op
+BenchmarkStripWidth/128/w0            	     770	    310786 ns/op
+BenchmarkStripWidth/128/w2            	    1033	    238128 ns/op
+BenchmarkStripWidth/128/w4            	    1156	    204053 ns/op
+BenchmarkStripWidth/128/w8            	    1188	    201198 ns/op
+BenchmarkStripWidth/128/w16           	    1190	    201387 ns/op
+BenchmarkStripWidth/256/w0            	     189	   1308528 ns/op
+BenchmarkStripWidth/256/w2            	     264	    897825 ns/op
+BenchmarkStripWidth/256/w4            	     277	    896513 ns/op
+BenchmarkStripWidth/256/w8            	     334	    755415 ns/op
+BenchmarkStripWidth/256/w16           	     296	    842463 ns/op
+BenchmarkStripWidth/512/w0            	      25	   8246189 ns/op
+BenchmarkStripWidth/512/w2            	      43	   5736361 ns/op
+BenchmarkStripWidth/512/w4            	      49	   5083392 ns/op
+BenchmarkStripWidth/512/w8            	      46	   4877414 ns/op
+BenchmarkStripWidth/512/w16           	      48	   4556064 ns/op
+PASS
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkDecomp2D/64x64/whole         	    8218	     38772 ns/op
+BenchmarkDecomp2D/64x64/rows          	   10000	     22309 ns/op
+BenchmarkDecomp2D/64x64/cols          	    6153	     38945 ns/op
+BenchmarkDecomp2D/64x64/strips        	   15434	     15326 ns/op
+BenchmarkDecomp2D/64x64/copy          	   65925	      3520 ns/op
+BenchmarkDecomp2D/128x128/whole       	    1191	    202756 ns/op
+BenchmarkDecomp2D/128x128/rows        	    2232	    108268 ns/op
+BenchmarkDecomp2D/128x128/cols        	    1132	    210511 ns/op
+BenchmarkDecomp2D/128x128/strips      	    2823	     86249 ns/op
+BenchmarkDecomp2D/128x128/copy        	    9898	     24571 ns/op
+BenchmarkDecomp2D/256x256/whole       	     295	    852589 ns/op
+BenchmarkDecomp2D/256x256/rows        	     610	    380074 ns/op
+BenchmarkDecomp2D/256x256/cols        	     298	    884517 ns/op
+BenchmarkDecomp2D/256x256/strips      	     562	    432526 ns/op
+BenchmarkDecomp2D/256x256/copy        	    2450	     97497 ns/op
+BenchmarkStripWidth/32/w0             	   10000	     22539 ns/op
+BenchmarkStripWidth/32/w2             	   15782	     15272 ns/op
+BenchmarkStripWidth/32/w4             	   17919	     13458 ns/op
+BenchmarkStripWidth/32/w8             	   18861	     11344 ns/op
+BenchmarkStripWidth/32/w16            	   22507	     10202 ns/op
+BenchmarkStripWidth/64/w0             	    4437	     54160 ns/op
+BenchmarkStripWidth/64/w2             	    6526	     37530 ns/op
+BenchmarkStripWidth/64/w4             	    7106	     35878 ns/op
+BenchmarkStripWidth/64/w8             	    6298	     37672 ns/op
+BenchmarkStripWidth/64/w16            	    6404	     36553 ns/op
+BenchmarkStripWidth/128/w0            	     751	    316949 ns/op
+BenchmarkStripWidth/128/w2            	    1022	    235962 ns/op
+BenchmarkStripWidth/128/w4            	    1135	    209484 ns/op
+BenchmarkStripWidth/128/w8            	    1162	    203097 ns/op
+BenchmarkStripWidth/128/w16           	    1186	    209234 ns/op
+BenchmarkStripWidth/256/w0            	     189	   1213160 ns/op
+BenchmarkStripWidth/256/w2            	     261	    882412 ns/op
+BenchmarkStripWidth/256/w4            	     270	    883843 ns/op
+BenchmarkStripWidth/256/w8            	     297	    813389 ns/op
+BenchmarkStripWidth/256/w16           	     273	    840168 ns/op
+BenchmarkStripWidth/512/w0            	      27	   8585072 ns/op
+BenchmarkStripWidth/512/w2            	      48	   4953316 ns/op
+BenchmarkStripWidth/512/w4            	      44	   5439745 ns/op
+BenchmarkStripWidth/512/w8            	      42	   4789763 ns/op
+BenchmarkStripWidth/512/w16           	      48	   5938375 ns/op
+PASS
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+BenchmarkDecomp2D/64x64/whole         	    6176	     39527 ns/op
+BenchmarkDecomp2D/64x64/rows          	   10000	     30248 ns/op
+BenchmarkDecomp2D/64x64/cols          	    6206	     39442 ns/op
+BenchmarkDecomp2D/64x64/strips        	   10000	     25326 ns/op
+BenchmarkDecomp2D/64x64/copy          	   67548	      3720 ns/op
+BenchmarkDecomp2D/128x128/whole       	    1200	    259741 ns/op
+BenchmarkDecomp2D/128x128/rows        	    1105	    232997 ns/op
+BenchmarkDecomp2D/128x128/cols        	    1215	    272812 ns/op
+BenchmarkDecomp2D/128x128/strips      	    2634	     95153 ns/op
+BenchmarkDecomp2D/128x128/copy        	   10000	     26159 ns/op
+BenchmarkDecomp2D/256x256/whole       	     249	   1285216 ns/op
+BenchmarkDecomp2D/256x256/rows        	     426	    574904 ns/op
+BenchmarkDecomp2D/256x256/cols        	     295	   1656838 ns/op
+BenchmarkDecomp2D/256x256/strips      	     570	    685780 ns/op
+BenchmarkDecomp2D/256x256/copy        	    2746	    107088 ns/op
+BenchmarkStripWidth/32/w0             	   10000	     36684 ns/op
+BenchmarkStripWidth/32/w2             	   17115	     16961 ns/op
+BenchmarkStripWidth/32/w4             	   15562	     14349 ns/op
+BenchmarkStripWidth/32/w8             	   20438	     15518 ns/op
+BenchmarkStripWidth/32/w16            	   20107	     16949 ns/op
+BenchmarkStripWidth/64/w0             	    3262	     69110 ns/op
+BenchmarkStripWidth/64/w2             	    5430	     42307 ns/op
+BenchmarkStripWidth/64/w4             	    6092	     39508 ns/op
+BenchmarkStripWidth/64/w8             	    6669	     37726 ns/op
+BenchmarkStripWidth/64/w16            	    6474	     36386 ns/op
+BenchmarkStripWidth/128/w0            	     751	    322287 ns/op
+BenchmarkStripWidth/128/w2            	     950	    235991 ns/op
+BenchmarkStripWidth/128/w4            	    1183	    203304 ns/op
+BenchmarkStripWidth/128/w8            	    1209	    218764 ns/op
+BenchmarkStripWidth/128/w16           	    1176	    203324 ns/op
+BenchmarkStripWidth/256/w0            	     164	   1495673 ns/op
+BenchmarkStripWidth/256/w2            	     254	    934103 ns/op
+BenchmarkStripWidth/256/w4            	     261	    793611 ns/op
+BenchmarkStripWidth/256/w8            	     391	    804891 ns/op
+BenchmarkStripWidth/256/w16           	     260	    900608 ns/op
+BenchmarkStripWidth/512/w0            	      25	   8550466 ns/op
+BenchmarkStripWidth/512/w2            	      36	   6027933 ns/op
+BenchmarkStripWidth/512/w4            	      38	   5465705 ns/op
+BenchmarkStripWidth/512/w8            	      37	   6936444 ns/op
+BenchmarkStripWidth/512/w16           	      31	   7595911 ns/op
+PASS
+ 14:10:56 up 36 days, 12:54,  2 users,  load average: 27.14, 19.39, 12.81
+DONE

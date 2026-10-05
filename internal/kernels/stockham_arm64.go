@@ -167,3 +167,13 @@ func skLast2NEON(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skLast2NEONInv(cc, ch *complex128, l1 int)
+
+// StockhamBatchPass reports false: there are no batched pass kernels on
+// arm64, and the fft package runs its Go batched pass (only in the tests: the
+// strip path is off here, see StockhamBatchKernels).
+func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int, inverse bool) bool {
+	return false
+}
+
+// StockhamBatchKernels reports false: no batched pass kernels on arm64.
+func StockhamBatchKernels() bool { return false }

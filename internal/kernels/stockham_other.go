@@ -15,3 +15,11 @@ func Untangle(dst, z, tw []complex128, m int) int { return 0 }
 
 // Retangle returns 0: the fft package rebuilds every bin in Go.
 func Retangle(z, x, tw []complex128, m int, h float64) int { return 0 }
+
+// StockhamBatchPass reports false: the fft package runs its Go batched pass.
+func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int, inverse bool) bool {
+	return false
+}
+
+// StockhamBatchKernels reports false: no batched pass kernels here.
+func StockhamBatchKernels() bool { return false }

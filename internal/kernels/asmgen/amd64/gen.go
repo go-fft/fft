@@ -289,6 +289,9 @@ func main() {
 		genStockhamAVX512(fb, r)
 		genStockhamLastAVX512(fb, r)
 	}
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		genStockhamBatchAVX2(fb, r)
+	}
 	genUntangleAVX2(fb)
 	genRetangleAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
@@ -372,6 +375,10 @@ type skEmit struct {
 	// StockhamTwiddles): 4, 2 or 1. half is 1 for the second pair of a
 	// four-point group walked as two pairs, 0 otherwise.
 	g, half int
+	// notw stores every output without a twiddle (the i = 0 point of a
+	// batched pass); bcast multiplies by one twiddle per output broadcast to
+	// every lane (the other points of a batched pass), read from (j-1)·16(R10).
+	notw, bcast bool
 }
 
 // k scales a constants-table offset (given for 32-byte rows) to the table the
@@ -481,8 +488,25 @@ func (e skEmit) rot(dst, src int) {
 // at 2048 and 4096 on Zen 3, where this form is within 2% of the old one or
 // faster at every size (2026-10-04).
 func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
-	if e.last != 0 {
+	if e.last != 0 || e.notw {
 		e.st(y, skOut(j))
+		return
+	}
+	if e.bcast {
+		// One twiddle for the whole register: its halves broadcast straight
+		// from memory, VBROADCASTSD (VMOVDDUP at 128 bits), which are plain
+		// loads, so the product costs one shuffle, the swap of y.
+		ld := "VBROADCASTSD"
+		if e.w == "X" {
+			ld = "VMOVDDUP"
+		}
+		e.raw("%s %d(R10), %s", ld, (j-1)*16, e.v(t1))
+		e.raw("%s %d(R10), %s", ld, (j-1)*16+8, e.v(t2))
+		e.perm("swap", y, t3)
+		e.raw("VMULPD %s, %s, %s", e.v(y), e.v(t1), e.v(t1))
+		e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
+		e.raw("VADDSUBPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
+		e.st(dst, skOut(j))
 		return
 	}
 	hi := map[string]string{"X": "$3", "Y": "$15", "Z": "$0xFF"}[e.w]
@@ -1020,6 +1044,97 @@ func genStockhamLastAVX512(f *emit.File, r int) {
 		Raw("JZ done")
 	x.body(r, false)
 	b.Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamBatchAVX2 emits skBatch{r}AVX2: one Stockham pass of radix r over
+// a batch of w neighbouring transforms, the lines of a non-contiguous axis of
+// an N-D array. Point p of the batch's transforms is w consecutive complex
+// values ("a row" of the strip), sIn bytes after point p-1 on input and sOut
+// on output, so the pass reads its strip straight out of the array (first
+// pass) or writes it straight back (last pass) where the per-line path
+// gathers and scatters. The butterflies are the ones every other pass kernel
+// runs; point i of a block multiplies output j by one twiddle for the whole
+// row, so the twiddle is broadcast from memory and the product costs one
+// shuffle. Point i = 0 is not multiplied at all, as in the scalar pass, so no
+// blend is needed. tw holds, for i = 1 .. ido-1, the r-1 twiddles of point i
+// one after the other (StockhamBatchTwiddles).
+//
+// Arguments, in bytes where they are strides: jin = ido·sIn (input j stride),
+// jout = l1·ido·sOut (output j stride), adjin = sIn - 16·w, adjout = sOut -
+// 16·w; pairs = w/2 and odd = w&1 split the row into YMM pairs and one XMM
+// point. Registers: AX/SI input (SI = AX + 4·jin), BX/DI output, CX = jin, DX
+// = jout, R12 = 3·CX, R13 = 3·DX, R14 = constants, R10 = twiddle cursor, R15 =
+// twiddle base, R8 = blocks left, R9 = points left, R11 = pairs left.
+func genStockhamBatchAVX2(f *emit.File, r int) {
+	names := []string{"cc", "ch", "tw", "k", "ido", "l1", "pairs", "odd", "jin", "jout", "adjin", "adjout"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr}
+	for range names[4:] {
+		types = append(types, amd64.Int64)
+	}
+	sig := amd64.Layout(names, types, nil, nil)
+	arg := func(name string) string {
+		for _, p := range sig.Args {
+			if p.Name == name {
+				return fmt.Sprintf("%s+%d(FP)", name, p.Offset)
+			}
+		}
+		panic(name)
+	}
+	b := amd64.NewFunc(fmt.Sprintf("skBatch%dAVX2", r), sig, 0)
+	y0, x0 := skEmit{b: b, w: "Y", notw: true}, skEmit{b: b, w: "X", notw: true}
+	yt, xt := skEmit{b: b, w: "Y", bcast: true}, skEmit{b: b, w: "X", bcast: true}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
+		LoadArg("jin", "CX").LoadArg("jout", "DX").LoadArg("l1", "R8")
+	b.Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("kloop:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done").
+		Raw("LEAQ (AX)(CX*4), SI").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("MOVQ R15, R10")
+	// row emits one point's row: the YMM pairs, then the odd XMM point, then
+	// the step to the next point's row.
+	row := func(label string, y, x skEmit) {
+		b.Raw("MOVQ %s, R11", arg("pairs")).
+			Raw("%sp:", label).
+			Raw("TESTQ R11, R11").
+			Raw("JZ %so", label)
+		y.body(r, false)
+		y.advance(32)
+		b.Raw("DECQ R11").
+			Raw("JMP %sp", label).
+			Raw("%so:", label).
+			Raw("CMPQ %s, $0", arg("odd")).
+			Raw("JEQ %se", label)
+		x.body(r, false)
+		x.advance(16)
+		b.Raw("%se:", label).
+			Raw("ADDQ %s, AX", arg("adjin")).
+			Raw("ADDQ %s, SI", arg("adjin")).
+			Raw("ADDQ %s, BX", arg("adjout")).
+			Raw("ADDQ %s, DI", arg("adjout"))
+	}
+	row("zero", y0, x0) // point i = 0: no twiddle
+	b.Raw("MOVQ %s, R9", arg("ido")).
+		Raw("DECQ R9").
+		Raw("iloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ knext")
+	row("tw", yt, xt)
+	b.Raw("ADDQ $%d, R10", (r-1)*16).
+		Raw("DECQ R9").
+		Raw("JMP iloop").
+		Raw("knext:")
+	// P advanced by jin over the block; the next block starts r·jin after it.
+	skNextBlock(b, r)
+	// O advanced by ido·sOut, which is exactly the next block's output start.
+	b.Raw("DECQ R8").
+		Raw("JMP kloop").
+		Raw("done:").
 		Raw("VZEROUPPER").
 		Ret()
 	f.Add(b.Func())
