@@ -77,7 +77,10 @@ jobs:
         with:
           go-version: '1.27.1'
       - run: go version
+      # Not on Windows: its checkout converts line endings to CRLF, and gofmt
+      # then flags every file. Formatting does not depend on the OS.
       - name: gofmt
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           unformatted=$(gofmt -l .)
