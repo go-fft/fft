@@ -49,26 +49,34 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 }
 
 // stockhamNEON reports whether a NEON kernel runs a pass of radix r with ido
-// points per block and l1 blocks: radix 4 or 8 for ido >= 2 (points in pairs,
-// an odd last one alone), and radix 4 with an even l1 for the final pass
-// (ido == 1, blocks in pairs).
+// points per block and l1 blocks: radix 3, 4, 5 or 8 for ido >= 2 (points in
+// pairs, an odd last one alone), and radix 3, 4 or 5 with an even l1 for the
+// final pass (ido == 1, blocks in pairs).
 func stockhamNEON(r, ido, l1 int) bool {
-	if ido == 1 {
-		return r == 4 && l1%2 == 0
+	if r >= len(skPassNEON) {
+		return false
 	}
-	return r < len(skPassNEON) && skPassNEON[r] != nil
+	if ido == 1 {
+		return skLastNEON[r] != nil && l1%2 == 0
+	}
+	return skPassNEON[r] != nil
 }
 
 // twLen is the length of a pass's twiddle table: r-1 twiddles for each of
 // ido points rounded up to whole pairs.
 func twLen(r, ido int) int { return (r - 1) * (ido + ido&1) }
 
-type skPassFn func(cc, ch, tw *complex128, ido, l1 int)
+type (
+	skPassFn func(cc, ch, tw *complex128, ido, l1 int)
+	skLastFn func(cc, ch *complex128, l1 int)
+)
 
-// The pass kernels by radix, forward and inverse.
+// The kernels by radix, forward and inverse.
 var (
-	skPassNEON    = [9]skPassFn{4: skPass4NEON, 8: skPass8NEON}
-	skPassNEONInv = [9]skPassFn{4: skPass4NEONInv, 8: skPass8NEONInv}
+	skPassNEON    = [9]skPassFn{3: skPass3NEON, 4: skPass4NEON, 5: skPass5NEON, 8: skPass8NEON}
+	skPassNEONInv = [9]skPassFn{3: skPass3NEONInv, 4: skPass4NEONInv, 5: skPass5NEONInv, 8: skPass8NEONInv}
+	skLastNEON    = [9]skLastFn{3: skLast3NEON, 4: skLast4NEON, 5: skLast5NEON}
+	skLastNEONInv = [9]skLastFn{3: skLast3NEONInv, 4: skLast4NEONInv, 5: skLast5NEONInv}
 )
 
 // StockhamPass runs one Stockham pass of radix r on a NEON kernel and reports
@@ -83,11 +91,11 @@ func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) b
 	n := r * ido * l1
 	_, _ = cc[n-1], ch[n-1] // the kernels trust these lengths
 	if ido == 1 {
+		last := skLastNEON[r]
 		if inverse {
-			skLast4NEONInv(&cc[0], &ch[0], l1)
-		} else {
-			skLast4NEON(&cc[0], &ch[0], l1)
+			last = skLastNEONInv[r]
 		}
+		last(&cc[0], &ch[0], l1)
 		return true
 	}
 	_ = tw[twLen(r, ido)-1]
@@ -106,10 +114,22 @@ func Untangle(dst, z, tw []complex128, m int) int { return 0 }
 func Retangle(z, x, tw []complex128, m int, h float64) int { return 0 }
 
 //go:noescape
+func skPass3NEON(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass3NEONInv(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
 func skPass4NEON(cc, ch, tw *complex128, ido, l1 int)
 
 //go:noescape
 func skPass4NEONInv(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass5NEON(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass5NEONInv(cc, ch, tw *complex128, ido, l1 int)
 
 //go:noescape
 func skPass8NEON(cc, ch, tw *complex128, ido, l1 int)
@@ -118,7 +138,19 @@ func skPass8NEON(cc, ch, tw *complex128, ido, l1 int)
 func skPass8NEONInv(cc, ch, tw *complex128, ido, l1 int)
 
 //go:noescape
+func skLast3NEON(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast3NEONInv(cc, ch *complex128, l1 int)
+
+//go:noescape
 func skLast4NEON(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skLast4NEONInv(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast5NEON(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast5NEONInv(cc, ch *complex128, l1 int)

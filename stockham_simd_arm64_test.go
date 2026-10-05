@@ -104,12 +104,17 @@ func neonSignals(n int) [][]complex128 {
 		seed = seed*1664525 + 1013904223
 		return vals[seed>>(32-k)]
 	}
+	// Subnormals make even the exact-looking products round (0.5·t of an odd
+	// multiple of the smallest subnormal), which tells a fused 0.5 product
+	// from an unfused one.
+	tiny := make([]complex128, n)
 	for i := range flat {
 		flat[i] = complex(1.5, -0.5)
 		zsigns[i] = complex(draw(1), draw(1))
 		signs[i] = complex(draw(2), draw(2))
+		tiny[i] = complex(float64(2*(i%7)+1)*5e-324, -float64(2*(i%5)+1)*5e-324)
 	}
-	return [][]complex128{cmplxSignal(n), zeros, mixed, inf, flat, zsigns, signs}
+	return [][]complex128{cmplxSignal(n), zeros, mixed, inf, flat, zsigns, signs, tiny}
 }
 
 // neonSameBits compares bit patterns; two NaNs count as equal whatever their
