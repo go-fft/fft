@@ -1,3 +1,5 @@
+//go:build amd64 || arm64
+
 package kernels
 
 import (
@@ -5,9 +7,9 @@ import (
 	"testing"
 )
 
-// TestStockhamBatchPassRejectsInconsistentLayouts: the batch kernels trust w,
-// sIn and sOut, so the wrapper refuses a layout its bound check cannot vouch
-// for, whether or not the CPU has AVX2.
+// TestStockhamBatchPassRejectsInconsistentLayouts: the batch kernels (AVX2 on
+// amd64, NEON on arm64) trust w, sIn and sOut, so the wrapper refuses a
+// layout its bound check cannot vouch for, whether or not the kernels run.
 func TestStockhamBatchPassRejectsInconsistentLayouts(t *testing.T) {
 	buf := make([]complex128, 64)
 	for _, c := range []struct{ ido, l1, w, sIn, sOut int }{

@@ -168,12 +168,223 @@ func skLast2NEON(cc, ch *complex128, l1 int)
 //go:noescape
 func skLast2NEONInv(cc, ch *complex128, l1 int)
 
-// StockhamBatchPass reports false: there are no batched pass kernels on
-// arm64, and the fft package runs its Go batched pass (only in the tests: the
-// strip path is off here, see StockhamBatchKernels).
+// UseStockhamBatchNEON reports whether StockhamBatchPass takes the NEON
+// batched kernels; a variable so the tests can compare them with the Go pass.
+var UseStockhamBatchNEON = true
+
+// StockhamBatchKernels reports true: the batched pass kernels are NEON, part
+// of the arm64 baseline, so the fft package runs a non-contiguous axis as
+// batched passes instead of gathering its lines.
+func StockhamBatchKernels() bool { return true }
+
+// skBatchNEON and skBatchNEONInv hold the batched pass kernels by radix
+// (genStockhamBatchNEON), forward and inverse.
+var (
+	skBatchNEON    = [9]skBatchFn{2: skBatch2NEON, 3: skBatch3NEON, 4: skBatch4NEON, 5: skBatch5NEON, 8: skBatch8NEON}
+	skBatchNEONInv = [9]skBatchFn{2: skBatch2NEONInv, 3: skBatch3NEONInv, 4: skBatch4NEONInv, 5: skBatch5NEONInv, 8: skBatch8NEONInv}
+)
+
+type skBatchFn func(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+// StockhamBatchPass runs one Stockham pass of radix r over a batch of w
+// transforms laid out side by side, and reports true, or reports false (and
+// does nothing) when no kernel can: a radix without a kernel. Point p of the
+// batch is the w values cc[p·sIn : p·sIn+w] on input and ch[p·sOut :
+// p·sOut+w] on output (sIn, sOut >= w), so a pass reads or writes a strip of
+// an N-D array in place. tw is the fft package's batched twiddle table for
+// the direction: for i = 1 .. ido-1, the r-1 twiddles of point i (unused when
+// ido == 1). Every value of the batch gets the arithmetic of the 1-D kernels,
+// which is the Go pass's, fused products included.
 func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int, inverse bool) bool {
-	return false
+	if w < 1 || sIn < w || sOut < w || ido < 1 || l1 < 1 {
+		// The kernels walk p·sIn+j for j < w; a stride below w, or an empty
+		// batch, is a layout the length check below cannot vouch for.
+		panic("kernels: StockhamBatchPass: need w >= 1, sIn and sOut >= w, ido and l1 >= 1")
+	}
+	if !UseStockhamBatchNEON || r >= len(skBatchNEON) || skBatchNEON[r] == nil {
+		return false
+	}
+	n := r * ido * l1
+	_, _ = cc[(n-1)*sIn+w-1], ch[(n-1)*sOut+w-1] // the kernels trust these lengths
+	tp := (*complex128)(nil)
+	if ido > 1 {
+		_ = tw[(ido-1)*(r-1)-1]
+		tp = &tw[0]
+	}
+	fn := skBatchNEON[r]
+	if inverse {
+		fn = skBatchNEONInv[r]
+	}
+	pairs := w / 2
+	fn(&cc[0], &ch[0], tp, ido, l1, pairs, w&1, 16*ido*sIn, 16*l1*ido*sOut, 16*(sIn-2*pairs), 16*(sOut-2*pairs))
+	return true
 }
 
-// StockhamBatchKernels reports false: no batched pass kernels on arm64.
-func StockhamBatchKernels() bool { return false }
+//go:noescape
+func skBatch2NEON(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch3NEON(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch4NEON(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch5NEON(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch8NEON(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch2NEONInv(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch3NEONInv(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch4NEONInv(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch5NEONInv(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skBatch8NEONInv(cc, ch, tw *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+// The split layout (genStockhamPassSplit, genStockhamLastSplit): a transform
+// whose every pass qualifies keeps its data block-split between passes, so the
+// passes between the first and the last skip VLD2/VST2's deinterleave. The
+// pair of points 2q, 2q+1 holds re(2q), re(2q+1), im(2q), im(2q+1) in the
+// 32 bytes it would occupy interleaved. The arithmetic is the interleaved
+// kernels', so the result is the same bits.
+
+// The layout modes StockhamSplitModes assigns: the first pass reads
+// interleaved and writes split, the passes between are split on both sides,
+// the last reads split and writes interleaved.
+const (
+	splitOut  = 1
+	splitBoth = 2
+	splitIn   = 3
+)
+
+var (
+	skPassNEONIS    = [9]skPassFn{2: skPass2NEONIS, 4: skPass4NEONIS, 8: skPass8NEONIS}
+	skPassNEONInvIS = [9]skPassFn{2: skPass2NEONInvIS, 4: skPass4NEONInvIS, 8: skPass8NEONInvIS}
+	skPassNEONSS    = [9]skPassFn{2: skPass2NEONSS, 4: skPass4NEONSS, 8: skPass8NEONSS}
+	skPassNEONInvSS = [9]skPassFn{2: skPass2NEONInvSS, 4: skPass4NEONInvSS, 8: skPass8NEONInvSS}
+	skLastNEONSI    = [9]skLastFn{2: skLast2NEONSI, 4: skLast4NEONSI}
+	skLastNEONInvSI = [9]skLastFn{2: skLast2NEONInvSI, 4: skLast4NEONInvSI}
+)
+
+// StockhamSplitModes returns, for the passes of one transform (pass k of radix
+// r[k], ido[k], l1[k]), the layout mode of each: all zero (interleaved
+// throughout) unless every pass has a split kernel: at least two passes, the
+// ones before the last of radix 2, 4 or 8 with an even ido, the last of radix 2
+// or 4 with an even l1. In practice that is the powers of two from 16 points.
+func StockhamSplitModes(r, ido, l1 []int) []uint8 {
+	s := len(r)
+	modes := make([]uint8, s)
+	if s < 2 {
+		return modes
+	}
+	for k := range r {
+		if r[k] >= len(skPassNEONIS) {
+			return modes
+		}
+		if k == s-1 {
+			if ido[k] != 1 || l1[k]%2 != 0 || skLastNEONSI[r[k]] == nil {
+				return modes
+			}
+		} else if ido[k]%2 != 0 || skPassNEONIS[r[k]] == nil {
+			return modes
+		}
+	}
+	modes[0] = splitOut
+	for k := 1; k < s-1; k++ {
+		modes[k] = splitBoth
+	}
+	modes[s-1] = splitIn
+	return modes
+}
+
+// StockhamPassLayout is StockhamPass with the pass's layout mode from
+// StockhamSplitModes; mode 0 is StockhamPass itself. It reports false, as
+// StockhamPass does, when the NEON kernels are off: every pass of a transform
+// then runs in Go, interleaved.
+func StockhamPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
+	if mode == 0 {
+		return StockhamPass(r, ido, l1, cc, ch, tw, inverse, wide)
+	}
+	if !UseStockhamNEON {
+		return false
+	}
+	n := r * ido * l1
+	_, _ = cc[n-1], ch[n-1] // the kernels trust these lengths
+	if mode == splitIn {
+		last := skLastNEONSI[r]
+		if inverse {
+			last = skLastNEONInvSI[r]
+		}
+		last(&cc[0], &ch[0], l1)
+		return true
+	}
+	_ = tw[twLen(r, ido)-1]
+	pass := skPassNEONIS[r]
+	switch {
+	case mode == splitOut && inverse:
+		pass = skPassNEONInvIS[r]
+	case mode == splitBoth && !inverse:
+		pass = skPassNEONSS[r]
+	case mode == splitBoth:
+		pass = skPassNEONInvSS[r]
+	}
+	pass(&cc[0], &ch[0], &tw[0], ido, l1)
+	return true
+}
+
+//go:noescape
+func skPass2NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass2NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass4NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass8NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skLast2NEONSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast4NEONSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast2NEONInvSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast4NEONInvSI(cc, ch *complex128, l1 int)

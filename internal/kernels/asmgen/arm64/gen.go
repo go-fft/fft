@@ -103,6 +103,21 @@ func main() {
 			genStockhamLast(sk, r, inverse)
 		}
 	}
+	for _, inverse := range []bool{false, true} {
+		for _, r := range []int{2, 3, 4, 5, 8} {
+			genStockhamBatchNEON(sk, r, inverse)
+		}
+	}
+	for _, inverse := range []bool{false, true} {
+		for _, lay := range []splitLayout{{out: true}, {in: true, out: true}} {
+			for _, r := range []int{2, 4, 8} {
+				genStockhamPassSplit(sk, r, inverse, lay)
+			}
+		}
+		for _, r := range []int{2, 4} {
+			genStockhamLastSplit(sk, r, inverse)
+		}
+	}
 	write("stockham_arm64.s", sk)
 }
 
@@ -553,6 +568,303 @@ func genStockhamLast(f *emit.File, r int, inverse bool) {
 	for j := 0; j < r; j++ {
 		b.Raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", t+r+j, t+j, 2*j).
 			Raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", t+r+j, t+j, 2*j+1)
+	}
+	bfly(b, r, inverse, func(j, yr, yi int) {
+		b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", yr, yi, out[j])
+	})
+	b.Raw("SUBS $1, R5, R5").
+		Raw("BNE loop").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamBatchNEON emits skBatch<r>NEON / skBatch<r>NEONInv(cc, ch, tw
+// *complex128, ido, l1, pairs, odd, jin, jout, adjin, adjout int): one
+// Stockham pass of radix r over a batch of w = 2·pairs + odd transforms laid
+// side by side, the strips of a non-contiguous N-D axis (stockham.go's
+// passBatch). Point p of the batch is w neighbouring complex128 values, so
+// the pair of lines c, c+1 at one point is a VLD2 as in a 1-D pass, and every
+// lane runs exactly the arithmetic the 1-D kernels (and the Go passes) run on
+// one line: the same butterflies, the same fused twiddle product. A point's
+// twiddle is the same for every line, so it is loaded once per pair already
+// broadcast and split, re into V28 and im into V29, by VLD2R from the batched
+// twiddle table (batchTwiddles: for i = 1 .. ido-1, the r-1 twiddles of point
+// i). Point i = 0 is not multiplied at all, as in the Go pass, so no lane needs
+// restoring. An odd batch ends with one line alone, loaded into lane 0 with
+// FLDPD as the 1-D kernels do with the last point of an odd ido.
+//
+// Input stream j of block k starts at cc + k·r·jin + j·jin, output stream j at
+// ch + k·ido·sOut·16 + j·jout; each row (one point i) advances its streams by
+// 32·pairs through the post-indexed loads and stores and then by adjin and
+// adjout, which the caller sets to 16·(stride - 2·pairs), to reach the next
+// point's row. After its ido rows, stream 0 of the output has reached the next
+// block's output, and stream 0 of the input is one stream (jin) past its block
+// start, so it skips r-1 more.
+//
+// Registers: the streams as in the pass kernels (skStreams), R2 the table, R26
+// the current point's twiddles and R14 their cursor, R3 the rows left, R5 the
+// blocks left, R15 the pairs left, R16 jin, R17 jout, R19 and R20 scratch.
+func genStockhamBatchNEON(f *emit.File, r int, inverse bool) {
+	name := fmt.Sprintf("skBatch%dNEON", r)
+	if inverse {
+		name += "Inv"
+	}
+	names := []string{"cc", "ch", "tw", "ido", "l1", "pairs", "odd", "jin", "jout", "adjin", "adjout"}
+	types := []arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Ptr}
+	for range names[3:] {
+		types = append(types, arm64.Int64)
+	}
+	sig := arm64.Layout(names, types, nil, nil)
+	in, out := skStreams[r][0], skStreams[r][1]
+	b := arm64.NewFunc(name, sig, 0)
+	b.LoadArg("cc", in[0]).LoadArg("ch", out[0]).LoadArg("tw", "R2").
+		LoadArg("l1", "R5").LoadArg("jin", "R16").LoadArg("jout", "R17")
+	skConsts(b, r)
+	// row emits one point's row of the batch: the pairs, the odd line, then
+	// the step to the next point's row.
+	row := func(label string, twiddled bool) {
+		b.LoadArg("pairs", "R15").
+			Raw("CBZ R15, %so", label)
+		b.Label(label + "p")
+		batchStepNEON(b, r, in, out, inverse, twiddled, false)
+		b.Raw("SUBS $1, R15, R15").
+			Raw("BNE %sp", label)
+		b.Label(label+"o").
+			LoadArg("odd", "R19").
+			Raw("CBZ R19, %se", label)
+		batchStepNEON(b, r, in, out, inverse, twiddled, true)
+		b.Label(label+"e").
+			LoadArg("adjin", "R19").
+			LoadArg("adjout", "R20")
+		for j := 0; j < r; j++ {
+			b.Raw("ADD R19, %s, %s", in[j], in[j]).
+				Raw("ADD R20, %s, %s", out[j], out[j])
+		}
+	}
+	b.Label("kloop")
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R16, %s, %s", in[j-1], in[j]).
+			Raw("ADD R17, %s, %s", out[j-1], out[j])
+	}
+	row("zero", false) // point i = 0: no twiddle
+	b.LoadArg("ido", "R3").
+		Raw("SUBS $1, R3, R3").
+		Raw("BEQ knext").
+		Raw("MOVD R2, R26")
+	b.Label("iloop")
+	row("tw", true)
+	b.Raw("ADD $%d, R26, R26", (r-1)*16).
+		Raw("SUBS $1, R3, R3").
+		Raw("BNE iloop")
+	b.Label("knext")
+	switch r { // input stream 0: r-1 more streams to the next block
+	case 2:
+		b.Raw("ADD R16, %s, %s", in[0], in[0])
+	case 3:
+		b.Raw("ADD R16<<1, %s, %s", in[0], in[0])
+	case 4:
+		b.Raw("ADD R16<<1, %s, %s", in[0], in[0]).Raw("ADD R16, %s, %s", in[0], in[0])
+	case 5:
+		b.Raw("ADD R16<<2, %s, %s", in[0], in[0])
+	case 8:
+		b.Raw("ADD R16<<3, %s, %s", in[0], in[0]).Raw("SUB R16, %s, %s", in[0], in[0])
+	}
+	b.Raw("SUBS $1, R5, R5").
+		Raw("BNE kloop").
+		Ret()
+	f.Add(b.Func())
+}
+
+// batchStepNEON emits one step of a batched pass: a pair of lines (or, with
+// single, the last line alone) at one point: load, butterfly, and, when
+// twiddled, outputs 1..r-1 multiplied by the point's twiddles with the 1-D
+// kernels' fused product (see passStep), then store.
+func batchStepNEON(b *arm64.Builder, r int, in, out []string, inverse, twiddled, single bool) {
+	for j := 0; j < r; j++ {
+		if single {
+			b.Raw("FLDPD (%s), (F%d, F%d)", in[j], 2*j, 2*j+1)
+		} else {
+			b.Raw("VLD2.P 32(%s), [V%d.D2, V%d.D2]", in[j], 2*j, 2*j+1)
+		}
+	}
+	if twiddled {
+		b.Raw("MOVD R26, R14")
+	}
+	store := func(v int, ptr string) {
+		if single {
+			b.Raw("FSTPD (F%d, F%d), (%s)", v, v+1, ptr)
+		} else {
+			b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", v, v+1, ptr)
+		}
+	}
+	bfly(b, r, inverse, func(j, yr, yi int) {
+		if j == 0 || !twiddled {
+			store(yr, out[j])
+			return
+		}
+		b.Raw("VLD2R.P 16(R14), [V28.D2, V29.D2]")
+		b.VFMUL2D(30, yr, 28).VFMLS2D(30, yi, 29) // re = yr·wr - yi·wi, yi·wi fused
+		if r == 2 {
+			b.VFMUL2D(31, yr, 29).VFMLA2D(31, yi, 28) // im = yr·wi + yi·wr, yi·wr fused
+		} else {
+			b.VFMUL2D(31, yi, 28).VFMLA2D(31, yr, 29) // im = yi·wr + yr·wi, yr·wi fused
+		}
+		store(30, out[j])
+	})
+}
+
+// The split-layout kernels keep a transform's data block-split between its
+// passes, as KFR does (splitin/splitout), so the passes between the first and
+// the last load and store with VLD1/VST1 instead of VLD2/VST2. In the
+// block-split layout the pair of points 2q, 2q+1 occupies the same 32 bytes as
+// when interleaved, ordered re(2q), re(2q+1), im(2q), im(2q+1): one VLD1 of two
+// registers is then exactly what a VLD2 makes of the interleaved pair, with no
+// deinterleave, and every address is unchanged. The first pass of a transform
+// reads its input interleaved and writes split (out), the passes between read
+// and write split (in, out), and the last reads split and writes interleaved
+// (genStockhamLastSplit), so the caller sees only interleaved data. The
+// arithmetic is that of the interleaved kernels, instruction for instruction,
+// so the results are the same bits.
+//
+// A pair must not straddle two streams, so every stream must start at an even
+// point: the passes run with an even ido only, and the final pass with an
+// even radix (2 or 4) and an even l1. That leaves the powers of two.
+
+// splitLayout says which side of a pass is block-split.
+type splitLayout struct{ in, out bool }
+
+// suffix names the kernel: IS reads interleaved and writes split, SS both
+// split.
+func (l splitLayout) suffix() string {
+	if l.in {
+		return "SS"
+	}
+	return "IS"
+}
+
+// splitPassStep is passStep for a pair of points (ido is even, so there is
+// never a lone point) with the loads and stores of the layout.
+func splitPassStep(b *arm64.Builder, r int, in, out []string, inverse bool, first bool, lay splitLayout) {
+	for j := 0; j < r; j++ {
+		if lay.in {
+			b.Raw("VLD1.P 32(%s), [V%d.D2, V%d.D2]", in[j], 2*j, 2*j+1)
+		} else {
+			b.Raw("VLD2.P 32(%s), [V%d.D2, V%d.D2]", in[j], 2*j, 2*j+1)
+		}
+	}
+	store := func(v int, ptr string) {
+		if lay.out {
+			b.Raw("VST1.P [V%d.D2, V%d.D2], 32(%s)", v, v+1, ptr)
+		} else {
+			b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", v, v+1, ptr)
+		}
+	}
+	bfly(b, r, inverse, func(j, yr, yi int) {
+		if j == 0 {
+			store(yr, out[0])
+			return
+		}
+		b.Raw("VLD1.P 32(R14), [V28.D2, V29.D2]")
+		b.VFMUL2D(30, yr, 28).VFMLS2D(30, yi, 29) // re = yr·wr - yi·wi, yi·wi fused
+		if r == 2 {
+			b.VFMUL2D(31, yr, 29).VFMLA2D(31, yi, 28) // im = yr·wi + yi·wr, yi·wr fused
+		} else {
+			b.VFMUL2D(31, yi, 28).VFMLA2D(31, yr, 29) // im = yi·wr + yr·wi, yr·wi fused
+		}
+		if first {
+			b.Raw("VMOV V%d.D[0], V30.D[0]", yr).Raw("VMOV V%d.D[0], V31.D[0]", yi)
+		}
+		store(30, out[j])
+	})
+}
+
+// genStockhamPassSplit emits skPass<r>NEON<IS|SS> and the Inv forms (cc, ch,
+// tw *complex128, ido, l1 int): genStockhamPass's radix-r pass, for an even
+// ido, with the layout's loads and stores.
+func genStockhamPassSplit(f *emit.File, r int, inverse bool, lay splitLayout) {
+	name := fmt.Sprintf("skPass%dNEON", r)
+	if inverse {
+		name += "Inv"
+	}
+	name += lay.suffix()
+	sig := arm64.Layout(
+		[]string{"cc", "ch", "tw", "ido", "l1"},
+		[]arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Ptr, arm64.Int64, arm64.Int64}, nil, nil,
+	)
+	in, out := skStreams[r][0], skStreams[r][1]
+	b := arm64.NewFunc(name, sig, 0)
+	b.LoadArg("cc", "R19").LoadArg("ch", "R20").LoadArg("tw", "R2").
+		LoadArg("ido", "R3").LoadArg("l1", "R5").
+		Raw("LSL $4, R3, R16"). // one input stream
+		Raw("MUL R5, R16, R17") // one output stream
+	next := map[int]string{2: "ADD R16<<1, R19, R19", 4: "ADD R16<<2, R19, R19", 8: "ADD R16<<3, R19, R19"}[r]
+	skConsts(b, r)
+	b.Label("kloop").Raw("MOVD R19, %s", in[0])
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R16, %s, %s", in[j-1], in[j])
+	}
+	b.Raw("MOVD R20, %s", out[0])
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R17, %s, %s", out[j-1], out[j])
+	}
+	b.Raw("MOVD R2, R14")
+	splitPassStep(b, r, in, out, inverse, true, lay)
+	b.Raw("LSR $1, R3, R15").
+		Raw("SUBS $1, R15, R15").
+		Raw("BEQ knext")
+	b.Label("iloop")
+	splitPassStep(b, r, in, out, inverse, false, lay)
+	b.Raw("SUBS $1, R15, R15").
+		Raw("BNE iloop")
+	b.Label("knext").
+		Raw(next).
+		Raw("ADD R16, R20, R20").
+		Raw("SUBS $1, R5, R5").
+		Raw("BNE kloop").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genStockhamLastSplit emits skLast<r>NEONSI / skLast<r>NEONInvSI(cc, ch
+// *complex128, l1 int): genStockhamLast's final pass, reading block-split
+// input. Blocks k and k+1 are the 2r points from r·k, r pairs loaded as they
+// lie into V(t+2q) (real parts of pair q) and V(t+2q+1) (imaginary parts).
+// Point j of block k is lane j%2 of pair j/2, and of block k+1 the same lane of
+// pair r/2+j/2 (r is even), so VZIP1 (j even) or VZIP2 (j odd) of the two
+// pairs puts point j of both blocks in V(2j) and V(2j+1), as the interleaved
+// kernel's zips do.
+func genStockhamLastSplit(f *emit.File, r int, inverse bool) {
+	name := fmt.Sprintf("skLast%dNEON", r)
+	if inverse {
+		name += "Inv"
+	}
+	name += "SI"
+	sig := arm64.Layout(
+		[]string{"cc", "ch", "l1"},
+		[]arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Int64}, nil, nil,
+	)
+	out := skStreams[r][1]
+	t := 20
+	b := arm64.NewFunc(name, sig, 0)
+	b.LoadArg("cc", "R0").LoadArg("ch", out[0]).LoadArg("l1", "R4").
+		Raw("LSL $4, R4, R17")
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R17, %s, %s", out[j-1], out[j])
+	}
+	b.Raw("LSR $1, R4, R5")
+	skConsts(b, r)
+	b.Label("loop")
+	for v := 0; v < 2*r; v += 4 {
+		b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
+	}
+	for j := 0; j < r; j++ {
+		qa, qb := j/2, r/2+j/2
+		z := "VZIP1"
+		if j%2 == 1 {
+			z = "VZIP2"
+		}
+		b.Raw("%s V%d.D2, V%d.D2, V%d.D2", z, t+2*qb, t+2*qa, 2*j).
+			Raw("%s V%d.D2, V%d.D2, V%d.D2", z, t+2*qb+1, t+2*qa+1, 2*j+1)
 	}
 	bfly(b, r, inverse, func(j, yr, yi int) {
 		b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", yr, yi, out[j])

@@ -33,8 +33,8 @@ type PlanN struct {
 // stripAxes makes NewPlanN run a non-contiguous axis as batched Stockham
 // passes over strips of stripWidth neighbouring lines (stripLines) where it
 // can, instead of gathering lines into scratch. It is on where the batched
-// pass kernels run (AVX2), and a variable so the tests run both paths
-// everywhere.
+// pass kernels run (AVX2 on amd64, NEON on arm64), and a variable so the
+// tests run both paths everywhere.
 var stripAxes = kernels.StockhamBatchKernels()
 
 // stripWidth is how many neighbouring lines one strip of an axis of length n

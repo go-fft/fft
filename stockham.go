@@ -36,6 +36,10 @@ type skStage struct {
 	twX, twXc []complex128
 	// wide lets the pass use the AVX-512 kernels (see wide512).
 	wide bool
+	// split is the pass's data layout on arm64, where a power of two keeps
+	// its data block-split between passes (kernels.StockhamSplitModes); 0
+	// is interleaved.
+	split uint8
 }
 
 // skPlan is the Stockham plan for one smooth length.
@@ -81,6 +85,13 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 		p.stages = append(p.stages, st)
 		l1 *= r
+	}
+	rs, idos, l1s := make([]int, len(p.stages)), make([]int, len(p.stages)), make([]int, len(p.stages))
+	for k, st := range p.stages {
+		rs[k], idos[k], l1s[k] = st.r, st.ido, st.l1
+	}
+	for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
+		p.stages[k].split = m
 	}
 	size := n
 	switch {
@@ -320,7 +331,7 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 	if inverse {
 		twX = st.twXc
 	}
-	if !kernels.StockhamPass(st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide) {
+	if !kernels.StockhamPassLayout(st.split, st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide) {
 		st.passScalar(ch, cc, inverse)
 	}
 }

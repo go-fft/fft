@@ -143,3 +143,7 @@ func radix16TableAMD64(avx2, avx512, intel bool) map[int][]int {
 	}
 	return t
 }
+
+// parThresholdDefault is the 16384 elements chosen in 2026-09 (see
+// parThreshold), kept here: the change of Round 21 was measured on arm64 only.
+func parThresholdDefault() int { return 1 << 14 }

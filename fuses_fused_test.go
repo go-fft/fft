@@ -7,5 +7,6 @@ package fft
 // loong64, and in GOAMD64=v3), and which product of a complex multiply it
 // fuses depends on how the expression reached the compiler, so the Go
 // batched pass and the scalar passes may differ in the last bit. The batched
-// path only runs in production with the AVX2 kernels, which do not fuse.
+// path only runs in production with the AVX2 kernels, which do not fuse, and
+// the NEON ones, which fuse exactly what the 1-D passes fuse (stripsExact).
 const scalarFuses = true

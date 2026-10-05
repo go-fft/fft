@@ -21,8 +21,9 @@ var parWorkers = runtime.GOMAXPROCS(0)
 // roughly the element count touched) below which parallelization is skipped.
 // Spawning goroutines for tiny grids costs more than it saves; this floor was
 // chosen so the cross-over sits where the parallel path measurably wins on the
-// benchmark host.
-const parThreshold = 1 << 14
+// benchmark host. It is per-architecture (route_*.go): 16384 elements, and
+// 65536 on arm64.
+var parThreshold = parThresholdDefault()
 
 // parMinChunk is the least work (elements touched) one goroutine is given;
 // it is per-architecture (route_*.go).
