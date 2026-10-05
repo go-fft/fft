@@ -265,7 +265,7 @@ job; the gate is never lowered and there is no coverage-gaming knob.
   each for a concrete checked reason (no assemblable vector FMA, and on ppc64le
   no vector double arithmetic at all — see above). 🔒
 
-### What the transforms run today (v0.8.0)
+### What the transforms run today (v0.13.0)
 
 The pointwise multiply above was the first kernel; it stayed off the hot path
 everywhere, because the compiler's scalar loop measured as fast. The kernels
@@ -283,6 +283,15 @@ Go code it replaces and tested bit for bit on generic, ±0 and ∞ inputs.
   over strips of 16 or 32 neighbouring lines, in place (v0.8.0). The radix
   order puts 3 and 5 first, then 4 before 8, then 7/11/13 (measured over every
   ordering of 12 lengths).
+- **amd64, AVX2 without AVX-512:** a radix-16 pass for 128, 256 and 1024
+  points, and 2048 on Intel (v0.10.0). From 4096 points its 16 streams fall
+  into one L1 set and it loses, so larger sizes keep radix 8/4.
+- **amd64, AVX-512 on Intel, from 65536 points:** a blocked schedule (v0.12.0).
+  The first passes run over the whole array (the first two fused into one
+  sweep), the rest in 8192-point groups between two L2-sized buffers, and the
+  final pass writes each group straight into the output. Beyond L2 every pass
+  runs at copy speed; this crosses the L2 boundary twice instead of six or
+  seven times. AMD keeps the plain schedule (its L3 holds the arrays).
 - **amd64 without AVX2:** SSE2 butterfly stage kernels for the iterative pow2
   kernel. It also had AVX2 stages until v0.1.8; since v0.1.3 an AVX2 machine
   routes every power of two to the Stockham engine, so they ran only in tests
@@ -292,7 +301,13 @@ Go code it replaces and tested bit for bit on generic, ±0 and ∞ inputs.
   multiply-adds on arm64, so each kernel reproduces, pass by pass, which product
   the Go code rounds and which it fuses; results equal the Go code's bit for bit
   except the sign of a NaN produced from infinite inputs. Radix 7, the general
-  radix and odd final passes stay in Go.
+  radix and odd final passes stay in Go. Powers of two from 16 points keep
+  their data block-split between passes (real and imaginary parts apart within
+  each 32 bytes), which removes the per-pass deinterleave (v0.11.0), and the
+  columns of N-D plans run as NEON batched passes.
+- **float32, AVX2 and NEON:** the single-precision Stockham passes have their
+  own kernels (v0.13.0), bit-identical to the float32 Go passes (on arm64,
+  except NaN signs from infinite inputs).
 - **ppc64le, riscv64, loong64, s390x:** the Go passes, compiled to scalar
   instructions. gc does not vectorize, and fuses multiply-adds on all four.
 
@@ -307,18 +322,17 @@ what was tried and dropped:
 
 ### Remaining
 
-- **Small powers of two** (256 points: 1.26–1.41× FFTW). A radix-16 codelet
-  would cut about 12% of the floating-point operations before register spills
-  (Round 17's estimate, not built).
-- **Cascade Lake's large 1-D transforms** (65536: 1.53× FFTW). The cause is not
-  established; that VM has no performance counters.
-- **The 2-D fan-out threshold on arm64.** amd64 moved it to 16384 elements per
-  goroutine; Neoverse-N1 showed the same symptom (128²: 394 µs on all cores,
-  212 µs on one) and keeps the old value until measured.
-- **NEON:** keeping data split between passes (as KFR can) would remove the
-  per-pass deinterleave; the 576-byte scratch gap costs some large passes on
-  Apple M4 (Round 18).
-- **loong64.** Never measured: its only host was saturated, then unreachable.
+- **Small and mid powers of two on amd64** (256–4096: 1.09–1.40× FFTW). Radix
+  16 helped below 4096 (Round 19); what would cut more operations is a split
+  real/imaginary layout inside the passes, as arm64 got in v0.11.0.
+- **Smooth composites** (1000, 1080, 1296, 1920: 1.08–1.24× FFTW).
+- **Apple M4.** Rounds 21's split layout, NEON batch columns and fan-out rule
+  were measured on Neoverse-N1 only; the shared M4 stayed loaded.
+- **float32:** an untangle kernel for RFFT/IRFFT (small real sizes still trail
+  float64 on amd64), batched column passes for N-D, AVX-512 kernels, and a
+  comparison with FFTW's single-precision library (not built on the hosts).
+- **loong64.** Never measured: its only host stayed at load 146–148 or
+  unreachable all day.
 - **An RVV-capable CI runner**, so the riscv64 bit-identity proof also runs in
   CI. Today it runs scalar there, and the proof is on real hardware (cfarm95).
 
