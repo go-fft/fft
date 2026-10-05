@@ -41,7 +41,7 @@ func TestStockhamPassMatchesScalarNEON(t *testing.T) {
 					alias := append([]complex128(nil), x...)
 					p.transform(alias, alias, inverse)
 					for i := range scalar {
-						if !neonSameBits(simd[i], scalar[i]) || !neonSameBits(alias[i], scalar[i]) {
+						if !neonMatch(simd[i], scalar[i]) || !neonMatch(alias[i], scalar[i]) {
 							t.Fatalf("n=%d factors %v signal %d inverse=%v index %d: %v (in place %v) vs scalar %v",
 								n, factors, s, inverse, i, simd[i], alias[i], scalar[i])
 						}
@@ -148,7 +148,7 @@ func TestStockhamEachPassMatchesScalarNEON(t *testing.T) {
 						simd := make([]complex128, n)
 						st.pass(simd, x, inverse)
 						for i := range scalar {
-							if !neonSameBits(simd[i], scalar[i]) {
+							if !neonMatch(simd[i], scalar[i]) {
 								t.Fatalf("n=%d factors %v pass %d (r=%d ido=%d) signal %d inverse=%v index %d: %v vs scalar %v",
 									n, factors, k, st.r, st.ido, s, inverse, i, simd[i], scalar[i])
 							}
@@ -158,4 +158,17 @@ func TestStockhamEachPassMatchesScalarNEON(t *testing.T) {
 			}
 		}
 	}
+}
+
+// neonMatch is neonSameBits, except under -race: a race build compiles the Go
+// passes with other fusions (pass5last rounds the other product of a pair,
+// Go 1.27.1), so they are not the code the kernels copy, and there the two
+// only have to agree to rounding, component by component. The arch-native CI job runs these tests
+// without -race, bit for bit.
+func neonMatch(a, b complex128) bool {
+	if neonSameBits(a, b) {
+		return true
+	}
+	near := func(x, y float64) bool { return x == y || math.Abs(x-y) <= 1e-12*(1+math.Abs(y)) }
+	return raceEnabled && near(real(a), real(b)) && near(imag(a), imag(b))
 }
