@@ -1908,3 +1908,210 @@ time ÷ FFTW time:
   interleaved one already spills.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round23-amd64-split-20261006/`](benchmarks/results/round23-amd64-split-20261006/).
+
+### Round 24 — smooth composites: NEON final passes, the split layout and radix-12 passes (2026-10-06)
+
+The newest parity runs had go-fft at 1.08–1.24× FFTW's time on the 5-smooth
+composites (1000, 1080, 1296, 1920) on Zen 3, Neoverse-N1 and Cascade Lake.
+This round timed each pass of those lengths alone on two hosts, then attacked
+what it found. Hosts: Cascade Lake (cfarm151, AVX2 and AVX-512 kernels, load
+below 1.3 except where noted) and Neoverse-N1 (cfarm424, load below 1.1), one
+pinned core (`GOMAXPROCS=1 taskset`), interleaved A/B with the order
+alternating each round, medians of five rounds, fifteen for rows within their
+spread. Zen 3 belonged to another round and was not used.
+
+**Where the time goes**, main, each pass timed alone on the buffers the
+transform gives it (`BenchmarkR24Decomp`), ns:
+
+| | whole | passes |
+|:--|--:|:--|
+| Cascade Lake, 1000 (5·5·5·8) | 3,369 | 900 (r5, ido 200) + 887 (r5, 40) + 924 (r5, 8) + 575 (r8, final) |
+| Cascade Lake, 1080 (3·3·3·5·8) | 4,150 | 849 + 761 + 794 (r3) + 1,033 (r5) + 692 (r8, final) |
+| Cascade Lake, 1296 (3·3·3·3·4·4) | 5,580 | 1,050 + 941 + 974 + 1,007 (r3) + 953 (r4, ido 4) + 844 (r4, final) |
+| Cascade Lake, 1920 (3·5·4·4·8) | 7,265 | 1,575 (r3) + 1,795 (r5) + 1,335 + 1,322 (r4) + 1,266 (r8, final) |
+| Neoverse-N1, 1000 (8·5·5·5) | 7,372 | 1,714 (r8, ido 125) + 1,937 (r5, 25) + 2,117 (r5, 5) + 1,483 (r5, final) |
+| Neoverse-N1, 1080 (8·3·3·3·5) | 8,809 | 1,840 (r8) + 1,653 + 1,701 + 1,813 (r3, ido 45/15/5) + 1,590 (r5, final) |
+| Neoverse-N1, 1296 (4·4·3·3·3·3) | 11,706 | 1,769 + 1,761 (r4) + 1,995 + 2,090 + 2,350 (r3, ido 27/9/3) + 1,487 (r3, final) |
+| Neoverse-N1, 1920 (8·4·4·3·5) | 15,267 | 3,452 (r8) + 2,631 + 2,723 (r4) + 3,280 (r3, ido 5) + 2,871 (r5, final) |
+
+(2000 and 6000, in `decomp-main.txt`, look the same.) The call outside its
+passes is within the noise of zero.
+
+- **Cascade Lake** (odd radices first since Round 17) has no odd `ido`
+  left: every odd pass keeps the power of two in its `ido`. A pass costs about
+  the same whatever its stride (1000: 887–924 ns for the three radix-5 passes),
+  so the time is the butterflies'. Per point and per bit, the radix-3 pass is
+  the dearest (about 0.47 ns, radix 5 0.39, a final radix-8 pass 0.19).
+- **Neoverse-N1** keeps pocketfft's order, so its odd passes run at odd and
+  shrinking `ido`: the radix-5 pass at `ido` 5 costs 9% more than at 25, the
+  radix-3 pass at `ido` 3 18% more than at 27 (two points per register, the
+  last one alone). Its passes are also the deinterleaving kind: Round 21's
+  split layout only served powers of two, because "composites end on an odd
+  radix".
+
+**What other libraries do.** FFTW 3.3.10's scalar codelet headers give their
+operation counts; per point and per bit of the transform, twiddled (`t1_r`):
+radix 2 5.00, 3 6.31, 4 4.25, 5 6.37, 8 4.25, 16 4.28, **6 5.03, 10 5.24,
+12 4.32, 15 5.53, 20 4.56**, but 9 6.45 and 25 6.58. Radices 9 and 25 (3·3,
+5·5, which need internal twiddles) cost more per bit than 3 and 5 alone; the
+coprime products (6, 10, 12, 15, 20: the prime-factor algorithm of Good and
+Thomas, which needs none) cost 12–16% less than their two passes (t1_3 then
+t1_4: 5.16 per bit against t1_12's 4.32). pocketfft (`pocketfft_hdronly.h`)
+has passes 2, 3, 4, 5, 7, 8, 11 and orders powers of two first, which is
+Neoverse-N1's current order. The prime-factor index maps below are Good's
+(1958) and Thomas's (1963), as Temperton lays them out for self-sorting
+mixed-radix codes ("Implementation of a self-sorting in-place prime factor FFT
+algorithm", J. Comput. Phys. 58, 1985).
+
+**1. NEON final passes for any number of blocks, and a radix-8 final pass
+(kept).** The final-pass kernels (`skLast{2,3,4,5}NEON`) ran only for an even
+`l1`, pairing blocks; an odd `l1` fell back to Go, and radix 8 had no final
+kernel at all. They now end an odd `l1` with the last block alone: its points
+loaded one per register and each paired with itself by `VZIP1`/`VZIP2`, so
+both lanes compute the same point, and lane 0 stored with `FSTPD`
+(`compLastTail`). Radix 8's final pass loads its two blocks in halves, the
+sixteen inputs and V18 (√2/2) leaving no room for all of them at once
+(`compLastLoad8`). Measured inside the odd-first order, final radix-8 pass,
+Go → kernel: 1,633 → 1,261 ns at 1000, 1,773 → 1,368 at 1080, 3,144 → 2,431 at
+1920. The radix-4 final pass did not move (1,241 → 1,236 at 1296).
+
+**2. The split layout for composites, and the odd-first order on arm64
+(kept).** With odd radices first every pass but the last keeps a factor 2 in
+its `ido`, so every stream starts at an even point, which is what Round 21's
+block-split layout needs. Two kernels were missing: split radix-3 and radix-5
+passes (`genStockhamPassSplit` now emits them: their butterflies were
+already there), and a split final pass of radix 8 or with an odd `l1`
+(`compSplitLoad8`, `compSplitTail`, the same tricks on block-split data).
+`kernels.StockhamSplitModes` takes them; complex128 plans on arm64 take the
+odd-first order (`compOddFirst`, `comp_route_arm64.go`). float32 plans keep
+pocketfft's (`oddRadicesFirst`): their final passes need a multiple of four
+blocks (Round 22). Neoverse-N1, whole transform, ns:
+
+| | pocketfft order (main) | odd first, final passes on NEON | odd first, split |
+|:--|--:|--:|--:|
+| 1000 | 7,359 | 7,023 | **6,048** |
+| 1080 | 8,797 | 8,627 | **6,934** |
+| 1296 | 11,754 | 11,171 | **8,615** |
+| 1920 | 15,070 | 14,634 | **12,054** |
+| 2000 | 16,937 | 16,699 | **13,771** |
+| 6000 | 61,128 | 59,787 | **49,582** |
+
+Every split pass before the last is faster than its interleaved twin (1000: radix 5 1,868 →
+1,481 ns at `ido` 40; 1296: radix 3 1,946 → 1,377 at 144). The other orders
+of the same radices measured within 3% of each other without the split
+(`decomp-main.txt`), so the gain is the layout's, not the order's.
+
+**3. Radix-16 tails on Intel (kept).** Composites never run the AVX-512
+kernels (`wide512`), so the AVX2 radix-16 kernels of Round 19 also serve them
+on Cascade Lake, which `radix16TableAMD64` keeps away from its powers of two.
+Every tail of radices 2, 4, 8 and 16 (at most four passes, one radix 2) after
+the odd passes was timed for 29 lengths from 240 to 15360
+(`BenchmarkR24Tails`, three rounds). Current tail time ÷ best tail:
+
+| 2^e | lengths | current | best | current ÷ best |
+|:--|:--|:--|:--|--:|
+| 2^4 | 240, 400, 720, 1296, 2000, 6000 | 4·4 | 16 | 1.08–1.15 |
+| 2^5 | 480, 800, 1440, 4000 | 4·8 | 4·8 | 1.00 |
+| 2^6 | 576 … 8000 | 8·8 | 4·16 or 8·8 | 1.000–1.012 |
+| 2^7 | 384, 640, 1920, 3200 | 4·4·8 | 8·16 or 16·8 | 1.07–1.11 |
+| 2^8 | 768, 1280, 3840, 6400 | 4·8·8 | 16·16 | 1.08–1.10 |
+| 2^9 | 1536, 2560, 7680 | 8·8·8 | 8·4·16 | 1.002–1.014 |
+| 2^10 | 3072, 5120, 15360 | 4·4·8·8 | 8·8·16 | 1.17–1.23 |
+
+`compRadix16For` takes 16 for e = 4, 8·16 for 7, 16·16 for 8 and 8·8·16 for
+10, up to 16384 points (the largest measured), on Intel with AVX2 only: AMD was
+not measured, and Round 19 found the vendors split on radix 16 at 2048. A
+final radix-16 pass of a composite writes sixteen streams n/16 points apart,
+never a multiple of 4 KB, so Round 19's set conflict does not arise.
+
+**4. Radix-12 passes, the prime-factor way (kept, amd64).** `radix12.go` is a
+radix-12 pass built from n = (4·n1 + 3·n2) mod 12 and k = (4·k1 + 9·k2) mod 12:
+n·k ≡ 4·n1·k1 + 3·n2·k2 (mod 12), so the 12-point DFT is four `bfly3` then three
+`bfly4`, with no twiddle in between. `genComp12` and `genComp12Last` generate
+its AVX2 kernels from the existing butterfly emitters; like the radix-16
+kernel, they keep stage 1's k1 = 0 values in registers and spill the eight
+others to the frame. They are bit-identical to the Go pass
+(`TestComp12EachPassMatchesScalar`: l1 1–9, `ido` 1–33, Round 19's seven
+signals; `TestComp12TransformMatchesScalar`; `TestComp12AgainstNaive`), and
+four generator mutations each failed them on Cascade Lake: two outputs swapped
+in the index map, the point-0 blend removed, y1 and y2 of `bfly3` exchanged,
+the lone point reading a two-point twiddle group. Passes timed alone at 1296
+on Cascade Lake: a twiddled radix-12 pass at `ido` 12 took 1,413 ns where the
+two radix-3 passes it replaces took 959 + 996; the final radix-12 pass 1,016
+against a final radix-16 pass's 1,218.
+
+The rule (`compRadix12For`): for n = 2^e·3^a·5^b up to 16384, t = min(a, ⌊e/2⌋)
+radix-12 passes last, the remaining 3s and 5s first, then the remaining
+powers of two (radix 4 before 8). Timed against the factorization it replaces
+for all 96 such lengths with a >= 1 and e >= 2 (`BenchmarkR24Rule12`, three
+rounds): 1.03–1.40× as fast for 2 <= e <= 8 except e = 3, and for e = 9 when
+t >= 2 (1.17–1.28); a tie at e = 3 and at e = 9 with t = 1 (0.97–1.02), and a
+loss from e = 10 (0.78–0.97, against the radix-16 tails), so those keep their
+factorization. Intel with AVX2 only, as for radix 16. N-D plans' columns, which
+run batched passes with no radix-12 or radix-16 kernel, keep a factorization
+without either (`cachedPlanNo16`, `compTakes16`).
+
+**Not attempted, or dropped:**
+- **A radix-5 (or 3) pass vectorized across blocks** for odd `ido`: in the
+  odd-first order, which both architectures now take, no pass but the last
+  has an odd `ido`, and the last pass already pairs blocks.
+- **Radix 9 and 25:** by FFTW's own counts they cost more per bit than radix 3
+  and 5 (above).
+- **Radix 6, 10, 15, 20:** the other prime-factor products save 12–16% of the
+  operations by FFTW's counts. 10 or 20 would reach 1000 and 2000, which
+  nothing here changed on Cascade Lake; 15 would reach 1080. Not built this
+  round.
+- **A NEON radix-12 pass:** it would need its own fusion map (gc fuses the
+  products of an inlined `bfly3` according to the code around it, Round 18) and
+  split variants. arm64 takes no radix 12 or 16.
+- **AMD:** the radix-12 and radix-16 composite rules are Intel-only until Zen
+  is measured.
+
+**End to end against main**, `BenchmarkR24AB`, interleaved, main time ÷
+branch time (`ab-main-br2.txt`, five rounds; Cascade Lake rows within their
+spread rerun over fifteen, `ab15-main-br3.txt`, load 1.1–3.4 during that
+rerun):
+
+| | Cascade Lake | Neoverse-N1 |
+|:--|--:|--:|
+| complex 1000 / 1080 | 1.00 / 1.00 (15 rounds) | 1.22 / 1.27 |
+| complex 1296 / 1920 | **1.26** / 1.11 | **1.35** / 1.26 |
+| complex 2000 / 6000 | 1.12 / 1.16 | 1.25 / 1.23 |
+| complex 144 / 432 / 720 / 1728 / 5184 | 1.48 / 1.33 / 1.30 / 1.32 / 1.25 | 1.27 / 1.36 / 1.27 / 1.34 / 1.31 |
+| complex 240 / 480 / 768 / 960 / 1200 | 1.18 / 1.15 / 1.15 / 1.04 / 1.16 | 1.23 / 1.23 / 1.27 / 1.24 / 1.27 |
+| complex 3072 / 3840 / 15360 / 45000 | 1.21 / 1.14 / 1.18 / 1.00 | 1.27 / 1.24 / 1.18 / 1.22 |
+| complex 1008 / 2100 / 20160 (a factor 7) | 1.00 / 1.00 / 1.00 | 1.00 / 1.03 / 1.02 |
+| complex 256 / 1024 / 4096 / 65536 | 1.00 / 1.00 / 1.00 / 1.00 (15 rounds) | 1.00 / 1.01 / 1.01 / 1.01 |
+| Rader 1009 / 1201, Bluestein 10007 | 1.00 / 1.11 / 0.99 | 1.01 / 1.18 / 1.13 |
+| RFFT 1000 / 1920 / 2000 / 4096 | 1.00 / 1.04 / 1.00 / 1.00 | 1.15 / 1.17 / 1.15 / 1.01 |
+| 2-D 100² / 120² / 240² | 1.00 / 1.00 / 1.06 | 1.11 / 1.12 / 1.10 |
+
+Every Cascade Lake row at 1.00 is unchanged code and was inside its spread
+over fifteen rounds; complex 65536 had read 0.964 over five (spread 1.07)
+and 1.002 over fifteen (spread 1.08). Rader 1201 gains through its
+convolution length 1200 = 2^4·3·5^2. On Neoverse-N1 the powers of two run the same code and were inside their
+spreads; the lengths with a 7 now take the odd-first order (7 still last,
+its pass in Go, so nothing runs split): 1008 and Rader 1009 (convolution
+1008) did not move, 2100 and 20160 gained 2–3%.
+
+**Against FFTW**, `benchmarks/remote/run.sh` pinned to one core, main and the
+branch back to back, twice (`parity-main`, `parity-br2`, `parity-main2`;
+every run correct 24/24). go-fft time ÷ FFTW time:
+
+| | Cascade Lake, main → branch | Neoverse-N1, main → branch |
+|:--|--:|--:|
+| complex 1,000 | 1.23 → 1.19 | 1.02 → **0.82** |
+| complex 1,080 | 1.41 → 1.42 | 1.13 → **0.87** |
+| complex 1,296 | 1.52 → 1.22 | 1.02 → **0.76** |
+| complex 1,920 | 1.49 → 1.30 | 1.11 → **0.86** |
+| complex 256 / 1,024 / 4,096 | 1.35 / 1.32 / 1.01 → 1.34 / 1.27 / 0.99 | 0.96 / 0.83 / 0.68 → 0.94 / 0.79 / 0.65 |
+
+Cascade Lake's FFTW is built with AVX-512 codelets (`fftw-3.3.10-sse2-avx-avx2-avx2_128-avx512`),
+which is why its composite ratios read higher than the 1.08–1.24 quoted for
+older runs. FFTW's own times agreed across three of the four runs (1000:
+2,711–2,780 ns; 1296: 3,638–3,650); the fourth (`parity-br`, before radix 12)
+ran FFTW 3–33% slower and is not used. On Cascade Lake 1000 and 1080 still
+trail FFTW by 19% and 42%: they have only 2^3, so neither radix 16 nor radix
+12 reaches them; radix 10/20 (1000) and 15 (1080) are the next levers.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round24-composites-20261006/`](benchmarks/results/round24-composites-20261006/).

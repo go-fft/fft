@@ -151,3 +151,11 @@ with the split layout, each pass timed alone, the rotated in-process A/B of the
 candidates, the interleaved end-to-end A/B runs against main, the mutation
 runs, and two parity runs (`zen3-parity-main`, `zen3-parity-split`, each
 correct 24/24). See its README.
+
+## 2026-10-06, perf-composites: smooth composite lengths (Round 24)
+
+`round24-composites-20261006` holds the measurements behind Round 24 of
+BENCHMARKS.md on Cascade Lake (cfarm151) and Neoverse-N1 (cfarm424), one
+pinned core: each composite's passes timed alone, the power-of-two tail and
+radix-12 sweeps, the interleaved A/B runs against main, and four parity runs
+per host (main and the branch, twice, each correct 24/24). See its README.

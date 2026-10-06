@@ -49,8 +49,9 @@ func r8MaxPow2Default() int { return 0 }
 const pow2OneRadix8Max = 8192
 
 // oddRadicesFirstDefault keeps the pocketfft order here (powers of two first,
-// odd primes last): the odd-first order was measured on amd64 only (see
-// route_amd64.go).
+// odd primes last) for the float32 plans, which measured it mixed (Round 22).
+// complex128 plans take the odd-first order on arm64 since Round 24
+// (compOddFirst, comp_route_arm64.go).
 func oddRadicesFirstDefault() bool { return false }
 
 // parMinChunkDefault is the 8192 elements chosen in 2026-09 (BENCHMARKS.md,
