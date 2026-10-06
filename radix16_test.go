@@ -67,7 +67,8 @@ func TestRadix16GoPass(t *testing.T) {
 // TestRadix16Table checks that skFactorize takes a power of two's radix-16
 // factorization from radix16Table, as a copy, wherever the table has one.
 func TestRadix16Table(t *testing.T) {
-	defer func(m map[int][]int) { radix16Table = m }(radix16Table)
+	defer func(m, s map[int][]int) { radix16Table, splitTable = m, s }(radix16Table, splitTable)
+	splitTable = nil // it comes first (TestSplitTable)
 	radix16Table = map[int][]int{256: {16, 16}}
 	f := skFactorize(256)
 	if len(f) != 2 || f[0] != 16 || f[1] != 16 {

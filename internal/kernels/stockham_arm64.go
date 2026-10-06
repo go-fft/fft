@@ -398,3 +398,9 @@ func StockhamLastRun(r int, cc, ch []complex128, os, runs, run, gap int, inverse
 func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bout, btw int, first0, firstRest, inverse, wide bool) bool {
 	return false
 }
+
+// StockhamSplitTwiddles is StockhamTwiddles: the split kernels read the same
+// table as the interleaved ones on arm64.
+func StockhamSplitTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
+	return StockhamTwiddles(r, ido, l1, root)
+}

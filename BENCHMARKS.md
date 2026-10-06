@@ -1705,3 +1705,206 @@ Geomean of the 27 float32 rows **1.80×**, every pair of rounds above 1.40; the 
 **FFTW single precision was not measured.** Neither host has `libfftw3f` (the parity harness builds double-precision FFTW only), and building it was left out of this round.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round22-float32-simd-20261005/`](benchmarks/results/round22-float32-simd-20261005/).
+
+### Round 23 — amd64: the data kept split between AVX2 passes (2026-10-06)
+
+**The question.** Round 19 ended on the observation that the interleaved layout
+leaves little to gain from larger butterflies, and that what would cut operations
+is keeping real and imaginary parts apart, as Round 21 did on arm64 (1.11–1.28×
+there). This round built the AVX2 equivalent, counted its operations from the
+generated code, chose the factorizations it wants, and measured it end to end.
+Host: Zen 3 (cfarm420, 128-thread VM, one pinned core, `GOMAXPROCS=1 taskset -c
+40`, load average 2.5–3.6 throughout). Haswell (cfarm13) carried a load of
+16–29 on 24 threads from 10:02 to 10:45 (a GCC bootstrap), so it measured
+nothing; Cascade Lake was another round's host.
+
+**The layout.** Four points 4q … 4q+3 occupy the 64 bytes they occupy
+interleaved, as re(4q), re(4q+2), re(4q+1), re(4q+3), then the four imaginary
+parts in the same order. Why four, and why that order:
+- **Four points per block** because a YMM register holds four float64: one load
+  gives one part of four points, and a block is one 64-byte cache line.
+  arm64's block of two (Round 21) matches a 128-bit register the same way.
+- **That order** because it is what `VUNPCKLPD` and `VUNPCKHPD` make of two
+  interleaved loads (`[r0 i0 r1 i1]`, `[r2 i2 r3 i3]` → `[r0 r2 r1 r3]`,
+  `[i0 i2 i1 i3]`): one in-lane shuffle per register, and the same two undo
+  it. Natural order would need a lane-crossing permute on top. Inside a pass
+  the points of a block are independent, so the order does not matter, as long
+  as the twiddles are stored in it too (`kernels.StockhamSplitTwiddles`: per
+  four-point group and twiddle j, the four real parts, then the four imaginary
+  parts).
+
+A run of consecutive radix-4 or radix-8 passes whose `ido` is a multiple of
+four keeps its data split: the first pass of the run reads interleaved and
+writes split, the passes between are split on both sides, the last writes
+interleaved, and a run of one pass splits on loading and joins on storing
+(`kernels.StockhamSplitModes`). The final pass (`ido` = 1) stays interleaved and
+runs its existing kernel, of any radix, so no transposing final pass was needed
+and radix 16 can still close a transform. go-asmgen v0.16.0 generates the 16
+kernels (`genStockhamSplit` → `stockhamsplit_amd64.s`, radix 4 and 8, four
+layouts, both directions); no go-asmgen change was needed. The direction is
+compiled in: with the parts apart, a ±i rotation is only a choice of which
+operand is added and which subtracted.
+
+**The operation count, measured.** Counted from the generated loop bodies,
+floating-point-port instructions per point per bit (Round 19's measure):
+
+| pass | adds, subtracts, multiplies | shuffles | sign flips | total |
+|:--|--:|--:|--:|--:|
+| radix 4, interleaved | 1.06 | 0.44 | 0.03 | 1.56 |
+| radix 4, split on both sides | 1.06 | 0 | 0 | **1.06** |
+| radix 4, interleaved in or out | 1.06 | 0.25 | 0 | 1.31 |
+| radix 8, interleaved | 1.02 | 0.40 | 0.10 | 1.52 |
+| radix 8, split on both sides | 1.02 | 0 | 0.01 | **1.03** |
+| radix 8, interleaved in or out | 1.02 | 0.17 | 0.01 | 1.20 |
+
+The arithmetic does not change: the same operations on the same operands,
+which is what keeps the result bit-identical. A twiddle product is four
+multiplies and two adds per four points, against two multiplies, one
+`VADDSUBPD` and two shuffles per two points. What goes is every shuffle and
+sign flip. The radix-8 body has more live values at its peak than sixteen
+registers hold, so it spills its odd half's two sums (four registers) to a
+128-byte frame while the even half runs.
+
+Each pass alone, Zen 3, ns (`raw/passes1.txt`, median of three):
+
+| | first (interleaved in) | between (split) | before the last (interleaved out) | final | whole |
+|:--|--:|--:|--:|--:|--:|
+| 1024 = 4·4·4·4·4, interleaved | 471 | 428, 453 | 448 | 269 | 2,069 |
+| 1024 = 4·4·4·4·4, split | 423 | 312, 305 | 374 | 262 | 1,676 |
+| 1024 = 4·8·8·4, interleaved | 456 | 609 (r8) | 624 (r8) | 267 | 1,956 |
+| 1024 = 4·8·8·4, split | 426 | 421 (r8) | 498 (r8) | 260 | 1,605 |
+
+A pass split on both sides runs 1.37–1.49× faster than the interleaved one; a
+pass that converts on one side 1.07–1.25×. On Zen 3 shuffles share two of the
+four FP pipes with the adds and multiplies, so removing them frees issue
+slots. The arithmetic left is the same, which bounds what this can give.
+
+**Bit identity.** `TestSplitEachPassMatchesScalar` runs every split kernel alone
+against the Go pass, output for output, in all four layouts (the input
+converted to the split layout where the kernel reads it so, the output
+converted back), radix 4 and 8, l1 ∈ {1, 2, 3, 4, 5, 9}, ido ∈ {4, 8, 12, 16,
+20, 36}, forward and inverse, on Round 19's seven signals (generic, signed
+zeros, a ±0/−1 mix, an infinity, random draws from {±0} and {±0, ±1}, odd
+multiples of the smallest subnormal). `TestSplitTransformMatchesScalar` runs 28
+whole factorizations with runs of one, two and more split passes next to
+radix-2, -3, -5, -7, -8 and -16 passes, in place and not. Both pass on Zen 3,
+as does the whole suite, including `TestStockhamPassMatchesScalar` over every
+smooth length to 2100 with the new factorizations. Nine mutations of the
+generator or the twiddle table, each run on Zen 3 (`raw/mutants-zen3.txt`):
+- the i = 0 blend on the wrong lane; no blend at all; the inverse rotation
+  taking the forward operands; the twiddles stored in natural order; the
+  interleaved store's halves swapped; the deinterleaving load's operands
+  swapped; the radix-8 a7 sign flip dropped; the radix-8 inverse a5 sum taken
+  as an add: each fails both tests;
+- the radix-8 forward a7 imaginary part computed as −(a7r + a7i) instead of
+  (−a7r) − a7i, which differs only in a zero's sign: the per-pass test fails it
+  (r = 8, ido 12, the {±0} signal), and every whole-transform test, including
+  `TestStockhamPassMatchesScalar`, passes. Round 18's lesson again.
+
+`StockhamPassLayout` refuses, before any kernel runs, a mode it has no kernel
+for, a radix without a split kernel, an `ido` that is not a positive multiple
+of four and an `l1` below one, and bound-checks the last element of `cc`, `ch`
+and the twiddle table (`TestSplitPassLayoutRefuses`).
+
+**Which factorizations.** Every ordering of radix-4 and radix-8 passes closed by
+a radix-4, -8 or -16 pass was timed split, from 32 to 16384 points, and a few
+candidates per size up to 2^20 (`raw/rules*.txt`, three sweeps); the best few
+per size then ran in one process, eleven rounds, the order of the candidates
+rotated every round (`TestSplitAB`, `raw/ab2.txt`). Main's time ÷ candidate's
+time, Zen 3:
+
+| n | main's factorization | main's run split | chosen | its gain |
+|:--|:--|--:|:--|--:|
+| 32 / 64 | 4·8 / 8·8 | 1.05 / 1.09 | the same | |
+| 128 | 16·8 | 1.00 | 8·16 | 1.14 |
+| 256 | 16·16 | — | 4·8·8 | 1.17 |
+| 512 | 8·8·8 | 1.16 | the same | |
+| 1024 | 8·8·16 | 1.14 | the same | |
+| 2048 | 4·8·8·8 | 1.18 | 8·8·8·4 | 1.22 |
+| 4096 | 8·8·8·8 | 1.26 | 4·8·4·8·4 | 1.43 |
+| 8192 | 2·4^6 | — | 4·4·4·4·8·4 | 1.23 |
+| 16384 | 4^7 | 1.11 | 4·8·8·4·4·4 | 1.16 |
+| 32768 | 2·4^7 | — | 8·8·8·4·4·4 | 1.24 |
+| 65536 / 2^17 / 2^18 / 2^20 | 4^8 / 2·4^8 / 4^9 / 4^10 | 1.06 / — / 1.04 / 1.04 | splitPow2Factors | 1.17 / 1.27 / 1.15 / 1.18 |
+
+- **From 65536**, `splitPow2Factors`: a final radix-4 pass, radix 8 for as many
+  of the other bits as leave an even remainder, radix 4 for that remainder
+  first (65536 = 4·8·8·8·8·4). It was the best candidate or within 3% of it.
+  Radix 8 lost to radix 4 on large transforms on Zen 3 since Round 8; split, it
+  wins again.
+- **128 and 256** leave radix 16: its pass is interleaved, and a radix-16 pass
+  in front of the run leaves one split pass.
+- The table is `splitTableAMD64` (`route_amd64.go`), consulted before the
+  radix-16 table where the split layout runs.
+
+**Composite lengths.** The rule is generic: a composite's radix-4 and radix-8
+passes run split when their `ido` qualifies (1920 = 3·5·4·4·8 splits its two
+radix-4 passes; 20480 = 5·8·8·8·8, Bluestein's convolution for 10007, its three
+radix-8 passes; 1008 = 3·3·4·4·7, one radix-4 pass, alone). Nothing about the
+odd radices changed, and the composite agent's radix-3/5 kernels are untouched.
+
+**End to end against main.** Every row of `BenchmarkAB` (Round 17's set),
+interleaved, main then branch, the order alternating every round, one pinned
+core; five rounds (`raw/e2e-final-zen3.txt`), and fifteen for the rows whose
+spread exceeded their ratio (`raw/e2e15-final-zen3.txt`). Main time ÷ branch
+time:
+
+| | ratio | rounds |
+|:--|--:|--:|
+| complex 64 / 128 / 256 | 1.09 / 1.14 / 1.09 | 15 |
+| complex 512 / 1024 / 2048 / 4096 / 8192 | 1.17 / 1.15 / 1.19 / **1.42** / 1.20 | 5 |
+| complex 16384 / 65536 / 2^18 | 1.21 / 1.14 / 1.20 | 15 / 15 / 5 |
+| complex 10007 (Bluestein over 20480) | 1.19 | 5 |
+| complex 1920 | 1.04–1.05 | 5, 15 |
+| complex 1000, 1080, 1296, 2000, 6000, 1009 | 0.985–1.005, inside their spreads | 15 |
+| RFFT 256 / 1024 / 4096 | 1.08 / 1.13 / 1.15 | 15 / 5 / 5 |
+| RFFT 1000 | 1.00 | 15 |
+| 2-D 32² / 64² / 128² / 256² | 1.03 / 1.04 / 1.08 / 1.01 | 15 |
+| 2-D 512² / 1024² | 1.05 / 1.01 | 5 |
+
+- **The 2-D rows** gain only through their rows: the columns run Round 17's
+  batched passes, which stay interleaved.
+- **The composites**: a first build read 0.986–0.999 on them in both of its
+  runs (`raw/e2e*-first-zen3.txt`), inside the spreads but always below 1.
+  `StockhamPassLayout` no longer inlined once it carried the split kernels, so
+  every interleaved pass paid a call. Interleaved passes now
+  call `StockhamPass` directly; the rows above are that build.
+
+**Against FFTW on Zen 3.** The parity harness ran for main, then for the
+branch, back to back on one pinned core (load 3.1–3.6;
+`zen3-parity-main/`, `zen3-parity-split/`). Correctness 24/24 on both. go-fft
+time ÷ FFTW time:
+
+| | complex 256 | 1,024 | 4,096 | 65,536 | 2^20 | 10,007 | RFFT 1,024 | 4,096 | 65,536 | IRFFT 1,024 | 4,096 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| main | 1.35 | 1.26 | 1.17 | 0.98 | 0.58 | 1.19 | 1.26 | 1.26 | 1.02 | 1.08 | 1.18 |
+| branch | 1.28 | 1.11 | **0.90** | 0.87 | 0.49 | **1.04** | 1.16 | **1.02** | 0.94 | **1.00** | **0.99** |
+
+- **go-fft's own times** moved as the A/B says: complex 256 386 → 351 ns,
+  1024 1,924 → 1,715, 4096 12,767 → 9,327; RFFT 4096 6,805 → 5,834.
+- **FFTW's** moved by up to 5% between the two runs (1024: 1,521 and 1,550 ns;
+  4096: 10,913 and 10,312) and by 31% on RFFT 256 (328 → 226 ns), whose ratio
+  therefore reads 0.99 → 1.40 while go-fft went from 324 to 317 ns.
+- Rows at or above FFTW: 11/24 → 13/24 (complex 4096 and 10007 join; RFFT 256
+  leaves on FFTW's time). numpy.fft and scipy.fft: 24/24 on both.
+- The composite rows ran the same code in both builds (1000: 2,351 → 2,392 ns,
+  1080: 2,770 → 2,824); the harness runs each Go row three times and these
+  moved within the spreads the A/B found for them.
+
+**Not done.**
+- **Intel.** The split layout is off on Intel CPUs (`splitDefault`): Haswell
+  could not be measured, and on Intel cores the shuffles go to a port the
+  arithmetic does not use, so the gain may well be smaller than on Zen 3.
+  Haswell and the AVX2-only Intel client cores keep main's code until measured.
+- **AVX-512.** The layout is off where the AVX-512 kernels run, so Cascade Lake
+  and its blocked schedule (Round 20) are untouched. A 512-bit split kernel
+  would hold eight points per register; it was not built, since no AVX-512 host
+  was free to measure it.
+- **A split final pass.** The final pass reads interleaved data, so the pass
+  before it pays for interleaving (1.07–1.25× instead of 1.37–1.49×). A final pass
+  reading split blocks would have to transpose four blocks at a time, about as
+  many shuffles as it saves.
+- **A split radix-16 pass.** Its 16 inputs would take 32 registers split; the
+  interleaved one already spills.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round23-amd64-split-20261006/`](benchmarks/results/round23-amd64-split-20261006/).

@@ -43,3 +43,8 @@ func StockhamLastRun(r int, cc, ch []complex128, os, runs, run, gap int, inverse
 func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bout, btw int, first0, firstRest, inverse, wide bool) bool {
 	return false
 }
+
+// StockhamSplitTwiddles returns nils: there is no split layout here.
+func StockhamSplitTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
+	return nil, nil
+}
