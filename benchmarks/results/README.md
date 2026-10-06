@@ -142,3 +142,12 @@ BENCHMARKS.md: main's float32 against float64 on Zen 3 (cfarm420), the float32
 passes timed alone (Go against kernel), the radix-order comparison, and the
 interleaved end-to-end A/B runs, on Zen 3 (one pinned core) and on an Apple
 M4 Max (rounds started at a 1-minute load below 3). See its README.
+
+## 2026-10-06, perf-amd64-split: the data kept split between AVX2 passes (Round 23)
+
+`round23-amd64-split-20261006` holds the measurements behind Round 23 of
+BENCHMARKS.md on Zen 3 (cfarm420, one pinned core): the factorization sweeps
+with the split layout, each pass timed alone, the rotated in-process A/B of the
+candidates, the interleaved end-to-end A/B runs against main, the mutation
+runs, and two parity runs (`zen3-parity-main`, `zen3-parity-split`, each
+correct 24/24). See its README.
