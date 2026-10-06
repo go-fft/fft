@@ -37,7 +37,7 @@ for i,(f,sym,pat,nth,rep) in enumerate(muts,1):
             subprocess.run(['go','test','-c','-ldflags=-s -w','-o',f'{S}/bin3/ftBM{i}.amd64','.'],check=True,env=env)
             print(i,sym,pat,'->',rep or '(removed)')
         else:
-            r=subprocess.run(['go','test','-count=1','-run','Strips32','.'],capture_output=True,text=True,env=env)
+            r=subprocess.run(['go','test','-count=1','-run','Strips32|BatchPass32','.'],capture_output=True,text=True,env=env)
             print('CAUGHT' if r.returncode else 'MISSED',i,sym,pat,'->',rep or '(removed)')
     finally:
         open(f,'w').write(orig)

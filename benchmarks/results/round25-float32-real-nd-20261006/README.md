@@ -10,7 +10,7 @@ The measurements behind Round 25 of BENCHMARKS.md.
   - `nd-strips.txt`: main against the branch with the batched columns (`ftB3`), five interleaved rounds (`scripts/ab-strips.sh`). It holds the `BenchmarkF32ND` rows, plus `BenchmarkR25Parts2D32` and `BenchmarkR25StripWidth32` each round.
   - `strip-width-15.txt`: 15 rounds of strip widths 16 and 32.
   - `fanout8.txt`, `fanout8-15.txt`: `BenchmarkR25Fanout32`, the shared fan-out rule against one goroutine, seven and 15 rounds.
-  - `tests-untangle-mutants.txt`, `tests-strips-mutants.txt`, `tests-strips-mutants-2.txt`: the new tests, every mutant of the generated assembly, and the whole test suite of both packages, on that machine with the AVX2 kernels on.
+  - `tests-untangle-mutants.txt`, `tests-strips-mutants.txt`, `tests-strips-mutants-final.txt`: the new tests, every mutant of the generated assembly, and the whole test suite of both packages, on that machine with the AVX2 kernels on. `-final` is the run with the shipped tests (`scripts/t5.sh`).
 - `scripts/`:
   - `abr.py` summarizes an A/B log: medians, the ratio, the pair range, and f32 ÷ f64 on each side.
   - `parts.py` and `fan.py` summarize the branch-only benchmarks.

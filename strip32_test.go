@@ -11,6 +11,32 @@ import (
 // The float32 strips (Round 25) against the float32 line-by-line path, on
 // stripShapes and the float32 SIMD signals.
 
+// f32rStripSignals are the float32 signals of the strip tests: a generic
+// signal, ±0/±1 draws (whose zero sums tell -(a+b) from (-a)-b), an infinity,
+// and subnormals of both parities. (stockham32_simd_test.go's f32simdSignals
+// are built only where the 1-D kernels are.)
+func f32rStripSignals(n int) [][]complex64 {
+	gen := make([]complex64, n)
+	signs := make([]complex64, n)
+	inf := make([]complex64, n)
+	tiny := make([]complex64, n)
+	vals := [4]float32{0, float32(math.Copysign(0, -1)), 1, -1}
+	seed := uint32(7)
+	draw := func() float32 {
+		seed = seed*1664525 + 1013904223
+		return vals[seed>>30]
+	}
+	sub := float32(math.SmallestNonzeroFloat32)
+	for i, v := range cmplxSignal(n) {
+		gen[i] = complex64(v)
+		inf[i] = gen[i]
+		signs[i] = complex(draw(), draw())
+		tiny[i] = complex(float32(i%7+1)*sub, -float32(i%4+1)*sub)
+	}
+	inf[n/2] = complex(float32(math.Inf(1)), 0)
+	return [][]complex64{gen, signs, inf, tiny}
+}
+
 // withStrips32 builds a PlanN32 with the strip path forced on or off.
 func withStrips32(on bool, shape ...int) *PlanN32 {
 	defer func(v bool) { stripAxes32 = v }(stripAxes32)
@@ -57,8 +83,9 @@ func f32rMaxPart(x []complex64) float64 {
 // path: forward and inverse, out of place and in place. With the batched
 // kernels (the default where they exist) each line of a strip gets the
 // arithmetic of its own 1-D kernels, bit for bit outside -race on arm64; the
-// Go batched pass (kernels off) is bit-exact on amd64, where gc does not fuse,
-// and held to rounding on arm64, where it may fuse otherwise than the lines.
+// Go batched pass (kernels off, and every platform without them) is bit-exact
+// where gc does not fuse (scalarFuses) and held to rounding where it may fuse
+// otherwise than the lines.
 func TestStrips32MatchLines(t *testing.T) {
 	defer func(v bool) { kernels.UseStockhamBatch32 = v }(kernels.UseStockhamBatch32)
 	modes := []bool{false}
@@ -74,7 +101,7 @@ func TestStrips32MatchLines(t *testing.T) {
 	}
 	for _, kern := range modes {
 		kernels.UseStockhamBatch32 = kern
-		exact := runtime.GOARCH != "arm64" || (kern && !raceEnabled)
+		exact := !scalarFuses || (runtime.GOARCH == "arm64" && kern && !raceEnabled)
 		for _, shape := range shapes {
 			lines, strips := withStrips32(false, shape...), withStrips32(true, shape...)
 			for ax := range shape {
@@ -84,7 +111,7 @@ func TestStrips32MatchLines(t *testing.T) {
 				}
 			}
 			n := shapeProduct(shape...)
-			for s, x := range f32simdSignals(n) {
+			for s, x := range f32rStripSignals(n) {
 				for _, inverse := range []bool{false, true} {
 					run := func(p *PlanN32, inPlace bool) []complex64 {
 						out := make([]complex64, n)
@@ -119,7 +146,7 @@ func TestStrips32MatchLines(t *testing.T) {
 // transform is a PlanN32 axis.
 func TestStrips32MatchLinesReal(t *testing.T) {
 	defer func(v bool) { stripAxes32 = v }(stripAxes32)
-	exact := runtime.GOARCH != "arm64" || (kernels.UseStockhamBatch32 && !raceEnabled)
+	exact := !scalarFuses || (runtime.GOARCH == "arm64" && kernels.UseStockhamBatch32 && !raceEnabled)
 	for _, shape := range [][2]int{{16, 16}, {40, 9}, {6, 3}, {1, 8}, {256, 30}} {
 		rows, cols := shape[0], shape[1]
 		x := make([]float32, rows*cols)
@@ -155,10 +182,10 @@ func TestStrips32AcrossGoroutines(t *testing.T) {
 	parWorkers, parMinChunk = 4, 64
 	shape := []int{256, 128}
 	lines, strips := withStrips32(false, shape...), withStrips32(true, shape...)
-	x := f32simdSignals(shapeProduct(shape...))[0]
+	x := f32rStripSignals(shapeProduct(shape...))[0]
 	want := lines.FFT(make([]complex64, len(x)), x)
 	got := strips.FFT(make([]complex64, len(x)), x)
-	exact := runtime.GOARCH != "arm64" || (kernels.UseStockhamBatch32 && !raceEnabled)
+	exact := !scalarFuses || (runtime.GOARCH == "arm64" && kernels.UseStockhamBatch32 && !raceEnabled)
 	scale := f32rMaxPart(want)
 	for i := range want {
 		if !f32rAgree(got[i], want[i], scale, exact) {
@@ -209,16 +236,16 @@ func TestStrips32Fit(t *testing.T) {
 // TestBatchPass32MatchesGo runs every float32 batched pass of a set of radix
 // orders (each radix first, in the middle and last, so with ido > 1 and
 // ido == 1) on the batched kernel and on the Go batched pass, over batches of
-// 1 to 9 lines with input and output strides wider than the batch. On amd64
-// gc does not fuse and the two agree bit for bit; on arm64 the Go batched pass
-// may fuse otherwise than the kernel (which copies the 1-D passes, the
+// 1 to 9 lines with input and output strides wider than the batch. Where gc
+// does not fuse (amd64) the two agree bit for bit; on arm64 the Go batched
+// pass may fuse otherwise than the kernel (which copies the 1-D passes, the
 // strips test holds it to them bit for bit), so there they agree to rounding.
 func TestBatchPass32MatchesGo(t *testing.T) {
 	if !kernels.UseStockhamBatch32 {
 		t.Skip("no float32 batched kernels on this CPU")
 	}
 	defer func(v bool) { kernels.UseStockhamBatch32 = v }(kernels.UseStockhamBatch32)
-	exact := runtime.GOARCH != "arm64"
+	exact := !scalarFuses
 	for _, f := range [][]int{{2, 4}, {4, 2}, {2, 2, 2}, {3, 2, 3}, {2, 3}, {4, 4}, {5, 4}, {4, 5}, {8, 3}, {3, 8}, {2, 5, 2}, {8, 8}} {
 		n := 1
 		for _, r := range f {
@@ -235,7 +262,7 @@ func TestBatchPass32MatchesGo(t *testing.T) {
 				}
 				for w := 1; w <= 9; w++ {
 					sIn, sOut := w+2, w+3
-					cc := f32simdSignals(n * sIn)[w%8]
+					cc := f32rStripSignals(n * sIn)[w%4]
 					var got [2][]complex64
 					for i, on := range []bool{false, true} {
 						kernels.UseStockhamBatch32 = on
