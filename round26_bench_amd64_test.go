@@ -347,3 +347,77 @@ func TestR26Sweep(t *testing.T) {
 		fmt.Printf("SWEEP %d%s\n", n, b.String())
 	}
 }
+
+// TestR26Overhead splits a small transform's time into its passes and what
+// surrounds them: Plan.FFT, skPlan.transform, the passes on a fixed scratch
+// buffer, and the scratch pool's Get and Put alone.
+func TestR26Overhead(t *testing.T) {
+	rounds, ms := comp2Rounds(t)
+	for _, n := range []int{64, 128, 256, 512, 1024, 1000} {
+		p := NewPlan(n)
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		sk := p.sk
+		scr := make([]complex128, 2*n)[:n]
+		passes := func() {
+			s := len(sk.stages)
+			in := src
+			for k := range sk.stages {
+				out := scr
+				if (s-1-k)%2 == 0 {
+					out = dst
+				}
+				sk.stages[k].pass(out, in, false)
+				in = out
+			}
+		}
+		times := comp2Rotate([]func(){
+			func() { p.FFT(dst, src) },
+			func() { sk.transform(dst, src, false) },
+			passes,
+			func() { sk.scratch.Put(sk.scratch.Get()) },
+		}, rounds, ms)
+		fmt.Printf("OVER %d %s FFT %.1f transform %.1f passes %.1f pool %.1f\n", n, factorName(sk.factors()),
+			median(times[0]), median(times[1]), median(times[2]), median(times[3]))
+	}
+}
+
+// BenchmarkR26AB is the row set Round 26's interleaved A/B runs time: the
+// composites, powers of two, the prime engines (Rader 1009 and 1201 have
+// 2^4·3^2·7 and 2^4·3·5^2 convolutions, Bluestein 10007 a 20480-point one),
+// lengths with a factor 7, real transforms (whose halves are 128 … 2048,
+// 500, 540 and 960 points) and 2-D plans of composite sides.
+func BenchmarkR26AB(b *testing.B) {
+	compR24Warm(b)
+	for _, n := range []int{1000, 1080, 1296, 1920, 2000, 6000, 240, 480, 720, 960, 1200, 1440, 3600, 7200, 15360, 16000,
+		128, 256, 512, 1024, 4096, 65536, 1009, 1201, 10007, 1008, 2100} {
+		p := NewPlan(n)
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		b.Run("C"+strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.FFT(dst, src)
+			}
+		})
+	}
+	for _, n := range []int{256, 512, 1000, 1024, 1080, 1920, 2000, 4096} {
+		p := NewRealPlan(n)
+		src := benchReal(n)
+		dst := make([]complex128, n/2+1)
+		b.Run("R"+strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.RFFT(dst, src)
+			}
+		})
+	}
+	for _, n := range []int{100, 120, 240} {
+		p := NewPlanN(n, n)
+		src := benchComplex(n * n)
+		dst := make([]complex128, n*n)
+		b.Run("D"+strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.FFT(dst, src)
+			}
+		})
+	}
+}
