@@ -35,12 +35,12 @@ func splitFromBlocks(y []complex128) []complex128 {
 	return x
 }
 
-// splitOn builds plans with the split layout on (or off) until the returned
-// function restores the setting.
+// splitOn builds plans with the 256-bit split layout on (or off), and the
+// 512-bit one off, until the returned function restores the settings.
 func splitOn(on bool) func() {
-	old := kernels.UseStockhamSplit
-	kernels.UseStockhamSplit = on
-	return func() { kernels.UseStockhamSplit = old }
+	old, old512 := kernels.UseStockhamSplit, kernels.UseStockhamSplit512
+	kernels.UseStockhamSplit, kernels.UseStockhamSplit512 = on, false
+	return func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512 = old, old512 }
 }
 
 // TestSplitEachPassMatchesScalar compares every split pass kernel alone with

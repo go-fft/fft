@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"slices"
 	"testing"
 )
 
@@ -36,8 +37,11 @@ func TestParMinChunkAMD64(t *testing.T) {
 // TestRadix16TableAMD64 pins which machines take radix-16 passes and the
 // factorizations they take.
 func TestRadix16TableAMD64(t *testing.T) {
-	if radix16TableAMD64(false, false, true) != nil || radix16TableAMD64(true, true, true) != nil || radix16TableAMD64(false, true, false) != nil {
-		t.Error("radix 16 without AVX2, or with AVX-512")
+	if radix16TableAMD64(false, false, true) != nil || radix16TableAMD64(true, true, false) != nil || radix16TableAMD64(false, true, false) != nil || radix16TableAMD64(false, true, true) != nil {
+		t.Error("radix 16 without AVX2, or with AVX-512 on AMD")
+	}
+	if tab := radix16TableAMD64(true, true, true); len(tab) != 1 || !slices.Equal(tab[128], []int{16, 8}) {
+		t.Errorf("AVX-512 Intel: %v, want 128 = 16·8 only", tab)
 	}
 	amd, intel := radix16TableAMD64(true, false, false), radix16TableAMD64(true, false, true)
 	if len(amd) != 3 || len(intel) != 4 || intel[2048] == nil || amd[2048] != nil {
@@ -53,6 +57,20 @@ func TestRadix16TableAMD64(t *testing.T) {
 				t.Errorf("%d factored as %v", n, f)
 			}
 		}
+	}
+}
+
+// TestIntelSplitTableAMD64: the 512-bit split layout takes its own table,
+// whatever the 256-bit setting, and only 1024 and 8192 change.
+func TestIntelSplitTableAMD64(t *testing.T) {
+	for _, on := range []bool{false, true} {
+		tab := intelSplitTableAMD64(on, true)
+		if len(tab) != 2 || !slices.Equal(tab[1024], []int{8, 4, 4, 8}) || !slices.Equal(tab[8192], []int{8, 8, 4, 4, 8}) {
+			t.Errorf("512 on, 256 %v: %v", on, tab)
+		}
+	}
+	if intelSplitTableAMD64(false, false) != nil || len(intelSplitTableAMD64(true, false)) != len(splitTableAMD64(true)) {
+		t.Error("512 off: want splitTableAMD64")
 	}
 }
 

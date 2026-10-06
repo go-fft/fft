@@ -69,7 +69,12 @@ func splitPass(r, ido int) bool {
 // StockhamSplitModes returns, for the passes of one transform (pass k of
 // radix r[k], ido[k], l1[k]), the layout mode of each: splitModes when
 // UseStockhamSplit is on, all zeros (interleaved throughout) otherwise.
-func StockhamSplitModes(r, ido, l1 []int) []uint8 { return splitModes(r, ido, UseStockhamSplit) }
+func StockhamSplitModes(r, ido, l1 []int) []uint8 {
+	if intelSplit512On() {
+		return intelSplitModes512(r, ido)
+	}
+	return splitModes(r, ido, UseStockhamSplit)
+}
 
 // splitModes gives every maximal run of consecutive passes that splitPass
 // accepts its modes (splitOut, splitBoth…, splitIn; splitNone for a run of
@@ -110,6 +115,10 @@ func splitModes(r, ido []int, on bool) []uint8 {
 // that the kernel loads as two registers. It is stored as complex128 for the
 // plan's sake, two float64s per element, (r-1)·ido elements as interleaved.
 func StockhamSplitTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
+	if intelSplit512On() {
+		// The 512-bit layout, which StockhamSplitModes gave the passes.
+		return intelSplitTwiddles512(r, ido, l1, root)
+	}
 	n := len(root)
 	fwd = make([]complex128, (r-1)*ido)
 	conj = make([]complex128, len(fwd))
@@ -149,7 +158,7 @@ func StockhamPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inv
 
 // splitPassLayout is StockhamPassLayout for a split mode.
 func splitPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inverse bool) bool {
-	if mode > splitNone || l1 < 1 || !splitPass(r, ido) {
+	if !intelSplitModeOK(mode, r, ido, l1) {
 		panic("kernels: StockhamPassLayout: no split kernel for this mode, radix and ido")
 	}
 	n := r * ido * l1
@@ -158,11 +167,7 @@ func splitPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, invers
 	if !UseStockhamAVX2 {
 		return false
 	}
-	fn := skSplitFwd[r][mode]
-	if inverse {
-		fn = skSplitInv[r][mode]
-	}
-	fn(&cc[0], &ch[0], &tw[0], &splitK[0][0], ido, l1)
+	intelSplitKernel(mode, r, inverse)(&cc[0], &ch[0], &tw[0], &splitK[0][0], ido, l1)
 	return true
 }
 
