@@ -130,7 +130,9 @@ func TestSplitTransformMatchesScalar(t *testing.T) {
 		for _, st := range p.stages {
 			split = split || st.split != 0
 		}
-		if !split {
+		// The blocked schedule (AVX-512 on Intel, from 65536 points) runs
+		// interleaved throughout, whatever the passes could do.
+		if !split && p.cascT == 0 {
 			t.Fatalf("factors %v: no split pass", f)
 		}
 		for s, x := range radix16Signals(n) {
