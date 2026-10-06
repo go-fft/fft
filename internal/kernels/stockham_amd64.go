@@ -563,13 +563,3 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 	}
 	return fwd, conj
 }
-
-// StockhamSplitModes returns all zeros: the split layout between passes is
-// arm64's (stockham_arm64.go).
-func StockhamSplitModes(r, ido, l1 []int) []uint8 { return make([]uint8, len(r)) }
-
-// StockhamPassLayout is StockhamPass: there is no split layout here, and the
-// mode is always 0.
-func StockhamPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
-	return StockhamPass(r, ido, l1, cc, ch, tw, inverse, wide)
-}

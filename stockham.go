@@ -36,9 +36,9 @@ type skStage struct {
 	twX, twXc []complex128
 	// wide lets the pass use the AVX-512 kernels (see wide512).
 	wide bool
-	// split is the pass's data layout on arm64, where a power of two keeps
-	// its data block-split between passes (kernels.StockhamSplitModes); 0
-	// is interleaved.
+	// split is the pass's data layout: on arm64 and on amd64 with AVX2, a
+	// run of passes keeps its data block-split between them
+	// (kernels.StockhamSplitModes); 0 is interleaved.
 	split uint8
 }
 
@@ -114,6 +114,12 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 	case len(p.stages)%2 == 1:
 		size *= 2 // the in-place ping-pong (see run)
 	}
+	// A split pass reads its twiddles in the split layout's order.
+	for k := range p.stages {
+		if st := &p.stages[k]; st.split != 0 {
+			st.twX, st.twXc = kernels.StockhamSplitTwiddles(st.r, st.ido, st.l1, root)
+		}
+	}
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
 	return p
 }
@@ -131,8 +137,13 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // has no such aliasing and keeps radix 8 (20160: 1.07×).
 //
 // Where the amd64 radix-16 kernel runs, a few powers of two take radix-16
-// passes instead (radix16Table, Round 19).
+// passes instead (radix16Table, Round 19), and where the amd64 split layout
+// runs, the powers of two from 256 points take splitTable's factorizations
+// (Round 23).
 func skFactorize(n int) []int {
+	if f := splitTable[n]; f != nil {
+		return slices.Clone(f)
+	}
 	if f := radix16Table[n]; f != nil {
 		return slices.Clone(f)
 	}

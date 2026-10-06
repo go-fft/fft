@@ -55,3 +55,27 @@ func TestRadix16TableAMD64(t *testing.T) {
 		}
 	}
 }
+
+// TestSplitTableAMD64 pins which powers of two change their factorization
+// with the split layout.
+func TestSplitTableAMD64(t *testing.T) {
+	if splitTableAMD64(false) != nil {
+		t.Error("split factorizations without the split layout")
+	}
+	tab := splitTableAMD64(true)
+	for _, n := range []int{16, 32, 64, 512, 1024} {
+		if tab[n] != nil {
+			t.Errorf("%d: %v, want its interleaved factorization", n, tab[n])
+		}
+	}
+	for n, f := range tab {
+		if p := product(f); p != n {
+			t.Errorf("%d factored as %v", n, f)
+		}
+	}
+	for _, n := range []int{128, 256, 4096, 1 << 20, 1 << 30} {
+		if tab[n] == nil {
+			t.Errorf("%d: not in the table", n)
+		}
+	}
+}

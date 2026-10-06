@@ -166,3 +166,32 @@ func cascadeMinAMD64(avx512, intel bool) int {
 	}
 	return 0
 }
+
+// splitTableDefault is splitTableAMD64 for this machine.
+func splitTableDefault() map[int][]int { return splitTableAMD64(kernels.UseStockhamSplit) }
+
+// splitTableAMD64 gives the powers of two whose factorization changes when
+// the split layout runs (kernels.UseStockhamSplit). Every ordering of radix-4
+// and radix-8 passes closed by a radix-4, -8 or -16 pass was timed on Zen 3
+// up to 16384 points, and the best few up to 2^20 (Round 23); below 65536
+// the table takes the best of them, from 65536 splitPow2Factors, which was
+// the best or within 3% of it there. 32, 64, 512 and 1024 keep skFactorize's
+// factorization, which runs split as well as anything timed.
+func splitTableAMD64(on bool) map[int][]int {
+	if !on {
+		return nil
+	}
+	t := map[int][]int{
+		128:   {8, 16},
+		256:   {4, 8, 8},
+		2048:  {8, 8, 8, 4},
+		4096:  {4, 8, 4, 8, 4},
+		8192:  {4, 4, 4, 4, 8, 4},
+		16384: {4, 8, 8, 4, 4, 4},
+		32768: {8, 8, 8, 4, 4, 4},
+	}
+	for e := 16; e <= 30; e++ {
+		t[1<<e] = splitPow2Factors(e)
+	}
+	return t
+}
