@@ -417,7 +417,8 @@ type skEmit struct {
 	notw, bcast bool
 	// dup reads the radix-16 twiddle table, whose twiddles are stored
 	// pre-duplicated: (wr, wr) and (wi, wi) (see radix16Twiddles).
-	dup bool	// addr, when set, addresses input (out false) or output stream j in
+	dup bool
+	// addr, when set, addresses input (out false) or output stream j in
 	// place of skIn and skOut: the radix-10/15/20 kernels (Round 26) have
 	// more streams than those reach.
 	addr func(out bool, j int) string
