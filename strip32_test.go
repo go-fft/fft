@@ -65,7 +65,10 @@ func TestStrips32MatchLines(t *testing.T) {
 	if kernels.UseStockhamBatch32 {
 		modes = append(modes, true)
 	}
-	shapes := stripShapes
+	// stripShapes, plus twiddled radix-3, -5 and -8 passes over strips of
+	// four lines and more (a radix-5 pass with ido > 1 in stripShapes runs on
+	// two lines only).
+	shapes := append(append([][]int(nil), stripShapes...), []int{25, 16}, []int{125, 7}, []int{9, 20}, []int{27, 13}, []int{64, 21}, []int{8, 4, 9}, []int{40, 6})
 	if testing.Short() {
 		shapes = shapes[:6]
 	}
