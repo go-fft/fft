@@ -101,7 +101,7 @@ func newSKConst(inverse bool) *skConst {
 // stockhamSIMD reports whether a pass kernel exists for radix r.
 func stockhamSIMD(r int) bool {
 	switch r {
-	case 2, 3, 4, 5, 8, 16:
+	case 2, 3, 4, 5, 8, 12, 16:
 		return true
 	}
 	return false
@@ -190,8 +190,8 @@ type (
 
 // The kernels by radix, per width.
 var (
-	skPass256 = [17]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2, 16: skPass16AVX2}
-	skLast256 = [17]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2, 16: skLast16AVX2}
+	skPass256 = [17]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2, 12: skPass12AVX2, 16: skPass16AVX2}
+	skLast256 = [17]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2, 12: skLast12AVX2, 16: skLast16AVX2}
 	skPass512 = [17]skPassFn{2: skPass2AVX512, 4: skPass4AVX512, 8: skPass8AVX512}
 	skLast512 = [17]skLastFn{2: skLast2AVX512, 4: skLast4AVX512, 8: skLast8AVX512}
 )
@@ -488,7 +488,7 @@ func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int
 		// batch, is a layout the length check below cannot vouch for.
 		panic("kernels: StockhamBatchPass: need w >= 1, sIn and sOut >= w, ido and l1 >= 1")
 	}
-	if !UseStockhamBatchAVX2 || !stockhamSIMD(r) || r == 16 {
+	if !UseStockhamBatchAVX2 || !stockhamSIMD(r) || r == 16 || r == 12 {
 		return false
 	}
 	n := r * ido * l1
@@ -520,6 +520,12 @@ func skBatch5AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, 
 
 //go:noescape
 func skBatch8AVX2(cc, ch, tw *complex128, k *float64, ido, l1, pairs, odd, jin, jout, adjin, adjout int)
+
+//go:noescape
+func skPass12AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skLast12AVX2(cc, ch *complex128, k *float64, l1 int)
 
 //go:noescape
 func skPass16AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)

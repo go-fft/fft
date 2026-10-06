@@ -1,0 +1,441 @@
+# round 1 variant main 09:05:45 load 0.26 0.60 0.75
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  103812	      3365 ns/op
+BenchmarkR24AB/C-1000        	  106446	      3377 ns/op
+BenchmarkR24AB/C-1080        	   85860	      4273 ns/op
+BenchmarkR24AB/C-1296        	   64298	      5632 ns/op
+BenchmarkR24AB/C-1920        	   48970	      7345 ns/op
+BenchmarkR24AB/C-2000        	   43891	      8211 ns/op
+BenchmarkR24AB/C-6000        	   12289	     29377 ns/op
+BenchmarkR24AB/C-144         	  790735	       449.9 ns/op
+BenchmarkR24AB/C-240         	  482865	       715.6 ns/op
+BenchmarkR24AB/C-432         	  249720	      1447 ns/op
+BenchmarkR24AB/C-480         	  258336	      1402 ns/op
+BenchmarkR24AB/C-720         	  134452	      2561 ns/op
+BenchmarkR24AB/C-768         	  158838	      2261 ns/op
+BenchmarkR24AB/C-960         	  117392	      3040 ns/op
+BenchmarkR24AB/C-1200        	   76627	      4708 ns/op
+BenchmarkR24AB/C-1728        	   52881	      7168 ns/op
+BenchmarkR24AB/C-3072        	   25418	     14349 ns/op
+BenchmarkR24AB/C-3840        	   21886	     16422 ns/op
+BenchmarkR24AB/C-5184        	   14835	     24301 ns/op
+BenchmarkR24AB/C-15360       	    4011	     89864 ns/op
+BenchmarkR24AB/C-45000       	     915	    396310 ns/op
+BenchmarkR24AB/C-1008        	   53846	      6657 ns/op
+BenchmarkR24AB/C-2100        	   24386	     14800 ns/op
+BenchmarkR24AB/C-20160       	    2073	    171817 ns/op
+BenchmarkR24AB/C-256         	  688641	       508.3 ns/op
+BenchmarkR24AB/C-1024        	  128764	      2805 ns/op
+BenchmarkR24AB/C-4096        	   27220	     13244 ns/op
+BenchmarkR24AB/C-65536       	     757	    472525 ns/op
+BenchmarkR24AB/C-1009        	   19070	     18861 ns/op
+BenchmarkR24AB/C-1201        	   21988	     16346 ns/op
+BenchmarkR24AB/C-10007       	    1036	    348344 ns/op
+BenchmarkR24AB/R-1000        	  162505	      2219 ns/op
+BenchmarkR24AB/R-1920        	   85740	      4191 ns/op
+BenchmarkR24AB/R-2000        	   80446	      4498 ns/op
+BenchmarkR24AB/R-4096        	   38665	      9334 ns/op
+BenchmarkR24AB/2D-100        	    6661	     53862 ns/op
+BenchmarkR24AB/2D-120        	    4816	     74696 ns/op
+BenchmarkR24AB/2D-240        	     818	    435652 ns/op
+PASS
+# round 1 variant br2 09:06:01 load 0.75 0.69 0.77
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  104980	      3383 ns/op
+BenchmarkR24AB/C-1000        	  104250	      3352 ns/op
+BenchmarkR24AB/C-1080        	   86689	      4168 ns/op
+BenchmarkR24AB/C-1296        	   81097	      4430 ns/op
+BenchmarkR24AB/C-1920        	   54970	      6593 ns/op
+BenchmarkR24AB/C-2000        	   48675	      7395 ns/op
+BenchmarkR24AB/C-6000        	   14361	     25065 ns/op
+BenchmarkR24AB/C-144         	 1000000	       307.1 ns/op
+BenchmarkR24AB/C-240         	  585974	       615.6 ns/op
+BenchmarkR24AB/C-432         	  330696	      1103 ns/op
+BenchmarkR24AB/C-480         	  288567	      1236 ns/op
+BenchmarkR24AB/C-720         	  182140	      1976 ns/op
+BenchmarkR24AB/C-768         	  181634	      1966 ns/op
+BenchmarkR24AB/C-960         	  123049	      2920 ns/op
+BenchmarkR24AB/C-1200        	   89160	      4056 ns/op
+BenchmarkR24AB/C-1728        	   70622	      5079 ns/op
+BenchmarkR24AB/C-3072        	   31146	     11608 ns/op
+BenchmarkR24AB/C-3840        	   25039	     14229 ns/op
+BenchmarkR24AB/C-5184        	   18716	     19276 ns/op
+BenchmarkR24AB/C-15360       	    4749	     74999 ns/op
+BenchmarkR24AB/C-45000       	     915	    394016 ns/op
+BenchmarkR24AB/C-1008        	   53656	      6641 ns/op
+BenchmarkR24AB/C-2100        	   24520	     14647 ns/op
+BenchmarkR24AB/C-20160       	    2140	    168385 ns/op
+BenchmarkR24AB/C-256         	  718866	       500.7 ns/op
+BenchmarkR24AB/C-1024        	  129615	      2783 ns/op
+BenchmarkR24AB/C-4096        	   27181	     13288 ns/op
+BenchmarkR24AB/C-65536       	     734	    491571 ns/op
+BenchmarkR24AB/C-1009        	   19072	     18836 ns/op
+BenchmarkR24AB/C-1201        	   24328	     14637 ns/op
+BenchmarkR24AB/C-10007       	    1046	    342825 ns/op
+BenchmarkR24AB/R-1000        	  159090	      2211 ns/op
+BenchmarkR24AB/R-1920        	   89889	      3999 ns/op
+BenchmarkR24AB/R-2000        	   80143	      4496 ns/op
+BenchmarkR24AB/R-4096        	   38776	      9266 ns/op
+BenchmarkR24AB/2D-100        	    6508	     54136 ns/op
+BenchmarkR24AB/2D-120        	    4869	     74029 ns/op
+BenchmarkR24AB/2D-240        	     871	    409604 ns/op
+PASS
+# round 2 variant br2 09:06:18 load 0.81 0.71 0.78
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  104505	      3374 ns/op
+BenchmarkR24AB/C-1000        	  105061	      3364 ns/op
+BenchmarkR24AB/C-1080        	   86173	      4167 ns/op
+BenchmarkR24AB/C-1296        	   80665	      4444 ns/op
+BenchmarkR24AB/C-1920        	   54981	      6546 ns/op
+BenchmarkR24AB/C-2000        	   48108	      7451 ns/op
+BenchmarkR24AB/C-6000        	   14281	     25118 ns/op
+BenchmarkR24AB/C-144         	 1000000	       304.0 ns/op
+BenchmarkR24AB/C-240         	  589182	       611.5 ns/op
+BenchmarkR24AB/C-432         	  332362	      1087 ns/op
+BenchmarkR24AB/C-480         	  291134	      1233 ns/op
+BenchmarkR24AB/C-720         	  178568	      2009 ns/op
+BenchmarkR24AB/C-768         	  181678	      1976 ns/op
+BenchmarkR24AB/C-960         	  122894	      2920 ns/op
+BenchmarkR24AB/C-1200        	   88560	      4076 ns/op
+BenchmarkR24AB/C-1728        	   69975	      5120 ns/op
+BenchmarkR24AB/C-3072        	   30606	     12150 ns/op
+BenchmarkR24AB/C-3840        	   25076	     14863 ns/op
+BenchmarkR24AB/C-5184        	   17538	     19177 ns/op
+BenchmarkR24AB/C-15360       	    4828	     74119 ns/op
+BenchmarkR24AB/C-45000       	     912	    391368 ns/op
+BenchmarkR24AB/C-1008        	   54663	      6593 ns/op
+BenchmarkR24AB/C-2100        	   24748	     14563 ns/op
+BenchmarkR24AB/C-20160       	    2136	    166450 ns/op
+BenchmarkR24AB/C-256         	  709388	       500.1 ns/op
+BenchmarkR24AB/C-1024        	  129711	      2777 ns/op
+BenchmarkR24AB/C-4096        	   27207	     13191 ns/op
+BenchmarkR24AB/C-65536       	     744	    480290 ns/op
+BenchmarkR24AB/C-1009        	   19146	     18768 ns/op
+BenchmarkR24AB/C-1201        	   24693	     14617 ns/op
+BenchmarkR24AB/C-10007       	    1057	    341262 ns/op
+BenchmarkR24AB/R-1000        	  162416	      2209 ns/op
+BenchmarkR24AB/R-1920        	   90478	      3955 ns/op
+BenchmarkR24AB/R-2000        	   80224	      4467 ns/op
+BenchmarkR24AB/R-4096        	   38524	      9304 ns/op
+BenchmarkR24AB/2D-100        	    6630	     53859 ns/op
+BenchmarkR24AB/2D-120        	    4885	     73702 ns/op
+BenchmarkR24AB/2D-240        	     860	    410961 ns/op
+PASS
+# round 2 variant main 09:06:34 load 0.85 0.72 0.78
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	   98641	      3453 ns/op
+BenchmarkR24AB/C-1000        	  106408	      3366 ns/op
+BenchmarkR24AB/C-1080        	   86664	      4156 ns/op
+BenchmarkR24AB/C-1296        	   61738	      5591 ns/op
+BenchmarkR24AB/C-1920        	   49197	      7295 ns/op
+BenchmarkR24AB/C-2000        	   44149	      8172 ns/op
+BenchmarkR24AB/C-6000        	   12356	     29224 ns/op
+BenchmarkR24AB/C-144         	  797640	       449.0 ns/op
+BenchmarkR24AB/C-240         	  504220	       716.3 ns/op
+BenchmarkR24AB/C-432         	  248731	      1456 ns/op
+BenchmarkR24AB/C-480         	  253238	      1408 ns/op
+BenchmarkR24AB/C-720         	  138952	      2553 ns/op
+BenchmarkR24AB/C-768         	  158378	      2261 ns/op
+BenchmarkR24AB/C-960         	  118084	      3064 ns/op
+BenchmarkR24AB/C-1200        	   76549	      4692 ns/op
+BenchmarkR24AB/C-1728        	   52651	      6835 ns/op
+BenchmarkR24AB/C-3072        	   24914	     14370 ns/op
+BenchmarkR24AB/C-3840        	   22274	     16174 ns/op
+BenchmarkR24AB/C-5184        	   14841	     24258 ns/op
+BenchmarkR24AB/C-15360       	    4035	     88706 ns/op
+BenchmarkR24AB/C-45000       	     914	    392024 ns/op
+BenchmarkR24AB/C-1008        	   54318	      6598 ns/op
+BenchmarkR24AB/C-2100        	   24626	     14592 ns/op
+BenchmarkR24AB/C-20160       	    2150	    167351 ns/op
+BenchmarkR24AB/C-256         	  698268	       509.0 ns/op
+BenchmarkR24AB/C-1024        	  127844	      2796 ns/op
+BenchmarkR24AB/C-4096        	   27220	     13271 ns/op
+BenchmarkR24AB/C-65536       	     756	    474660 ns/op
+BenchmarkR24AB/C-1009        	   19076	     18849 ns/op
+BenchmarkR24AB/C-1201        	   21883	     16307 ns/op
+BenchmarkR24AB/C-10007       	    1045	    341908 ns/op
+BenchmarkR24AB/R-1000        	  162247	      2212 ns/op
+BenchmarkR24AB/R-1920        	   85972	      4163 ns/op
+BenchmarkR24AB/R-2000        	   79788	      4510 ns/op
+BenchmarkR24AB/R-4096        	   38580	      9239 ns/op
+BenchmarkR24AB/2D-100        	    6674	     53756 ns/op
+BenchmarkR24AB/2D-120        	    4834	     74294 ns/op
+BenchmarkR24AB/2D-240        	     811	    440075 ns/op
+PASS
+# round 3 variant main 09:06:50 load 0.88 0.74 0.79
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  104932	      3361 ns/op
+BenchmarkR24AB/C-1000        	  105867	      3355 ns/op
+BenchmarkR24AB/C-1080        	   87477	      4162 ns/op
+BenchmarkR24AB/C-1296        	   55575	      5532 ns/op
+BenchmarkR24AB/C-1920        	   49156	      7375 ns/op
+BenchmarkR24AB/C-2000        	   43540	      8245 ns/op
+BenchmarkR24AB/C-6000        	   12393	     29063 ns/op
+BenchmarkR24AB/C-144         	  822544	       453.4 ns/op
+BenchmarkR24AB/C-240         	  504675	       719.5 ns/op
+BenchmarkR24AB/C-432         	  254047	      1429 ns/op
+BenchmarkR24AB/C-480         	  256524	      1421 ns/op
+BenchmarkR24AB/C-720         	  144129	      2482 ns/op
+BenchmarkR24AB/C-768         	  160707	      2244 ns/op
+BenchmarkR24AB/C-960         	  121186	      2947 ns/op
+BenchmarkR24AB/C-1200        	   77968	      4592 ns/op
+BenchmarkR24AB/C-1728        	   54940	      6591 ns/op
+BenchmarkR24AB/C-3072        	   25748	     13850 ns/op
+BenchmarkR24AB/C-3840        	   21956	     16380 ns/op
+BenchmarkR24AB/C-5184        	   14965	     24008 ns/op
+BenchmarkR24AB/C-15360       	    3984	     87731 ns/op
+BenchmarkR24AB/C-45000       	     927	    387852 ns/op
+BenchmarkR24AB/C-1008        	   56163	      6386 ns/op
+BenchmarkR24AB/C-2100        	   24879	     14214 ns/op
+BenchmarkR24AB/C-20160       	    2191	    163959 ns/op
+BenchmarkR24AB/C-256         	  726973	       490.5 ns/op
+BenchmarkR24AB/C-1024        	  132392	      2779 ns/op
+BenchmarkR24AB/C-4096        	   27511	     13036 ns/op
+BenchmarkR24AB/C-65536       	     764	    467176 ns/op
+BenchmarkR24AB/C-1009        	   19557	     18567 ns/op
+BenchmarkR24AB/C-1201        	   22371	     16079 ns/op
+BenchmarkR24AB/C-10007       	    1078	    332940 ns/op
+BenchmarkR24AB/R-1000        	  164266	      2210 ns/op
+BenchmarkR24AB/R-1920        	   86824	      4131 ns/op
+BenchmarkR24AB/R-2000        	   81388	      4441 ns/op
+BenchmarkR24AB/R-4096        	   39243	      9156 ns/op
+BenchmarkR24AB/2D-100        	    6786	     54475 ns/op
+BenchmarkR24AB/2D-120        	    4807	     74081 ns/op
+BenchmarkR24AB/2D-240        	     817	    433659 ns/op
+PASS
+# round 3 variant br2 09:07:06 load 0.92 0.76 0.79
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  104887	      3395 ns/op
+BenchmarkR24AB/C-1000        	  107810	      3334 ns/op
+BenchmarkR24AB/C-1080        	   87697	      4116 ns/op
+BenchmarkR24AB/C-1296        	   81260	      4353 ns/op
+BenchmarkR24AB/C-1920        	   54588	      6532 ns/op
+BenchmarkR24AB/C-2000        	   49089	      7301 ns/op
+BenchmarkR24AB/C-6000        	   14005	     24808 ns/op
+BenchmarkR24AB/C-144         	 1000000	       301.2 ns/op
+BenchmarkR24AB/C-240         	  604723	       602.0 ns/op
+BenchmarkR24AB/C-432         	  334353	      1073 ns/op
+BenchmarkR24AB/C-480         	  293082	      1225 ns/op
+BenchmarkR24AB/C-720         	  182924	      1945 ns/op
+BenchmarkR24AB/C-768         	  188834	      1963 ns/op
+BenchmarkR24AB/C-960         	  123165	      2909 ns/op
+BenchmarkR24AB/C-1200        	   89572	      4035 ns/op
+BenchmarkR24AB/C-1728        	   69661	      4980 ns/op
+BenchmarkR24AB/C-3072        	   31572	     11513 ns/op
+BenchmarkR24AB/C-3840        	   25414	     13991 ns/op
+BenchmarkR24AB/C-5184        	   18777	     19340 ns/op
+BenchmarkR24AB/C-15360       	    4778	     73478 ns/op
+BenchmarkR24AB/C-45000       	     928	    389536 ns/op
+BenchmarkR24AB/C-1008        	   54836	      6587 ns/op
+BenchmarkR24AB/C-2100        	   24871	     14528 ns/op
+BenchmarkR24AB/C-20160       	    2119	    166198 ns/op
+BenchmarkR24AB/C-256         	  719730	       508.7 ns/op
+BenchmarkR24AB/C-1024        	  130159	      2749 ns/op
+BenchmarkR24AB/C-4096        	   27478	     13171 ns/op
+BenchmarkR24AB/C-65536       	     716	    499180 ns/op
+BenchmarkR24AB/C-1009        	   18871	     18819 ns/op
+BenchmarkR24AB/C-1201        	   24700	     15149 ns/op
+BenchmarkR24AB/C-10007       	    1068	    339558 ns/op
+BenchmarkR24AB/R-1000        	  162264	      2203 ns/op
+BenchmarkR24AB/R-1920        	   90988	      3984 ns/op
+BenchmarkR24AB/R-2000        	   80275	      4449 ns/op
+BenchmarkR24AB/R-4096        	   39889	      9046 ns/op
+BenchmarkR24AB/2D-100        	    6633	     54928 ns/op
+BenchmarkR24AB/2D-120        	    4881	     73589 ns/op
+BenchmarkR24AB/2D-240        	     883	    405366 ns/op
+PASS
+# round 4 variant br2 09:07:22 load 0.94 0.77 0.80
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  107146	      3327 ns/op
+BenchmarkR24AB/C-1000        	  108448	      3310 ns/op
+BenchmarkR24AB/C-1080        	   85754	      4107 ns/op
+BenchmarkR24AB/C-1296        	   82095	      4413 ns/op
+BenchmarkR24AB/C-1920        	   54360	      6460 ns/op
+BenchmarkR24AB/C-2000        	   49274	      7283 ns/op
+BenchmarkR24AB/C-6000        	   14332	     25307 ns/op
+BenchmarkR24AB/C-144         	 1000000	       305.5 ns/op
+BenchmarkR24AB/C-240         	  592227	       606.9 ns/op
+BenchmarkR24AB/C-432         	  334218	      1072 ns/op
+BenchmarkR24AB/C-480         	  296790	      1211 ns/op
+BenchmarkR24AB/C-720         	  181124	      1963 ns/op
+BenchmarkR24AB/C-768         	  187664	      1899 ns/op
+BenchmarkR24AB/C-960         	  127083	      2904 ns/op
+BenchmarkR24AB/C-1200        	   89233	      4031 ns/op
+BenchmarkR24AB/C-1728        	   71262	      5035 ns/op
+BenchmarkR24AB/C-3072        	   31148	     11563 ns/op
+BenchmarkR24AB/C-3840        	   25376	     14278 ns/op
+BenchmarkR24AB/C-5184        	   18914	     19022 ns/op
+BenchmarkR24AB/C-15360       	    4744	     75380 ns/op
+BenchmarkR24AB/C-45000       	     921	    390912 ns/op
+BenchmarkR24AB/C-1008        	   54618	      6582 ns/op
+BenchmarkR24AB/C-2100        	   24800	     14486 ns/op
+BenchmarkR24AB/C-20160       	    2142	    166324 ns/op
+BenchmarkR24AB/C-256         	  706885	       498.3 ns/op
+BenchmarkR24AB/C-1024        	  130338	      2759 ns/op
+BenchmarkR24AB/C-4096        	   27444	     13139 ns/op
+BenchmarkR24AB/C-65536       	     708	    510716 ns/op
+BenchmarkR24AB/C-1009        	   19006	     18863 ns/op
+BenchmarkR24AB/C-1201        	   24621	     14694 ns/op
+BenchmarkR24AB/C-10007       	    1035	    341693 ns/op
+BenchmarkR24AB/R-1000        	  162158	      2215 ns/op
+BenchmarkR24AB/R-1920        	   90067	      3977 ns/op
+BenchmarkR24AB/R-2000        	   80292	      4520 ns/op
+BenchmarkR24AB/R-4096        	   38974	      9234 ns/op
+BenchmarkR24AB/2D-100        	    6512	     55500 ns/op
+BenchmarkR24AB/2D-120        	    4753	     75558 ns/op
+BenchmarkR24AB/2D-240        	     842	    417472 ns/op
+PASS
+# round 4 variant main 09:07:38 load 0.95 0.78 0.80
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  103213	      3477 ns/op
+BenchmarkR24AB/C-1000        	  104949	      3460 ns/op
+BenchmarkR24AB/C-1080        	   83806	      4152 ns/op
+BenchmarkR24AB/C-1296        	   64497	      5554 ns/op
+BenchmarkR24AB/C-1920        	   49506	      7282 ns/op
+BenchmarkR24AB/C-2000        	   43736	      8181 ns/op
+BenchmarkR24AB/C-6000        	   12351	     29102 ns/op
+BenchmarkR24AB/C-144         	  802740	       447.7 ns/op
+BenchmarkR24AB/C-240         	  505164	       716.3 ns/op
+BenchmarkR24AB/C-432         	  251394	      1430 ns/op
+BenchmarkR24AB/C-480         	  252933	      1426 ns/op
+BenchmarkR24AB/C-720         	  140550	      2544 ns/op
+BenchmarkR24AB/C-768         	  157821	      2265 ns/op
+BenchmarkR24AB/C-960         	  119054	      3004 ns/op
+BenchmarkR24AB/C-1200        	   76838	      4662 ns/op
+BenchmarkR24AB/C-1728        	   53829	      6657 ns/op
+BenchmarkR24AB/C-3072        	   25663	     13997 ns/op
+BenchmarkR24AB/C-3840        	   22267	     16180 ns/op
+BenchmarkR24AB/C-5184        	   15042	     23878 ns/op
+BenchmarkR24AB/C-15360       	    4118	     86951 ns/op
+BenchmarkR24AB/C-45000       	     919	    389358 ns/op
+BenchmarkR24AB/C-1008        	   54280	      6600 ns/op
+BenchmarkR24AB/C-2100        	   24838	     14542 ns/op
+BenchmarkR24AB/C-20160       	    2104	    167412 ns/op
+BenchmarkR24AB/C-256         	  708505	       501.9 ns/op
+BenchmarkR24AB/C-1024        	  129279	      2784 ns/op
+BenchmarkR24AB/C-4096        	   27459	     13148 ns/op
+BenchmarkR24AB/C-65536       	     739	    479842 ns/op
+BenchmarkR24AB/C-1009        	   19171	     18771 ns/op
+BenchmarkR24AB/C-1201        	   22215	     16224 ns/op
+BenchmarkR24AB/C-10007       	    1053	    339453 ns/op
+BenchmarkR24AB/R-1000        	  164076	      2203 ns/op
+BenchmarkR24AB/R-1920        	   85826	      4150 ns/op
+BenchmarkR24AB/R-2000        	   80402	      4481 ns/op
+BenchmarkR24AB/R-4096        	   38886	      9199 ns/op
+BenchmarkR24AB/2D-100        	    6721	     53636 ns/op
+BenchmarkR24AB/2D-120        	    4861	     73955 ns/op
+BenchmarkR24AB/2D-240        	     820	    433464 ns/op
+PASS
+# round 5 variant main 09:07:54 load 0.96 0.79 0.81
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  105408	      3352 ns/op
+BenchmarkR24AB/C-1000        	  107014	      3351 ns/op
+BenchmarkR24AB/C-1080        	   87428	      4111 ns/op
+BenchmarkR24AB/C-1296        	   63951	      5570 ns/op
+BenchmarkR24AB/C-1920        	   49705	      7229 ns/op
+BenchmarkR24AB/C-2000        	   43939	      8198 ns/op
+BenchmarkR24AB/C-6000        	   12418	     29002 ns/op
+BenchmarkR24AB/C-144         	  802848	       446.6 ns/op
+BenchmarkR24AB/C-240         	  504229	       714.8 ns/op
+BenchmarkR24AB/C-432         	  250371	      1433 ns/op
+BenchmarkR24AB/C-480         	  256998	      1392 ns/op
+BenchmarkR24AB/C-720         	  139486	      2537 ns/op
+BenchmarkR24AB/C-768         	  158924	      2258 ns/op
+BenchmarkR24AB/C-960         	  119006	      3013 ns/op
+BenchmarkR24AB/C-1200        	   77079	      4665 ns/op
+BenchmarkR24AB/C-1728        	   54060	      6662 ns/op
+BenchmarkR24AB/C-3072        	   25851	     13956 ns/op
+BenchmarkR24AB/C-3840        	   22210	     16189 ns/op
+BenchmarkR24AB/C-5184        	   14805	     23852 ns/op
+BenchmarkR24AB/C-15360       	    4096	     86523 ns/op
+BenchmarkR24AB/C-45000       	     882	    394129 ns/op
+BenchmarkR24AB/C-1008        	   54402	      6583 ns/op
+BenchmarkR24AB/C-2100        	   24595	     14653 ns/op
+BenchmarkR24AB/C-20160       	    2103	    168010 ns/op
+BenchmarkR24AB/C-256         	  713730	       504.1 ns/op
+BenchmarkR24AB/C-1024        	  128865	      2789 ns/op
+BenchmarkR24AB/C-4096        	   27487	     13179 ns/op
+BenchmarkR24AB/C-65536       	     757	    474077 ns/op
+BenchmarkR24AB/C-1009        	   19172	     18755 ns/op
+BenchmarkR24AB/C-1201        	   22059	     16283 ns/op
+BenchmarkR24AB/C-10007       	    1071	    334901 ns/op
+BenchmarkR24AB/R-1000        	  162744	      2212 ns/op
+BenchmarkR24AB/R-1920        	   84500	      4140 ns/op
+BenchmarkR24AB/R-2000        	   80575	      4475 ns/op
+BenchmarkR24AB/R-4096        	   39316	      9089 ns/op
+BenchmarkR24AB/2D-100        	    6278	     53657 ns/op
+BenchmarkR24AB/2D-120        	    4851	     73739 ns/op
+BenchmarkR24AB/2D-240        	     825	    431629 ns/op
+PASS
+# round 5 variant br2 09:08:11 load 0.97 0.81 0.81
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR24AB/0warm         	  105817	      3345 ns/op
+BenchmarkR24AB/C-1000        	  107853	      3335 ns/op
+BenchmarkR24AB/C-1080        	   87753	      4090 ns/op
+BenchmarkR24AB/C-1296        	   82188	      4373 ns/op
+BenchmarkR24AB/C-1920        	   54670	      6637 ns/op
+BenchmarkR24AB/C-2000        	   47152	      7327 ns/op
+BenchmarkR24AB/C-6000        	   14421	     24941 ns/op
+BenchmarkR24AB/C-144         	 1000000	       302.8 ns/op
+BenchmarkR24AB/C-240         	  594573	       607.1 ns/op
+BenchmarkR24AB/C-432         	  332152	      1080 ns/op
+BenchmarkR24AB/C-480         	  292024	      1227 ns/op
+BenchmarkR24AB/C-720         	  183790	      1954 ns/op
+BenchmarkR24AB/C-768         	  183705	      1955 ns/op
+BenchmarkR24AB/C-960         	  124514	      2902 ns/op
+BenchmarkR24AB/C-1200        	   88978	      4014 ns/op
+BenchmarkR24AB/C-1728        	   71226	      5045 ns/op
+BenchmarkR24AB/C-3072        	   31309	     11482 ns/op
+BenchmarkR24AB/C-3840        	   25390	     14161 ns/op
+BenchmarkR24AB/C-5184        	   18877	     19110 ns/op
+BenchmarkR24AB/C-15360       	    4609	     73909 ns/op
+BenchmarkR24AB/C-45000       	     916	    390794 ns/op
+BenchmarkR24AB/C-1008        	   54781	      6558 ns/op
+BenchmarkR24AB/C-2100        	   24798	     14483 ns/op
+BenchmarkR24AB/C-20160       	    2127	    166834 ns/op
+BenchmarkR24AB/C-256         	  724392	       503.8 ns/op
+BenchmarkR24AB/C-1024        	  129928	      2754 ns/op
+BenchmarkR24AB/C-4096        	   27271	     13110 ns/op
+BenchmarkR24AB/C-65536       	     753	    477567 ns/op
+BenchmarkR24AB/C-1009        	   19041	     18778 ns/op
+BenchmarkR24AB/C-1201        	   24478	     14761 ns/op
+BenchmarkR24AB/C-10007       	    1063	    339944 ns/op
+BenchmarkR24AB/R-1000        	  161452	      2240 ns/op
+BenchmarkR24AB/R-1920        	   90087	      3959 ns/op
+BenchmarkR24AB/R-2000        	   78955	      4495 ns/op
+BenchmarkR24AB/R-4096        	   39735	      9232 ns/op
+BenchmarkR24AB/2D-100        	    5961	     54076 ns/op
+BenchmarkR24AB/2D-120        	    4928	     76094 ns/op
+BenchmarkR24AB/2D-240        	     886	    405878 ns/op
+PASS
+# done 09:08:27 load 0.98 0.82 0.82

@@ -12,6 +12,8 @@ var radix16FactorLists = [][]int{
 	{16}, {16, 16}, {2, 16}, {16, 2}, {3, 16}, {16, 3}, {16, 5}, {16, 7},
 	{4, 16, 16}, {16, 4, 16}, {16, 16, 4}, {8, 16}, {16, 8}, {5, 16, 3},
 	{16, 3, 3}, {16, 2, 3}, {16, 16, 2}, {16, 16, 3},
+	// The composites of compRadix16For (Round 24): odd passes, then 16.
+	{3, 3, 3, 3, 16}, {5, 5, 16}, {3, 8, 16}, {5, 8, 16}, {3, 16, 16},
 }
 
 // TestRadix16AgainstNaive holds the radix-16 passes to the O(N²) DFT, forward

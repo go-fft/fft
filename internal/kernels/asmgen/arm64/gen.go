@@ -99,7 +99,7 @@ func main() {
 		for _, r := range []int{2, 3, 4, 5, 8} {
 			genStockhamPass(sk, r, inverse)
 		}
-		for _, r := range []int{2, 3, 4, 5} {
+		for _, r := range []int{2, 3, 4, 5, 8} {
 			genStockhamLast(sk, r, inverse)
 		}
 	}
@@ -110,11 +110,11 @@ func main() {
 	}
 	for _, inverse := range []bool{false, true} {
 		for _, lay := range []splitLayout{{out: true}, {in: true, out: true}} {
-			for _, r := range []int{2, 4, 8} {
+			for _, r := range []int{2, 3, 4, 5, 8} {
 				genStockhamPassSplit(sk, r, inverse, lay)
 			}
 		}
-		for _, r := range []int{2, 4} {
+		for _, r := range []int{2, 4, 8} {
 			genStockhamLastSplit(sk, r, inverse)
 		}
 	}
@@ -531,11 +531,12 @@ func genStockhamPass(f *emit.File, r int, inverse bool) {
 }
 
 // genStockhamLast emits skLast<r>NEON / skLast<r>NEONInv(cc, ch *complex128,
-// l1 int): the radix-r final pass (ido == 1) for an even l1, two blocks per
-// iteration. Block k is the r points cc[r·k .. r·k+r-1]; two blocks are loaded
-// as they lie (VLD1 into V(t), t = lastTemps[r], 2r registers), point j of
-// blocks k and k+1 paired with VZIP1/VZIP2 into V(2j) (real parts) and
-// V(2j+1) (imaginary parts), and output j of both blocks, ch[j·l1+k] and
+// l1 int): the radix-r final pass (ido == 1), two blocks per iteration, and
+// for an odd l1 one block alone at the end (compLastTail). Block k is the r
+// points cc[r·k .. r·k+r-1]; two blocks are loaded as they lie (VLD1 into
+// V(t), t = lastTemps[r], 2r registers; radix 8 in two halves, compLastLoad8),
+// point j of blocks k and k+1 paired with VZIP1/VZIP2 into V(2j) (real parts)
+// and V(2j+1) (imaginary parts), and output j of both blocks, ch[j·l1+k] and
 // ch[j·l1+k+1], is one VST2. No twiddles.
 func genStockhamLast(f *emit.File, r int, inverse bool) {
 	name := fmt.Sprintf("skLast%dNEON", r)
@@ -547,7 +548,7 @@ func genStockhamLast(f *emit.File, r int, inverse bool) {
 		[]arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Int64}, nil, nil,
 	)
 	out := skStreams[r][1]
-	t := map[int]int{2: 20, 3: 10, 4: 20, 5: 10}[r]
+	t := map[int]int{2: 20, 3: 10, 4: 20, 5: 10, 8: 20}[r]
 	b := arm64.NewFunc(name, sig, 0)
 	b.LoadArg("cc", "R0").LoadArg("ch", out[0]).LoadArg("l1", "R4").
 		Raw("LSL $4, R4, R17")
@@ -556,28 +557,90 @@ func genStockhamLast(f *emit.File, r int, inverse bool) {
 	}
 	b.Raw("LSR $1, R4, R5")
 	skConsts(b, r)
+	b.Raw("CBZ R5, tail") // l1 == 1: no pair of blocks
 	b.Label("loop")
-	for v := 0; v < 2*r; {
-		switch {
-		case 2*r-v >= 4:
-			b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
-			v += 4
-		default:
-			b.Raw("VLD1.P 32(R0), [V%d.D2, V%d.D2]", t+v, t+v+1)
-			v += 2
+	if r == 8 {
+		compLastLoad8(b)
+	} else {
+		for v := 0; v < 2*r; {
+			switch {
+			case 2*r-v >= 4:
+				b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
+				v += 4
+			default:
+				b.Raw("VLD1.P 32(R0), [V%d.D2, V%d.D2]", t+v, t+v+1)
+				v += 2
+			}
 		}
-	}
-	for j := 0; j < r; j++ {
-		b.Raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", t+r+j, t+j, 2*j).
-			Raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", t+r+j, t+j, 2*j+1)
+		for j := 0; j < r; j++ {
+			b.Raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", t+r+j, t+j, 2*j).
+				Raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", t+r+j, t+j, 2*j+1)
+		}
 	}
 	bfly(b, r, inverse, func(j, yr, yi int) {
 		b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", yr, yi, out[j])
 	})
 	b.Raw("SUBS $1, R5, R5").
-		Raw("BNE loop").
-		Ret()
+		Raw("BNE loop")
+	compLastTail(b, r, inverse, out)
+	b.Ret()
 	f.Add(b.Func())
+}
+
+// compLastLoad8 loads and pairs two radix-8 blocks for genStockhamLast. The
+// 16 points of blocks k and k+1 would need 16 registers beside the 16 the
+// butterfly reads, and V18 holds √2/2, so they come in halves: block k's
+// points 0-3 into V20-V23 and 4-7 into V24-V27, block k+1's points 0-3 into
+// V28-V31; points 0-3 of both are paired into V0-V7, which frees V20-V23 for
+// block k+1's points 4-7, paired with V24-V27 into V8-V15.
+func compLastLoad8(b *arm64.Builder) {
+	for _, t := range []int{20, 24, 28} {
+		b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t, t+1, t+2, t+3)
+	}
+	for j := 0; j < 4; j++ {
+		b.Raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 28+j, 20+j, 2*j).
+			Raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 28+j, 20+j, 2*j+1)
+	}
+	b.Raw("VLD1.P 64(R0), [V20.D2, V21.D2, V22.D2, V23.D2]")
+	for j := 4; j < 8; j++ {
+		b.Raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 20+j-4, 24+j-4, 2*j).
+			Raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 20+j-4, 24+j-4, 2*j+1)
+	}
+}
+
+// compLastTail emits the end of genStockhamLast's final pass for an odd l1:
+// the last block alone. Its r points are loaded as they lie (VLD1, one
+// complex128 per register) and each is paired with itself, so both lanes of
+// V(2j), V(2j+1) hold point j and run the same arithmetic; lane 0 of every
+// output is stored with FSTPD. The output streams are where the pair loop
+// left them, one point past the last pair.
+func compLastTail(b *arm64.Builder, r int, inverse bool, out []string) {
+	t := 20
+	if r == 3 || r == 5 {
+		t = 10 // V20-V27 hold radix 5's constants and radix 3's scratch
+	}
+	b.Label("tail").Raw("TBZ $0, R4, done")
+	for v := 0; v < r; {
+		switch {
+		case r-v >= 4:
+			b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
+			v += 4
+		case r-v >= 2:
+			b.Raw("VLD1.P 32(R0), [V%d.D2, V%d.D2]", t+v, t+v+1)
+			v += 2
+		default:
+			b.Raw("VLD1.P 16(R0), [V%d.D2]", t+v)
+			v++
+		}
+	}
+	for j := 0; j < r; j++ {
+		b.Raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", t+j, t+j, 2*j).
+			Raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", t+j, t+j, 2*j+1)
+	}
+	bfly(b, r, inverse, func(j, yr, yi int) {
+		b.Raw("FSTPD (F%d, F%d), (%s)", yr, yi, out[j])
+	})
+	b.Label("done")
 }
 
 // genStockhamBatchNEON emits skBatch<r>NEON / skBatch<r>NEONInv(cc, ch, tw
@@ -800,6 +863,9 @@ func genStockhamPassSplit(f *emit.File, r int, inverse bool, lay splitLayout) {
 		Raw("LSL $4, R3, R16"). // one input stream
 		Raw("MUL R5, R16, R17") // one output stream
 	next := map[int]string{2: "ADD R16<<1, R19, R19", 4: "ADD R16<<2, R19, R19", 8: "ADD R16<<3, R19, R19"}[r]
+	if next == "" {
+		next = compSplitBlockStep(b, r)
+	}
 	skConsts(b, r)
 	b.Label("kloop").Raw("MOVD R19, %s", in[0])
 	for j := 1; j < r; j++ {
@@ -855,26 +921,97 @@ func genStockhamLastSplit(f *emit.File, r int, inverse bool) {
 	}
 	b.Raw("LSR $1, R4, R5")
 	skConsts(b, r)
+	b.Raw("CBZ R5, tail") // l1 == 1: no pair of blocks
 	b.Label("loop")
-	for v := 0; v < 2*r; v += 4 {
-		b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
-	}
-	for j := 0; j < r; j++ {
-		qa, qb := j/2, r/2+j/2
-		z := "VZIP1"
-		if j%2 == 1 {
-			z = "VZIP2"
+	if r == 8 {
+		compSplitLoad8(b)
+	} else {
+		for v := 0; v < 2*r; v += 4 {
+			b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
 		}
-		b.Raw("%s V%d.D2, V%d.D2, V%d.D2", z, t+2*qb, t+2*qa, 2*j).
-			Raw("%s V%d.D2, V%d.D2, V%d.D2", z, t+2*qb+1, t+2*qa+1, 2*j+1)
+		for j := 0; j < r; j++ {
+			qa, qb := j/2, r/2+j/2
+			z := "VZIP1"
+			if j%2 == 1 {
+				z = "VZIP2"
+			}
+			b.Raw("%s V%d.D2, V%d.D2, V%d.D2", z, t+2*qb, t+2*qa, 2*j).
+				Raw("%s V%d.D2, V%d.D2, V%d.D2", z, t+2*qb+1, t+2*qa+1, 2*j+1)
+		}
 	}
 	bfly(b, r, inverse, func(j, yr, yi int) {
 		b.Raw("VST2.P [V%d.D2, V%d.D2], 32(%s)", yr, yi, out[j])
 	})
 	b.Raw("SUBS $1, R5, R5").
-		Raw("BNE loop").
-		Ret()
+		Raw("BNE loop")
+	compSplitTail(b, r, inverse, out)
+	b.Ret()
 	f.Add(b.Func())
+}
+
+// compSplitBlockStep emits, for genStockhamPassSplit's radix 3 and 5, R4 =
+// r·ido·16 (one input block) and returns the advance to the next block, as
+// genStockhamPass does for the radices that are not powers of two.
+func compSplitBlockStep(b *arm64.Builder, r int) string {
+	b.Raw("MOVD $%d, R4", r).Raw("MUL R4, R16, R4")
+	return "ADD R4, R19, R19"
+}
+
+// compSplitLoad8 loads and pairs two block-split radix-8 blocks for
+// genStockhamLastSplit, in halves as compLastLoad8 does: block k's pairs 0-3
+// into V20-V27 and block k+1's pairs 0 and 1 into V28-V31, points 0-3 of both
+// paired into V0-V7; then block k+1's pairs 2 and 3 into the freed V20-V23,
+// points 4-7 paired into V8-V15. Point j is lane j%2 of pair j/2.
+func compSplitLoad8(b *arm64.Builder) {
+	for _, t := range []int{20, 24, 28} {
+		b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t, t+1, t+2, t+3)
+	}
+	zip := func(j, a, c int) { // a: block k's pair, c: block k+1's pair
+		z := "VZIP1"
+		if j%2 == 1 {
+			z = "VZIP2"
+		}
+		b.Raw("%s V%d.D2, V%d.D2, V%d.D2", z, c, a, 2*j).
+			Raw("%s V%d.D2, V%d.D2, V%d.D2", z, c+1, a+1, 2*j+1)
+	}
+	for j := 0; j < 4; j++ {
+		zip(j, 20+2*(j/2), 28+2*(j/2))
+	}
+	b.Raw("VLD1.P 64(R0), [V20.D2, V21.D2, V22.D2, V23.D2]")
+	for j := 4; j < 8; j++ {
+		zip(j, 24+2*((j-4)/2), 20+2*((j-4)/2))
+	}
+}
+
+// compSplitTail emits the end of genStockhamLastSplit's final pass for an
+// odd l1: the last block alone, its r/2 pairs loaded as they lie into V20 on,
+// point j (lane j%2 of pair j/2) paired with itself into both lanes of V(2j),
+// V(2j+1), and lane 0 of every output stored with FSTPD, as compLastTail does.
+func compSplitTail(b *arm64.Builder, r int, inverse bool, out []string) {
+	t := 20
+	b.Label("tail").Raw("TBZ $0, R4, done")
+	for v := 0; v < r; {
+		if r-v >= 4 {
+			b.Raw("VLD1.P 64(R0), [V%d.D2, V%d.D2, V%d.D2, V%d.D2]", t+v, t+v+1, t+v+2, t+v+3)
+			v += 4
+		} else {
+			b.Raw("VLD1.P 32(R0), [V%d.D2, V%d.D2]", t+v, t+v+1)
+			v += 2
+		}
+	}
+	for j := 0; j < r; j++ {
+		q := t + 2*(j/2)
+		z := "VZIP1"
+		if j%2 == 1 {
+			z = "VZIP2"
+		}
+		b.Raw("%s V%d.D2, V%d.D2, V%d.D2", z, q, q, 2*j).
+			Raw("%s V%d.D2, V%d.D2, V%d.D2", z, q+1, q+1, 2*j+1)
+	}
+	bfly(b, r, inverse, func(j, yr, yi int) {
+		b.Raw("FSTPD (F%d, F%d), (%s)", yr, yi, out[j])
+	})
+	b.Label("done")
 }
 
 // ---------------------------------------------------------------------------

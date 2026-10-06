@@ -24,7 +24,8 @@ package fft
 var radix16Table = radix16TableDefault()
 
 // cachedPlanNo16 returns the cached plan for length n factored without
-// radix 16. An N-D plan's axes other than the last (its columns, which run as
+// radix 16 or radix 12 (skFactorizeOrder; radix 12 has no batched kernel
+// either, Round 24). An N-D plan's axes other than the last (its columns, which run as
 // batched passes over strips) take it: there a radix-16 pass reads or writes
 // sixteen streams a whole column stride apart. A batched radix-16 kernel was
 // built and timed (Round 19): n×n time with radix-16 columns ÷ without, on
@@ -36,7 +37,7 @@ func cachedPlanNo16(n int) *Plan {
 	defer planMu.Unlock()
 	p, ok := planNo16Cache[n]
 	if !ok {
-		p = &Plan{n: n, sk: newSKPlanFactors(n, skFactorizeOrder(n, oddRadicesFirst))}
+		p = &Plan{n: n, sk: newSKPlanFactors(n, skFactorizeOrder(n, compOddFirst))}
 		planNo16Cache[n] = p
 	}
 	return p

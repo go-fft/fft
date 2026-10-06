@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"slices"
 	"testing"
 
 	"github.com/go-fft/fft/internal/kernels"
@@ -25,7 +26,7 @@ func TestStockhamPassMatchesScalarNEON(t *testing.T) {
 		if !factorsAreSmall(n) {
 			continue
 		}
-		for _, factors := range [][]int{skFactorize(n), pow2Radices4(n)} {
+		for _, factors := range [][]int{skFactorize(n), pow2Radices4(n), compOtherOrder(n)} {
 			if factors == nil {
 				continue
 			}
@@ -50,6 +51,18 @@ func TestStockhamPassMatchesScalarNEON(t *testing.T) {
 			}
 		}
 	}
+}
+
+// compOtherOrder is n's factorization in the radix order this architecture
+// does not take (skFactorizeOrder), so both orders reach the kernels: the
+// odd-first order ends on a radix-2, 4 or 8 final pass over an odd number of
+// blocks. It is nil when the two orders agree.
+func compOtherOrder(n int) []int {
+	f, g := skFactorize(n), skFactorizeOrder(n, !compOddFirst)
+	if slices.Equal(f, g) {
+		return nil
+	}
+	return g
 }
 
 // pow2Radices4 returns the all-radix-4 factorization of a power of four, which
@@ -133,8 +146,8 @@ func neonSameBits(a, b complex128) bool {
 func TestStockhamEachPassMatchesScalarNEON(t *testing.T) {
 	defer func(v bool) { kernels.UseStockhamNEON = v }(kernels.UseStockhamNEON)
 	kernels.UseStockhamNEON = true
-	for _, n := range []int{8, 16, 32, 64, 128, 256, 512, 2048, 4096, 8192, 960, 1000, 1080, 4000, 20160} {
-		for _, factors := range [][]int{skFactorize(n), pow2Radices4(n)} {
+	for _, n := range []int{8, 16, 32, 64, 128, 256, 512, 2048, 4096, 8192, 960, 1000, 1080, 4000, 20160, 15, 45, 75, 120, 135, 375, 1296, 1920, 2000, 6000} {
+		for _, factors := range [][]int{skFactorize(n), pow2Radices4(n), compOtherOrder(n)} {
 			if factors == nil {
 				continue
 			}

@@ -1,0 +1,381 @@
+# round 1 variant main 08:14:01 load 0.24 0.47 0.47
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   48667	      7382 ns/op
+BenchmarkR24AB/C-1000        	   48966	      7359 ns/op
+BenchmarkR24AB/C-1080        	   40752	      8838 ns/op
+BenchmarkR24AB/C-1296        	   30684	     11718 ns/op
+BenchmarkR24AB/C-1920        	   23064	     15179 ns/op
+BenchmarkR24AB/C-2000        	   21116	     17025 ns/op
+BenchmarkR24AB/C-6000        	    5826	     60770 ns/op
+BenchmarkR24AB/C-240         	  236514	      1513 ns/op
+BenchmarkR24AB/C-480         	  115212	      3082 ns/op
+BenchmarkR24AB/C-720         	   65498	      5486 ns/op
+BenchmarkR24AB/C-768         	   73651	      4885 ns/op
+BenchmarkR24AB/C-960         	   54754	      6569 ns/op
+BenchmarkR24AB/C-3072        	   14629	     24616 ns/op
+BenchmarkR24AB/C-3840        	   10000	     32308 ns/op
+BenchmarkR24AB/C-15360       	    2347	    152233 ns/op
+BenchmarkR24AB/C-45000       	     600	    600313 ns/op
+BenchmarkR24AB/C-1008        	   41464	      8597 ns/op
+BenchmarkR24AB/C-2100        	   17594	     20389 ns/op
+BenchmarkR24AB/C-20160       	    1482	    241822 ns/op
+BenchmarkR24AB/C-256         	  320302	      1124 ns/op
+BenchmarkR24AB/C-1024        	   68056	      5326 ns/op
+BenchmarkR24AB/C-4096        	   12901	     27706 ns/op
+BenchmarkR24AB/C-65536       	     499	    725793 ns/op
+BenchmarkR24AB/C-1009        	   16550	     21704 ns/op
+BenchmarkR24AB/C-1201        	   14724	     24433 ns/op
+BenchmarkR24AB/C-10007       	     774	    466171 ns/op
+BenchmarkR24AB/R-1000        	   75608	      4760 ns/op
+BenchmarkR24AB/R-1920        	   40360	      8967 ns/op
+BenchmarkR24AB/R-2000        	   36255	      9961 ns/op
+BenchmarkR24AB/R-4096        	   21098	     17059 ns/op
+BenchmarkR24AB/2D-100        	    3274	    109597 ns/op
+BenchmarkR24AB/2D-120        	    2228	    159490 ns/op
+BenchmarkR24AB/2D-240        	     454	    781281 ns/op
+PASS
+# round 1 variant br1 08:14:16 load 0.41 0.50 0.48
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   58747	      6092 ns/op
+BenchmarkR24AB/C-1000        	   58893	      6071 ns/op
+BenchmarkR24AB/C-1080        	   52243	      6957 ns/op
+BenchmarkR24AB/C-1296        	   40801	      8721 ns/op
+BenchmarkR24AB/C-1920        	   30142	     12008 ns/op
+BenchmarkR24AB/C-2000        	   25944	     13854 ns/op
+BenchmarkR24AB/C-6000        	    7267	     49913 ns/op
+BenchmarkR24AB/C-240         	  281853	      1239 ns/op
+BenchmarkR24AB/C-480         	  143268	      2510 ns/op
+BenchmarkR24AB/C-720         	   82083	      4353 ns/op
+BenchmarkR24AB/C-768         	   93364	      3863 ns/op
+BenchmarkR24AB/C-960         	   66699	      5344 ns/op
+BenchmarkR24AB/C-3072        	   18320	     19608 ns/op
+BenchmarkR24AB/C-3840        	   13602	     26443 ns/op
+BenchmarkR24AB/C-15360       	    2650	    135539 ns/op
+BenchmarkR24AB/C-45000       	     710	    503064 ns/op
+BenchmarkR24AB/C-1008        	   41164	      8662 ns/op
+BenchmarkR24AB/C-2100        	   17598	     20128 ns/op
+BenchmarkR24AB/C-20160       	    1488	    241036 ns/op
+BenchmarkR24AB/C-256         	  319880	      1123 ns/op
+BenchmarkR24AB/C-1024        	   67821	      5381 ns/op
+BenchmarkR24AB/C-4096        	   12759	     28148 ns/op
+BenchmarkR24AB/C-65536       	     477	    740871 ns/op
+BenchmarkR24AB/C-1009        	   16287	     22173 ns/op
+BenchmarkR24AB/C-1201        	   17007	     21129 ns/op
+BenchmarkR24AB/C-10007       	     832	    418876 ns/op
+BenchmarkR24AB/R-1000        	   84805	      4179 ns/op
+BenchmarkR24AB/R-1920        	   46568	      7711 ns/op
+BenchmarkR24AB/R-2000        	   41974	      8654 ns/op
+BenchmarkR24AB/R-4096        	   21146	     16884 ns/op
+BenchmarkR24AB/2D-100        	    3207	    100363 ns/op
+BenchmarkR24AB/2D-120        	    2490	    143563 ns/op
+BenchmarkR24AB/2D-240        	     495	    722218 ns/op
+PASS
+# round 2 variant br1 08:14:31 load 0.54 0.52 0.49
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   59088	      6049 ns/op
+BenchmarkR24AB/C-1000        	   59950	      6044 ns/op
+BenchmarkR24AB/C-1080        	   51736	      6937 ns/op
+BenchmarkR24AB/C-1296        	   40930	      8907 ns/op
+BenchmarkR24AB/C-1920        	   29424	     12063 ns/op
+BenchmarkR24AB/C-2000        	   26070	     13804 ns/op
+BenchmarkR24AB/C-6000        	    7149	     49558 ns/op
+BenchmarkR24AB/C-240         	  281929	      1233 ns/op
+BenchmarkR24AB/C-480         	  145221	      2492 ns/op
+BenchmarkR24AB/C-720         	   83508	      4304 ns/op
+BenchmarkR24AB/C-768         	   93501	      3833 ns/op
+BenchmarkR24AB/C-960         	   67461	      5304 ns/op
+BenchmarkR24AB/C-3072        	   18692	     19421 ns/op
+BenchmarkR24AB/C-3840        	   13774	     26236 ns/op
+BenchmarkR24AB/C-15360       	    2677	    133498 ns/op
+BenchmarkR24AB/C-45000       	     720	    500624 ns/op
+BenchmarkR24AB/C-1008        	   42372	      8470 ns/op
+BenchmarkR24AB/C-2100        	   18156	     19825 ns/op
+BenchmarkR24AB/C-20160       	    1521	    235790 ns/op
+BenchmarkR24AB/C-256         	  322851	      1113 ns/op
+BenchmarkR24AB/C-1024        	   68180	      5303 ns/op
+BenchmarkR24AB/C-4096        	   12816	     28102 ns/op
+BenchmarkR24AB/C-65536       	     487	    728459 ns/op
+BenchmarkR24AB/C-1009        	   16521	     21991 ns/op
+BenchmarkR24AB/C-1201        	   17269	     20942 ns/op
+BenchmarkR24AB/C-10007       	     829	    431756 ns/op
+BenchmarkR24AB/R-1000        	   86007	      4150 ns/op
+BenchmarkR24AB/R-1920        	   46266	      7738 ns/op
+BenchmarkR24AB/R-2000        	   41776	      8575 ns/op
+BenchmarkR24AB/R-4096        	   21618	     16737 ns/op
+BenchmarkR24AB/2D-100        	    3511	    100983 ns/op
+BenchmarkR24AB/2D-120        	    2454	    145818 ns/op
+BenchmarkR24AB/2D-240        	     486	    725021 ns/op
+PASS
+# round 2 variant main 08:14:46 load 0.64 0.55 0.50
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   48523	      7399 ns/op
+BenchmarkR24AB/C-1000        	   48668	      7386 ns/op
+BenchmarkR24AB/C-1080        	   40567	      8806 ns/op
+BenchmarkR24AB/C-1296        	   31053	     11740 ns/op
+BenchmarkR24AB/C-1920        	   23679	     15124 ns/op
+BenchmarkR24AB/C-2000        	   21394	     16883 ns/op
+BenchmarkR24AB/C-6000        	    5887	     60937 ns/op
+BenchmarkR24AB/C-240         	  239622	      1501 ns/op
+BenchmarkR24AB/C-480         	  117492	      3075 ns/op
+BenchmarkR24AB/C-720         	   65791	      5456 ns/op
+BenchmarkR24AB/C-768         	   74394	      4879 ns/op
+BenchmarkR24AB/C-960         	   54944	      6558 ns/op
+BenchmarkR24AB/C-3072        	   14726	     24508 ns/op
+BenchmarkR24AB/C-3840        	   10000	     32056 ns/op
+BenchmarkR24AB/C-15360       	    2330	    154156 ns/op
+BenchmarkR24AB/C-45000       	     585	    612893 ns/op
+BenchmarkR24AB/C-1008        	   41300	      8608 ns/op
+BenchmarkR24AB/C-2100        	   17544	     20482 ns/op
+BenchmarkR24AB/C-20160       	    1478	    242738 ns/op
+BenchmarkR24AB/C-256         	  322028	      1122 ns/op
+BenchmarkR24AB/C-1024        	   67971	      5336 ns/op
+BenchmarkR24AB/C-4096        	   12939	     27996 ns/op
+BenchmarkR24AB/C-65536       	     486	    736045 ns/op
+BenchmarkR24AB/C-1009        	   16560	     21688 ns/op
+BenchmarkR24AB/C-1201        	   14583	     24538 ns/op
+BenchmarkR24AB/C-10007       	     763	    479828 ns/op
+BenchmarkR24AB/R-1000        	   75177	      4770 ns/op
+BenchmarkR24AB/R-1920        	   40386	      8943 ns/op
+BenchmarkR24AB/R-2000        	   36205	      9919 ns/op
+BenchmarkR24AB/R-4096        	   21584	     16723 ns/op
+BenchmarkR24AB/2D-100        	    3236	    108618 ns/op
+BenchmarkR24AB/2D-120        	    2308	    155416 ns/op
+BenchmarkR24AB/2D-240        	     471	    761559 ns/op
+PASS
+# round 3 variant main 08:15:01 load 0.72 0.57 0.51
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   49021	      7307 ns/op
+BenchmarkR24AB/C-1000        	   49095	      7326 ns/op
+BenchmarkR24AB/C-1080        	   41232	      8716 ns/op
+BenchmarkR24AB/C-1296        	   30994	     11611 ns/op
+BenchmarkR24AB/C-1920        	   23904	     15196 ns/op
+BenchmarkR24AB/C-2000        	   21421	     16867 ns/op
+BenchmarkR24AB/C-6000        	    5922	     60798 ns/op
+BenchmarkR24AB/C-240         	  237064	      1510 ns/op
+BenchmarkR24AB/C-480         	  116258	      3068 ns/op
+BenchmarkR24AB/C-720         	   65372	      5473 ns/op
+BenchmarkR24AB/C-768         	   73318	      4894 ns/op
+BenchmarkR24AB/C-960         	   54424	      6557 ns/op
+BenchmarkR24AB/C-3072        	   14506	     24615 ns/op
+BenchmarkR24AB/C-3840        	   10000	     32432 ns/op
+BenchmarkR24AB/C-15360       	    2308	    155281 ns/op
+BenchmarkR24AB/C-45000       	     595	    607109 ns/op
+BenchmarkR24AB/C-1008        	   41173	      8666 ns/op
+BenchmarkR24AB/C-2100        	   17614	     20890 ns/op
+BenchmarkR24AB/C-20160       	    1428	    246422 ns/op
+BenchmarkR24AB/C-256         	  312946	      1140 ns/op
+BenchmarkR24AB/C-1024        	   68583	      5270 ns/op
+BenchmarkR24AB/C-4096        	   12956	     28205 ns/op
+BenchmarkR24AB/C-65536       	     475	    744894 ns/op
+BenchmarkR24AB/C-1009        	   16162	     22110 ns/op
+BenchmarkR24AB/C-1201        	   14352	     24739 ns/op
+BenchmarkR24AB/C-10007       	     741	    482726 ns/op
+BenchmarkR24AB/R-1000        	   73680	      4770 ns/op
+BenchmarkR24AB/R-1920        	   40431	      8878 ns/op
+BenchmarkR24AB/R-2000        	   36670	      9824 ns/op
+BenchmarkR24AB/R-4096        	   21516	     16738 ns/op
+BenchmarkR24AB/2D-100        	    3205	    109191 ns/op
+BenchmarkR24AB/2D-120        	    2272	    157554 ns/op
+BenchmarkR24AB/2D-240        	     465	    778609 ns/op
+PASS
+# round 3 variant br1 08:15:16 load 1.09 0.66 0.54
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   59203	      6020 ns/op
+BenchmarkR24AB/C-1000        	   60044	      6012 ns/op
+BenchmarkR24AB/C-1080        	   52032	      6939 ns/op
+BenchmarkR24AB/C-1296        	   40820	      8692 ns/op
+BenchmarkR24AB/C-1920        	   29102	     12103 ns/op
+BenchmarkR24AB/C-2000        	   26049	     13748 ns/op
+BenchmarkR24AB/C-6000        	    7045	     50345 ns/op
+BenchmarkR24AB/C-240         	  286526	      1235 ns/op
+BenchmarkR24AB/C-480         	  140644	      2518 ns/op
+BenchmarkR24AB/C-720         	   82864	      4335 ns/op
+BenchmarkR24AB/C-768         	   92862	      3862 ns/op
+BenchmarkR24AB/C-960         	   67848	      5352 ns/op
+BenchmarkR24AB/C-3072        	   18416	     19452 ns/op
+BenchmarkR24AB/C-3840        	   13855	     26176 ns/op
+BenchmarkR24AB/C-15360       	    2841	    125654 ns/op
+BenchmarkR24AB/C-45000       	     732	    499874 ns/op
+BenchmarkR24AB/C-1008        	   41292	      8608 ns/op
+BenchmarkR24AB/C-2100        	   17722	     20210 ns/op
+BenchmarkR24AB/C-20160       	    1472	    244270 ns/op
+BenchmarkR24AB/C-256         	  309714	      1149 ns/op
+BenchmarkR24AB/C-1024        	   67096	      5396 ns/op
+BenchmarkR24AB/C-4096        	   12927	     27654 ns/op
+BenchmarkR24AB/C-65536       	     481	    742895 ns/op
+BenchmarkR24AB/C-1009        	   16027	     21572 ns/op
+BenchmarkR24AB/C-1201        	   17412	     20662 ns/op
+BenchmarkR24AB/C-10007       	     872	    411645 ns/op
+BenchmarkR24AB/R-1000        	   87464	      4109 ns/op
+BenchmarkR24AB/R-1920        	   46562	      7576 ns/op
+BenchmarkR24AB/R-2000        	   42451	      8464 ns/op
+BenchmarkR24AB/R-4096        	   21753	     16533 ns/op
+BenchmarkR24AB/2D-100        	    3582	     99931 ns/op
+BenchmarkR24AB/2D-120        	    2520	    142865 ns/op
+BenchmarkR24AB/2D-240        	     502	    712276 ns/op
+PASS
+# round 4 variant br1 08:15:31 load 1.07 0.67 0.55
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   59498	      6006 ns/op
+BenchmarkR24AB/C-1000        	   59917	      5987 ns/op
+BenchmarkR24AB/C-1080        	   52534	      6848 ns/op
+BenchmarkR24AB/C-1296        	   41540	      8638 ns/op
+BenchmarkR24AB/C-1920        	   30261	     11930 ns/op
+BenchmarkR24AB/C-2000        	   26505	     13561 ns/op
+BenchmarkR24AB/C-6000        	    7324	     48857 ns/op
+BenchmarkR24AB/C-240         	  295574	      1216 ns/op
+BenchmarkR24AB/C-480         	  144585	      2474 ns/op
+BenchmarkR24AB/C-720         	   83890	      4286 ns/op
+BenchmarkR24AB/C-768         	   93841	      3823 ns/op
+BenchmarkR24AB/C-960         	   68598	      5235 ns/op
+BenchmarkR24AB/C-3072        	   18366	     19380 ns/op
+BenchmarkR24AB/C-3840        	   13884	     26069 ns/op
+BenchmarkR24AB/C-15360       	    2785	    129264 ns/op
+BenchmarkR24AB/C-45000       	     717	    501386 ns/op
+BenchmarkR24AB/C-1008        	   42249	      8503 ns/op
+BenchmarkR24AB/C-2100        	   18168	     19839 ns/op
+BenchmarkR24AB/C-20160       	    1518	    237747 ns/op
+BenchmarkR24AB/C-256         	  311697	      1124 ns/op
+BenchmarkR24AB/C-1024        	   67647	      5350 ns/op
+BenchmarkR24AB/C-4096        	   12920	     27656 ns/op
+BenchmarkR24AB/C-65536       	     500	    730774 ns/op
+BenchmarkR24AB/C-1009        	   16623	     21701 ns/op
+BenchmarkR24AB/C-1201        	   17220	     20978 ns/op
+BenchmarkR24AB/C-10007       	     825	    432514 ns/op
+BenchmarkR24AB/R-1000        	   85162	      4200 ns/op
+BenchmarkR24AB/R-1920        	   46629	      7691 ns/op
+BenchmarkR24AB/R-2000        	   41862	      8550 ns/op
+BenchmarkR24AB/R-4096        	   21476	     16775 ns/op
+BenchmarkR24AB/2D-100        	    3537	    101428 ns/op
+BenchmarkR24AB/2D-120        	    2446	    144425 ns/op
+BenchmarkR24AB/2D-240        	     510	    721095 ns/op
+PASS
+# round 4 variant main 08:15:46 load 1.06 0.69 0.55
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   48658	      7364 ns/op
+BenchmarkR24AB/C-1000        	   48715	      7284 ns/op
+BenchmarkR24AB/C-1080        	   41062	      8720 ns/op
+BenchmarkR24AB/C-1296        	   31060	     11652 ns/op
+BenchmarkR24AB/C-1920        	   23644	     15388 ns/op
+BenchmarkR24AB/C-2000        	   21475	     16775 ns/op
+BenchmarkR24AB/C-6000        	    5974	     59925 ns/op
+BenchmarkR24AB/C-240         	  237565	      1521 ns/op
+BenchmarkR24AB/C-480         	  115197	      3065 ns/op
+BenchmarkR24AB/C-720         	   66163	      5499 ns/op
+BenchmarkR24AB/C-768         	   73736	      4825 ns/op
+BenchmarkR24AB/C-960         	   55407	      6534 ns/op
+BenchmarkR24AB/C-3072        	   14671	     24624 ns/op
+BenchmarkR24AB/C-3840        	   10000	     32442 ns/op
+BenchmarkR24AB/C-15360       	    2392	    152588 ns/op
+BenchmarkR24AB/C-45000       	     597	    598588 ns/op
+BenchmarkR24AB/C-1008        	   41559	      8601 ns/op
+BenchmarkR24AB/C-2100        	   17572	     20505 ns/op
+BenchmarkR24AB/C-20160       	    1473	    242503 ns/op
+BenchmarkR24AB/C-256         	  322020	      1129 ns/op
+BenchmarkR24AB/C-1024        	   67750	      5290 ns/op
+BenchmarkR24AB/C-4096        	   13004	     27618 ns/op
+BenchmarkR24AB/C-65536       	     499	    720869 ns/op
+BenchmarkR24AB/C-1009        	   16713	     21757 ns/op
+BenchmarkR24AB/C-1201        	   14724	     24687 ns/op
+BenchmarkR24AB/C-10007       	     729	    481594 ns/op
+BenchmarkR24AB/R-1000        	   75913	      4723 ns/op
+BenchmarkR24AB/R-1920        	   40465	      8884 ns/op
+BenchmarkR24AB/R-2000        	   36747	      9781 ns/op
+BenchmarkR24AB/R-4096        	   21373	     16901 ns/op
+BenchmarkR24AB/2D-100        	    3261	    109417 ns/op
+BenchmarkR24AB/2D-120        	    2254	    157717 ns/op
+BenchmarkR24AB/2D-240        	     471	    762847 ns/op
+PASS
+# round 5 variant main 08:16:01 load 1.12 0.72 0.57
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   49100	      7318 ns/op
+BenchmarkR24AB/C-1000        	   48699	      7434 ns/op
+BenchmarkR24AB/C-1080        	   40017	      8886 ns/op
+BenchmarkR24AB/C-1296        	   30612	     11748 ns/op
+BenchmarkR24AB/C-1920        	   23805	     15200 ns/op
+BenchmarkR24AB/C-2000        	   21117	     17009 ns/op
+BenchmarkR24AB/C-6000        	    5911	     60925 ns/op
+BenchmarkR24AB/C-240         	  232111	      1520 ns/op
+BenchmarkR24AB/C-480         	  117505	      3086 ns/op
+BenchmarkR24AB/C-720         	   65336	      5511 ns/op
+BenchmarkR24AB/C-768         	   73180	      4901 ns/op
+BenchmarkR24AB/C-960         	   55262	      6516 ns/op
+BenchmarkR24AB/C-3072        	   14619	     24611 ns/op
+BenchmarkR24AB/C-3840        	   10000	     32044 ns/op
+BenchmarkR24AB/C-15360       	    2353	    152866 ns/op
+BenchmarkR24AB/C-45000       	     603	    595827 ns/op
+BenchmarkR24AB/C-1008        	   42025	      8509 ns/op
+BenchmarkR24AB/C-2100        	   17784	     20223 ns/op
+BenchmarkR24AB/C-20160       	    1504	    238553 ns/op
+BenchmarkR24AB/C-256         	  320182	      1112 ns/op
+BenchmarkR24AB/C-1024        	   68461	      5293 ns/op
+BenchmarkR24AB/C-4096        	   13028	     27652 ns/op
+BenchmarkR24AB/C-65536       	     494	    728195 ns/op
+BenchmarkR24AB/C-1009        	   16462	     21825 ns/op
+BenchmarkR24AB/C-1201        	   14598	     24686 ns/op
+BenchmarkR24AB/C-10007       	     741	    486515 ns/op
+BenchmarkR24AB/R-1000        	   74673	      4775 ns/op
+BenchmarkR24AB/R-1920        	   39847	      9021 ns/op
+BenchmarkR24AB/R-2000        	   36376	      9859 ns/op
+BenchmarkR24AB/R-4096        	   21102	     16908 ns/op
+BenchmarkR24AB/2D-100        	    3276	    109693 ns/op
+BenchmarkR24AB/2D-120        	    2259	    160838 ns/op
+BenchmarkR24AB/2D-240        	     450	    780328 ns/op
+PASS
+# round 5 variant br1 08:16:15 load 1.10 0.74 0.57
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR24AB/0warm         	   59595	      6073 ns/op
+BenchmarkR24AB/C-1000        	   59114	      6048 ns/op
+BenchmarkR24AB/C-1080        	   52408	      6875 ns/op
+BenchmarkR24AB/C-1296        	   41272	      8721 ns/op
+BenchmarkR24AB/C-1920        	   30034	     12115 ns/op
+BenchmarkR24AB/C-2000        	   25752	     13641 ns/op
+BenchmarkR24AB/C-6000        	    7315	     49032 ns/op
+BenchmarkR24AB/C-240         	  293905	      1248 ns/op
+BenchmarkR24AB/C-480         	  140986	      2501 ns/op
+BenchmarkR24AB/C-720         	   81938	      4381 ns/op
+BenchmarkR24AB/C-768         	   94698	      3859 ns/op
+BenchmarkR24AB/C-960         	   68524	      5233 ns/op
+BenchmarkR24AB/C-3072        	   18882	     19528 ns/op
+BenchmarkR24AB/C-3840        	   13600	     25953 ns/op
+BenchmarkR24AB/C-15360       	    2670	    136219 ns/op
+BenchmarkR24AB/C-45000       	     693	    514552 ns/op
+BenchmarkR24AB/C-1008        	   41788	      8607 ns/op
+BenchmarkR24AB/C-2100        	   18079	     19988 ns/op
+BenchmarkR24AB/C-20160       	    1484	    243000 ns/op
+BenchmarkR24AB/C-256         	  317499	      1124 ns/op
+BenchmarkR24AB/C-1024        	   67724	      5313 ns/op
+BenchmarkR24AB/C-4096        	   12889	     27668 ns/op
+BenchmarkR24AB/C-65536       	     498	    722170 ns/op
+BenchmarkR24AB/C-1009        	   16639	     22018 ns/op
+BenchmarkR24AB/C-1201        	   17194	     20915 ns/op
+BenchmarkR24AB/C-10007       	     822	    439819 ns/op
+BenchmarkR24AB/R-1000        	   86302	      4200 ns/op
+BenchmarkR24AB/R-1920        	   45700	      7622 ns/op
+BenchmarkR24AB/R-2000        	   42463	      8467 ns/op
+BenchmarkR24AB/R-4096        	   21763	     16576 ns/op
+BenchmarkR24AB/2D-100        	    3548	    100831 ns/op
+BenchmarkR24AB/2D-120        	    2422	    149532 ns/op
+BenchmarkR24AB/2D-240        	     454	    745592 ns/op
+PASS
+# done 08:16:30 load 1.07 0.75 0.58
