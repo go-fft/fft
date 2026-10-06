@@ -50,3 +50,16 @@ func TestCompRadix16For(t *testing.T) {
 		}
 	}
 }
+
+// TestCompFactorize takes skFactorize through both routes of compRadix16On.
+func TestCompFactorize(t *testing.T) {
+	defer func(v bool) { compRadix16On = v }(compRadix16On)
+	compRadix16On = true
+	if got := skFactorize(1296); !slices.Equal(got, []int{3, 3, 3, 3, 16}) {
+		t.Errorf("skFactorize(1296) with radix-16 tails = %v", got)
+	}
+	compRadix16On = false
+	if got, want := skFactorize(1296), skFactorizeOrder(1296, compOddFirst); !slices.Equal(got, want) {
+		t.Errorf("skFactorize(1296) without = %v, want %v", got, want)
+	}
+}

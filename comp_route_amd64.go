@@ -6,9 +6,20 @@ import "github.com/go-fft/fft/internal/kernels"
 // AVX2 kernels).
 func compOddFirstDefault() bool { return oddRadicesFirstDefault() }
 
+// compRadix16On enables compRadix16For: the AVX2 kernels on Intel. A
+// variable so the tests can take both routes on any machine.
+var compRadix16On = kernels.UseStockhamAVX2 && kernels.IntelCPU
+
 // compRadix16 is compRadix16For on this machine.
-func compRadix16(n int) []int {
-	return compRadix16For(n, kernels.UseStockhamAVX2 && kernels.IntelCPU)
+func compRadix16(n int) []int { return compRadix16For(n, compRadix16On) }
+
+// compFactorize is skFactorize past radix16Table: a composite's radix-16
+// tail, or skFactorizeOrder's factorization.
+func compFactorize(n int) []int {
+	if f := compRadix16(n); f != nil {
+		return f
+	}
+	return skFactorizeOrder(n, compOddFirst)
 }
 
 // compRadix16For gives the factorization of a composite n = 2^e·3^a·5^b (a+b

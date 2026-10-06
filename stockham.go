@@ -150,10 +150,7 @@ func skFactorize(n int) []int {
 	if f := radix16Table[n]; f != nil {
 		return slices.Clone(f)
 	}
-	if f := compRadix16(n); f != nil {
-		return f
-	}
-	return skFactorizeOrder(n, compOddFirst)
+	return compFactorize(n)
 }
 
 // compOddFirst selects skFactorize's radix order for complex128 plans; it is
