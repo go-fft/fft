@@ -16,4 +16,4 @@ The measurements behind Round 25 of BENCHMARKS.md.
   - `parts.py` and `fan.py` summarize the branch-only benchmarks.
   - `mutate_*.py` rewrite one instruction of a generated `.s`. On amd64 they build a mutant test binary per mutation; on arm64 they run the tests in place. The arm64 untangle mutations (8 of 8 caught) and batch mutations (6 of 6 caught) ran on the Apple M4 Max; their output is in BENCHMARKS.md.
   - `macab.sh` is the load-gated M4 A/B. It never started a round: the 1-minute load stayed above 3.
-  - The scripts name this session's scratch directories; set them to your own clone.
+  - The Python scripts read `R25ROOT`, a directory holding the clone (`fft/`), the binaries (`bin*/`) and a Go build cache (`gocache/`).

@@ -1,5 +1,6 @@
+import os
 import sys,subprocess,shutil
-orig=open('/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/agent3-f32/u32arm.s.orig').read()
+orig=open(os.environ['R25ROOT']+'/u32arm.s.orig').read()
 tgt='internal/kernels/untangle32_arm64.s'
 split=orig.index('TEXT ·f32rRetangleNEON')
 U,R=orig[:split],orig[split:]

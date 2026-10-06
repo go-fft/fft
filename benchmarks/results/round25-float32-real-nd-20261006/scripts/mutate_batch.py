@@ -2,7 +2,7 @@
 # function, replacement). mode "build-amd64" builds a mutant test binary per
 # mutation; mode "run-arm64" runs the strip/batch tests locally.
 import subprocess,sys,os
-S='/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/agent3-f32'
+S=os.environ['R25ROOT']  # holds fft/ (the clone), bin*/ and gocache/
 mode=sys.argv[1]
 A='internal/kernels/batch32_amd64.s'; N='internal/kernels/batch32_arm64.s'
 muts={'amd64':[

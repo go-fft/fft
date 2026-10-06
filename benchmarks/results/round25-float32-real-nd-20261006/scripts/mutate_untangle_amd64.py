@@ -1,5 +1,5 @@
 import subprocess,os
-S='/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/agent3-f32'
+S=os.environ['R25ROOT']  # holds fft/ (the clone), bin*/ and gocache/
 tgt='internal/kernels/untangle32_amd64.s'
 orig=open(tgt).read()
 split=orig.index('TEXT ·f32rRetangleAVX2')
