@@ -221,12 +221,13 @@ func TestBatchTwiddles32Layout(t *testing.T) {
 }
 
 // TestStrips32Fit: the strip path needs a Stockham plan of two or more
-// batched passes.
+// batched passes (5 is one pass everywhere; 8 is one radix-8 pass on amd64
+// and arm64 but [2, 4] on riscv64, so it is no fixed case).
 func TestStrips32Fit(t *testing.T) {
 	for _, c := range []struct {
 		n    int
 		want bool
-	}{{64, true}, {40, true}, {8, false}, {14, false}, {1009, false}, {10007, false}} {
+	}{{64, true}, {40, true}, {5, false}, {14, false}, {1009, false}, {10007, false}} {
 		if got := f32rStripsFit(NewPlan32(c.n)); got != c.want {
 			t.Errorf("n=%d: fit %v, want %v", c.n, got, c.want)
 		}
