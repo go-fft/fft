@@ -13,6 +13,11 @@ import "github.com/go-fft/fft/internal/kernels"
 // on amd64, NEON on arm64), and a variable so the tests run both paths.
 var stripAxes32 = kernels.StockhamBatchKernels32()
 
+// stripWidth32 is how many neighbouring lines one float32 strip of an axis of
+// length n holds: PlanN's rule (stripWidth) unless Round 25's sweep says
+// otherwise; a variable so the benchmarks can sweep it.
+var stripWidth32 = stripWidth
+
 // f32rStripsFit reports whether a float32 axis plan can run as batched
 // passes: a Stockham plan of at least two passes (the first reads the array,
 // the last writes it), every one of a radix with a batched pass.
@@ -99,7 +104,7 @@ func f32rBflyR(y, x *[8]complex64, r int, s float32) {
 
 // stripLines transforms strips lo..hi-1 of the non-contiguous axis ax as
 // batched passes, as PlanN.stripLines does: strip s covers up to
-// stripWidth(n) neighbouring lines of one run along the axes after ax; its
+// stripWidth32(n) neighbouring lines of one run along the axes after ax; its
 // first pass reads them where they lie in src, the passes between ping-pong
 // in private scratch, and its last pass writes them into dst.
 func (p *PlanN32) stripLines(dst, src []complex64, ax, lo, hi int, inverse bool) {
@@ -109,7 +114,7 @@ func (p *PlanN32) stripLines(dst, src []complex64, ax, lo, hi int, inverse bool)
 	if inverse {
 		dir = 1
 	}
-	sw := stripWidth(n)
+	sw := stripWidth32(n)
 	per := (st + sw - 1) / sw
 	bp := p.bufs.Get().(*[]complex64)
 	a, b := (*bp)[:n*sw], (*bp)[n*sw:2*n*sw]

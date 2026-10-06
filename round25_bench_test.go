@@ -70,7 +70,7 @@ func BenchmarkR25Parts2D32(b *testing.B) {
 			}
 		})
 		if p32.strips[0] != nil {
-			strips := (n + stripWidth(n) - 1) / stripWidth(n)
+			strips := (n + stripWidth32(n) - 1) / stripWidth32(n)
 			b.Run(name+"/f32-strips", func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p32.stripLines(d32, d32, 0, 0, strips, false)
@@ -93,6 +93,28 @@ func BenchmarkR25Parts2D32(b *testing.B) {
 			b.Run(name+"/f64-strips", func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p64.stripLines(d64, d64, 0, 0, strips, false)
+				}
+			})
+		}
+	}
+}
+
+// BenchmarkR25StripWidth32 times the columns of an n×n float32 plan as strips
+// of w lines, for several w, on one goroutine.
+func BenchmarkR25StripWidth32(b *testing.B) {
+	defer func(f func(int) int) { stripWidth32 = f }(stripWidth32)
+	for _, n := range []int{64, 128, 256, 512, 1024} {
+		d := make([]complex64, n*n)
+		for i, v := range benchComplex(n * n) {
+			d[i] = complex64(v)
+		}
+		for _, w := range []int{4, 8, 16, 32, 64} {
+			stripWidth32 = func(int) int { return w }
+			p := withStrips32(true, n, n)
+			strips := (n + w - 1) / w
+			b.Run(strconv.Itoa(n)+"/w"+strconv.Itoa(w), func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					p.stripLines(d, d, 0, 0, strips, false)
 				}
 			})
 		}

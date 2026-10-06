@@ -205,3 +205,52 @@ func TestStrips32Fit(t *testing.T) {
 		}
 	}
 }
+
+// TestBatchPass32MatchesGo runs every float32 batched pass of a set of radix
+// orders (each radix first, in the middle and last, so with ido > 1 and
+// ido == 1) on the batched kernel and on the Go batched pass, over batches of
+// 1 to 9 lines with input and output strides wider than the batch. On amd64
+// gc does not fuse and the two agree bit for bit; on arm64 the Go batched pass
+// may fuse otherwise than the kernel (which copies the 1-D passes, the
+// strips test holds it to them bit for bit), so there they agree to rounding.
+func TestBatchPass32MatchesGo(t *testing.T) {
+	if !kernels.UseStockhamBatch32 {
+		t.Skip("no float32 batched kernels on this CPU")
+	}
+	defer func(v bool) { kernels.UseStockhamBatch32 = v }(kernels.UseStockhamBatch32)
+	exact := runtime.GOARCH != "arm64"
+	for _, f := range [][]int{{2, 4}, {4, 2}, {2, 2, 2}, {3, 2, 3}, {2, 3}, {4, 4}, {5, 4}, {4, 5}, {8, 3}, {3, 8}, {2, 5, 2}, {8, 8}} {
+		n := 1
+		for _, r := range f {
+			n *= r
+		}
+		p := newSKPlan32Factors(n, f)
+		for k := range p.stages {
+			st := &p.stages[k]
+			for _, inverse := range []bool{false, true} {
+				fw, cj := st.batchTwiddles()
+				tw := fw
+				if inverse {
+					tw = cj
+				}
+				for w := 1; w <= 9; w++ {
+					sIn, sOut := w+2, w+3
+					cc := f32simdSignals(n * sIn)[w%8]
+					var got [2][]complex64
+					for i, on := range []bool{false, true} {
+						kernels.UseStockhamBatch32 = on
+						got[i] = make([]complex64, n*sOut)
+						st.passBatch(got[i], cc, tw, w, sIn, sOut, inverse)
+					}
+					scale := f32rMaxPart(got[0])
+					for i := range got[0] {
+						if !f32rAgree(got[1][i], got[0][i], scale, exact) {
+							t.Fatalf("factors %v stage %d (r=%d ido=%d) inverse=%v w=%d index %d: kernel %v, Go %v",
+								f, k, st.r, st.ido, inverse, w, i, got[1][i], got[0][i])
+						}
+					}
+				}
+			}
+		}
+	}
+}

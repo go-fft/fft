@@ -72,7 +72,7 @@ func f32ndNewPlanN(shape, axes []int) *PlanN32 {
 			for k := range sts {
 				p.strips[ax][k][0], p.strips[ax][k][1] = sts[k].batchTwiddles()
 			}
-			bl = max(bl, 2*n*stripWidth(n))
+			bl = max(bl, 2*n*stripWidth32(n))
 		}
 	}
 	p.bufs.New = func() any { b := make([]complex64, bl); return &b }
@@ -157,7 +157,7 @@ func (p *PlanN32) transformAxis(dst, src []complex64, ax int, inverse bool) {
 		return
 	}
 	if p.strips[ax] != nil {
-		st, sw := p.stride[ax], stripWidth(n)
+		st, sw := p.stride[ax], stripWidth32(n)
 		strips := p.size / (n * st) * ((st + sw - 1) / sw)
 		if par {
 			parChunks(strips, sw*n, func(lo, hi int) { p.stripLines(dst, src, ax, lo, hi, inverse) })
