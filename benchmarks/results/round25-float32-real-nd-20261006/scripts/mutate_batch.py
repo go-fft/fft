@@ -34,7 +34,7 @@ for i,(f,sym,pat,nth,rep) in enumerate(muts,1):
     open(f,'w').write(orig[:start]+body+orig[end:])
     try:
         if mode=='amd64':
-            subprocess.run(['go','test','-c','-ldflags=-s -w','-o',f'{S}/bin3/ftBM{i}.amd64','.'],check=True,env=env)
+            subprocess.run(['go','test','-c','-ldflags=-s -w','-o',f'{S}/bin5/ftBM{i}.amd64','.'],check=True,env=env)
             print(i,sym,pat,'->',rep or '(removed)')
         else:
             r=subprocess.run(['go','test','-count=1','-run','Strips32|BatchPass32','.'],capture_output=True,text=True,env=env)
