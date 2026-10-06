@@ -120,3 +120,31 @@ func BenchmarkR25StripWidth32(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkR25Fanout32 times n×n float32 plans (strips on where they run)
+// with the shared fan-out rule ("rule": parallelizeLines, parMinChunk) and
+// on one goroutine ("serial"), on all GOMAXPROCS cores.
+func BenchmarkR25Fanout32(b *testing.B) {
+	defer func(v int) { parMinChunk = v }(parMinChunk)
+	def := parMinChunk
+	for _, n := range []int{64, 96, 128, 160, 192, 224, 256, 512} {
+		p := NewPlanN32(n, n)
+		src := make([]complex64, n*n)
+		for i, v := range benchComplex(n * n) {
+			src[i] = complex64(v)
+		}
+		dst := make([]complex64, n*n)
+		for _, m := range []int{def, 1 << 40} {
+			name := "rule"
+			if m == 1<<40 {
+				name = "serial"
+			}
+			b.Run(strconv.Itoa(n)+"/"+name, func(b *testing.B) {
+				parMinChunk = m
+				for i := 0; i < b.N; i++ {
+					p.FFT(dst, src)
+				}
+			})
+		}
+	}
+}

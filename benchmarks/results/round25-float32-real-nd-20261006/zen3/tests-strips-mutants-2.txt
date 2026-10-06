@@ -1,0 +1,18 @@
+== ftB2 targeted
+--- PASS: TestStrips32MatchLines (0.22s)
+--- PASS: TestStrips32MatchLinesReal (0.00s)
+--- PASS: TestStrips32AcrossGoroutines (0.01s)
+--- PASS: TestStrips32Fit (0.01s)
+--- PASS: TestBatchPass32MatchesGo (0.01s)
+PASS
+== batch mutant 2: 2 sk32Batch4AVX2 ADDQ adjout+88(FP), BX -> (removed)
+--- FAIL: TestStrips32MatchLines (0.18s)
+--- FAIL: TestBatchPass32MatchesGo (0.00s)
+FAIL
+== batch mutant 3: 3 sk32Batch2AVX2 TESTQ $1, R11 -> TESTQ $0, R11
+--- FAIL: TestBatchPass32MatchesGo (0.00s)
+FAIL
+== batch mutant 5: 5 sk32Batch2AVX2 VBROADCASTSS 4(R10), X6 -> VBROADCASTSS 0(R10), X6
+--- FAIL: TestBatchPass32MatchesGo (0.00s)
+FAIL
+DONE

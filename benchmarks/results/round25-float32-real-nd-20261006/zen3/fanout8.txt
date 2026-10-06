@@ -1,0 +1,133 @@
+== fanout round 1 ftB4
+ 09:40:51 up 24 days, 18:06,  6 users,  load average: 2.34, 2.60, 2.68
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   28569	      8780 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   29743	      8095 ns/op
+BenchmarkR25Fanout32/96/rule-8         	    9729	     26579 ns/op
+BenchmarkR25Fanout32/96/serial-8       	    8743	     24672 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    6662	     34185 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    6709	     38234 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2902	     84458 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2463	     89421 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    1890	    108640 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1429	    147944 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     718	    282562 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     348	    658927 ns/op
+PASS
+== fanout round 2 ftB4
+ 09:40:54 up 24 days, 18:06,  6 users,  load average: 2.55, 2.64, 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   28718	      8283 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   28446	      8318 ns/op
+BenchmarkR25Fanout32/96/rule-8         	   11270	     21232 ns/op
+BenchmarkR25Fanout32/96/serial-8       	    9878	     21122 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    6903	     34899 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    6955	     34089 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2341	     92824 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2696	     84104 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    1648	    130551 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1582	    150754 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     704	    324144 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     357	    656197 ns/op
+PASS
+== fanout round 3 ftB4
+ 09:40:58 up 24 days, 18:06,  6 users,  load average: 2.55, 2.64, 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   29466	      7999 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   29499	      8014 ns/op
+BenchmarkR25Fanout32/96/rule-8         	   11430	     21109 ns/op
+BenchmarkR25Fanout32/96/serial-8       	   10000	     20946 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    6930	     37033 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    6946	     47155 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2052	     99519 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2528	     85866 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    1605	    128019 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1587	    157650 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     760	    336894 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     363	    907148 ns/op
+PASS
+== fanout round 4 ftB4
+ 09:41:02 up 24 days, 18:06,  6 users,  load average: 2.59, 2.64, 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   29880	      8171 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   29137	      8732 ns/op
+BenchmarkR25Fanout32/96/rule-8         	   11400	     23308 ns/op
+BenchmarkR25Fanout32/96/serial-8       	   10000	     21872 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    6840	     36965 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    7018	     34635 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2410	    100278 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2851	     84201 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    2283	    124351 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1578	    150147 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     694	    301894 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     360	    692059 ns/op
+PASS
+== fanout round 5 ftB4
+ 09:41:06 up 24 days, 18:06,  6 users,  load average: 2.62, 2.65, 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   30078	      8040 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   30188	      7957 ns/op
+BenchmarkR25Fanout32/96/rule-8         	   11280	     20771 ns/op
+BenchmarkR25Fanout32/96/serial-8       	   11322	     21070 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    7060	     34681 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    6679	     33702 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2430	     97435 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2847	     85535 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    1680	    132932 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1621	    148657 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     696	    319526 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     360	    658859 ns/op
+PASS
+== fanout round 6 ftB4
+ 09:41:10 up 24 days, 18:06,  6 users,  load average: 2.73, 2.67, 2.70
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   29960	      8162 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   28184	      8165 ns/op
+BenchmarkR25Fanout32/96/rule-8         	   11466	     21697 ns/op
+BenchmarkR25Fanout32/96/serial-8       	   11552	     21022 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    7086	     33759 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    6560	     35439 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2326	     99044 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2857	     83325 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    1608	    133950 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1586	    148497 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     782	    266414 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     369	    662704 ns/op
+PASS
+== fanout round 7 ftB4
+ 09:41:14 up 24 days, 18:06,  6 users,  load average: 2.73, 2.67, 2.70
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Fanout32/64/rule-8         	   30076	      8072 ns/op
+BenchmarkR25Fanout32/64/serial-8       	   29974	      8007 ns/op
+BenchmarkR25Fanout32/96/rule-8         	    8976	     24131 ns/op
+BenchmarkR25Fanout32/96/serial-8       	   11421	     20908 ns/op
+BenchmarkR25Fanout32/128/rule-8        	    6630	     35208 ns/op
+BenchmarkR25Fanout32/128/serial-8      	    6745	     36238 ns/op
+BenchmarkR25Fanout32/192/rule-8        	    2364	     85654 ns/op
+BenchmarkR25Fanout32/192/serial-8      	    2886	     82242 ns/op
+BenchmarkR25Fanout32/256/rule-8        	    1938	    109078 ns/op
+BenchmarkR25Fanout32/256/serial-8      	    1424	    149238 ns/op
+BenchmarkR25Fanout32/512/rule-8        	     888	    244978 ns/op
+BenchmarkR25Fanout32/512/serial-8      	     324	    710747 ns/op
+PASS

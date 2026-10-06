@@ -1,0 +1,240 @@
+== width round 1 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   80170	      2935 ns/op
+BenchmarkR25StripWidth32/64/w32         	   89769	      2993 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19612	     12235 ns/op
+BenchmarkR25StripWidth32/128/w32        	   17299	     12499 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3243	     73233 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3480	     72921 ns/op
+BenchmarkR25StripWidth32/512/w16        	     657	    363659 ns/op
+BenchmarkR25StripWidth32/512/w32        	     638	    375729 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     138	   1723177 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     135	   1749288 ns/op
+PASS
+== width round 2 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   79704	      2958 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88752	      2721 ns/op
+BenchmarkR25StripWidth32/128/w16        	   18217	     12438 ns/op
+BenchmarkR25StripWidth32/128/w32        	   19166	     12455 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3228	     72890 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3502	     68638 ns/op
+BenchmarkR25StripWidth32/512/w16        	     645	    370973 ns/op
+BenchmarkR25StripWidth32/512/w32        	     626	    382811 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     136	   1761206 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     126	   1856444 ns/op
+PASS
+== width round 3 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   78944	      3012 ns/op
+BenchmarkR25StripWidth32/64/w32         	   89382	      2728 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19405	     12260 ns/op
+BenchmarkR25StripWidth32/128/w32        	   19086	     12678 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3309	     73753 ns/op
+BenchmarkR25StripWidth32/256/w32        	    2938	     71477 ns/op
+BenchmarkR25StripWidth32/512/w16        	     662	    355731 ns/op
+BenchmarkR25StripWidth32/512/w32        	     643	    373627 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     135	   1786993 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     142	   1686163 ns/op
+PASS
+== width round 4 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   74301	      3044 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88140	      2786 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19424	     12247 ns/op
+BenchmarkR25StripWidth32/128/w32        	   19096	     12815 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3212	     76033 ns/op
+BenchmarkR25StripWidth32/256/w32        	    2976	     70062 ns/op
+BenchmarkR25StripWidth32/512/w16        	     632	    375737 ns/op
+BenchmarkR25StripWidth32/512/w32        	     614	    382179 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     129	   1796684 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     129	   3354763 ns/op
+PASS
+== width round 5 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   71470	      2998 ns/op
+BenchmarkR25StripWidth32/64/w32         	   86793	      2757 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19592	     12247 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18037	     12554 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3132	     92036 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3428	     70286 ns/op
+BenchmarkR25StripWidth32/512/w16        	     649	    367282 ns/op
+BenchmarkR25StripWidth32/512/w32        	     627	    379554 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     132	   1835186 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     129	   1835661 ns/op
+PASS
+== width round 6 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   79982	      2945 ns/op
+BenchmarkR25StripWidth32/64/w32         	   89548	      2792 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19599	     12254 ns/op
+BenchmarkR25StripWidth32/128/w32        	   16467	     14132 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3238	     89104 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3415	     69582 ns/op
+BenchmarkR25StripWidth32/512/w16        	     660	    366090 ns/op
+BenchmarkR25StripWidth32/512/w32        	     632	    375861 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     133	   1798982 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     132	   1869317 ns/op
+PASS
+== width round 7 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   79852	      2947 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88544	      2695 ns/op
+BenchmarkR25StripWidth32/128/w16        	   18536	     12401 ns/op
+BenchmarkR25StripWidth32/128/w32        	   19087	     12680 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3164	     75664 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3512	     68115 ns/op
+BenchmarkR25StripWidth32/512/w16        	     672	    361225 ns/op
+BenchmarkR25StripWidth32/512/w32        	     640	    380747 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     135	   1746106 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     133	   1775852 ns/op
+PASS
+== width round 8 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   78451	      2976 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88417	      2721 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19044	     12429 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18896	     13285 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3320	     72450 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3597	     69497 ns/op
+BenchmarkR25StripWidth32/512/w16        	     643	    371179 ns/op
+BenchmarkR25StripWidth32/512/w32        	     633	    388800 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     100	   2670078 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     135	   1737597 ns/op
+PASS
+== width round 9 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   78992	      2942 ns/op
+BenchmarkR25StripWidth32/64/w32         	   89138	      2682 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19284	     12949 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18752	     12724 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3231	     94803 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3505	     68898 ns/op
+BenchmarkR25StripWidth32/512/w16        	     672	    357542 ns/op
+BenchmarkR25StripWidth32/512/w32        	     637	    387567 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     132	   1809055 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     134	   1789054 ns/op
+PASS
+== width round 10 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   80006	      2922 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88248	      2708 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19560	     12225 ns/op
+BenchmarkR25StripWidth32/128/w32        	   19141	     12744 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3259	     73875 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3450	     69389 ns/op
+BenchmarkR25StripWidth32/512/w16        	     640	    364602 ns/op
+BenchmarkR25StripWidth32/512/w32        	     627	    379852 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     132	   1854432 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     130	   1884267 ns/op
+PASS
+== width round 11 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   77764	      2954 ns/op
+BenchmarkR25StripWidth32/64/w32         	   80192	      2764 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19346	     12473 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18284	     13121 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3343	     73195 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3445	     70216 ns/op
+BenchmarkR25StripWidth32/512/w16        	     668	    365031 ns/op
+BenchmarkR25StripWidth32/512/w32        	     626	    380072 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     135	   1761285 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     132	   1810255 ns/op
+PASS
+== width round 12 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   78600	      2964 ns/op
+BenchmarkR25StripWidth32/64/w32         	   89917	      2714 ns/op
+BenchmarkR25StripWidth32/128/w16        	   18742	     12509 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18926	     13020 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3369	     72522 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3489	     69213 ns/op
+BenchmarkR25StripWidth32/512/w16        	     651	    366871 ns/op
+BenchmarkR25StripWidth32/512/w32        	     645	    372077 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     132	   1742648 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     135	   1780411 ns/op
+PASS
+== width round 13 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   77952	      2992 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88646	      2719 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19350	     12366 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18844	     12780 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3261	     73562 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3500	     70122 ns/op
+BenchmarkR25StripWidth32/512/w16        	     660	    398352 ns/op
+BenchmarkR25StripWidth32/512/w32        	     583	    390297 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     136	   1764869 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     133	   1803564 ns/op
+PASS
+== width round 14 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   79600	      3055 ns/op
+BenchmarkR25StripWidth32/64/w32         	   88908	      2709 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19347	     18111 ns/op
+BenchmarkR25StripWidth32/128/w32        	   18014	     12696 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3253	     73880 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3439	     69326 ns/op
+BenchmarkR25StripWidth32/512/w16        	     672	    359566 ns/op
+BenchmarkR25StripWidth32/512/w32        	     644	    444264 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     140	   1745673 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     127	   1776103 ns/op
+PASS
+== width round 15 ftB3
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25StripWidth32/64/w16         	   78897	      2980 ns/op
+BenchmarkR25StripWidth32/64/w32         	   86966	      2675 ns/op
+BenchmarkR25StripWidth32/128/w16        	   19591	     13517 ns/op
+BenchmarkR25StripWidth32/128/w32        	   19038	     12984 ns/op
+BenchmarkR25StripWidth32/256/w16        	    3186	     76742 ns/op
+BenchmarkR25StripWidth32/256/w32        	    3474	     69367 ns/op
+BenchmarkR25StripWidth32/512/w16        	     676	    353269 ns/op
+BenchmarkR25StripWidth32/512/w32        	     648	    481789 ns/op
+BenchmarkR25StripWidth32/1024/w16       	     135	   1759266 ns/op
+BenchmarkR25StripWidth32/1024/w32       	     130	   1917198 ns/op
+PASS

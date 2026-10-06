@@ -159,3 +159,14 @@ BENCHMARKS.md on Cascade Lake (cfarm151) and Neoverse-N1 (cfarm424), one
 pinned core: each composite's passes timed alone, the power-of-two tail and
 radix-12 sweeps, the interleaved A/B runs against main, and four parity runs
 per host (main and the branch, twice, each correct 24/24). See its README.
+
+## 2026-10-06, float32-real-nd: float32 untangle and batched N-D columns (Round 25)
+
+`round25-float32-real-nd-20261006` holds the measurements behind Round 25 of
+BENCHMARKS.md, all on Zen 3 (cfarm420, one pinned core unless stated):
+- the interleaved A/B runs, main against the branch: RFFT32/IRFFT32 (`zen3/e2e-untangle.txt`) and the N-D rows (`zen3/nd-strips.txt`);
+- the parts of a 2-D float32 plan, the untangle alone, the strip-width sweep and its 15-round check, and the fan-out rule on eight cores;
+- the test and mutation logs (`zen3/tests-*.txt`).
+
+There is no Apple M4 Max data: the workstation's 1-minute load never fell
+below 3.

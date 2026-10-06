@@ -1,0 +1,41 @@
+== kernels
+PASS
+exit 0
+== ftB targeted
+--- PASS: TestUntangle32MatchesScalar (0.16s)
+--- PASS: TestRetangle32MatchesScalar (0.20s)
+--- PASS: TestRealPlan32KernelsEndToEnd (0.01s)
+PASS
+== mutant 1: 1 U VPERMPD $0x1B, Y11, Y11 -> VPERMPD $0x4E, Y11, Y11
+--- FAIL: TestUntangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== mutant 2: 2 U VADDSUBPS Y8, Y7, Y7 -> VADDSUBPS Y7, Y8, Y7
+--- FAIL: TestUntangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== mutant 3: 3 U VBLENDPS $0xAA, Y3, Y2, Y4 -> VBLENDPS $0x55, Y3, Y2, Y4
+--- FAIL: TestUntangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== mutant 4: 4 U VXORPS Y12, Y5, Y5 -> 
+--- FAIL: TestUntangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== mutant 5: 5 R VXORPS Y13, Y6, Y6 -> 
+--- FAIL: TestRetangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== mutant 6: 6 R VMOVSLDUP Y6, Y7 / 	VMOVSHDUP Y6, Y8 -> VMOVSHDUP Y6, Y7 / 	VMOVSLDUP Y6, Y8
+--- FAIL: TestRetangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== mutant 7: 7 R VXORPS Y13, Y11, Y11 -> 
+--- FAIL: TestRetangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+FAIL
+== full suite ftB
+PASS
+== full kernels
+PASS
+DONE
