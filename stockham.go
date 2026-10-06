@@ -365,7 +365,15 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 	if inverse {
 		twX = st.twXc
 	}
-	if !kernels.StockhamPassLayout(st.split, st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide) {
+	// An interleaved pass calls StockhamPass itself: StockhamPassLayout does
+	// not inline, and the extra call cost composites about 1% on Zen 3.
+	var ok bool
+	if st.split == 0 {
+		ok = kernels.StockhamPass(st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide)
+	} else {
+		ok = kernels.StockhamPassLayout(st.split, st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide)
+	}
+	if !ok {
 		st.passScalar(ch, cc, inverse)
 	}
 }

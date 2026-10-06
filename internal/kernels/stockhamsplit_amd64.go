@@ -136,6 +136,11 @@ func StockhamPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inv
 	if mode == 0 {
 		return StockhamPass(r, ido, l1, cc, ch, tw, inverse, wide)
 	}
+	return splitPassLayout(mode, r, ido, l1, cc, ch, tw, inverse)
+}
+
+// splitPassLayout is StockhamPassLayout for a split mode.
+func splitPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inverse bool) bool {
 	if mode > splitNone || l1 < 1 || !splitPass(r, ido) {
 		panic("kernels: StockhamPassLayout: no split kernel for this mode, radix and ido")
 	}
