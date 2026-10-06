@@ -1,0 +1,501 @@
+== nd round 1 ftA
+ 09:36:16 up 24 days, 18:01,  7 users,  load average: 2.57, 2.52, 2.66
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   18193	     18437 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   29185	     11379 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    1303	    284803 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1321	    272344 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    1231	    323053 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2307	    133274 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	      68	   5107486 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      49	   6286990 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    1729	    202668 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2187	    154944 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	      98	   3625562 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     102	   3623971 ns/op
+PASS
+== nd round 1 ftB3
+ 09:36:21 up 24 days, 18:01,  8 users,  load average: 2.61, 2.53, 2.66
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   29449	     10849 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32524	     11318 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    2364	    159259 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1305	    272046 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    3295	    119110 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2454	    144776 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	      99	   3210492 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      49	   6485965 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    3740	     98288 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2182	    153786 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     220	   1630132 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     106	   3281299 ns/op
+PASS
+== parts round 1 ftB3
+ 09:36:25 up 24 days, 18:01,  7 users,  load average: 2.64, 2.54, 2.67
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Parts2D32/64/f32-rows         	   42350	      5306 ns/op
+BenchmarkR25Parts2D32/64/f32-cols         	   19059	     16195 ns/op
+BenchmarkR25Parts2D32/64/f32-strips       	   82231	      2948 ns/op
+BenchmarkR25Parts2D32/64/f64-rows         	   38976	      6104 ns/op
+BenchmarkR25Parts2D32/64/f64-cols         	   16632	     14513 ns/op
+BenchmarkR25Parts2D32/64/f64-strips       	   47557	      5063 ns/op
+BenchmarkR25Parts2D32/128/f32-rows        	   10000	     20925 ns/op
+BenchmarkR25Parts2D32/128/f32-cols        	    4749	     55392 ns/op
+BenchmarkR25Parts2D32/128/f32-strips      	   19702	     12354 ns/op
+BenchmarkR25Parts2D32/128/f64-rows        	   10000	     24129 ns/op
+BenchmarkR25Parts2D32/128/f64-cols        	    4290	     60934 ns/op
+BenchmarkR25Parts2D32/128/f64-strips      	    8866	     31857 ns/op
+BenchmarkR25Parts2D32/256/f32-rows        	    3302	     73012 ns/op
+BenchmarkR25Parts2D32/256/f32-cols        	    1291	    193116 ns/op
+BenchmarkR25Parts2D32/256/f32-strips      	    3283	     73860 ns/op
+BenchmarkR25Parts2D32/256/f64-rows        	    2377	     99150 ns/op
+BenchmarkR25Parts2D32/256/f64-cols        	    1056	    223789 ns/op
+BenchmarkR25Parts2D32/256/f64-strips      	    1443	    165887 ns/op
+BenchmarkR25Parts2D32/512/f32-rows        	     840	    282941 ns/op
+BenchmarkR25Parts2D32/512/f32-cols        	     258	   1100511 ns/op
+BenchmarkR25Parts2D32/512/f32-strips      	     660	    369716 ns/op
+BenchmarkR25Parts2D32/512/f64-rows        	     538	    420414 ns/op
+BenchmarkR25Parts2D32/512/f64-cols        	     255	    919285 ns/op
+BenchmarkR25Parts2D32/512/f64-strips      	     319	    752439 ns/op
+BenchmarkR25Parts2D32/1024/f32-rows       	     205	   1158954 ns/op
+BenchmarkR25Parts2D32/1024/f32-cols       	      61	   4187444 ns/op
+BenchmarkR25Parts2D32/1024/f32-strips     	     130	   1826306 ns/op
+BenchmarkR25Parts2D32/1024/f64-rows       	     116	   2031537 ns/op
+BenchmarkR25Parts2D32/1024/f64-cols       	      46	   4754292 ns/op
+BenchmarkR25Parts2D32/1024/f64-strips     	      60	   3902125 ns/op
+BenchmarkR25StripWidth32/64/w4            	   70587	      3464 ns/op
+BenchmarkR25StripWidth32/64/w8            	   81253	      2954 ns/op
+BenchmarkR25StripWidth32/64/w16           	   81572	      2994 ns/op
+BenchmarkR25StripWidth32/64/w32           	   89721	      2680 ns/op
+BenchmarkR25StripWidth32/64/w64           	   55314	      4334 ns/op
+BenchmarkR25StripWidth32/128/w4           	    9956	     24131 ns/op
+BenchmarkR25StripWidth32/128/w8           	   14982	     16390 ns/op
+BenchmarkR25StripWidth32/128/w16          	   19458	     13643 ns/op
+BenchmarkR25StripWidth32/128/w32          	   19006	     12489 ns/op
+BenchmarkR25StripWidth32/128/w64          	   18496	     14141 ns/op
+BenchmarkR25StripWidth32/256/w4           	    2330	    102178 ns/op
+BenchmarkR25StripWidth32/256/w8           	    3043	     74433 ns/op
+BenchmarkR25StripWidth32/256/w16          	    3304	     75361 ns/op
+BenchmarkR25StripWidth32/256/w32          	    3482	     75140 ns/op
+BenchmarkR25StripWidth32/256/w64          	    2618	     94515 ns/op
+BenchmarkR25StripWidth32/512/w4           	     334	    704847 ns/op
+BenchmarkR25StripWidth32/512/w8           	     464	    519722 ns/op
+BenchmarkR25StripWidth32/512/w16          	     673	    361951 ns/op
+BenchmarkR25StripWidth32/512/w32          	     642	    368490 ns/op
+BenchmarkR25StripWidth32/512/w64          	     578	    412162 ns/op
+BenchmarkR25StripWidth32/1024/w4          	      56	   3775042 ns/op
+BenchmarkR25StripWidth32/1024/w8          	      94	   2394649 ns/op
+BenchmarkR25StripWidth32/1024/w16         	     129	   1783414 ns/op
+BenchmarkR25StripWidth32/1024/w32         	     129	   1805634 ns/op
+BenchmarkR25StripWidth32/1024/w64         	     122	   2027038 ns/op
+PASS
+== nd round 2 ftB3
+ 09:36:41 up 24 days, 18:01,  8 users,  load average: 2.72, 2.56, 2.67
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   44008	      8405 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32401	     11089 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    2086	    159705 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1316	    283315 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    3398	    108490 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2137	    145339 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	     114	   2915696 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      49	   6229977 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    3500	    101810 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2152	    159978 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     211	   1668342 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     106	   4196314 ns/op
+PASS
+== nd round 2 ftA
+ 09:36:46 up 24 days, 18:01,  8 users,  load average: 2.74, 2.57, 2.67
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   16806	     19532 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32622	     11260 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    1324	    268129 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1315	    269182 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    1126	    294669 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2720	    144222 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	      69	   4933235 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      50	   6154687 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    1774	    198040 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2251	    161251 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     100	   3551928 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     111	   3183072 ns/op
+PASS
+== parts round 2 ftB3
+ 09:36:50 up 24 days, 18:01,  8 users,  load average: 2.76, 2.58, 2.68
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Parts2D32/64/f32-rows         	   43929	      5417 ns/op
+BenchmarkR25Parts2D32/64/f32-cols         	   19374	     14028 ns/op
+BenchmarkR25Parts2D32/64/f32-strips       	   81453	      3901 ns/op
+BenchmarkR25Parts2D32/64/f64-rows         	   39906	      7569 ns/op
+BenchmarkR25Parts2D32/64/f64-cols         	   14259	     14592 ns/op
+BenchmarkR25Parts2D32/64/f64-strips       	   47394	      5058 ns/op
+BenchmarkR25Parts2D32/128/f32-rows        	   10000	     21231 ns/op
+BenchmarkR25Parts2D32/128/f32-cols        	    4351	     51329 ns/op
+BenchmarkR25Parts2D32/128/f32-strips      	   19576	     12241 ns/op
+BenchmarkR25Parts2D32/128/f64-rows        	   10000	     22867 ns/op
+BenchmarkR25Parts2D32/128/f64-cols        	    4123	     58045 ns/op
+BenchmarkR25Parts2D32/128/f64-strips      	    8899	     27038 ns/op
+BenchmarkR25Parts2D32/256/f32-rows        	    3272	     73034 ns/op
+BenchmarkR25Parts2D32/256/f32-cols        	    1268	    187186 ns/op
+BenchmarkR25Parts2D32/256/f32-strips      	    3355	     71985 ns/op
+BenchmarkR25Parts2D32/256/f64-rows        	    2384	    100563 ns/op
+BenchmarkR25Parts2D32/256/f64-cols        	    1078	    223378 ns/op
+BenchmarkR25Parts2D32/256/f64-strips      	    1443	    165417 ns/op
+BenchmarkR25Parts2D32/512/f32-rows        	     835	    290164 ns/op
+BenchmarkR25Parts2D32/512/f32-cols        	     292	    815475 ns/op
+BenchmarkR25Parts2D32/512/f32-strips      	     668	    359248 ns/op
+BenchmarkR25Parts2D32/512/f64-rows        	     577	    411536 ns/op
+BenchmarkR25Parts2D32/512/f64-cols        	     262	    925379 ns/op
+BenchmarkR25Parts2D32/512/f64-strips      	     320	    764339 ns/op
+BenchmarkR25Parts2D32/1024/f32-rows       	     205	   1164063 ns/op
+BenchmarkR25Parts2D32/1024/f32-cols       	      58	   3725460 ns/op
+BenchmarkR25Parts2D32/1024/f32-strips     	     136	   1751245 ns/op
+BenchmarkR25Parts2D32/1024/f64-rows       	     118	   2794935 ns/op
+BenchmarkR25Parts2D32/1024/f64-cols       	      46	   4621917 ns/op
+BenchmarkR25Parts2D32/1024/f64-strips     	      52	   3869047 ns/op
+BenchmarkR25StripWidth32/64/w4            	   73302	      3362 ns/op
+BenchmarkR25StripWidth32/64/w8            	   81579	      2934 ns/op
+BenchmarkR25StripWidth32/64/w16           	   80919	      3026 ns/op
+BenchmarkR25StripWidth32/64/w32           	   87892	      2731 ns/op
+BenchmarkR25StripWidth32/64/w64           	   54879	      4403 ns/op
+BenchmarkR25StripWidth32/128/w4           	    8784	     36859 ns/op
+BenchmarkR25StripWidth32/128/w8           	   10000	     22253 ns/op
+BenchmarkR25StripWidth32/128/w16          	   12703	     18707 ns/op
+BenchmarkR25StripWidth32/128/w32          	   12343	     19483 ns/op
+BenchmarkR25StripWidth32/128/w64          	   12204	     19306 ns/op
+BenchmarkR25StripWidth32/256/w4           	    2396	    102452 ns/op
+BenchmarkR25StripWidth32/256/w8           	    3181	     73759 ns/op
+BenchmarkR25StripWidth32/256/w16          	    3177	     75800 ns/op
+BenchmarkR25StripWidth32/256/w32          	    3542	     68094 ns/op
+BenchmarkR25StripWidth32/256/w64          	    2679	     89486 ns/op
+BenchmarkR25StripWidth32/512/w4           	     337	    715819 ns/op
+BenchmarkR25StripWidth32/512/w8           	     476	    524562 ns/op
+BenchmarkR25StripWidth32/512/w16          	     674	    376665 ns/op
+BenchmarkR25StripWidth32/512/w32          	     550	    438824 ns/op
+BenchmarkR25StripWidth32/512/w64          	     579	    409118 ns/op
+BenchmarkR25StripWidth32/1024/w4          	      56	   3880857 ns/op
+BenchmarkR25StripWidth32/1024/w8          	      91	   2466060 ns/op
+BenchmarkR25StripWidth32/1024/w16         	      87	   2505699 ns/op
+BenchmarkR25StripWidth32/1024/w32         	     135	   1750415 ns/op
+BenchmarkR25StripWidth32/1024/w64         	     127	   1882087 ns/op
+PASS
+== nd round 3 ftA
+ 09:37:07 up 24 days, 18:02,  7 users,  load average: 2.82, 2.60, 2.68
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   21148	     16883 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32775	     11419 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    1317	    270498 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1317	    270705 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    1226	    292774 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2712	    131593 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	      69	   4977675 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      49	   6343351 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    1780	    199557 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2214	    155356 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	      99	   3094816 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     110	   3203926 ns/op
+PASS
+== nd round 3 ftB3
+ 09:37:11 up 24 days, 18:02,  7 users,  load average: 2.83, 2.60, 2.68
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   44925	      8007 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32541	     11091 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    2348	    154313 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1326	    273356 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    3158	    110882 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2482	    148189 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	     111	   2956317 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      48	   6762743 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    3620	     98230 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2222	    157316 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     201	   1696956 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     112	   3144766 ns/op
+PASS
+== parts round 3 ftB3
+ 09:37:15 up 24 days, 18:02,  6 users,  load average: 2.84, 2.61, 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Parts2D32/64/f32-rows         	   44188	      5540 ns/op
+BenchmarkR25Parts2D32/64/f32-cols         	   19335	     12675 ns/op
+BenchmarkR25Parts2D32/64/f32-strips       	   81663	      2934 ns/op
+BenchmarkR25Parts2D32/64/f64-rows         	   39500	      6083 ns/op
+BenchmarkR25Parts2D32/64/f64-cols         	   14182	     16939 ns/op
+BenchmarkR25Parts2D32/64/f64-strips       	   47524	      5262 ns/op
+BenchmarkR25Parts2D32/128/f32-rows        	   10000	     21388 ns/op
+BenchmarkR25Parts2D32/128/f32-cols        	    4758	     50123 ns/op
+BenchmarkR25Parts2D32/128/f32-strips      	   19186	     15745 ns/op
+BenchmarkR25Parts2D32/128/f64-rows        	   10000	     22929 ns/op
+BenchmarkR25Parts2D32/128/f64-cols        	    4135	     58132 ns/op
+BenchmarkR25Parts2D32/128/f64-strips      	    8800	     27666 ns/op
+BenchmarkR25Parts2D32/256/f32-rows        	    3321	     72105 ns/op
+BenchmarkR25Parts2D32/256/f32-cols        	    1294	    195792 ns/op
+BenchmarkR25Parts2D32/256/f32-strips      	    3285	     71977 ns/op
+BenchmarkR25Parts2D32/256/f64-rows        	    2376	     98794 ns/op
+BenchmarkR25Parts2D32/256/f64-cols        	    1065	    226572 ns/op
+BenchmarkR25Parts2D32/256/f64-strips      	    1444	    165582 ns/op
+BenchmarkR25Parts2D32/512/f32-rows        	     832	    319194 ns/op
+BenchmarkR25Parts2D32/512/f32-cols        	     292	    920578 ns/op
+BenchmarkR25Parts2D32/512/f32-strips      	     654	    368217 ns/op
+BenchmarkR25Parts2D32/512/f64-rows        	     577	    413676 ns/op
+BenchmarkR25Parts2D32/512/f64-cols        	     259	    906373 ns/op
+BenchmarkR25Parts2D32/512/f64-strips      	     316	    759797 ns/op
+BenchmarkR25Parts2D32/1024/f32-rows       	     194	   1159368 ns/op
+BenchmarkR25Parts2D32/1024/f32-cols       	      62	   3622417 ns/op
+BenchmarkR25Parts2D32/1024/f32-strips     	     135	   1761245 ns/op
+BenchmarkR25Parts2D32/1024/f64-rows       	     116	   2048142 ns/op
+BenchmarkR25Parts2D32/1024/f64-cols       	      46	   5034029 ns/op
+BenchmarkR25Parts2D32/1024/f64-strips     	      58	   3804088 ns/op
+BenchmarkR25StripWidth32/64/w4            	   71559	      3487 ns/op
+BenchmarkR25StripWidth32/64/w8            	   79161	      3114 ns/op
+BenchmarkR25StripWidth32/64/w16           	   82566	      2909 ns/op
+BenchmarkR25StripWidth32/64/w32           	   88456	      2698 ns/op
+BenchmarkR25StripWidth32/64/w64           	   54933	      4347 ns/op
+BenchmarkR25StripWidth32/128/w4           	   10000	     25090 ns/op
+BenchmarkR25StripWidth32/128/w8           	   14690	     14957 ns/op
+BenchmarkR25StripWidth32/128/w16          	   19784	     12782 ns/op
+BenchmarkR25StripWidth32/128/w32          	   19321	     12579 ns/op
+BenchmarkR25StripWidth32/128/w64          	   18891	     12810 ns/op
+BenchmarkR25StripWidth32/256/w4           	    2334	    105042 ns/op
+BenchmarkR25StripWidth32/256/w8           	    3022	     77739 ns/op
+BenchmarkR25StripWidth32/256/w16          	    3264	     73594 ns/op
+BenchmarkR25StripWidth32/256/w32          	    3531	     68169 ns/op
+BenchmarkR25StripWidth32/256/w64          	    2662	    115815 ns/op
+BenchmarkR25StripWidth32/512/w4           	     332	    718181 ns/op
+BenchmarkR25StripWidth32/512/w8           	     462	    535599 ns/op
+BenchmarkR25StripWidth32/512/w16          	     669	    359288 ns/op
+BenchmarkR25StripWidth32/512/w32          	     638	    390835 ns/op
+BenchmarkR25StripWidth32/512/w64          	     576	    423867 ns/op
+BenchmarkR25StripWidth32/1024/w4          	      61	   3863740 ns/op
+BenchmarkR25StripWidth32/1024/w8          	      91	   3824471 ns/op
+BenchmarkR25StripWidth32/1024/w16         	     134	   1893499 ns/op
+BenchmarkR25StripWidth32/1024/w32         	     130	   1805103 ns/op
+BenchmarkR25StripWidth32/1024/w64         	     124	   1919735 ns/op
+PASS
+== nd round 4 ftB3
+ 09:37:32 up 24 days, 18:02,  7 users,  load average: 2.88, 2.63, 2.69
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   44880	      8121 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32752	     11014 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    2433	    146070 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1158	    291626 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    3334	    107322 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2472	    143316 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	     109	   2990078 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      52	   6477631 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    3754	     95882 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2109	    159263 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     219	   1615461 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	      93	   3292796 ns/op
+PASS
+== nd round 4 ftA
+ 09:37:36 up 24 days, 18:02,  7 users,  load average: 2.97, 2.65, 2.70
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   21327	     16856 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   31400	     11176 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    1300	    277415 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1300	    269410 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    1177	    319670 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2718	    135103 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	      66	   5132647 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      55	   6394664 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    1762	    201348 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2140	    156298 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     102	   3288893 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     105	   3304122 ns/op
+PASS
+== parts round 4 ftB3
+ 09:37:41 up 24 days, 18:02,  7 users,  load average: 3.05, 2.68, 2.71
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Parts2D32/64/f32-rows         	   44035	      5450 ns/op
+BenchmarkR25Parts2D32/64/f32-cols         	   18903	     12818 ns/op
+BenchmarkR25Parts2D32/64/f32-strips       	   82125	      3063 ns/op
+BenchmarkR25Parts2D32/64/f64-rows         	   39350	      6212 ns/op
+BenchmarkR25Parts2D32/64/f64-cols         	   17540	     14587 ns/op
+BenchmarkR25Parts2D32/64/f64-strips       	   47743	      4948 ns/op
+BenchmarkR25Parts2D32/128/f32-rows        	   10000	     21963 ns/op
+BenchmarkR25Parts2D32/128/f32-cols        	    4768	     50929 ns/op
+BenchmarkR25Parts2D32/128/f32-strips      	   19677	     12234 ns/op
+BenchmarkR25Parts2D32/128/f64-rows        	   10000	     24020 ns/op
+BenchmarkR25Parts2D32/128/f64-cols        	    4110	     55037 ns/op
+BenchmarkR25Parts2D32/128/f64-strips      	    8695	     27160 ns/op
+BenchmarkR25Parts2D32/256/f32-rows        	    3318	     72798 ns/op
+BenchmarkR25Parts2D32/256/f32-cols        	    1263	    190066 ns/op
+BenchmarkR25Parts2D32/256/f32-strips      	    3252	     74454 ns/op
+BenchmarkR25Parts2D32/256/f64-rows        	    2377	     99264 ns/op
+BenchmarkR25Parts2D32/256/f64-cols        	    1039	    226801 ns/op
+BenchmarkR25Parts2D32/256/f64-strips      	    1431	    166379 ns/op
+BenchmarkR25Parts2D32/512/f32-rows        	     849	    377384 ns/op
+BenchmarkR25Parts2D32/512/f32-cols        	     300	    801702 ns/op
+BenchmarkR25Parts2D32/512/f32-strips      	     673	    379029 ns/op
+BenchmarkR25Parts2D32/512/f64-rows        	     572	    413227 ns/op
+BenchmarkR25Parts2D32/512/f64-cols        	     253	    944063 ns/op
+BenchmarkR25Parts2D32/512/f64-strips      	     318	    760268 ns/op
+BenchmarkR25Parts2D32/1024/f32-rows       	     174	   1334776 ns/op
+BenchmarkR25Parts2D32/1024/f32-cols       	      60	   3713250 ns/op
+BenchmarkR25Parts2D32/1024/f32-strips     	     135	   1939672 ns/op
+BenchmarkR25Parts2D32/1024/f64-rows       	     117	   2023922 ns/op
+BenchmarkR25Parts2D32/1024/f64-cols       	      46	   4708641 ns/op
+BenchmarkR25Parts2D32/1024/f64-strips     	      58	   3824529 ns/op
+BenchmarkR25StripWidth32/64/w4            	   72572	      3302 ns/op
+BenchmarkR25StripWidth32/64/w8            	   80944	      2974 ns/op
+BenchmarkR25StripWidth32/64/w16           	   81748	      2967 ns/op
+BenchmarkR25StripWidth32/64/w32           	   89341	      3085 ns/op
+BenchmarkR25StripWidth32/64/w64           	   49602	      5601 ns/op
+BenchmarkR25StripWidth32/128/w4           	   10000	     24172 ns/op
+BenchmarkR25StripWidth32/128/w8           	   15883	     15342 ns/op
+BenchmarkR25StripWidth32/128/w16          	   19606	     12197 ns/op
+BenchmarkR25StripWidth32/128/w32          	   18781	     12779 ns/op
+BenchmarkR25StripWidth32/128/w64          	   17905	     13391 ns/op
+BenchmarkR25StripWidth32/256/w4           	    2478	    102959 ns/op
+BenchmarkR25StripWidth32/256/w8           	    3229	     73778 ns/op
+BenchmarkR25StripWidth32/256/w16          	    3307	     76824 ns/op
+BenchmarkR25StripWidth32/256/w32          	    3524	     68793 ns/op
+BenchmarkR25StripWidth32/256/w64          	    2692	     89257 ns/op
+BenchmarkR25StripWidth32/512/w4           	     334	    712036 ns/op
+BenchmarkR25StripWidth32/512/w8           	     477	    505949 ns/op
+BenchmarkR25StripWidth32/512/w16          	     675	    355688 ns/op
+BenchmarkR25StripWidth32/512/w32          	     651	    367057 ns/op
+BenchmarkR25StripWidth32/512/w64          	     586	    409945 ns/op
+BenchmarkR25StripWidth32/1024/w4          	      62	   3756017 ns/op
+BenchmarkR25StripWidth32/1024/w8          	      92	   2430723 ns/op
+BenchmarkR25StripWidth32/1024/w16         	     139	   1731373 ns/op
+BenchmarkR25StripWidth32/1024/w32         	     135	   1715249 ns/op
+BenchmarkR25StripWidth32/1024/w64         	     126	   1902883 ns/op
+PASS
+== nd round 5 ftA
+ 09:37:58 up 24 days, 18:03,  7 users,  load average: 3.04, 2.69, 2.71
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   19899	     18313 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   29893	     11336 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    1321	    347706 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1058	    302405 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    1016	    343943 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2730	    152539 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	      50	   6076344 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      46	   7068782 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    1368	    304887 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2139	    155662 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     114	   3112894 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     112	   3163978 ns/op
+PASS
+== nd round 5 ftB3
+ 09:38:02 up 24 days, 18:03,  7 users,  load average: 3.04, 2.70, 2.71
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkF32ND/PlanN-[64_64]-f32         	   44515	      8046 ns/op
+BenchmarkF32ND/PlanN-[64_64]-f64         	   32346	     11530 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f32       	    2440	    149052 ns/op
+BenchmarkF32ND/PlanN-[256_256]-f64       	    1293	    277532 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f32      	    3271	    114780 ns/op
+BenchmarkF32ND/PlanN-[32_32_32]-f64      	    2481	    144848 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f32     	     110	   2965195 ns/op
+BenchmarkF32ND/PlanN-[1024_1024]-f64     	      51	   6690101 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f32     	    3661	     94362 ns/op
+BenchmarkF32ND/RealPlan2-256x256-f64     	    2262	    163880 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f32   	     169	   1841284 ns/op
+BenchmarkF32ND/RealPlan2-1024x1024-f64   	     108	   3213004 ns/op
+PASS
+== parts round 5 ftB3
+ 09:38:06 up 24 days, 18:03,  7 users,  load average: 3.03, 2.70, 2.72
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR25Parts2D32/64/f32-rows         	   42961	      5352 ns/op
+BenchmarkR25Parts2D32/64/f32-cols         	   19351	     12764 ns/op
+BenchmarkR25Parts2D32/64/f32-strips       	   82468	      2929 ns/op
+BenchmarkR25Parts2D32/64/f64-rows         	   39536	      6038 ns/op
+BenchmarkR25Parts2D32/64/f64-cols         	   16688	     14483 ns/op
+BenchmarkR25Parts2D32/64/f64-strips       	   48049	      5014 ns/op
+BenchmarkR25Parts2D32/128/f32-rows        	   10000	     20736 ns/op
+BenchmarkR25Parts2D32/128/f32-cols        	    4766	     50249 ns/op
+BenchmarkR25Parts2D32/128/f32-strips      	   19988	     12085 ns/op
+BenchmarkR25Parts2D32/128/f64-rows        	   10000	     23398 ns/op
+BenchmarkR25Parts2D32/128/f64-cols        	    4526	     54007 ns/op
+BenchmarkR25Parts2D32/128/f64-strips      	    8746	     27310 ns/op
+BenchmarkR25Parts2D32/256/f32-rows        	    3168	     73091 ns/op
+BenchmarkR25Parts2D32/256/f32-cols        	    1291	    195217 ns/op
+BenchmarkR25Parts2D32/256/f32-strips      	    3348	     72449 ns/op
+BenchmarkR25Parts2D32/256/f64-rows        	    2352	    106113 ns/op
+BenchmarkR25Parts2D32/256/f64-cols        	    1051	    225021 ns/op
+BenchmarkR25Parts2D32/256/f64-strips      	    1348	    167341 ns/op
+BenchmarkR25Parts2D32/512/f32-rows        	     836	    287162 ns/op
+BenchmarkR25Parts2D32/512/f32-cols        	     294	    828356 ns/op
+BenchmarkR25Parts2D32/512/f32-strips      	     663	    366127 ns/op
+BenchmarkR25Parts2D32/512/f64-rows        	     576	    416192 ns/op
+BenchmarkR25Parts2D32/512/f64-cols        	     260	    929807 ns/op
+BenchmarkR25Parts2D32/512/f64-strips      	     309	    760075 ns/op
+BenchmarkR25Parts2D32/1024/f32-rows       	     200	   1180434 ns/op
+BenchmarkR25Parts2D32/1024/f32-cols       	      57	   3760016 ns/op
+BenchmarkR25Parts2D32/1024/f32-strips     	     135	   1836256 ns/op
+BenchmarkR25Parts2D32/1024/f64-rows       	     103	   2261664 ns/op
+BenchmarkR25Parts2D32/1024/f64-cols       	      45	   4722933 ns/op
+BenchmarkR25Parts2D32/1024/f64-strips     	      58	   3787708 ns/op
+BenchmarkR25StripWidth32/64/w4            	   70814	      3485 ns/op
+BenchmarkR25StripWidth32/64/w8            	   80436	      2975 ns/op
+BenchmarkR25StripWidth32/64/w16           	   81841	      2947 ns/op
+BenchmarkR25StripWidth32/64/w32           	   89091	      4138 ns/op
+BenchmarkR25StripWidth32/64/w64           	   55069	      4366 ns/op
+BenchmarkR25StripWidth32/128/w4           	   10000	     23665 ns/op
+BenchmarkR25StripWidth32/128/w8           	   15868	     15187 ns/op
+BenchmarkR25StripWidth32/128/w16          	   19652	     12190 ns/op
+BenchmarkR25StripWidth32/128/w32          	   18988	     12568 ns/op
+BenchmarkR25StripWidth32/128/w64          	   18680	     14649 ns/op
+BenchmarkR25StripWidth32/256/w4           	    2337	    102441 ns/op
+BenchmarkR25StripWidth32/256/w8           	    3268	     73259 ns/op
+BenchmarkR25StripWidth32/256/w16          	    3363	     71345 ns/op
+BenchmarkR25StripWidth32/256/w32          	    3532	     67584 ns/op
+BenchmarkR25StripWidth32/256/w64          	    2689	     90008 ns/op
+BenchmarkR25StripWidth32/512/w4           	     334	    717824 ns/op
+BenchmarkR25StripWidth32/512/w8           	     472	    505272 ns/op
+BenchmarkR25StripWidth32/512/w16          	     660	    364287 ns/op
+BenchmarkR25StripWidth32/512/w32          	     651	    373894 ns/op
+BenchmarkR25StripWidth32/512/w64          	     582	    487735 ns/op
+BenchmarkR25StripWidth32/1024/w4          	      62	   4388318 ns/op
+BenchmarkR25StripWidth32/1024/w8          	      94	   2416522 ns/op
+BenchmarkR25StripWidth32/1024/w16         	     136	   1744736 ns/op
+BenchmarkR25StripWidth32/1024/w32         	     133	   1815241 ns/op
+BenchmarkR25StripWidth32/1024/w64         	     118	   1938187 ns/op
+PASS
+DONE

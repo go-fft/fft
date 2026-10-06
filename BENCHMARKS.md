@@ -2115,3 +2115,85 @@ trail FFTW by 19% and 42%: they have only 2^3, so neither radix 16 nor radix
 12 reaches them; radix 10/20 (1000) and 15 (1080) are the next levers.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round24-composites-20261006/`](benchmarks/results/round24-composites-20261006/).
+
+### Round 25 — float32: the real-FFT untangle and the N-D columns on kernels (2026-10-06)
+
+**The starting point.** Round 22 moved the float32 Stockham passes onto AVX2 and NEON kernels. It left two gaps, both measured there. First, the float32 real FFT still untangled (RFFT) and rebuilt (IRFFT) its packed spectrum in Go, where float64 has had AVX2 kernels for both since Round 4. Second, `PlanN32` gathered the lines of every non-contiguous axis into scratch, where float64 runs batched passes over strips (Rounds 17 and 21). On Zen 3 (cfarm420, one pinned core, `taskset -c 40`) main's untangle loop took 196 ns at 256 points and 3.0 µs at 4096. For 256 and 1024 points that was 53–59% of the whole RFFT32 (`BenchmarkR25Untangle32`).
+
+The column pass was worse. One goroutine, transforming the columns of an n×n float32 plan by gathering took **2.37–3.20× as long as its rows** (n = 64 … 1024, `BenchmarkR25Parts2D32`, median of five rounds, `zen3/nd-strips.txt`):
+
+| Zen 3, one core, µs | 64² | 128² | 256² | 512² | 1024² |
+|:--|--:|--:|--:|--:|--:|
+| float32 rows | 5.4 | 21.2 | 73.0 | 290 | 1164 |
+| float32 columns, gathered (main) | 12.8 | 50.9 | 193 | 828 | 3725 |
+| float32 columns, batched (this round) | 2.9 | 12.2 | 72.4 | 368 | 1826 |
+| float64 columns, batched (for scale) | 5.1 | 27.3 | 166 | 760 | 3825 |
+
+So on main the gather dominated: 64×64 `PlanN32` took 1.62× the time of `PlanN` and 32×32×32 2.37×, although each float32 line costs less than a float64 one.
+
+**What changed.**
+
+- **Untangle and retangle kernels** (`genF32RealFile` in both generators → `untangle32_amd64.s`, `untangle32_arm64.s`; `kernels.Untangle32`, `kernels.Retangle32`). Four bins k … k+3 per register, against their mirrors m−k … m−k−3, which one 32-byte load brings in and a lane reversal puts in order (`VPERMPD $0x1B` on amd64, `VREV64` + `VEXT $8` on arm64). The float32 `IRFFT` takes a complete spectrum through a new `f32rRetangle` loop, as `irfftRetangle` does in float64. A short spectrum keeps the per-bin path.
+- **Batched float32 passes** (`genF32rBatchAVX2`, `genF32rBatchNEON` → `batch32_amd64.s`, `batch32_arm64.s`; `kernels.StockhamBatchPass32`; `strip32.go`). A non-contiguous axis of a `PlanN32`, and so the columns of `RealPlan2_32`, runs as radix-2/3/4/5/8 passes over strips of neighbouring lines, `PlanN.stripLines` in single precision. Four lines at one point share a register, then two, then one. The point's twiddle is broadcast: `VBROADCASTSS` on amd64, `VLD2R` on arm64. The butterflies and the twiddle product are those of Round 22's 1-D kernels (on amd64 the same emitter, with two new modes), so every line gets the arithmetic of its own 1-D transform. The Go batched pass covers the platforms without kernels. The generators keep these functions apart from the Round 22 ones. No other `.s` file changed when regenerated.
+- **Entry points.** Both entry points bound-check the last element the kernel touches before it runs. `StockhamBatchPass32` also refuses an empty batch, strides below the width, and ido or l1 below 1 (SECURITY.md's rule).
+
+**Bit identity.**
+- **amd64:** gc compiles the Go loops without FMA (GOAMD64=v1), and the kernels round every operation separately, in the Go order.
+- **arm64, untangle and retangle:** gc fuses `f32Untangle` and `f32Retangle` heavily (`go build -gcflags=-S`, Go 1.27.1), and the NEON kernels copy each fusion.
+  - Untangle: tr = round(wr·xor) − wi·xoi and ti = round(wr·xoi) + wi·xor are fused, and xe's halving is never rounded on its own. dst[k] = (tr + s.re·0.5, ti + d.im·0.5) is FMADDS, and dst[m−k] = (s.re·0.5 − tr, −(d.im·0.5 − ti)) is FNMSUBS then FNEGS.
+  - Retangle: the same pattern with h.
+  - FNMSUBS (p − c with one rounding, computed as (−c) + p) has no vector form. The kernels negate c and use `VFMLA`, which is the same operation, signed zeros included. `VFMLS` followed by a negation gives the other zero when p = c, and a mutation doing that was caught.
+- **arm64, batched passes:** they copy the 1-D kernels' fused twiddle product.
+- **Untangle tests:** `TestUntangle32MatchesScalar` and `TestRetangle32MatchesScalar` run every m up to 700 and three larger ones, on Round 22's float32 signals plus a subnormal signal of mixed parity. Odd multiples of the smallest subnormal sum to even ones, which halve exactly, so a halving rounded on its own was invisible until that signal was added. `TestRealPlan32KernelsEndToEnd` runs `RealPlan32` with the kernels on and off.
+- **Batched-pass tests:**
+  - `TestStrips32MatchLines` holds strips to lines, forward and inverse, in place and not, on `stripShapes` plus seven shapes with twiddled radix-3/5/8 passes over strips of four lines and more. It is bit for bit on both architectures outside `-race`; under `-race` on arm64 gc fuses the Go passes otherwise, and the test checks to rounding.
+  - `TestBatchPass32MatchesGo` runs every radix first, in the middle and last, over batches of 1 to 9 lines with strides wider than the batch, kernel against Go batched pass. That is bit for bit on amd64. On arm64 the Go batched pass fuses otherwise than the 1-D passes, so there the two only have to agree to rounding.
+- **Mutations of the generated assembly, each caught:**
+  - Untangle on amd64 (7, run on Zen 3): mirror un-reversed, `VADDSUBPS` operands swapped, the even/odd blend inverted, xo's sign, conj(w) dropped, `VMOVSLDUP`/`VMOVSHDUP` swapped, the mirror's conjugation dropped.
+  - Untangle on arm64 (8): the −(c − p) form twice, tr unfused, xe rounded first, ti fusing the other product, the mirror un-reversed, dr fused into xor, and zmk.re rounded first.
+  - Batched passes on amd64 (7, run on Zen 3): a broadcast offset, the output adjustment, the single-line branch, the twiddle cursor step, a two-line twiddle half, the radix-5 rotation sign, the radix-8 √2/2. Two of the radix-2 mutants survived `TestStrips32MatchLines` alone, because the odd-first order on amd64 rarely puts a radix 2 before the last pass. `TestBatchPass32MatchesGo` was added for them. A third survivor touched SI, a register radix 2 never reads, so it was equivalent and was replaced.
+  - Batched passes on arm64 (6): twiddle registers swapped, a lone line's pointer not advanced, the twiddle row step, a radix-5 product sign, a radix-4 block step, a radix-8 twiddle lane.
+- **Full suites:** both packages' suites pass on Zen 3 with every kernel on (`zen3/tests-*.txt`). Coverage, without `-race` (a cross-compiled binary cannot use it), is 100.0% of statements on Zen 3, from the two packages' coverage profiles merged.
+
+**Which main.** "Main" in this round is v0.14.0 (ba859c6): the branch was measured on it and rebased onto v0.15.0 (Round 24) afterwards. Round 24 changed float64 plans only (float32 plans keep their own radix order), so the float32 rows stand. The float64 references at 1000, 1080 and 1920 points, and so the f32 ÷ f64 ratios there, are v0.14.0's. After the rebase both test suites passed again on Zen 3.
+
+**End to end, untangle, amd64.** Main time ÷ branch time, five interleaved rounds (order alternating), one pinned core, Zen 3 load 2.3–3.4 on 128 threads (`zen3/e2e-untangle.txt`). The untangle alone runs 2.96–3.66× faster on the kernel and the retangle 3.32–4.79×.
+
+| Zen 3 | 256 | 1024 | 4096 | 65536 | 2^20 | 1000 | 1080 | 1920 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|
+| RFFT32 | 1.46 | 1.71 | 1.68 | 1.52 | 1.30 | 1.65 | 1.62 | 1.68 |
+| IRFFT32 | 2.00 | 2.34 | 2.32 | 1.87 | 1.67 | 2.17 | 2.16 | 2.39 |
+
+The ranges over pairs of rounds were 1.13–2.14 (RFFT32) and 1.26–3.57 (IRFFT32). The float64 rows (unchanged code) measured 0.95–1.08.
+
+float32 time ÷ float64 time, main → branch, same rounds:
+- RFFT: 0.79–1.12 → **0.55–0.83**
+- IRFFT: 1.07–1.51 → **0.55–0.80**
+
+Every real row is now faster in float32. The largest ratios are at 256 points (0.83 and 0.80), where the fixed costs weigh most.
+
+**End to end, N-D, amd64.** Main time ÷ branch time (untangle and strips), five interleaved rounds, Zen 3 load 2.6–3.1 (`zen3/nd-strips.txt`):
+
+| Zen 3, `BenchmarkF32ND` | `PlanN32` 64² | 256² | 1024² | 32³ | `RealPlan2_32` 256² | 1024² |
+|:--|--:|--:|--:|--:|--:|--:|
+| main ÷ branch | 2.26 | 1.80 | 1.72 | 2.88 | 2.05 | 1.97 |
+| f32 ÷ f64, main | 1.62 | 1.02 | 0.81 | 2.37 | 1.29 | 1.03 |
+| f32 ÷ f64, branch | **0.73** | **0.56** | **0.46** | **0.77** | **0.62** | **0.51** |
+
+Pair ranges 1.59–3.23; the float64 rows 0.93–1.02. `RealPlan2_32`'s gain is both changes: its rows untangle, and the untangle alone was worth 1.21–1.23× (`zen3/e2e-untangle.txt`).
+
+**Strip width: the float64 rule kept.** `stripWidth` is 16 lines up to n = 512 and 32 above. A sweep of 4/8/16/32/64 found 4 and 8 worse than the best width at every size (1.08–2.17× its time) and 64 worse at every size (1.08–1.60×). 15 rounds of 16 against 32 gave w16 ÷ w32 time 1.09 (64²), 0.97 (128²), 1.06 (256²), 0.96 (512²), 0.98 (1024²) (`zen3/strip-width-15.txt`). That is no monotone rule, so float32 keeps float64's (`stripWidth32 = stripWidth`, a variable for the sweep).
+
+**Fan-out: the shared rule kept.** `PlanN32` fans out by `parallelizeLines`, the shared rule (16384 elements, `parMinChunk` 16384 on AVX2). The batched columns made each float32 axis cheaper, so the rule was timed again: eight cores (`taskset -c 40-47`, `GOMAXPROCS=8`), 15 rounds, serial time ÷ the rule's time (`zen3/fanout8-15.txt`):
+
+| n×n | 128 | 160 | 192 | 224 | 256 |
+|:--|--:|--:|--:|--:|--:|
+| serial ÷ rule | 1.03 | 1.01 | 0.83 (IQR 0.74–1.03) | 1.63 | 1.38 |
+
+At 128² and 160² the rule already runs one chunk. 192² is the one loss: it is split in two, and its strips are cheap. But 224² (radix 7, gathered columns) gains 1.63× from the same split, and any threshold that keeps 192² serial also keeps 224² serial. So the rule stays.
+
+**arm64.** The NEON untangle, retangle and batched kernels are tested on the Apple M4 Max: bit for bit, with the mutation list above, and the `-race` runs of the new tests pass. Their speed is not measured here: this workstation's 1-minute load never fell below 3 while the round ran (3.7–5.3 at every check), and the round does not measure above it. One indication, taken at load 5.2 and not a measurement: main's untangle loop took 35–39% of the float32 RFFT time at 256–4096 points on the M4.
+
+**Not measured.** Intel (cfarm13, Haswell, had a load of 29.5). FFTW single precision (still no `libfftw3f` on either host).
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round25-float32-real-nd-20261006/`](benchmarks/results/round25-float32-real-nd-20261006/).
