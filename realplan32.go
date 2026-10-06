@@ -3,6 +3,8 @@ package fft
 import (
 	"sync"
 	"unsafe"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
 
 // A RealPlan32 is the single-precision counterpart of RealPlan: a reusable
@@ -135,13 +137,19 @@ func (p *RealPlan32) IRFFTNorm(dst []float32, src []complex64, norm Norm) []floa
 	Z := *bp
 	x0, xm := real(bin(0)), real(bin(m))
 	Z[0] = complex((x0+xm)*h, (x0-xm)*h)
-	k := 1
-	for ; k < m-k; k++ {
-		Z[k], Z[m-k] = f32Retangle(bin(k), bin(m-k), p.tw[k], h)
-	}
-	if k == m-k {
-		// Self-paired middle bin: one index, written once.
-		Z[k], _ = f32Retangle(bin(k), bin(k), p.tw[k], h)
+	if len(src) > m {
+		// Complete spectrum (the usual case): no per-bin bounds test, and a
+		// SIMD kernel for the leading pairs.
+		f32rRetangle(Z, src, p.tw, m, h)
+	} else {
+		k := 1
+		for ; k < m-k; k++ {
+			Z[k], Z[m-k] = f32Retangle(bin(k), bin(m-k), p.tw[k], h)
+		}
+		if k == m-k {
+			// Self-paired middle bin: one index, written once.
+			Z[k], _ = f32Retangle(bin(k), bin(k), p.tw[k], h)
+		}
 	}
 	// z[j] = x[2j] + i·x[2j+1] is the memory layout of dst read as complex64.
 	p.half.execute(asComplex64(dst[:n]), Z, true)
@@ -155,7 +163,9 @@ func f32Untangle(dst, Z, tw []complex64, m int) {
 	z0r, z0i := real(Z[0]), imag(Z[0])
 	dst[0] = complex(z0r+z0i, 0)
 	dst[m] = complex(z0r-z0i, 0)
-	for k := 1; k <= (m-1)/2; k++ {
+	// On amd64 (AVX2) and arm64 (NEON) a kernel produces the leading bins,
+	// bit-identically.
+	for k := kernels.Untangle32(dst, Z, tw, m) + 1; k <= (m-1)/2; k++ {
 		zk, zmk := Z[k], Z[m-k]
 		xer := (real(zk) + real(zmk)) * 0.5
 		xei := (imag(zk) - imag(zmk)) * 0.5
@@ -170,6 +180,20 @@ func f32Untangle(dst, Z, tw []complex64, m int) {
 	if m&1 == 0 {
 		zk := Z[m/2]
 		dst[m/2] = complex(real(zk), -imag(zk))
+	}
+}
+
+// f32rRetangle rebuilds the packed spectrum Z[1..m-1] from the complete half
+// spectrum X[0..m] (len(X) > m), pair by pair, as irfftRetangle does in double
+// precision: the SIMD kernel produces the leading pairs, f32Retangle the
+// others and the self-paired middle bin.
+func f32rRetangle(Z, X, tw []complex64, m int, h float32) {
+	k := kernels.Retangle32(Z, X, tw, m, h) + 1
+	for ; k < m-k; k++ {
+		Z[k], Z[m-k] = f32Retangle(X[k], X[m-k], tw[k], h)
+	}
+	if k == m-k {
+		Z[k], _ = f32Retangle(X[k], X[k], tw[k], h)
 	}
 }
 
