@@ -225,3 +225,66 @@ func BenchmarkR24AB(b *testing.B) {
 		})
 	}
 }
+
+// compR24Rule12 is a candidate factorization with radix-12 passes for n =
+// 2^e·3^a·5^b (a >= 1, e >= 2): t = min(a, e/2) radix-12 passes last, the
+// remaining 3s and 5s first, then the remaining powers of two (radix8Maximal,
+// radix 4 before 8). nil for any other n.
+func compR24Rule12(n int) []int {
+	e, odd := 0, n
+	for odd%2 == 0 {
+		odd /= 2
+		e++
+	}
+	a := 0
+	for odd%3 == 0 {
+		odd /= 3
+		a++
+	}
+	b := 0
+	for odd%5 == 0 {
+		odd /= 5
+		b++
+	}
+	if odd != 1 || a == 0 || e < 2 {
+		return nil
+	}
+	t := min(a, e/2)
+	var f []int
+	for range a - t {
+		f = append(f, 3)
+	}
+	for range b {
+		f = append(f, 5)
+	}
+	tail := radix8Maximal(e - 2*t)
+	for i := len(tail) - 1; i >= 0; i-- {
+		f = append(f, tail[i])
+	}
+	for range t {
+		f = append(f, 12)
+	}
+	return f
+}
+
+// BenchmarkR24Rule12 times, for every n = 2^e·3^a·5^b up to 16384 with a >= 1
+// and e >= 2, skFactorize's factorization against compR24Rule12's.
+func BenchmarkR24Rule12(b *testing.B) {
+	compR24Warm(b)
+	for n := 12; n <= 1<<14; n++ {
+		g := compR24Rule12(n)
+		if g == nil {
+			continue
+		}
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		for _, f := range [][]int{skFactorize(n), g} {
+			p := newSKPlanFactors(n, f)
+			b.Run(strconv.Itoa(n)+"-"+compFactName(f), func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					p.transform(dst, src, false)
+				}
+			})
+		}
+	}
+}

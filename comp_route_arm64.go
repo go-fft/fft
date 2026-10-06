@@ -15,8 +15,5 @@ package fft
 // four blocks.
 func compOddFirstDefault() bool { return true }
 
-// compRadix16 is nil here: there is no NEON radix-16 pass.
-func compRadix16(n int) []int { return nil }
-
 // compFactorize is skFactorize past radix16Table.
 func compFactorize(n int) []int { return skFactorizeOrder(n, compOddFirst) }
