@@ -12,7 +12,7 @@ the smallest input that shows the problem.
 
 ## Supported versions
 
-Only the latest release (v0.13.x at the time of writing) receives fixes. It
+Only the latest release (v0.16.x at the time of writing) receives fixes. It
 requires Go 1.27.1 or later, so the standard library it runs on carries that
 release's security fixes; v0.1.x (Go 1.26.4) is no longer maintained. The module follows semantic
 versioning; while it is at v0, a fix ships as a patch release.
@@ -28,8 +28,9 @@ vulnerability:
   bounds checks of their own.
   Their Go wrappers check every length before the call: `StockhamPass`
   (AVX2, AVX-512 and NEON), `StockhamPassLayout`, `StockhamBatchPass`,
-  `StockhamStrided`, `StockhamLastRun`, `StockhamPass32`, `Untangle`,
-  `Retangle`, `Radix2Stage`, `Radix4Stage`.
+  `StockhamStrided`, `StockhamLastRun`, `StockhamPass32`,
+  `StockhamBatchPass32`, `Untangle`, `Retangle`, `Untangle32`, `Retangle32`,
+  `Radix2Stage`, `Radix4Stage`.
 - **`asComplex`** (`realplan.go`) and its single-precision twin
   (`realplan32.go`). They view a `[]float64` as a `[]complex128` (a `[]float32`
   as a `[]complex64`) through `unsafe.Slice`.
@@ -162,3 +163,19 @@ wrapper refuses a mode it has no kernel for, a radix without a split kernel,
 an `ido` that is not a positive multiple of four and an `l1` below one
 (panic), and then bound-checks the last element of `cc`, `ch` and the
 twiddle table (`TestSplitPassLayoutRefuses`).
+
+### Follow-up, 2026-10-06 (v0.16.1): the kernels of v0.14.0–v0.16.0
+
+Each entry point added since v0.13.1 was read against the rule above:
+- `StockhamPassLayout` on amd64 (v0.14.0, split layout) panics on a mode,
+  radix or `ido` without a split kernel and on `l1 < 1`, then bound-checks
+  `cc`, `ch` and the twiddle table;
+- `StockhamBatchPass32` (v0.16.0) refuses an empty batch, strides below the
+  width and `ido`/`l1` below 1, then bound-checks the last element each kernel
+  touches;
+- `Untangle32` and `Retangle32` (v0.16.0) return without running a kernel when
+  there is nothing to vectorize, and bound-check `dst`/`z`/`x` and the twiddle
+  table otherwise.
+
+No gap was found. govulncheck reports nothing for the module or the benchmark
+module, and the repository has no secret-scanning or Dependabot alert.
