@@ -193,7 +193,7 @@ func BenchmarkR24Tails(b *testing.B) {
 // transforms and 2-D plans of composite sides.
 func BenchmarkR24AB(b *testing.B) {
 	compR24Warm(b)
-	for _, n := range []int{1000, 1080, 1296, 1920, 2000, 6000, 240, 480, 720, 768, 960, 3072, 3840, 15360, 45000,
+	for _, n := range []int{1000, 1080, 1296, 1920, 2000, 6000, 144, 240, 432, 480, 720, 768, 960, 1200, 1728, 3072, 3840, 5184, 15360, 45000,
 		1008, 2100, 20160, 256, 1024, 4096, 65536, 1009, 1201, 10007} {
 		p := NewPlan(n)
 		src := benchComplex(n)
