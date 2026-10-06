@@ -49,16 +49,15 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
 }
 
 // stockhamNEON reports whether a NEON kernel runs a pass of radix r with ido
-// points per block and l1 blocks: radix 2, 3, 4, 5 or 8 for ido >= 2 (points
-// in pairs, an odd last one alone), and radix 2, 3, 4 or 5 with an even l1 for
-// the final pass (ido == 1, blocks in pairs). Radix 7 and the general radix
-// stay in Go.
+// points per block and l1 blocks: radix 2, 3, 4, 5 or 8, for ido >= 2 (points
+// in pairs, an odd last one alone) and for the final pass (ido == 1, blocks in
+// pairs, an odd last one alone). Radix 7 and the general radix stay in Go.
 func stockhamNEON(r, ido, l1 int) bool {
 	if r >= len(skPassNEON) {
 		return false
 	}
 	if ido == 1 {
-		return skLastNEON[r] != nil && l1%2 == 0
+		return skLastNEON[r] != nil
 	}
 	return skPassNEON[r] != nil
 }
@@ -76,8 +75,8 @@ type (
 var (
 	skPassNEON    = [9]skPassFn{2: skPass2NEON, 3: skPass3NEON, 4: skPass4NEON, 5: skPass5NEON, 8: skPass8NEON}
 	skPassNEONInv = [9]skPassFn{2: skPass2NEONInv, 3: skPass3NEONInv, 4: skPass4NEONInv, 5: skPass5NEONInv, 8: skPass8NEONInv}
-	skLastNEON    = [9]skLastFn{2: skLast2NEON, 3: skLast3NEON, 4: skLast4NEON, 5: skLast5NEON}
-	skLastNEONInv = [9]skLastFn{2: skLast2NEONInv, 3: skLast3NEONInv, 4: skLast4NEONInv, 5: skLast5NEONInv}
+	skLastNEON    = [9]skLastFn{2: skLast2NEON, 3: skLast3NEON, 4: skLast4NEON, 5: skLast5NEON, 8: skLast8NEON}
+	skLastNEONInv = [9]skLastFn{2: skLast2NEONInv, 3: skLast3NEONInv, 4: skLast4NEONInv, 5: skLast5NEONInv, 8: skLast8NEONInv}
 )
 
 // StockhamPass runs one Stockham pass of radix r on a NEON kernel and reports
@@ -155,6 +154,12 @@ func skLast5NEON(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skLast5NEONInv(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast8NEON(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast8NEONInv(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skPass2NEON(cc, ch, tw *complex128, ido, l1 int)
@@ -267,19 +272,22 @@ const (
 )
 
 var (
-	skPassNEONIS    = [9]skPassFn{2: skPass2NEONIS, 4: skPass4NEONIS, 8: skPass8NEONIS}
-	skPassNEONInvIS = [9]skPassFn{2: skPass2NEONInvIS, 4: skPass4NEONInvIS, 8: skPass8NEONInvIS}
-	skPassNEONSS    = [9]skPassFn{2: skPass2NEONSS, 4: skPass4NEONSS, 8: skPass8NEONSS}
-	skPassNEONInvSS = [9]skPassFn{2: skPass2NEONInvSS, 4: skPass4NEONInvSS, 8: skPass8NEONInvSS}
-	skLastNEONSI    = [9]skLastFn{2: skLast2NEONSI, 4: skLast4NEONSI}
-	skLastNEONInvSI = [9]skLastFn{2: skLast2NEONInvSI, 4: skLast4NEONInvSI}
+	skPassNEONIS    = [9]skPassFn{2: skPass2NEONIS, 3: skPass3NEONIS, 4: skPass4NEONIS, 5: skPass5NEONIS, 8: skPass8NEONIS}
+	skPassNEONInvIS = [9]skPassFn{2: skPass2NEONInvIS, 3: skPass3NEONInvIS, 4: skPass4NEONInvIS, 5: skPass5NEONInvIS, 8: skPass8NEONInvIS}
+	skPassNEONSS    = [9]skPassFn{2: skPass2NEONSS, 3: skPass3NEONSS, 4: skPass4NEONSS, 5: skPass5NEONSS, 8: skPass8NEONSS}
+	skPassNEONInvSS = [9]skPassFn{2: skPass2NEONInvSS, 3: skPass3NEONInvSS, 4: skPass4NEONInvSS, 5: skPass5NEONInvSS, 8: skPass8NEONInvSS}
+	skLastNEONSI    = [9]skLastFn{2: skLast2NEONSI, 4: skLast4NEONSI, 8: skLast8NEONSI}
+	skLastNEONInvSI = [9]skLastFn{2: skLast2NEONInvSI, 4: skLast4NEONInvSI, 8: skLast8NEONInvSI}
 )
 
 // StockhamSplitModes returns, for the passes of one transform (pass k of radix
 // r[k], ido[k], l1[k]), the layout mode of each: all zero (interleaved
 // throughout) unless every pass has a split kernel: at least two passes, the
-// ones before the last of radix 2, 4 or 8 with an even ido, the last of radix 2
-// or 4 with an even l1. In practice that is the powers of two from 16 points.
+// ones before the last of radix 2, 3, 4, 5 or 8 with an even ido, the last of
+// radix 2, 4 or 8 (any l1: an odd one ends with a block alone). That is the
+// powers of two from 16 points, and the lengths 2^e·3^a·5^b whose radices
+// come odd first (oddRadicesFirst), so that every pass before the last keeps
+// a factor 2 in its ido.
 func StockhamSplitModes(r, ido, l1 []int) []uint8 {
 	s := len(r)
 	modes := make([]uint8, s)
@@ -291,7 +299,7 @@ func StockhamSplitModes(r, ido, l1 []int) []uint8 {
 			return modes
 		}
 		if k == s-1 {
-			if ido[k] != 1 || l1[k]%2 != 0 || skLastNEONSI[r[k]] == nil {
+			if ido[k] != 1 || skLastNEONSI[r[k]] == nil {
 				return modes
 			}
 		} else if ido[k]%2 != 0 || skPassNEONIS[r[k]] == nil {
@@ -376,6 +384,36 @@ func skPass4NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
 
 //go:noescape
 func skPass8NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass3NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass5NEONIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass3NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass5NEONInvIS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass3NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass5NEONSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass3NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skPass5NEONInvSS(cc, ch, tw *complex128, ido, l1 int)
+
+//go:noescape
+func skLast8NEONSI(cc, ch *complex128, l1 int)
+
+//go:noescape
+func skLast8NEONInvSI(cc, ch *complex128, l1 int)
 
 //go:noescape
 func skLast2NEONSI(cc, ch *complex128, l1 int)

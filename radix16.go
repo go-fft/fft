@@ -36,7 +36,7 @@ func cachedPlanNo16(n int) *Plan {
 	defer planMu.Unlock()
 	p, ok := planNo16Cache[n]
 	if !ok {
-		p = &Plan{n: n, sk: newSKPlanFactors(n, skFactorizeOrder(n, oddRadicesFirst))}
+		p = &Plan{n: n, sk: newSKPlanFactors(n, skFactorizeOrder(n, compOddFirst))}
 		planNo16Cache[n] = p
 	}
 	return p

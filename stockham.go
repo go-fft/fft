@@ -140,6 +140,9 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // passes instead (radix16Table, Round 19), and where the amd64 split layout
 // runs, the powers of two from 256 points take splitTable's factorizations
 // (Round 23).
+//
+// Some composites end with radix-16 passes too (compRadix16, Round 24), and the
+// complex128 order is compOddFirst, which may differ from the float32 plans'.
 func skFactorize(n int) []int {
 	if f := splitTable[n]; f != nil {
 		return slices.Clone(f)
@@ -147,8 +150,18 @@ func skFactorize(n int) []int {
 	if f := radix16Table[n]; f != nil {
 		return slices.Clone(f)
 	}
-	return skFactorizeOrder(n, oddRadicesFirst)
+	if f := compRadix16(n); f != nil {
+		return f
+	}
+	return skFactorizeOrder(n, compOddFirst)
 }
+
+// compOddFirst selects skFactorize's radix order for complex128 plans; it is
+// per-architecture (comp_route_*.go).
+var compOddFirst = compOddFirstDefault()
+
+// compTakes16 reports whether skFactorize gives n radix-16 passes.
+func compTakes16(n int) bool { return radix16Table[n] != nil || compRadix16(n) != nil }
 
 // skFactorizeOrder is skFactorize with the order chosen: with oddFirst, the
 // radices 3 and 5 come first, then the powers of two in reverse (radix 4
