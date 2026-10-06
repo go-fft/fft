@@ -34,7 +34,11 @@ type PlanN32 struct {
 	size   int
 	axes   []*Plan32 // per-axis 1-D plans; nil for an axis not transformed
 	maxLen int
-	bufs   sync.Pool // gather blocks for the non-contiguous axes
+	// strips[ax] holds, for an axis run as batched passes (stripLines,
+	// Round 25), each pass's batchTwiddles, forward then conjugate; nil for
+	// an axis whose lines are gathered.
+	strips [][][2][]complex64
+	bufs   sync.Pool // gather blocks, or strip scratch, for the non-contiguous axes
 }
 
 // NewPlanN32 returns a single-precision plan for arrays of the given row-major
@@ -60,6 +64,17 @@ func f32ndNewPlanN(shape, axes []int) *PlanN32 {
 		p.maxLen = max(p.maxLen, n)
 	}
 	bl := lineBlock * (p.maxLen + linePad)
+	p.strips = make([][][2][]complex64, len(shape))
+	for ax, n := range shape {
+		if ax < len(shape)-1 && p.axes[ax] != nil && stripAxes32 && f32rStripsFit(p.axes[ax]) {
+			sts := p.axes[ax].sk.stages
+			p.strips[ax] = make([][2][]complex64, len(sts))
+			for k := range sts {
+				p.strips[ax][k][0], p.strips[ax][k][1] = sts[k].batchTwiddles()
+			}
+			bl = max(bl, 2*n*stripWidth(n))
+		}
+	}
 	p.bufs.New = func() any { b := make([]complex64, bl); return &b }
 	return p
 }
@@ -138,6 +153,16 @@ func (p *PlanN32) transformAxis(dst, src []complex64, ax int, inverse bool) {
 			parChunks(lines, n, func(lo, hi int) { p.contiguousLines(dst, src, ax, lo, hi, inverse) })
 		} else {
 			p.contiguousLines(dst, src, ax, 0, lines, inverse)
+		}
+		return
+	}
+	if p.strips[ax] != nil {
+		st, sw := p.stride[ax], stripWidth(n)
+		strips := p.size / (n * st) * ((st + sw - 1) / sw)
+		if par {
+			parChunks(strips, sw*n, func(lo, hi int) { p.stripLines(dst, src, ax, lo, hi, inverse) })
+		} else {
+			p.stripLines(dst, src, ax, 0, strips, inverse)
 		}
 		return
 	}

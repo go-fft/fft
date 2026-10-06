@@ -2623,6 +2623,103 @@ func genF32RealFile() {
 	genF32rUntangleAVX2(f)
 	genF32rRetangleAVX2(f)
 	writeFile("untangle32_amd64.s", f.String())
+
+	fb := emit.NewFile("amd64")
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		genF32rBatchAVX2(fb, r)
+	}
+	writeFile("batch32_amd64.s", fb.String())
+}
+
+// genF32rBatchAVX2 emits sk32Batch{r}AVX2(cc, ch, tw *complex64, k *float32,
+// ido, l1, quads, rem, jin, jout, adjin, adjout int) (Round 25): one float32
+// Stockham pass of radix r over a batch of w = 4·quads + rem transforms laid
+// side by side, the strips of a non-contiguous N-D axis (the fft package's
+// skStage32.passBatch); genStockhamBatchAVX2 with single-precision registers.
+// Point p of the batch is w neighbouring complex64 values, so four lines at
+// one point are one YMM register (then two in an XMM register for rem&2 and
+// one, VMOVSD, for rem&1), and every lane runs exactly the arithmetic of the
+// 1-D float32 kernels (genF32StockhamAVX2) on one line: the same butterflies,
+// the same twiddle product. A point's twiddle is the same for every line,
+// broadcast with VBROADCASTSS from the batched table (for i = 1 .. ido-1, the
+// r-1 twiddles of point i); point i = 0 is not multiplied, as in the Go pass.
+//
+// Registers as genF32StockhamAVX2's, with CX = jin = 8·ido·sIn (one input
+// stream), DX = jout = 8·l1·ido·sOut; each row (one point) advances the
+// streams by 8·w, then by adjin = 8·(sIn-w) and adjout = 8·(sOut-w).
+func genF32rBatchAVX2(f *emit.File, r int) {
+	names := []string{"cc", "ch", "tw", "k", "ido", "l1", "quads", "rem", "jin", "jout", "adjin", "adjout"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr}
+	for range names[4:] {
+		types = append(types, amd64.Int64)
+	}
+	sig := amd64.Layout(names, types, nil, nil)
+	arg := func(name string) string {
+		for _, p := range sig.Args {
+			if p.Name == name {
+				return fmt.Sprintf("%s+%d(FP)", name, p.Offset)
+			}
+		}
+		panic(name)
+	}
+	b := amd64.NewFunc(fmt.Sprintf("sk32Batch%dAVX2", r), sig, 0)
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
+		LoadArg("jin", "CX").LoadArg("jout", "DX").LoadArg("l1", "R8")
+	b.Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("kloop:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done").
+		Raw("LEAQ (AX)(CX*4), SI").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("MOVQ R15, R10")
+	row := func(label string, notw bool) {
+		y := f32simdEmit{b: b, w: "Y", notw: notw, bcast: !notw}
+		x := f32simdEmit{b: b, w: "X", notw: notw, bcast: !notw}
+		s := f32simdEmit{b: b, w: "S", notw: notw, bcast: !notw}
+		b.Raw("MOVQ %s, R11", arg("quads")).
+			Raw("%sq:", label).
+			Raw("TESTQ R11, R11").
+			Raw("JZ %sp", label)
+		y.body(r, false)
+		y.advance(32)
+		b.Raw("DECQ R11").
+			Raw("JMP %sq", label).
+			Raw("%sp:", label).
+			Raw("MOVQ %s, R11", arg("rem")).
+			Raw("TESTQ $2, R11").
+			Raw("JZ %ss", label)
+		x.body(r, false)
+		x.advance(16)
+		b.Raw("%ss:", label).
+			Raw("TESTQ $1, R11").
+			Raw("JZ %se", label)
+		s.body(r, false)
+		s.advance(8)
+		b.Raw("%se:", label).
+			Raw("ADDQ %s, AX", arg("adjin")).
+			Raw("ADDQ %s, SI", arg("adjin")).
+			Raw("ADDQ %s, BX", arg("adjout")).
+			Raw("ADDQ %s, DI", arg("adjout"))
+	}
+	row("zero", true) // point i = 0: no twiddle
+	b.Raw("MOVQ %s, R9", arg("ido")).
+		Raw("DECQ R9").
+		Raw("iloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ knext")
+	row("tw", false)
+	b.Raw("ADDQ $%d, R10", (r-1)*8).
+		Raw("DECQ R9").
+		Raw("JMP iloop").
+		Raw("knext:")
+	f32simdNextBlock(b, r)
+	b.Raw("DECQ R8").
+		Raw("JMP kloop").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
 }
 
 // f32rMirrorSetup loads the four cursors of an untangle kernel: AX = &in[1],

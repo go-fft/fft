@@ -50,7 +50,9 @@ func BenchmarkR25Untangle32(b *testing.B) {
 // columns and batched strips (where they run).
 func BenchmarkR25Parts2D32(b *testing.B) {
 	for _, n := range []int{64, 128, 256, 512, 1024} {
-		p32, p64 := NewPlanN32(n, n), NewPlanN(n, n)
+		p32, p64 := withStrips32(false, n, n), NewPlanN(n, n)
+		p32.strips = withStrips32(true, n, n).strips
+		p32.bufs.New = withStrips32(true, n, n).bufs.New
 		d32, d64 := make([]complex64, n*n), make([]complex128, n*n)
 		for i, v := range benchComplex(n * n) {
 			d32[i], d64[i] = complex64(v), v
@@ -67,6 +69,14 @@ func BenchmarkR25Parts2D32(b *testing.B) {
 				p32.blockedLines(d32, d32, 0, 0, blocks32, false)
 			}
 		})
+		if p32.strips[0] != nil {
+			strips := (n + stripWidth(n) - 1) / stripWidth(n)
+			b.Run(name+"/f32-strips", func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					p32.stripLines(d32, d32, 0, 0, strips, false)
+				}
+			})
+		}
 		b.Run(name+"/f64-rows", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				p64.contiguousLines(d64, d64, 1, 0, n, false)

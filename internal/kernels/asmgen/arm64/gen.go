@@ -1539,6 +1539,130 @@ func genF32RealFile() {
 	genF32rUntangle(f, false)
 	genF32rUntangle(f, true)
 	write("untangle32_arm64.s", f)
+
+	fb := emit.NewFile("arm64")
+	for _, inverse := range []bool{false, true} {
+		for _, r := range []int{2, 3, 4, 5, 8} {
+			genF32rBatchNEON(fb, r, inverse)
+		}
+	}
+	write("batch32_arm64.s", fb)
+}
+
+// genF32rBatchNEON emits sk32Batch<r>NEON / sk32Batch<r>NEONInv(cc, ch, tw
+// *complex64, ido, l1, quads, rem, jin, jout, adjin, adjout int) (Round 25):
+// genStockhamBatchNEON in single precision, one float32 Stockham pass of
+// radix r over w = 4·quads + rem transforms side by side. Four lines at one
+// point are one VLD2 on .4S (two on .2S for rem&2, one FLDPS for rem&1), and
+// every lane runs the arithmetic of the 1-D float32 kernels
+// (f32simdPassStep), fused products included. The point's twiddle, the same
+// for every line, is loaded already broadcast and split by VLD2R from the
+// batched table (for i = 1 .. ido-1, the r-1 twiddles of point i); point
+// i = 0 is not multiplied. Streams, counters and row steps as
+// genStockhamBatchNEON's, with 8-byte values: jin = 8·ido·sIn, jout =
+// 8·l1·ido·sOut, adjin = 8·(sIn-w), adjout = 8·(sOut-w).
+func genF32rBatchNEON(f *emit.File, r int, inverse bool) {
+	name := fmt.Sprintf("sk32Batch%dNEON", r)
+	if inverse {
+		name += "Inv"
+	}
+	names := []string{"cc", "ch", "tw", "ido", "l1", "quads", "rem", "jin", "jout", "adjin", "adjout"}
+	types := []arm64.Type{arm64.Ptr, arm64.Ptr, arm64.Ptr}
+	for range names[3:] {
+		types = append(types, arm64.Int64)
+	}
+	sig := arm64.Layout(names, types, nil, nil)
+	in, out := skStreams[r][0], skStreams[r][1]
+	b := arm64.NewFunc(name, sig, 0)
+	b.LoadArg("cc", in[0]).LoadArg("ch", out[0]).LoadArg("tw", "R2").
+		LoadArg("l1", "R5").LoadArg("jin", "R16").LoadArg("jout", "R17")
+	f32simdConsts(b, r, 18)
+	row := func(label string, twiddled bool) {
+		b.LoadArg("quads", "R15").
+			Raw("CBZ R15, %sp", label)
+		b.Label(label + "q")
+		f32rBatchStepNEON(b, r, in, out, inverse, twiddled, 4)
+		b.Raw("SUBS $1, R15, R15").
+			Raw("BNE %sq", label)
+		b.Label(label+"p").
+			LoadArg("rem", "R19").
+			Raw("TBZ $1, R19, %ss", label)
+		f32rBatchStepNEON(b, r, in, out, inverse, twiddled, 2)
+		b.Label(label+"s").
+			Raw("TBZ $0, R19, %se", label)
+		f32rBatchStepNEON(b, r, in, out, inverse, twiddled, 1)
+		for j := 0; j < r; j++ { // FLDPS/FSTPS do not post-increment
+			b.Raw("ADD $8, %s, %s", in[j], in[j]).
+				Raw("ADD $8, %s, %s", out[j], out[j])
+		}
+		b.Label(label+"e").
+			LoadArg("adjin", "R19").
+			LoadArg("adjout", "R20")
+		for j := 0; j < r; j++ {
+			b.Raw("ADD R19, %s, %s", in[j], in[j]).
+				Raw("ADD R20, %s, %s", out[j], out[j])
+		}
+	}
+	b.Label("kloop")
+	for j := 1; j < r; j++ {
+		b.Raw("ADD R16, %s, %s", in[j-1], in[j]).
+			Raw("ADD R17, %s, %s", out[j-1], out[j])
+	}
+	row("zero", false) // point i = 0: no twiddle
+	b.LoadArg("ido", "R3").
+		Raw("SUBS $1, R3, R3").
+		Raw("BEQ knext").
+		Raw("MOVD R2, R26")
+	b.Label("iloop")
+	row("tw", true)
+	b.Raw("ADD $%d, R26, R26", (r-1)*8).
+		Raw("SUBS $1, R3, R3").
+		Raw("BNE iloop")
+	b.Label("knext")
+	switch r { // input stream 0: r-1 more streams to the next block
+	case 2:
+		b.Raw("ADD R16, %s, %s", in[0], in[0])
+	case 3:
+		b.Raw("ADD R16<<1, %s, %s", in[0], in[0])
+	case 4:
+		b.Raw("ADD R16<<1, %s, %s", in[0], in[0]).Raw("ADD R16, %s, %s", in[0], in[0])
+	case 5:
+		b.Raw("ADD R16<<2, %s, %s", in[0], in[0])
+	case 8:
+		b.Raw("ADD R16<<3, %s, %s", in[0], in[0]).Raw("SUB R16, %s, %s", in[0], in[0])
+	}
+	b.Raw("SUBS $1, R5, R5").
+		Raw("BNE kloop").
+		Ret()
+	f.Add(b.Func())
+}
+
+// f32rBatchStepNEON emits one step of a float32 batched pass: g lines (4, 2
+// or 1) at one point: load, butterfly, and, when twiddled, outputs 1..r-1
+// multiplied by the point's twiddle with f32simdPassStep's fused product,
+// then store.
+func f32rBatchStepNEON(b *arm64.Builder, r int, in, out []string, inverse, twiddled bool, g int) {
+	st := f32simdStep{g: g}
+	for j := 0; j < r; j++ {
+		st.load(b, in[j], 2*j)
+	}
+	if twiddled {
+		b.Raw("MOVD R26, R14")
+	}
+	f32simdBfly(b, r, inverse, func(j, yr, yi int) {
+		if j == 0 || !twiddled {
+			st.store(b, yr, out[j])
+			return
+		}
+		b.Raw("VLD2R.P 8(R14), [V28.S4, V29.S4]")
+		b.VFMUL4S(30, yr, 28).VFMLS4S(30, yi, 29) // re = yr·wr - yi·wi, yi·wi fused
+		if r == 2 {
+			b.VFMUL4S(31, yr, 29).VFMLA4S(31, yi, 28) // im = yr·wi + yi·wr, yi·wr fused
+		} else {
+			b.VFMUL4S(31, yi, 28).VFMLA4S(31, yr, 29) // im = yi·wr + yr·wi, yr·wi fused
+		}
+		st.store(b, 30, out[j])
+	})
 }
 
 // f32rRev reverses the four .4S lanes of V(v).
