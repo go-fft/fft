@@ -2155,6 +2155,8 @@ So on main the gather dominated: 64×64 `PlanN32` took 1.62× the time of `PlanN
   - Batched passes on arm64 (6): twiddle registers swapped, a lone line's pointer not advanced, the twiddle row step, a radix-5 product sign, a radix-4 block step, a radix-8 twiddle lane.
 - **Full suites:** both packages' suites pass on Zen 3 with every kernel on (`zen3/tests-*.txt`). Coverage, without `-race` (a cross-compiled binary cannot use it), is 100.0% of statements on Zen 3, from the two packages' coverage profiles merged.
 
+**Which main.** "Main" in this round is v0.14.0 (ba859c6): the branch was measured on it and rebased onto v0.15.0 (Round 24) afterwards. Round 24 changed float64 plans only (float32 plans keep their own radix order), so the float32 rows stand. The float64 references at 1000, 1080 and 1920 points, and so the f32 ÷ f64 ratios there, are v0.14.0's. After the rebase both test suites passed again on Zen 3.
+
 **End to end, untangle, amd64.** Main time ÷ branch time, five interleaved rounds (order alternating), one pinned core, Zen 3 load 2.3–3.4 on 128 threads (`zen3/e2e-untangle.txt`). The untangle alone runs 2.96–3.66× faster on the kernel and the retangle 3.32–4.79×.
 
 | Zen 3 | 256 | 1024 | 4096 | 65536 | 2^20 | 1000 | 1080 | 1920 |

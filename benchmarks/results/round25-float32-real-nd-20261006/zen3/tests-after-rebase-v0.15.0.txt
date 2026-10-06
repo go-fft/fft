@@ -1,0 +1,13 @@
+--- PASS: TestStrips32MatchLines (0.13s)
+--- PASS: TestStrips32MatchLinesReal (0.00s)
+--- PASS: TestStrips32AcrossGoroutines (0.00s)
+--- PASS: TestBatchTwiddles32Layout (0.00s)
+--- PASS: TestStrips32Fit (0.00s)
+--- PASS: TestBatchPass32MatchesGo (0.01s)
+--- PASS: TestUntangle32MatchesScalar (0.19s)
+--- PASS: TestRetangle32MatchesScalar (0.21s)
+--- PASS: TestRealPlan32KernelsEndToEnd (0.01s)
+PASS
+== full
+PASS
+PASS
