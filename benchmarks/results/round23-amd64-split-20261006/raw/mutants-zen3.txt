@@ -1,0 +1,18 @@
+== blend: --- FAIL: TestSplitEachPassMatchesScalar (0.00s)
+== rotinv: --- FAIL: TestSplitEachPassMatchesScalar (0.00s)
+== a7neg: --- FAIL: TestSplitEachPassMatchesScalar (0.04s)
+== tworder: --- FAIL: TestSplitEachPassMatchesScalar (0.00s)
+== store: --- FAIL: TestSplitEachPassMatchesScalar (0.00s)
+== a5inv: --- FAIL: TestSplitEachPassMatchesScalar (0.04s)
+== load: --- FAIL: TestSplitEachPassMatchesScalar (0.00s)
+== blend transform-only:     split_amd64_test.go:149: AVX2 factors [4 4] signal 0 inverse=false index 1: (6.345199125303116+8.349589018493038i) (in place (6.34519912
+== rotinv transform-only:     split_amd64_test.go:149: AVX2 factors [4 4] signal 0 inverse=true index 1: (2.273213912714546+10.829123215217516i) (in place (2.27321391
+== a7neg transform-only:     split_amd64_test.go:149: AVX2 factors [8 4 4 8] signal 0 inverse=false index 3: (-7.848494001206902+15.404223622697108i) (in place (-7.8
+== tworder transform-only:     split_amd64_test.go:149: AVX2 factors [4 4] signal 0 inverse=false index 1: (7.177294654968023+7.600668049498746i) (in place (7.17729465
+== store transform-only:     split_amd64_test.go:149: AVX2 factors [4 4] signal 0 inverse=false index 4: (3.3684800564249238+3.0297920741260658i) (in place (3.368480
+== a5inv transform-only:     split_amd64_test.go:149: AVX2 factors [8 4 4 8] signal 0 inverse=true index 1: (-5.948729967315033+4.777840249607432i) (in place (-5.948
+== load transform-only:     split_amd64_test.go:149: AVX2 factors [4 4] signal 0 inverse=false index 1: (3.5962564979890086+8.793533788974905i) (in place (3.5962564
+== a7sum per-pass:     split_amd64_test.go:93: r=8 l1=1 ido=12 mode 1 signal 4 inverse=false index 43: (0-0i) vs Go (0+0i)
+== a7sum transform: PASS
+== noblend per-pass:     split_amd64_test.go:93: r=4 l1=1 ido=4 mode 1 signal 3 inverse=false index 4: (-Inf+NaNi) vs Go (-Inf+0.5196107579323763i)
+== noblend transform:     split_amd64_test.go:149: AVX2 factors [4 4] signal 3 inverse=false index 1: (-Inf+NaNi) (in place (-Inf+NaNi)) vs Go (-Inf+4.612195302951794i)

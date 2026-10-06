@@ -153,3 +153,12 @@ from the public API. Both now panic on a negative stride
 (`TestStridedKernelsRejectNegativeStrides`); the full suite and a bit-for-bit
 comparison of the large transforms still pass on Cascade Lake with the guards
 in place.
+
+### Follow-up, 2026-10-06: the amd64 block-split passes (Round 23)
+
+The AVX2 split-layout passes run behind `StockhamPassLayout` on amd64 too. A
+split kernel walks whole four-point groups, so before any kernel runs the
+wrapper refuses a mode it has no kernel for, a radix without a split kernel,
+an `ido` that is not a positive multiple of four and an `l1` below one
+(panic), and then bound-checks the last element of `cc`, `ch` and the
+twiddle table (`TestSplitPassLayoutRefuses`).
