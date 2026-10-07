@@ -1,0 +1,24 @@
+addr4
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=1 ido=1 signal 0 inverse=false index 3: (3.5042672209830648+7.056915894858718i) vs Go (-4.080918486559615-1.220466196
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [10] signal 0 inverse=false index 3: (3.5042672209830648+7.056915894858718i) (in place (3.5042672209830648+7.05691589
+noblend
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=1 ido=2 signal 3 inverse=false index 2: (-Inf+NaNi) vs Go (-Inf+2.959367940577058i)
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [10 10] signal 3 inverse=false index 1: (-Inf+NaNi) (in place (-Inf+NaNi)) vs Go (-Inf-3.881755709566339i)
+y1y4
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=1 ido=1 signal 0 inverse=false index 1: (-3.604009568878466+5.4478974738484505i) vs Go (4.3900601459443855-3.74292382
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [10] signal 0 inverse=false index 1: (-3.604009568878466+5.4478974738484505i) (in place (-3.604009568878466+5.4478974
+bfly3swap
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=15 l1=1 ido=1 signal 0 inverse=false index 1: (-0.6749242206078225+1.2448460511918022i) vs Go (9.528148816338412+5.26472283
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [15] signal 0 inverse=false index 1: (-0.6749242206078225+1.2448460511918022i) (in place (-0.6749242206078225+1.24484
+knext
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=2 ido=2 signal 0 inverse=false index 2: (9.005036304261498-19.834470950736808i) vs Go (12.012443832594993-20.35750185
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [10 10 10] signal 0 inverse=false index 1: (200.05008588777883-397.8345546510106i) (in place (200.05008588777883-397.
+y0assoc
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=1 ido=2 signal 0 inverse=false index 0: (9.017147165483419-20.431722315741194i) vs Go (9.017147165483419-20.431722315
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [15] signal 0 inverse=false index 0: (17.460973557696914-32.628560836785226i) (in place (17.460973557696914-32.628560
+q2sub
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=1 ido=1 signal 0 inverse=false index 1: (-4.3900601459443855+3.742923826014323i) vs Go (4.3900601459443855-3.74292382
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [10] signal 0 inverse=false index 1: (-4.3900601459443855+3.742923826014323i) (in place (-4.3900601459443855+3.742923
+lastadv
+  per-pass:      radix5q_amd64_test.go:51: AVX2 r=10 l1=3 ido=1 signal 0 inverse=false index 2: (10.678555181839211-22.366337220880855i) vs Go (12.01452797865441-16.77655078
+  transform:     radix5q_amd64_test.go:87: AVX2 factors [10 10] signal 0 inverse=false index 2: (-1.5030709016348092-3.122067796707518i) (in place (-1.5030709016348092-3.122

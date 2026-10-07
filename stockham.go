@@ -78,7 +78,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 		st.twX, st.twXc = kernels.StockhamTwiddles(r, ido, l1, root)
 		switch r {
-		case 2, 3, 4, 5, 7, 8, 12, 16:
+		case 2, 3, 4, 5, 7, 8, 10, 12, 15, 16, 20:
 		default:
 			st.rt = make([]complex128, r)
 			st.rtc = make([]complex128, r)
@@ -142,7 +142,8 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // (Round 23).
 //
 // Some composites end with radix-12 or radix-16 passes (compFactorize, Round
-// 24) where the amd64 kernels run them, and the
+// 24) where the amd64 kernels run them, on AMD with radix-10, -12, -15 and -20
+// prime-factor passes (comp2Factors, Round 26), and the
 // complex128 order is compOddFirst, which may differ from the float32 plans'.
 func skFactorize(n int) []int {
 	if f := splitTable[n]; f != nil {
@@ -158,10 +159,16 @@ func skFactorize(n int) []int {
 // per-architecture (comp_route_*.go).
 var compOddFirst = compOddFirstDefault()
 
-// compTakes16 reports whether skFactorize gives n radix-16 or radix-12
-// passes, which have no batched kernel for the strips of an N-D plan.
+// compTakes16 reports whether skFactorize gives n radix-10, -12, -15, -16 or
+// -20 passes, which have no batched kernel for the strips of an N-D plan.
 func compTakes16(n int) bool {
-	return slices.ContainsFunc(skFactorize(n), func(r int) bool { return r == 12 || r == 16 })
+	return slices.ContainsFunc(skFactorize(n), func(r int) bool {
+		switch r {
+		case 10, 12, 15, 16, 20:
+			return true
+		}
+		return false
+	})
 }
 
 // skFactorizeOrder is skFactorize with the order chosen: with oddFirst, the
@@ -421,6 +428,8 @@ func (st *skStage) passScalarL(ch, cc []complex128, l1 int, inverse bool) {
 		pass16(st.ido, l1, cc, ch, tw, inverse)
 	case 12:
 		pass12(st.ido, l1, cc, ch, tw, inverse)
+	case 10, 15, 20:
+		comp2Pass(st.r, st.ido, l1, cc, ch, tw, inverse)
 	default:
 		rt := st.rt
 		if inverse {

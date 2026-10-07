@@ -1,0 +1,90 @@
+diff --git a/realplan.go b/realplan.go
+index ccff1f4..ef89a4c 100644
+--- a/realplan.go
++++ b/realplan.go
+@@ -26,9 +26,10 @@ type RealPlan struct {
+ 
+ 	// scratch pools a single 2·m complex128 buffer per concurrent caller so the
+ 	// pack/untangle (and the inverse's reverse-untangle/unpack) reuse a private
+-	// working set instead of allocating two m-length buffers every call. The plan
+-	// stays immutable and concurrent-safe: each Get hands out a buffer owned by
+-	// that call for its duration. nil for the odd path.
++	// working set instead of allocating two m-length buffers every call; past
++	// those 2·m entries it holds the Stockham half plan's scratch (comp2Half).
++	// The plan stays immutable and concurrent-safe: each Get hands out a
++	// buffer owned by that call for its duration. nil for the odd path.
+ 	scratch *sync.Pool
+ 
+ 	// Odd path: full complex plan of length n.
+@@ -53,13 +54,31 @@ func NewRealPlan(n int) *RealPlan {
+ 		ang := -2 * math.Pi * float64(k) / float64(n)
+ 		p.tw[k] = complex(math.Cos(ang), math.Sin(ang))
+ 	}
++	size := 2 * m
++	if p.half.sk != nil {
++		// Room for the half plan's own scratch (comp2Half).
++		size += p.half.sk.scratchLen
++	}
+ 	p.scratch = &sync.Pool{New: func() any {
+-		s := make([]complex128, 2*m)
++		s := make([]complex128, size)
+ 		return &s
+ 	}}
+ 	return p
+ }
+ 
++// comp2Half runs the half-length transform from src into dst, which must not
++// overlap. A Stockham half plan runs on the tail of buf, the buffer the
++// caller borrowed from p.scratch, rather than on one borrowed from its own
++// pool: a sync.Pool Get and Put cost 16 ns on Zen 3 (Round 26), 5% of a
++// 256-point RFFT.
++func (p *RealPlan) comp2Half(dst, src []complex128, buf *[]complex128, inverse bool) {
++	if sk := p.half.sk; sk != nil {
++		sk.run(dst, src, (*buf)[p.n:], inverse)
++		return
++	}
++	p.half.execute(dst, src, inverse)
++}
++
+ // getScratch borrows the plan's pooled 2·m working buffer, split into two
+ // m-length halves (z for packing, Z for the spectrum). putScratch returns it.
+ func (p *RealPlan) getScratch() (buf *[]complex128, z, Z []complex128) {
+@@ -114,7 +133,7 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
+ 		// The packing z[j] = src[2j] + i·src[2j+1] is exactly the memory layout
+ 		// of a []complex128, so the half-length FFT reads src through a view of
+ 		// it: no pack pass. The plan only reads its source.
+-		p.half.execute(Z, asComplex(src[:2*m]), false)
++		p.comp2Half(Z, asComplex(src[:2*m]), buf, false)
+ 	}
+ 	rfftUntangle(dst, Z, p.tw, m)
+ 	p.putScratch(buf)
+@@ -299,7 +318,7 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
+ 	// z[j] = x[2j] + i·x[2j+1] is the memory layout of dst read as complex128,
+ 	// so the (already scaled) inverse writes the real signal in place: no
+ 	// unpack pass.
+-	p.half.execute(asComplex(dst[:2*m]), Z, true)
++	p.comp2Half(asComplex(dst[:2*m]), Z, buf, true)
+ 	p.putScratch(buf)
+ 	return dst
+ }
+diff --git a/stockham.go b/stockham.go
+index a5c02a0..0cb336f 100644
+--- a/stockham.go
++++ b/stockham.go
+@@ -52,6 +52,8 @@ type skPlan struct {
+ 	cascT, cascB int
+ 	// cascPair runs passes 0 and 1 as one sweep (cascadePair).
+ 	cascPair bool
++	// scratchLen is the length of the scratch buffer run needs.
++	scratchLen int
+ }
+ 
+ func newSKPlan(n int) *skPlan { return newSKPlanFactors(n, skFactorize(n)) }
+@@ -120,6 +122,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
+ 			st.twX, st.twXc = kernels.StockhamSplitTwiddles(st.r, st.ido, st.l1, root)
+ 		}
+ 	}
++	p.scratchLen = size
+ 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
+ 	return p
+ }
