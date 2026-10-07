@@ -4,7 +4,7 @@ package kernels
 // (cmul_arm64.s). NEON (ASIMD) is part of the arm64 baseline the Go toolchain
 // requires, so cmulSIMD is always callable — there is no CPU-feature branch.
 //
-//go:generate sh -c "cd asmgen/arm64 && GOFLAGS=-mod=mod go run gen.go && mv cmul_arm64.s ../../cmul_arm64.s && mv stockham_arm64.s ../../stockham_arm64.s"
+//go:generate sh -c "cd asmgen/arm64 && GOFLAGS=-mod=mod go run gen.go && mv *.s ../../"
 
 // The kernel is a validated correctness artifact: the per-arch CI execution job
 // asserts cmulSIMD is bit-identical to CMulScalar. It is not routed onto the

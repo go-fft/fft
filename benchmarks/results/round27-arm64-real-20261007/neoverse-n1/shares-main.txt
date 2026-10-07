@@ -1,0 +1,146 @@
+# round 1 variant main.test 19:54:50 load 0.01 0.05 0.00
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27Real/n256/rfft         	  436674	       823.0 ns/op
+BenchmarkR27Real/n256/irfft        	  382471	       951.2 ns/op
+BenchmarkR27Real/n256/untangle     	 1000000	       309.1 ns/op
+BenchmarkR27Real/n256/retangle     	  928890	       381.4 ns/op
+BenchmarkR27Real/n1024/rfft        	  101170	      3584 ns/op
+BenchmarkR27Real/n1024/irfft       	   92110	      3901 ns/op
+BenchmarkR27Real/n1024/untangle    	  287564	      1233 ns/op
+BenchmarkR27Real/n1024/retangle    	  239178	      1514 ns/op
+BenchmarkR27Real/n1080/rfft        	   78129	      4675 ns/op
+BenchmarkR27Real/n1080/irfft       	   69345	      5136 ns/op
+BenchmarkR27Real/n1080/untangle    	  275908	      1313 ns/op
+BenchmarkR27Real/n1080/retangle    	  222163	      1609 ns/op
+BenchmarkR27Real/n4096/rfft        	   21306	     16830 ns/op
+BenchmarkR27Real/n4096/irfft       	   20005	     17857 ns/op
+BenchmarkR27Real/n4096/untangle    	   73219	      4938 ns/op
+BenchmarkR27Real/n4096/retangle    	   58642	      6222 ns/op
+BenchmarkR27Parts2D/n64/whole      	   10000	     34610 ns/op
+BenchmarkR27Parts2D/n64/rows       	   21120	     17012 ns/op
+BenchmarkR27Parts2D/n64/strips     	   21324	     16947 ns/op
+BenchmarkR27Parts2D/n64/gathered   	   15429	     23041 ns/op
+BenchmarkR27Parts2D/n128/whole     	    2474	    142005 ns/op
+BenchmarkR27Parts2D/n128/rows      	    5354	     65963 ns/op
+BenchmarkR27Parts2D/n128/strips    	    4768	     75382 ns/op
+BenchmarkR27Parts2D/n128/gathered  	    4063	     88244 ns/op
+PASS
+# round 2 variant main.test 19:55:01 load 0.23 0.10 0.02
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27Real/n256/rfft         	  410826	       840.2 ns/op
+BenchmarkR27Real/n256/irfft        	  369842	       970.7 ns/op
+BenchmarkR27Real/n256/untangle     	 1000000	       311.8 ns/op
+BenchmarkR27Real/n256/retangle     	  900406	       382.4 ns/op
+BenchmarkR27Real/n1024/rfft        	  101368	      3541 ns/op
+BenchmarkR27Real/n1024/irfft       	   91586	      3935 ns/op
+BenchmarkR27Real/n1024/untangle    	  286171	      1223 ns/op
+BenchmarkR27Real/n1024/retangle    	  238502	      1496 ns/op
+BenchmarkR27Real/n1080/rfft        	   77618	      4624 ns/op
+BenchmarkR27Real/n1080/irfft       	   71308	      5037 ns/op
+BenchmarkR27Real/n1080/untangle    	  280839	      1286 ns/op
+BenchmarkR27Real/n1080/retangle    	  225260	      1585 ns/op
+BenchmarkR27Real/n4096/rfft        	   21645	     16639 ns/op
+BenchmarkR27Real/n4096/irfft       	   20100	     17922 ns/op
+BenchmarkR27Real/n4096/untangle    	   73184	      4957 ns/op
+BenchmarkR27Real/n4096/retangle    	   57854	      6192 ns/op
+BenchmarkR27Parts2D/n64/whole      	   10000	     34269 ns/op
+BenchmarkR27Parts2D/n64/rows       	   20631	     17076 ns/op
+BenchmarkR27Parts2D/n64/strips     	   21422	     16761 ns/op
+BenchmarkR27Parts2D/n64/gathered   	   15865	     22712 ns/op
+BenchmarkR27Parts2D/n128/whole     	    2559	    140377 ns/op
+BenchmarkR27Parts2D/n128/rows      	    5547	     64500 ns/op
+BenchmarkR27Parts2D/n128/strips    	    4639	     76061 ns/op
+BenchmarkR27Parts2D/n128/gathered  	    4046	     88566 ns/op
+PASS
+# round 3 variant main.test 19:55:11 load 0.50 0.16 0.04
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27Real/n256/rfft         	  422780	       831.1 ns/op
+BenchmarkR27Real/n256/irfft        	  372172	       992.6 ns/op
+BenchmarkR27Real/n256/untangle     	 1000000	       307.8 ns/op
+BenchmarkR27Real/n256/retangle     	  940467	       382.6 ns/op
+BenchmarkR27Real/n1024/rfft        	  100105	      3574 ns/op
+BenchmarkR27Real/n1024/irfft       	   93013	      3876 ns/op
+BenchmarkR27Real/n1024/untangle    	  290588	      1224 ns/op
+BenchmarkR27Real/n1024/retangle    	  233842	      1522 ns/op
+BenchmarkR27Real/n1080/rfft        	   77288	      4709 ns/op
+BenchmarkR27Real/n1080/irfft       	   69247	      5149 ns/op
+BenchmarkR27Real/n1080/untangle    	  272138	      1309 ns/op
+BenchmarkR27Real/n1080/retangle    	  222991	      1604 ns/op
+BenchmarkR27Real/n4096/rfft        	   21690	     16503 ns/op
+BenchmarkR27Real/n4096/irfft       	   20316	     17863 ns/op
+BenchmarkR27Real/n4096/untangle    	   72612	      4931 ns/op
+BenchmarkR27Real/n4096/retangle    	   58286	      6181 ns/op
+BenchmarkR27Parts2D/n64/whole      	   10000	     34343 ns/op
+BenchmarkR27Parts2D/n64/rows       	   20850	     17270 ns/op
+BenchmarkR27Parts2D/n64/strips     	   21496	     16768 ns/op
+BenchmarkR27Parts2D/n64/gathered   	   15693	     23266 ns/op
+BenchmarkR27Parts2D/n128/whole     	    2551	    143782 ns/op
+BenchmarkR27Parts2D/n128/rows      	    5371	     65180 ns/op
+BenchmarkR27Parts2D/n128/strips    	    4738	     75769 ns/op
+BenchmarkR27Parts2D/n128/gathered  	    4071	     87731 ns/op
+PASS
+# round 4 variant main.test 19:55:21 load 0.54 0.17 0.04
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27Real/n256/rfft         	  417297	       830.9 ns/op
+BenchmarkR27Real/n256/irfft        	  378874	       958.7 ns/op
+BenchmarkR27Real/n256/untangle     	 1000000	       307.3 ns/op
+BenchmarkR27Real/n256/retangle     	  916719	       382.5 ns/op
+BenchmarkR27Real/n1024/rfft        	  101832	      3546 ns/op
+BenchmarkR27Real/n1024/irfft       	   92076	      3925 ns/op
+BenchmarkR27Real/n1024/untangle    	  291190	      1232 ns/op
+BenchmarkR27Real/n1024/retangle    	  238938	      1510 ns/op
+BenchmarkR27Real/n1080/rfft        	   76893	      4699 ns/op
+BenchmarkR27Real/n1080/irfft       	   69370	      5159 ns/op
+BenchmarkR27Real/n1080/untangle    	  267168	      1319 ns/op
+BenchmarkR27Real/n1080/retangle    	  225109	      1620 ns/op
+BenchmarkR27Real/n4096/rfft        	   21252	     16864 ns/op
+BenchmarkR27Real/n4096/irfft       	   20208	     18140 ns/op
+BenchmarkR27Real/n4096/untangle    	   71310	      4988 ns/op
+BenchmarkR27Real/n4096/retangle    	   58442	      6284 ns/op
+BenchmarkR27Parts2D/n64/whole      	   10000	     34092 ns/op
+BenchmarkR27Parts2D/n64/rows       	   21024	     17124 ns/op
+BenchmarkR27Parts2D/n64/strips     	   21472	     16741 ns/op
+BenchmarkR27Parts2D/n64/gathered   	   15900	     22712 ns/op
+BenchmarkR27Parts2D/n128/whole     	    2542	    141106 ns/op
+BenchmarkR27Parts2D/n128/rows      	    5547	     65302 ns/op
+BenchmarkR27Parts2D/n128/strips    	    4784	     75023 ns/op
+BenchmarkR27Parts2D/n128/gathered  	    4069	     88148 ns/op
+PASS
+# round 5 variant main.test 19:55:31 load 0.54 0.18 0.05
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27Real/n256/rfft         	  423474	       824.9 ns/op
+BenchmarkR27Real/n256/irfft        	  379854	       951.7 ns/op
+BenchmarkR27Real/n256/untangle     	 1000000	       308.7 ns/op
+BenchmarkR27Real/n256/retangle     	  940908	       384.6 ns/op
+BenchmarkR27Real/n1024/rfft        	  101270	      3542 ns/op
+BenchmarkR27Real/n1024/irfft       	   92012	      3940 ns/op
+BenchmarkR27Real/n1024/untangle    	  292333	      1228 ns/op
+BenchmarkR27Real/n1024/retangle    	  240896	      1506 ns/op
+BenchmarkR27Real/n1080/rfft        	   77498	      4629 ns/op
+BenchmarkR27Real/n1080/irfft       	   71035	      5096 ns/op
+BenchmarkR27Real/n1080/untangle    	  277532	      1294 ns/op
+BenchmarkR27Real/n1080/retangle    	  225606	      1590 ns/op
+BenchmarkR27Real/n4096/rfft        	   21664	     16484 ns/op
+BenchmarkR27Real/n4096/irfft       	   20124	     18016 ns/op
+BenchmarkR27Real/n4096/untangle    	   72807	      4975 ns/op
+BenchmarkR27Real/n4096/retangle    	   58287	      6150 ns/op
+BenchmarkR27Parts2D/n64/whole      	   10000	     34454 ns/op
+BenchmarkR27Parts2D/n64/rows       	   20782	     17215 ns/op
+BenchmarkR27Parts2D/n64/strips     	   21423	     16882 ns/op
+BenchmarkR27Parts2D/n64/gathered   	   15744	     22899 ns/op
+BenchmarkR27Parts2D/n128/whole     	    2546	    141376 ns/op
+BenchmarkR27Parts2D/n128/rows      	    5373	     65570 ns/op
+BenchmarkR27Parts2D/n128/strips    	    4706	     76506 ns/op
+BenchmarkR27Parts2D/n128/gathered  	    4089	     87785 ns/op
+PASS
+# done 19:55:41 load 0.61 0.21 0.06

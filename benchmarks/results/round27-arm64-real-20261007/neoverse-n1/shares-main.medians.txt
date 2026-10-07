@@ -1,0 +1,25 @@
+# load 0.01-0.54
+main.test  BenchmarkR27Real/n256/rfft                         830.9  1.02 n=5
+main.test  BenchmarkR27Real/n256/irfft                        958.7  1.04 n=5
+main.test  BenchmarkR27Real/n256/untangle                     308.7  1.01 n=5
+main.test  BenchmarkR27Real/n256/retangle                     382.5  1.01 n=5
+main.test  BenchmarkR27Real/n1024/rfft                       3546.0  1.01 n=5
+main.test  BenchmarkR27Real/n1024/irfft                      3925.0  1.02 n=5
+main.test  BenchmarkR27Real/n1024/untangle                   1228.0  1.01 n=5
+main.test  BenchmarkR27Real/n1024/retangle                   1510.0  1.02 n=5
+main.test  BenchmarkR27Real/n1080/rfft                       4675.0  1.02 n=5
+main.test  BenchmarkR27Real/n1080/irfft                      5136.0  1.02 n=5
+main.test  BenchmarkR27Real/n1080/untangle                   1309.0  1.03 n=5
+main.test  BenchmarkR27Real/n1080/retangle                   1604.0  1.02 n=5
+main.test  BenchmarkR27Real/n4096/rfft                      16639.0  1.02 n=5
+main.test  BenchmarkR27Real/n4096/irfft                     17922.0  1.02 n=5
+main.test  BenchmarkR27Real/n4096/untangle                   4957.0  1.01 n=5
+main.test  BenchmarkR27Real/n4096/retangle                   6192.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n64/whole                    34343.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n64/rows                     17124.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n64/strips                   16768.0  1.01 n=5
+main.test  BenchmarkR27Parts2D/n64/gathered                 22899.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n128/whole                  141376.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n128/rows                    65302.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n128/strips                  75769.0  1.02 n=5
+main.test  BenchmarkR27Parts2D/n128/gathered                88148.0  1.01 n=5

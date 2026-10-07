@@ -1,0 +1,161 @@
+# round 1 variant old 19:59:41 load 0.06 0.11 0.05
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  167808	      1948 ns/op
+BenchmarkR27ND/s32x32         	   53036	      6775 ns/op
+BenchmarkR27ND/s64x64         	   10000	     33995 ns/op
+BenchmarkR27ND/s128x128       	    2528	    141561 ns/op
+BenchmarkR27ND/s64x128        	    5427	     66268 ns/op
+BenchmarkR27ND/s100x100       	    3531	    101608 ns/op
+BenchmarkR27ND/s120x120       	    2438	    147854 ns/op
+BenchmarkR27ND/s240x240       	     488	    730269 ns/op
+BenchmarkR27ND/s16x16x16      	    8463	     42008 ns/op
+BenchmarkR27ND/s32x32x32      	    1062	    343422 ns/op
+BenchmarkR27ND/s1000x3        	    6229	     57335 ns/op
+PASS
+# round 1 variant new 19:59:46 load 0.06 0.11 0.05
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  301200	      1182 ns/op
+BenchmarkR27ND/s32x32         	   71372	      5030 ns/op
+BenchmarkR27ND/s64x64         	   13008	     27664 ns/op
+BenchmarkR27ND/s128x128       	    2829	    127737 ns/op
+BenchmarkR27ND/s64x128        	    5883	     60637 ns/op
+BenchmarkR27ND/s100x100       	    3936	     89401 ns/op
+BenchmarkR27ND/s120x120       	    2856	    128121 ns/op
+BenchmarkR27ND/s240x240       	     554	    652185 ns/op
+BenchmarkR27ND/s16x16x16      	   12722	     28757 ns/op
+BenchmarkR27ND/s32x32x32      	    1354	    264486 ns/op
+BenchmarkR27ND/s1000x3        	   16270	     22104 ns/op
+PASS
+# round 2 variant new 19:59:51 load 0.13 0.13 0.05
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  298993	      1179 ns/op
+BenchmarkR27ND/s32x32         	   68362	      5097 ns/op
+BenchmarkR27ND/s64x64         	   12771	     28065 ns/op
+BenchmarkR27ND/s128x128       	    2823	    127292 ns/op
+BenchmarkR27ND/s64x128        	    6132	     58842 ns/op
+BenchmarkR27ND/s100x100       	    4062	     88488 ns/op
+BenchmarkR27ND/s120x120       	    2815	    128722 ns/op
+BenchmarkR27ND/s240x240       	     549	    649922 ns/op
+BenchmarkR27ND/s16x16x16      	   12668	     28585 ns/op
+BenchmarkR27ND/s32x32x32      	    1318	    269114 ns/op
+BenchmarkR27ND/s1000x3        	   16074	     22397 ns/op
+PASS
+# round 2 variant old 19:59:56 load 0.20 0.14 0.06
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  178197	      1958 ns/op
+BenchmarkR27ND/s32x32         	   51118	      6868 ns/op
+BenchmarkR27ND/s64x64         	   10000	     34160 ns/op
+BenchmarkR27ND/s128x128       	    2541	    144293 ns/op
+BenchmarkR27ND/s64x128        	    5317	     66758 ns/op
+BenchmarkR27ND/s100x100       	    3518	    102479 ns/op
+BenchmarkR27ND/s120x120       	    2462	    146385 ns/op
+BenchmarkR27ND/s240x240       	     495	    733098 ns/op
+BenchmarkR27ND/s16x16x16      	    8610	     41521 ns/op
+BenchmarkR27ND/s32x32x32      	    1069	    337092 ns/op
+BenchmarkR27ND/s1000x3        	    6357	     56819 ns/op
+PASS
+# round 3 variant old 20:00:00 load 0.27 0.16 0.06
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  180528	      1949 ns/op
+BenchmarkR27ND/s32x32         	   53139	      6824 ns/op
+BenchmarkR27ND/s64x64         	   10000	     34336 ns/op
+BenchmarkR27ND/s128x128       	    2506	    142825 ns/op
+BenchmarkR27ND/s64x128        	    5458	     66378 ns/op
+BenchmarkR27ND/s100x100       	    3363	    103552 ns/op
+BenchmarkR27ND/s120x120       	    2464	    145687 ns/op
+BenchmarkR27ND/s240x240       	     500	    728749 ns/op
+BenchmarkR27ND/s16x16x16      	    8512	     41993 ns/op
+BenchmarkR27ND/s32x32x32      	    1054	    341836 ns/op
+BenchmarkR27ND/s1000x3        	    6267	     56666 ns/op
+PASS
+# round 3 variant new 20:00:04 load 0.32 0.17 0.07
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  295460	      1194 ns/op
+BenchmarkR27ND/s32x32         	   70002	      5078 ns/op
+BenchmarkR27ND/s64x64         	   12879	     28215 ns/op
+BenchmarkR27ND/s128x128       	    2772	    129463 ns/op
+BenchmarkR27ND/s64x128        	    6135	     58784 ns/op
+BenchmarkR27ND/s100x100       	    4089	     89480 ns/op
+BenchmarkR27ND/s120x120       	    2832	    126793 ns/op
+BenchmarkR27ND/s240x240       	     554	    656352 ns/op
+BenchmarkR27ND/s16x16x16      	   12636	     28323 ns/op
+BenchmarkR27ND/s32x32x32      	    1338	    272554 ns/op
+BenchmarkR27ND/s1000x3        	   16077	     22315 ns/op
+PASS
+# round 4 variant new 20:00:09 load 0.38 0.18 0.07
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  302600	      1179 ns/op
+BenchmarkR27ND/s32x32         	   70942	      5073 ns/op
+BenchmarkR27ND/s64x64         	   12903	     27849 ns/op
+BenchmarkR27ND/s128x128       	    2775	    128386 ns/op
+BenchmarkR27ND/s64x128        	    5907	     60210 ns/op
+BenchmarkR27ND/s100x100       	    4052	     87921 ns/op
+BenchmarkR27ND/s120x120       	    2864	    125555 ns/op
+BenchmarkR27ND/s240x240       	     548	    651439 ns/op
+BenchmarkR27ND/s16x16x16      	   12825	     28057 ns/op
+BenchmarkR27ND/s32x32x32      	    1338	    268702 ns/op
+BenchmarkR27ND/s1000x3        	   16312	     22060 ns/op
+PASS
+# round 4 variant old 20:00:14 load 0.59 0.23 0.09
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  182138	      1973 ns/op
+BenchmarkR27ND/s32x32         	   52566	      6846 ns/op
+BenchmarkR27ND/s64x64         	   10000	     34019 ns/op
+BenchmarkR27ND/s128x128       	    2578	    139735 ns/op
+BenchmarkR27ND/s64x128        	    5432	     65842 ns/op
+BenchmarkR27ND/s100x100       	    3548	    101824 ns/op
+BenchmarkR27ND/s120x120       	    2482	    143655 ns/op
+BenchmarkR27ND/s240x240       	     493	    731977 ns/op
+BenchmarkR27ND/s16x16x16      	    8641	     41571 ns/op
+BenchmarkR27ND/s32x32x32      	    1054	    339071 ns/op
+BenchmarkR27ND/s1000x3        	    6415	     56398 ns/op
+PASS
+# round 5 variant old 20:00:18 load 0.70 0.26 0.10
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  180163	      1949 ns/op
+BenchmarkR27ND/s32x32         	   53325	      6764 ns/op
+BenchmarkR27ND/s64x64         	   10000	     34354 ns/op
+BenchmarkR27ND/s128x128       	    2502	    142902 ns/op
+BenchmarkR27ND/s64x128        	    5119	     65429 ns/op
+BenchmarkR27ND/s100x100       	    3502	    101790 ns/op
+BenchmarkR27ND/s120x120       	    2490	    144186 ns/op
+BenchmarkR27ND/s240x240       	     498	    725686 ns/op
+BenchmarkR27ND/s16x16x16      	    8619	     41609 ns/op
+BenchmarkR27ND/s32x32x32      	    1081	    343812 ns/op
+BenchmarkR27ND/s1000x3        	    6427	     55981 ns/op
+PASS
+# round 5 variant new 20:00:22 load 0.73 0.27 0.11
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s16x16         	  297795	      1188 ns/op
+BenchmarkR27ND/s32x32         	   71901	      5091 ns/op
+BenchmarkR27ND/s64x64         	   12826	     27986 ns/op
+BenchmarkR27ND/s128x128       	    2794	    127917 ns/op
+BenchmarkR27ND/s64x128        	    5996	     58345 ns/op
+BenchmarkR27ND/s100x100       	    4086	     87826 ns/op
+BenchmarkR27ND/s120x120       	    2856	    125180 ns/op
+BenchmarkR27ND/s240x240       	     554	    646248 ns/op
+BenchmarkR27ND/s16x16x16      	   12938	     27783 ns/op
+BenchmarkR27ND/s32x32x32      	    1365	    264064 ns/op
+BenchmarkR27ND/s1000x3        	   16021	     22174 ns/op
+PASS
+# done 20:00:27 load 0.75 0.29 0.11

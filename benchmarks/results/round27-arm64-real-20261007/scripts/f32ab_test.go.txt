@@ -1,0 +1,113 @@
+// Package f32ab times float32 and float64 go-fft transforms with the same
+// code against any release: the A/B of Round 27 (float32 NEON kernels of
+// Rounds 22 and 25 on Neoverse-N1). The module's go.mod pins the release.
+package f32ab
+
+import (
+	"math"
+	"strconv"
+	"testing"
+
+	gofft "github.com/go-fft/fft"
+)
+
+var sizes = []int{256, 1024, 4096, 65536, 1000, 1080, 1920}
+
+func sig(n int) []complex128 {
+	x := make([]complex128, n)
+	for i := range x {
+		x[i] = complex(math.Sin(float64(i)*0.7), math.Cos(float64(i)*0.3))
+	}
+	return x
+}
+
+func BenchmarkAB(b *testing.B) {
+	for _, n := range sizes {
+		c := sig(n)
+		c32 := make([]complex64, n)
+		r64 := make([]float64, n)
+		r32 := make([]float32, n)
+		for i, v := range c {
+			c32[i] = complex64(v)
+			r64[i] = real(v)
+			r32[i] = float32(real(v))
+		}
+		name := "n" + strconv.Itoa(n)
+		p64, p32 := gofft.NewPlan(n), gofft.NewPlan32(n)
+		d64, d32 := make([]complex128, n), make([]complex64, n)
+		b.Run(name+"/c64", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p64.FFT(d64, c)
+			}
+		})
+		b.Run(name+"/c32", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p32.FFT(d32, c32)
+			}
+		})
+		rp64, rp32 := gofft.NewRealPlan(n), gofft.NewRealPlan32(n)
+		s64, s32 := make([]complex128, n/2+1), make([]complex64, n/2+1)
+		rp64.RFFT(s64, r64)
+		rp32.RFFT(s32, r32)
+		o64, o32 := make([]float64, n), make([]float32, n)
+		b.Run(name+"/r64", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				rp64.RFFT(s64, r64)
+			}
+		})
+		b.Run(name+"/r32", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				rp32.RFFT(s32, r32)
+			}
+		})
+		b.Run(name+"/i64", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				rp64.IRFFT(o64, s64)
+			}
+		})
+		b.Run(name+"/i32", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				rp32.IRFFT(o32, s32)
+			}
+		})
+	}
+}
+
+func BenchmarkND(b *testing.B) {
+	for _, n := range []int{64, 256} {
+		c := sig(n * n)
+		c32 := make([]complex64, n*n)
+		r64 := make([]float64, n*n)
+		r32 := make([]float32, n*n)
+		for i, v := range c {
+			c32[i] = complex64(v)
+			r64[i] = real(v)
+			r32[i] = float32(real(v))
+		}
+		name := "n" + strconv.Itoa(n)
+		p64, p32 := gofft.NewPlanN(n, n), gofft.NewPlanN32(n, n)
+		d64, d32 := make([]complex128, n*n), make([]complex64, n*n)
+		b.Run(name+"/c64", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p64.FFT(d64, c)
+			}
+		})
+		b.Run(name+"/c32", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p32.FFT(d32, c32)
+			}
+		})
+		q64, q32 := gofft.NewRealPlan2(n, n), gofft.NewRealPlan2_32(n, n)
+		s64, s32 := make([]complex128, q64.SpectrumLen()), make([]complex64, q32.SpectrumLen())
+		b.Run(name+"/r64", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				q64.RFFT(s64, r64)
+			}
+		})
+		b.Run(name+"/r32", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				q32.RFFT(s32, r32)
+			}
+		})
+	}
+}

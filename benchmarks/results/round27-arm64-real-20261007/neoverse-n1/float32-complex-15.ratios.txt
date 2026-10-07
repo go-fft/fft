@@ -1,0 +1,9 @@
+# float32-complex-15.txt: 1-min load at the start of each run 0.72-0.93
+row                      f15.test   f16.test  f15.test/f16.test  per-round range   spread
+n256/c32                      816        816   1.000  0.973-1.026  1.04  (inside)
+n1024/c32                    3704       3700   1.001  0.991-1.027  1.02  (inside)
+n4096/c32                   17856      17871   0.999  0.986-1.014  1.03  (inside)
+n65536/c32                 430170     431272   0.997  0.933-1.072  1.10  (inside)
+n1000/c32                    4257       4261   0.999  0.980-1.021  1.03  (inside)
+n1080/c32                    5108       5109   1.000  0.980-1.016  1.03  (inside)
+n1920/c32                    8480       8502   0.997  0.979-1.015  1.03  (inside)

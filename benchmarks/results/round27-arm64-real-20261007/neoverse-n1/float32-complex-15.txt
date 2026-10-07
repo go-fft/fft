@@ -1,0 +1,362 @@
+# round 1 variant f15.test 10:57:41 load 0.72 0.95 0.95
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  446305	       814.0 ns/op
+BenchmarkAB/n1024/c32        	   98565	      3673 ns/op
+BenchmarkAB/n4096/c32        	   20305	     17788 ns/op
+BenchmarkAB/n65536/c32       	     876	    407097 ns/op
+BenchmarkAB/n1000/c32        	   85646	      4252 ns/op
+BenchmarkAB/n1080/c32        	   70159	      5147 ns/op
+BenchmarkAB/n1920/c32        	   42980	      8461 ns/op
+PASS
+# round 1 variant f16.test 10:57:44 load 0.74 0.95 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  424275	       836.3 ns/op
+BenchmarkAB/n1024/c32        	   97579	      3692 ns/op
+BenchmarkAB/n4096/c32        	   20196	     17947 ns/op
+BenchmarkAB/n65536/c32       	     834	    435455 ns/op
+BenchmarkAB/n1000/c32        	   80034	      4322 ns/op
+BenchmarkAB/n1080/c32        	   70268	      5067 ns/op
+BenchmarkAB/n1920/c32        	   42073	      8546 ns/op
+PASS
+# round 2 variant f16.test 10:57:47 load 0.74 0.95 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  433962	       815.2 ns/op
+BenchmarkAB/n1024/c32        	   98383	      3644 ns/op
+BenchmarkAB/n4096/c32        	   20304	     17787 ns/op
+BenchmarkAB/n65536/c32       	     824	    435462 ns/op
+BenchmarkAB/n1000/c32        	   85222	      4256 ns/op
+BenchmarkAB/n1080/c32        	   69520	      5156 ns/op
+BenchmarkAB/n1920/c32        	   42486	      8502 ns/op
+PASS
+# round 2 variant f15.test 10:57:50 load 0.76 0.95 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  420777	       813.5 ns/op
+BenchmarkAB/n1024/c32        	   97710	      3688 ns/op
+BenchmarkAB/n4096/c32        	   20266	     17908 ns/op
+BenchmarkAB/n65536/c32       	     846	    417194 ns/op
+BenchmarkAB/n1000/c32        	   85003	      4344 ns/op
+BenchmarkAB/n1080/c32        	   69309	      5108 ns/op
+BenchmarkAB/n1920/c32        	   42654	      8541 ns/op
+PASS
+# round 3 variant f15.test 10:57:53 load 0.76 0.95 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  419058	       817.0 ns/op
+BenchmarkAB/n1024/c32        	   96884	      3721 ns/op
+BenchmarkAB/n4096/c32        	   19927	     17856 ns/op
+BenchmarkAB/n65536/c32       	     818	    442056 ns/op
+BenchmarkAB/n1000/c32        	   82856	      4297 ns/op
+BenchmarkAB/n1080/c32        	   70765	      5124 ns/op
+BenchmarkAB/n1920/c32        	   42234	      8522 ns/op
+PASS
+# round 3 variant f16.test 10:57:56 load 0.78 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  423037	       822.7 ns/op
+BenchmarkAB/n1024/c32        	   97546	      3716 ns/op
+BenchmarkAB/n4096/c32        	   19944	     17871 ns/op
+BenchmarkAB/n65536/c32       	     878	    412465 ns/op
+BenchmarkAB/n1000/c32        	   84175	      4277 ns/op
+BenchmarkAB/n1080/c32        	   69354	      5182 ns/op
+BenchmarkAB/n1920/c32        	   42052	      8519 ns/op
+PASS
+# round 4 variant f16.test 10:57:59 load 0.80 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  417535	       816.5 ns/op
+BenchmarkAB/n1024/c32        	   98130	      3700 ns/op
+BenchmarkAB/n4096/c32        	   20090	     17689 ns/op
+BenchmarkAB/n65536/c32       	     838	    431272 ns/op
+BenchmarkAB/n1000/c32        	   84710	      4245 ns/op
+BenchmarkAB/n1080/c32        	   69349	      5054 ns/op
+BenchmarkAB/n1920/c32        	   42729	      8465 ns/op
+PASS
+# round 4 variant f15.test 10:58:02 load 0.80 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  429078	       810.1 ns/op
+BenchmarkAB/n1024/c32        	   98206	      3700 ns/op
+BenchmarkAB/n4096/c32        	   20140	     17845 ns/op
+BenchmarkAB/n65536/c32       	     824	    437812 ns/op
+BenchmarkAB/n1000/c32        	   84120	      4239 ns/op
+BenchmarkAB/n1080/c32        	   71238	      5029 ns/op
+BenchmarkAB/n1920/c32        	   42730	      8463 ns/op
+PASS
+# round 5 variant f15.test 10:58:05 load 0.82 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  427357	       809.0 ns/op
+BenchmarkAB/n1024/c32        	   98083	      3661 ns/op
+BenchmarkAB/n4096/c32        	   20372	     17716 ns/op
+BenchmarkAB/n65536/c32       	     844	    429868 ns/op
+BenchmarkAB/n1000/c32        	   80959	      4288 ns/op
+BenchmarkAB/n1080/c32        	   68706	      5120 ns/op
+BenchmarkAB/n1920/c32        	   41529	      8616 ns/op
+PASS
+# round 5 variant f16.test 10:58:08 load 0.82 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  422440	       818.4 ns/op
+BenchmarkAB/n1024/c32        	   95718	      3694 ns/op
+BenchmarkAB/n4096/c32        	   20010	     17959 ns/op
+BenchmarkAB/n65536/c32       	     818	    436669 ns/op
+BenchmarkAB/n1000/c32        	   84369	      4268 ns/op
+BenchmarkAB/n1080/c32        	   70340	      5106 ns/op
+BenchmarkAB/n1920/c32        	   42472	      8491 ns/op
+PASS
+# round 6 variant f16.test 10:58:11 load 0.83 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  429927	       822.4 ns/op
+BenchmarkAB/n1024/c32        	   95846	      3723 ns/op
+BenchmarkAB/n4096/c32        	   20158	     17816 ns/op
+BenchmarkAB/n65536/c32       	     818	    430584 ns/op
+BenchmarkAB/n1000/c32        	   84331	      4248 ns/op
+BenchmarkAB/n1080/c32        	   70431	      5142 ns/op
+BenchmarkAB/n1920/c32        	   41995	      8507 ns/op
+PASS
+# round 6 variant f15.test 10:58:14 load 0.84 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  429475	       819.6 ns/op
+BenchmarkAB/n1024/c32        	   97068	      3724 ns/op
+BenchmarkAB/n4096/c32        	   19852	     18036 ns/op
+BenchmarkAB/n65536/c32       	     804	    441420 ns/op
+BenchmarkAB/n1000/c32        	   84093	      4305 ns/op
+BenchmarkAB/n1080/c32        	   69660	      5117 ns/op
+BenchmarkAB/n1920/c32        	   42139	      8628 ns/op
+PASS
+# round 7 variant f15.test 10:58:17 load 0.84 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  423840	       826.5 ns/op
+BenchmarkAB/n1024/c32        	   96236	      3748 ns/op
+BenchmarkAB/n4096/c32        	   20257	     17705 ns/op
+BenchmarkAB/n65536/c32       	     843	    423192 ns/op
+BenchmarkAB/n1000/c32        	   81902	      4327 ns/op
+BenchmarkAB/n1080/c32        	   71457	      5110 ns/op
+BenchmarkAB/n1920/c32        	   42058	      8451 ns/op
+PASS
+# round 7 variant f16.test 10:58:20 load 0.86 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  432824	       805.9 ns/op
+BenchmarkAB/n1024/c32        	   98764	      3650 ns/op
+BenchmarkAB/n4096/c32        	   20378	     17616 ns/op
+BenchmarkAB/n65536/c32       	     883	    402501 ns/op
+BenchmarkAB/n1000/c32        	   84637	      4261 ns/op
+BenchmarkAB/n1080/c32        	   70677	      5047 ns/op
+BenchmarkAB/n1920/c32        	   42525	      8415 ns/op
+PASS
+# round 8 variant f16.test 10:58:23 load 0.86 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  430664	       806.3 ns/op
+BenchmarkAB/n1024/c32        	   98666	      3653 ns/op
+BenchmarkAB/n4096/c32        	   20184	     17759 ns/op
+BenchmarkAB/n65536/c32       	     826	    436558 ns/op
+BenchmarkAB/n1000/c32        	   84847	      4244 ns/op
+BenchmarkAB/n1080/c32        	   71017	      5107 ns/op
+BenchmarkAB/n1920/c32        	   42086	      8398 ns/op
+PASS
+# round 8 variant f15.test 10:58:26 load 0.87 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  426594	       815.8 ns/op
+BenchmarkAB/n1024/c32        	   97236	      3691 ns/op
+BenchmarkAB/n4096/c32        	   20466	     17551 ns/op
+BenchmarkAB/n65536/c32       	     866	    414107 ns/op
+BenchmarkAB/n1000/c32        	   85366	      4198 ns/op
+BenchmarkAB/n1080/c32        	   70545	      5128 ns/op
+BenchmarkAB/n1920/c32        	   42451	      8457 ns/op
+PASS
+# round 9 variant f15.test 10:58:29 load 0.88 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  427567	       816.5 ns/op
+BenchmarkAB/n1024/c32        	   97150	      3704 ns/op
+BenchmarkAB/n4096/c32        	   20235	     17607 ns/op
+BenchmarkAB/n65536/c32       	     892	    401058 ns/op
+BenchmarkAB/n1000/c32        	   85010	      4210 ns/op
+BenchmarkAB/n1080/c32        	   71618	      5008 ns/op
+BenchmarkAB/n1920/c32        	   42022	      8564 ns/op
+PASS
+# round 9 variant f16.test 10:58:32 load 0.88 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  420654	       814.1 ns/op
+BenchmarkAB/n1024/c32        	   96532	      3703 ns/op
+BenchmarkAB/n4096/c32        	   20430	     17630 ns/op
+BenchmarkAB/n65536/c32       	     836	    430080 ns/op
+BenchmarkAB/n1000/c32        	   83882	      4275 ns/op
+BenchmarkAB/n1080/c32        	   70114	      5074 ns/op
+BenchmarkAB/n1920/c32        	   42056	      8569 ns/op
+PASS
+# round 10 variant f16.test 10:58:35 load 0.89 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  433789	       814.1 ns/op
+BenchmarkAB/n1024/c32        	   96309	      3718 ns/op
+BenchmarkAB/n4096/c32        	   19996	     17964 ns/op
+BenchmarkAB/n65536/c32       	     861	    404673 ns/op
+BenchmarkAB/n1000/c32        	   84248	      4303 ns/op
+BenchmarkAB/n1080/c32        	   70048	      5109 ns/op
+BenchmarkAB/n1920/c32        	   42042	      8565 ns/op
+PASS
+# round 10 variant f15.test 10:58:38 load 0.89 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  420236	       810.7 ns/op
+BenchmarkAB/n1024/c32        	   95870	      3741 ns/op
+BenchmarkAB/n4096/c32        	   20161	     17839 ns/op
+BenchmarkAB/n65536/c32       	     884	    421113 ns/op
+BenchmarkAB/n1000/c32        	   82869	      4317 ns/op
+BenchmarkAB/n1080/c32        	   69692	      5054 ns/op
+BenchmarkAB/n1920/c32        	   42931	      8387 ns/op
+PASS
+# round 11 variant f15.test 10:58:41 load 0.90 0.96 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  427262	       814.0 ns/op
+BenchmarkAB/n1024/c32        	   98322	      3708 ns/op
+BenchmarkAB/n4096/c32        	   20360	     18080 ns/op
+BenchmarkAB/n65536/c32       	     805	    435037 ns/op
+BenchmarkAB/n1000/c32        	   84308	      4221 ns/op
+BenchmarkAB/n1080/c32        	   71720	      5006 ns/op
+BenchmarkAB/n1920/c32        	   43044	      8495 ns/op
+PASS
+# round 11 variant f16.test 10:58:44 load 0.91 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  433598	       820.7 ns/op
+BenchmarkAB/n1024/c32        	   98661	      3697 ns/op
+BenchmarkAB/n4096/c32        	   20084	     17827 ns/op
+BenchmarkAB/n65536/c32       	     826	    430935 ns/op
+BenchmarkAB/n1000/c32        	   83080	      4308 ns/op
+BenchmarkAB/n1080/c32        	   69613	      5109 ns/op
+BenchmarkAB/n1920/c32        	   42372	      8457 ns/op
+PASS
+# round 12 variant f16.test 10:58:47 load 0.91 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  422977	       823.3 ns/op
+BenchmarkAB/n1024/c32        	   96748	      3706 ns/op
+BenchmarkAB/n4096/c32        	   20126	     17938 ns/op
+BenchmarkAB/n65536/c32       	     872	    405276 ns/op
+BenchmarkAB/n1000/c32        	   85171	      4232 ns/op
+BenchmarkAB/n1080/c32        	   70285	      5143 ns/op
+BenchmarkAB/n1920/c32        	   42241	      8495 ns/op
+PASS
+# round 12 variant f15.test 10:58:50 load 0.91 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  431191	       816.8 ns/op
+BenchmarkAB/n1024/c32        	   97419	      3680 ns/op
+BenchmarkAB/n4096/c32        	   20106	     17889 ns/op
+BenchmarkAB/n65536/c32       	     819	    433128 ns/op
+BenchmarkAB/n1000/c32        	   82282	      4256 ns/op
+BenchmarkAB/n1080/c32        	   69368	      5110 ns/op
+BenchmarkAB/n1920/c32        	   41858	      8475 ns/op
+PASS
+# round 13 variant f15.test 10:58:53 load 0.91 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  431726	       817.6 ns/op
+BenchmarkAB/n1024/c32        	   96450	      3692 ns/op
+BenchmarkAB/n4096/c32        	   20257	     17943 ns/op
+BenchmarkAB/n65536/c32       	     817	    436694 ns/op
+BenchmarkAB/n1000/c32        	   84684	      4279 ns/op
+BenchmarkAB/n1080/c32        	   70782	      5103 ns/op
+BenchmarkAB/n1920/c32        	   42206	      8480 ns/op
+PASS
+# round 13 variant f16.test 10:58:56 load 0.92 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  432781	       813.7 ns/op
+BenchmarkAB/n1024/c32        	   97368	      3706 ns/op
+BenchmarkAB/n4096/c32        	   20011	     17947 ns/op
+BenchmarkAB/n65536/c32       	     832	    436076 ns/op
+BenchmarkAB/n1000/c32        	   83738	      4257 ns/op
+BenchmarkAB/n1080/c32        	   69706	      5145 ns/op
+BenchmarkAB/n1920/c32        	   41941	      8541 ns/op
+PASS
+# round 14 variant f16.test 10:58:59 load 0.93 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  428287	       816.3 ns/op
+BenchmarkAB/n1024/c32        	   97404	      3719 ns/op
+BenchmarkAB/n4096/c32        	   20085	     17889 ns/op
+BenchmarkAB/n65536/c32       	     830	    432239 ns/op
+BenchmarkAB/n1000/c32        	   84661	      4244 ns/op
+BenchmarkAB/n1080/c32        	   70762	      5115 ns/op
+BenchmarkAB/n1920/c32        	   42558	      8550 ns/op
+PASS
+# round 14 variant f15.test 10:59:02 load 0.93 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  429990	       823.3 ns/op
+BenchmarkAB/n1024/c32        	   96612	      3705 ns/op
+BenchmarkAB/n4096/c32        	   20061	     17926 ns/op
+BenchmarkAB/n65536/c32       	     828	    431592 ns/op
+BenchmarkAB/n1000/c32        	   84666	      4257 ns/op
+BenchmarkAB/n1080/c32        	   70848	      5063 ns/op
+BenchmarkAB/n1920/c32        	   42282	      8528 ns/op
+PASS
+# round 15 variant f15.test 10:59:05 load 0.93 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  418060	       827.5 ns/op
+BenchmarkAB/n1024/c32        	   96640	      3741 ns/op
+BenchmarkAB/n4096/c32        	   19870	     17951 ns/op
+BenchmarkAB/n65536/c32       	     811	    430170 ns/op
+BenchmarkAB/n1000/c32        	   85074	      4212 ns/op
+BenchmarkAB/n1080/c32        	   71692	      5038 ns/op
+BenchmarkAB/n1920/c32        	   42991	      8384 ns/op
+PASS
+# round 15 variant f16.test 10:59:08 load 0.93 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: f32ab
+BenchmarkAB/n256/c32         	  435141	       806.9 ns/op
+BenchmarkAB/n1024/c32        	   97810	      3660 ns/op
+BenchmarkAB/n4096/c32        	   20356	     18042 ns/op
+BenchmarkAB/n65536/c32       	     805	    441607 ns/op
+BenchmarkAB/n1000/c32        	   83919	      4290 ns/op
+BenchmarkAB/n1080/c32        	   71481	      5025 ns/op
+BenchmarkAB/n1920/c32        	   42846	      8361 ns/op
+PASS
+# done 10:59:11 load 0.94 0.97 0.96
+# after done

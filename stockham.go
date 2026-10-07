@@ -394,33 +394,39 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 
 // passScalar is the pure-Go pass, for every radix and ido.
 func (st *skStage) passScalar(ch, cc []complex128, inverse bool) {
+	st.passScalarL(ch, cc, st.l1, inverse)
+}
+
+// passScalarL is passScalar over l1 blocks instead of st.l1 (the rotating
+// passes of armreal_nd.go run a stage over the blocks of many lines).
+func (st *skStage) passScalarL(ch, cc []complex128, l1 int, inverse bool) {
 	tw := st.tw
 	if inverse {
 		tw = st.twc
 	}
 	switch st.r {
 	case 2:
-		pass2(st.ido, st.l1, cc, ch, tw)
+		pass2(st.ido, l1, cc, ch, tw)
 	case 3:
-		pass3(st.ido, st.l1, cc, ch, tw, inverse)
+		pass3(st.ido, l1, cc, ch, tw, inverse)
 	case 4:
-		pass4(st.ido, st.l1, cc, ch, tw, inverse)
+		pass4(st.ido, l1, cc, ch, tw, inverse)
 	case 5:
-		pass5(st.ido, st.l1, cc, ch, tw, inverse)
+		pass5(st.ido, l1, cc, ch, tw, inverse)
 	case 7:
-		pass7(st.ido, st.l1, cc, ch, tw, inverse)
+		pass7(st.ido, l1, cc, ch, tw, inverse)
 	case 8:
-		pass8(st.ido, st.l1, cc, ch, tw, inverse)
+		pass8(st.ido, l1, cc, ch, tw, inverse)
 	case 16:
-		pass16(st.ido, st.l1, cc, ch, tw, inverse)
+		pass16(st.ido, l1, cc, ch, tw, inverse)
 	case 12:
-		pass12(st.ido, st.l1, cc, ch, tw, inverse)
+		pass12(st.ido, l1, cc, ch, tw, inverse)
 	default:
 		rt := st.rt
 		if inverse {
 			rt = st.rtc
 		}
-		passg(st.r, st.ido, st.l1, cc, ch, tw, rt)
+		passg(st.r, st.ido, l1, cc, ch, tw, rt)
 	}
 }
 

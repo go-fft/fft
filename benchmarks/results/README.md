@@ -170,3 +170,12 @@ BENCHMARKS.md, all on Zen 3 (cfarm420, one pinned core unless stated):
 
 There is no Apple M4 Max data: the workstation's 1-minute load never fell
 below 3.
+
+## 2026-10-07, arm64-real: float64 NEON untangle, rotating N-D passes, float32 on Neoverse-N1 (Round 27)
+
+`round27-arm64-real-20261007` holds the measurements behind Round 27 of
+BENCHMARKS.md, all on Neoverse-N1 (cfarm424, one pinned core): the untangle's
+share of RFFT and IRFFT and the three untangle kernels against main, the
+rotating N-D passes against rows and strips, the float32 rows of v0.12.0,
+v0.15.0 and v0.16.1, and the parity runs, main and the branch twice. See its
+README.
