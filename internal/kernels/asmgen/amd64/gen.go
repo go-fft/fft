@@ -3173,11 +3173,16 @@ func genComp2File() {
 // one in-lane shuffle per register each way, as at 256 bits; the twiddles are
 // stored in that order (kernels.intelSplitTwiddles512). The bodies are
 // genStockhamSplit's, operation for operation, so the result is the scalar
-// pass's bits; with 32 registers the radix-8 body needs no frame. The i = 0
-// point (lane 0 of a block's first group) is put back by a blend under
-// opmask K1 = 1. The two constants (√2/2 and −0, kernels.splitK's rows) are
-// broadcast once into Z30 and Z31; the sign flip is VPXORQ, which AVX-512F
-// has (VXORPD on ZMM needs AVX512DQ).
+// pass's bits. The i = 0 point (lane 0 of a block's first group) is put
+// back by a blend under opmask K1 = 1. The two constants (√2/2 and −0,
+// kernels.splitK's rows) are broadcast from memory by the instructions that
+// use them; the sign flip is VPXORQ, which AVX-512F has (VXORPD on ZMM needs
+// AVX512DQ). Only Z0..Z15 are written, and the radix-8 body spills four of
+// them to its frame as genStockhamSplit's does. VZEROUPPER does not clean
+// Z16..Z31: a first build that kept those four values and the constants
+// there ran the powers of two 1.07–1.08× faster at 2048 and 4096, but every
+// composite transform run after it in the same process 4–5% slower on
+// Cascade Lake (Round 28), and zeroing the registers on exit did not undo it.
 //
 // intelSplit512R{r}{in}{out}{Fwd|Inv}(cc, ch, tw *complex128, k *float64,
 // ido, l1 int), ido a positive multiple of eight. Registers as in
@@ -3198,10 +3203,8 @@ func intelZ(i int) string { return fmt.Sprintf("Z%d", i) }
 // intelAt64 is addr 64 bytes further on.
 func intelAt64(addr string) string { return "64" + addr }
 
-const (
-	intelZH   = 30 // √2/2 in every lane
-	intelZNeg = 31 // −0 in every lane
-)
+// intelSplit512Frame holds the radix-8 body's four spilled registers.
+const intelSplit512Frame = 256
 
 func (e intelSplit512Emit) load(j, re, im, t0, t1 int) {
 	a := skIn(j)
@@ -3297,7 +3300,13 @@ func (e intelSplit512Emit) body4(first bool) {
 	e.twStore(0, 1, 3, t, first)
 }
 
-// body8 is splitEmit.body8 with the four spilled registers kept in Z16..Z19.
+// neg flips a register's signs in place: −x, exactly (VPXORQ with −0
+// broadcast from the constants).
+func (e intelSplit512Emit) neg(r int) {
+	e.raw("VPXORQ.BCST %d(R14), %s, %s", splitKNeg, intelZ(r), intelZ(r))
+}
+
+// body8 is splitEmit.body8 at 512 bits, spilling the same four registers.
 func (e intelSplit512Emit) body8(first bool) {
 	// Odd half.
 	e.load(1, 0, 1, 12, 13)
@@ -3311,30 +3320,34 @@ func (e intelSplit512Emit) body8(first bool) {
 	e.add(8, 3, 6) // a3 = x3 + x7
 	e.sub(3, 3, 6) // a7 = x3 − x7
 	e.add(6, 5, 7)
-	e.sub(5, 5, 7)                   // a3 (8,6), a7 (3,5)
-	e.add(16, 4, 8)                  // a1 + a3
-	e.sub(18, 4, 8)                  // a1 − a3
-	e.add(17, 2, 6)                  //
-	e.sub(19, 2, 6)                  // a1 (16,17), a3 (18,19), before rotS(a3)
+	e.sub(5, 5, 7) // a3 (8,6), a7 (3,5)
+	e.add(7, 4, 8) // a1 + a3
+	e.sub(4, 4, 8) // a1 − a3
+	e.add(8, 2, 6)
+	e.sub(2, 2, 6) // a1 (7,8), a3 (4,2), before rotS(a3)
+	e.raw("VMOVUPD %s, 0(SP)", intelZ(7))
+	e.raw("VMOVUPD %s, 64(SP)", intelZ(8))
+	e.raw("VMOVUPD %s, 128(SP)", intelZ(4))
+	e.raw("VMOVUPD %s, 192(SP)", intelZ(2))
 	e.rotAdd(6, 9, 0, 1, 0, 1, 3, 5) // a5, a7 = a5 ± rotS(a7): a5 (6,9), a7 (0,1)
 	if !e.inverse {
 		// a5 = h·(a5r + a5i, a5i − a5r); a7 = h·(a7i − a7r, −a7r − a7i).
 		e.add(3, 6, 9)
 		e.sub(5, 9, 6)
 		e.sub(6, 1, 0)
-		e.raw("VPXORQ %s, %s, %s", intelZ(intelZNeg), intelZ(0), intelZ(0))
+		e.neg(0)
 		e.sub(0, 0, 1)
 	} else {
 		// a5 = h·(a5r − a5i, a5i + a5r); a7 = h·(−a7i − a7r, a7r − a7i).
 		e.sub(3, 6, 9)
 		e.add(5, 9, 6)
 		e.sub(2, 0, 1)
-		e.raw("VPXORQ %s, %s, %s", intelZ(intelZNeg), intelZ(1), intelZ(1))
+		e.neg(1)
 		e.sub(6, 1, 0)
 		e.raw("VMOVAPD %s, %s", intelZ(2), intelZ(0))
 	}
 	for _, r := range []int{3, 5, 6, 0} {
-		e.raw("VMULPD %s, %s, %s", intelZ(intelZH), intelZ(r), intelZ(r))
+		e.raw("VMULPD.BCST %d(R14), %s, %s", splitKH, intelZ(r), intelZ(r))
 	} // a5 (3,5), a7 (6,0)
 	// Even half.
 	e.load(0, 1, 2, 13, 14)
@@ -3372,14 +3385,16 @@ func (e intelSplit512Emit) body8(first bool) {
 	e.twStore(1, 2, 7, t, first)
 	// y0, y4 = a0 ± a1.
 	t = [4]int{0, 1, 2, 3}
-	e.add(7, 11, 16)
-	e.sub(11, 11, 16)
-	e.add(9, 12, 17)
-	e.sub(12, 12, 17)
+	e.raw("VADDPD 0(SP), %s, %s", intelZ(11), intelZ(7))
+	e.raw("VSUBPD 0(SP), %s, %s", intelZ(11), intelZ(11))
+	e.raw("VADDPD 64(SP), %s, %s", intelZ(12), intelZ(9))
+	e.raw("VSUBPD 64(SP), %s, %s", intelZ(12), intelZ(12))
 	e.store(0, 7, 9, 5, 6)
 	e.twStore(11, 12, 4, t, first)
 	// y2, y6 = a2 ± rotS(a3).
-	e.rotAdd(7, 9, 8, 4, 8, 4, 18, 19)
+	e.raw("VMOVUPD 128(SP), %s", intelZ(6))
+	e.raw("VMOVUPD 192(SP), %s", intelZ(0))
+	e.rotAdd(7, 9, 8, 4, 8, 4, 6, 0)
 	t = [4]int{1, 2, 3, 5}
 	e.twStore(7, 9, 2, t, first)
 	e.twStore(8, 4, 6, t, first)
@@ -3419,14 +3434,16 @@ func genIntelSplit512(f *emit.File, r int, inS, outS, inverse bool) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc(intelSplit512Name(r, inS, outS, inverse), sig, 0)
+	frame := 0
+	if r == 8 {
+		frame = intelSplit512Frame
+	}
+	b := amd64.NewFunc(intelSplit512Name(r, inS, outS, inverse), sig, frame)
 	e := intelSplit512Emit{b: b, r: r, inS: inS, outS: outS, inverse: inverse}
 	b.Raw("MOVQ $1, R9").Raw("KMOVB R9, K1") // lane 0: the i = 0 point
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
 		LoadArg("ido", "CX").LoadArg("l1", "R8")
-	b.Raw("VBROADCASTSD %d(R14), %s", splitKH, intelZ(intelZH)).
-		Raw("VBROADCASTSD %d(R14), %s", splitKNeg, intelZ(intelZNeg)).
-		Raw("MOVQ CX, DX").
+	b.Raw("MOVQ CX, DX").
 		Raw("IMULQ R8, DX").
 		Raw("SHLQ $4, CX"). // S
 		Raw("SHLQ $4, DX"). // OS
