@@ -265,7 +265,7 @@ job; the gate is never lowered and there is no coverage-gaming knob.
   each for a concrete checked reason (no assemblable vector FMA, and on ppc64le
   no vector double arithmetic at all — see above). 🔒
 
-### What the transforms run today (v0.16.0)
+### What the transforms run today (v0.19.0)
 
 The pointwise multiply above was the first kernel; it stayed off the hot path
 everywhere, because the compiler's scalar loop measured as fast. The kernels
@@ -297,6 +297,10 @@ Go code it replaces and tested bit for bit on generic, ±0 and ∞ inputs.
   passes, removing every shuffle and sign flip (v0.14.0).
 - **amd64, Intel AVX2, composites up to 16384:** a radix-12 prime-factor pass
   (Good–Thomas 3·4) and radix-16 tails after the odd passes (v0.15.0).
+- **amd64, AMD, composites:** radix-10/12/15/20 prime-factor passes with
+  stride limits (v0.18.0).
+- **amd64, Intel AVX-512, powers of two from 128:** 512-bit split kernels (eight
+  points per register) from 256 points, radix 16 at 128 (v0.19.0).
 - **amd64 without AVX2:** SSE2 butterfly stage kernels for the iterative pow2
   kernel. It also had AVX2 stages until v0.1.8; since v0.1.3 an AVX2 machine
   routes every power of two to the Stockham engine, so they ran only in tests
@@ -311,7 +315,8 @@ Go code it replaces and tested bit for bit on generic, ±0 and ∞ inputs.
   each 32 bytes), which removes the per-pass deinterleave (v0.11.0), and the
   columns of N-D plans run as NEON batched passes. Since v0.15.0 composites run
   odd radices first and split too (radix-3/5 split kernels), and the final
-  passes take any block count.
+  passes take any block count. The real-FFT untangle runs as a NEON kernel, and
+  small N-D plans run each axis as one pass sequence over all lines (v0.17.0).
 - **float32, AVX2 and NEON:** the single-precision Stockham passes (v0.13.0),
   the real-FFT untangle and retangle, and the N-D column passes (v0.16.0) have
   their own kernels, bit-identical to the float32 Go code (except NaN bits from
@@ -330,19 +335,17 @@ what was tried and dropped:
 
 ### Remaining
 
-- **Small sizes on Intel** (256–1024: 1.27–1.34× FFTW on Cascade Lake). The
-  split layout (v0.14.0) is off on Intel: Haswell was too loaded to measure it,
-  and AVX-512 has no split kernels.
-- **Composites on amd64** (1000, 1296: 1.18–1.23×). Radix 10/20 (1000) and 15
-  (1080) are the next levers (Round 24); the Intel radix-12 rules stop at 16384
-  and were not measured on AMD.
-- **Apple M4.** v0.11.0's split layout, v0.15.0's arm64 composites and the
-  float32 NEON kernels were measured on Neoverse-N1 only: the shared M4 stayed
-  loaded.
+- **Small sizes on amd64** (256: 1.24× FFTW on Zen 3 and Cascade Lake; RFFT
+  256: 1.21×). On Neoverse-N1 RFFT 256 is the last row behind (1.06×): its
+  128-point half transform alone takes ~73% of FFTW's whole r2c.
+- **Cascade Lake:** mid-size real transforms and composites (1.17–1.23×), and
+  the 2-D 1024² regression of v0.19.0 (0.94×), cause not established.
+- **Intel AVX2-only (Haswell)** and **Apple M4** were never idle enough to
+  measure; their routing is unchanged since the kernels they run were tuned
+  elsewhere.
 - **float32:** AVX-512 kernels, and a comparison with FFTW's single-precision
   library (not built on the hosts).
-- **loong64.** Never measured: its only host stayed at load 146–148 or
-  unreachable.
+- **loong64.** Never measured: its only host stayed at load 150 or unreachable.
 - **An RVV-capable CI runner**, so the riscv64 bit-identity proof also runs in
   CI. Today it runs scalar there, and the proof is on real hardware (cfarm95).
 

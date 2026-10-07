@@ -85,6 +85,11 @@ var (
 // StockhamTwiddles built for the pass (unused by the final pass, ido == 1).
 // wide is the AVX-512 switch of amd64 and is ignored.
 func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
+	if ido < 1 || l1 < 1 {
+		// Two negative counts multiply to a positive n that would pass the
+		// bound checks below; the kernels loop on l1 and ido.
+		panic("kernels: StockhamPass: need ido and l1 >= 1")
+	}
 	if !UseStockhamNEON || !stockhamNEON(r, ido, l1) {
 		return false
 	}
@@ -315,6 +320,11 @@ func StockhamSplitModes(r, ido, l1 []int) []uint8 {
 func StockhamPassLayout(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
 	if mode == 0 {
 		return StockhamPass(r, ido, l1, cc, ch, tw, inverse, wide)
+	}
+	if ido < 1 || l1 < 1 {
+		// As in StockhamPass; the split final pass takes l1 without a
+		// twiddle table, so nothing else would catch two negative counts.
+		panic("kernels: StockhamPassLayout: need ido and l1 >= 1")
 	}
 	if !UseStockhamNEON {
 		return false
