@@ -54,6 +54,17 @@ func TestIntelStripOrder(t *testing.T) {
 	const n = 64
 	splitTable = map[int][]int{n: {2, 4, 8}}
 	intelStripOrder = map[int]bool{n: true}
+	// Without the cached plans, the strip axis would take splitTable's.
+	planMu.Lock()
+	delete(planCache, n)
+	delete(planNo16Cache, n)
+	planMu.Unlock()
+	defer func() {
+		planMu.Lock()
+		delete(planCache, n)
+		delete(planNo16Cache, n)
+		planMu.Unlock()
+	}()
 	p := NewPlanN(n, n)
 	var col []int
 	for _, st := range p.axes[0].sk.stages {
