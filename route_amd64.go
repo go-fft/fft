@@ -132,9 +132,13 @@ func radix16TableDefault() map[int][]int {
 // one L1 set (Round 8's conflict, now with more streams than ways). 2048
 // goes to radix 16 on Intel only, as the radix-8 rule does (r8MaxPow2AMD64).
 // AVX-512 machines keep their rule: there is no 512-bit radix-16 kernel, and
-// a transform that mixes widths lost in Round 6.
+// a transform that mixes widths lost in Round 6; except 128 on Intel
+// (intelRadix16Table512), where the AVX-512 kernels do not run.
 func radix16TableAMD64(avx2, avx512, intel bool) map[int][]int {
-	if !avx2 || avx512 {
+	switch {
+	case avx2 && avx512 && intel:
+		return intelRadix16Table512()
+	case !avx2 || avx512:
 		return nil
 	}
 	t := map[int][]int{128: {16, 8}, 256: {16, 16}, 1024: {8, 8, 16}}
@@ -167,8 +171,67 @@ func cascadeMinAMD64(avx512, intel bool) int {
 	return 0
 }
 
-// splitTableDefault is splitTableAMD64 for this machine.
-func splitTableDefault() map[int][]int { return splitTableAMD64(kernels.UseStockhamSplit) }
+// splitTableDefault is splitTableAMD64, or intelSplitTable512 where the
+// 512-bit split layout runs, for this machine.
+func splitTableDefault() map[int][]int {
+	return intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512)
+}
+
+// intelSplitTableAMD64 is splitTableDefault's choice: intelSplitTable512 with
+// the 512-bit split layout (kernels.UseStockhamSplit512), else
+// splitTableAMD64.
+func intelSplitTableAMD64(on, on512 bool) map[int][]int {
+	if on512 {
+		return intelSplitTable512()
+	}
+	return splitTableAMD64(on)
+}
+
+func init() { intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512) }
+
+// intelStripOrderAMD64 is intelStripOrder: the lengths of intelSplitTable512
+// when the 512-bit split layout runs. On Cascade Lake (Round 28) the batched
+// column passes of 1024×1024 ran 8·4·4·8 1.10× slower than 4·4·8·8 (five
+// rotated rounds, 2-D 1024² 19.4 against 17.6 ms); the strips run
+// interleaved whatever the layout, and the table was chosen for it.
+func intelStripOrderAMD64(on512 bool) map[int]bool {
+	if !on512 {
+		return nil
+	}
+	m := map[int]bool{}
+	for n := range intelSplitTable512() {
+		m[n] = true
+	}
+	return m
+}
+
+// intelSplitTable512 gives the powers of two whose factorization changes
+// with the 512-bit split layout (Round 28, Cascade Lake, one pinned core).
+// Every ordering of radix-4, -8 and -16 passes from 256 to 16384 points was
+// timed with the layout (three rounds), then the best few against the
+// current factorization (seven rounds, fifteen for the close ones, the order
+// rotated every round). Current factorization's time ÷ the table's: 1024
+// (4·4·8·8 → 8·4·4·8) 1.036, every round above 1.017; 8192 (4·4·8·8·8 →
+// 8·8·4·4·8) 1.045, every round above 1.030. 256, 2048 and 16384 had a
+// candidate within 1% (8·4·8, 8·8·4·8, 8·8·4·8·8), so they keep theirs, as do
+// 512, 4096 and 32768, where theirs was the best. Radix 16 lost at every size once the
+// layout ran (intelRadix16Table512).
+func intelSplitTable512() map[int][]int {
+	return map[int][]int{
+		1024: {8, 4, 4, 8},
+		8192: {8, 8, 4, 4, 8},
+	}
+}
+
+// intelRadix16Table512 gives the powers of two that take radix-16 passes on
+// an Intel CPU with AVX-512: 128 = 16·8. Below 256 points the AVX-512
+// kernels do not run (wide512), and the AVX2 radix-16 pass made 128 1.18×
+// as fast as 4·4·8 on Cascade Lake (Round 28, fifteen rotated rounds, every
+// one above 1.15; 8·16 tied 16·8). From 256 the 512-bit split layout runs
+// and radix 16 lost to it at every size timed, 256 to 16384: the best
+// factorization with a radix-16 pass took 1.08–1.55× the time of the split
+// one (three rounds).
+func intelRadix16Table512() map[int][]int { return map[int][]int{128: {16, 8}} }
 
 // splitTableAMD64 gives the powers of two whose factorization changes when
 // the split layout runs (kernels.UseStockhamSplit). Every ordering of radix-4

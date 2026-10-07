@@ -189,3 +189,11 @@ share of RFFT and IRFFT and the three untangle kernels against main, the
 rotating N-D passes against rows and strips, the float32 rows of v0.12.0,
 v0.15.0 and v0.16.1, and the parity runs, main and the branch twice. See its
 README.
+
+## 2026-10-07, intel-small: the split layout at 512 bits on Cascade Lake (Round 28)
+
+`round28-intel-small-20261007` holds the measurements behind Round 28 of
+BENCHMARKS.md, all on Cascade Lake (cfarm151, one pinned core): the
+factorization sweeps in every layout and width, the rotated A/B runs, the
+end-to-end runs against main (including the build whose use of Z16..Z31 slowed
+the composites), the mutation log and four parity runs. See its README.

@@ -10,6 +10,8 @@ import (
 // splitOut, splitBoth…, splitIn (splitNone alone); the others, and the final
 // pass, stay interleaved; off, everything is interleaved.
 func TestSplitModes(t *testing.T) {
+	defer func(v bool) { UseStockhamSplit512 = v }(UseStockhamSplit512)
+	UseStockhamSplit512 = false // the 256-bit layout
 	for _, c := range []struct {
 		r, ido []int
 		want   []uint8
@@ -104,6 +106,8 @@ func TestSplitPassLayoutOff(t *testing.T) {
 // real parts in the order 0, 2, 1, 3, then the imaginary parts, conjugated in
 // the conjugate table.
 func TestSplitTwiddles(t *testing.T) {
+	defer func(v bool) { UseStockhamSplit512 = v }(UseStockhamSplit512)
+	UseStockhamSplit512 = false // the 256-bit layout
 	const n = 128
 	root := make([]complex128, n)
 	for k := range root {

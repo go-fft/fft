@@ -1,6 +1,10 @@
 package fft
 
-import "testing"
+import (
+	"math/cmplx"
+	"slices"
+	"testing"
+)
 
 // TestSplitPow2Factors: the split factorization of 2^e multiplies to 2^e,
 // ends with a radix-4 pass, and puts its radix-4 passes before its radix-8
@@ -40,5 +44,44 @@ func TestSplitTable(t *testing.T) {
 	f[0] = 2
 	if splitTable[256][0] != 8 {
 		t.Fatal("skFactorize returned the table's own slice")
+	}
+}
+
+// TestIntelStripOrder: a length in intelStripOrder runs its N-D strip axes
+// with skFactorizeOrder's factorization, and the plan stays correct.
+func TestIntelStripOrder(t *testing.T) {
+	defer func(m map[int]bool, s map[int][]int) { intelStripOrder, splitTable = m, s }(intelStripOrder, splitTable)
+	const n = 64
+	splitTable = map[int][]int{n: {2, 4, 8}}
+	intelStripOrder = map[int]bool{n: true}
+	// Without the cached plans, the strip axis would take splitTable's.
+	planMu.Lock()
+	delete(planCache, n)
+	delete(planNo16Cache, n)
+	planMu.Unlock()
+	defer func() {
+		planMu.Lock()
+		delete(planCache, n)
+		delete(planNo16Cache, n)
+		planMu.Unlock()
+	}()
+	p := NewPlanN(n, n)
+	var col []int
+	for _, st := range p.axes[0].sk.stages {
+		col = append(col, st.r)
+	}
+	if want := skFactorizeOrder(n, compOddFirst); !slices.Equal(col, want) {
+		t.Errorf("strip axis factors %v, want %v", col, want)
+	}
+	x := make([]complex128, n*n)
+	for i := range x {
+		x[i] = complex(float64(i%7), -float64(i%5))
+	}
+	got := p.FFT(make([]complex128, n*n), x)
+	want := FFTN(x, []int{n, n})
+	for i := range got {
+		if cmplx.Abs(got[i]-want[i]) > 1e-9*float64(n*n) {
+			t.Fatalf("index %d: %v, want %v", i, got[i], want[i])
+		}
 	}
 }

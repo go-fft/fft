@@ -1,0 +1,45 @@
+# start 20:07:09 load 0.12 0.25 0.16
+AB 64 w:cur                     146.1 ns  first/this 1.000  range 1.000-1.000
+AB 64 z:8x8                     153.5 ns  first/this 0.955  range 0.593-0.972
+AB 64 z:4x16                    161.2 ns  first/this 0.903  range 0.671-0.920
+AB 64 z:4x4x4                   208.7 ns  first/this 0.692  range 0.563-0.708
+AB 128 w:cur                     305.7 ns  first/this 1.000  range 1.000-1.000
+AB 128 w:16x8                    255.6 ns  first/this 1.179  range 1.129-1.236
+AB 128 w:8x16                    256.1 ns  first/this 1.182  range 1.166-1.207
+AB 128 z:4x4x8                   282.9 ns  first/this 1.085  range 1.041-1.121
+AB 128 z:8x4x4                   330.2 ns  first/this 0.927  range 0.901-0.957
+AB 128 z:4x8x4                   351.2 ns  first/this 0.875  range 0.843-0.904
+AB 128 z:8x16                    255.3 ns  first/this 1.193  range 1.145-1.232
+AB 128 z:16x8                    254.9 ns  first/this 1.202  range 1.163-1.220
+AB 256 w:cur                     489.4 ns  first/this 1.000  range 1.000-1.000
+AB 256 w:16x16                   503.0 ns  first/this 0.989  range 0.969-1.010
+AB 256 z:cur                     449.6 ns  first/this 1.095  range 1.074-1.132
+AB 256 z:8x4x8                   443.1 ns  first/this 1.106  range 1.096-1.159
+AB 256 z:4x8x8                   446.4 ns  first/this 1.096  range 1.067-1.139
+AB 512 w:cur                    1049.1 ns  first/this 1.000  range 1.000-1.000
+AB 512 z:cur                     892.2 ns  first/this 1.169  range 1.107-1.355
+AB 512 z:8x4x16                 1016.1 ns  first/this 1.016  range 0.993-1.168
+AB 1024 w:cur                    2825.3 ns  first/this 1.000  range 1.000-1.000
+AB 1024 z:cur                    2514.3 ns  first/this 1.128  range 1.086-1.182
+AB 1024 z:8x4x4x8                2447.7 ns  first/this 1.156  range 1.132-1.206
+AB 1024 z:4x8x4x8                2555.2 ns  first/this 1.108  range 1.060-1.159
+AB 2048 w:cur                    6751.3 ns  first/this 1.000  range 1.000-1.000
+AB 2048 z:cur                    6033.8 ns  first/this 1.114  range 1.097-1.165
+AB 2048 z:8x4x8x8                6030.6 ns  first/this 1.123  range 1.075-1.200
+AB 2048 z:8x8x4x8                6004.9 ns  first/this 1.130  range 1.101-1.152
+AB 4096 w:cur                   13403.7 ns  first/this 1.000  range 1.000-1.000
+AB 4096 z:cur                   11396.3 ns  first/this 1.179  range 1.158-1.193
+AB 4096 z:8x4x8x4x4             13802.1 ns  first/this 0.970  range 0.965-0.986
+AB 8192 w:cur                   29960.9 ns  first/this 1.000  range 1.000-1.000
+AB 8192 z:cur                   27786.4 ns  first/this 1.083  range 0.960-1.091
+AB 8192 z:8x8x4x4x8             26638.8 ns  first/this 1.122  range 1.068-1.137
+AB 8192 z:4x8x4x8x8             27303.9 ns  first/this 1.103  range 1.075-1.106
+AB 16384 w:cur                   65257.0 ns  first/this 1.000  range 1.000-1.000
+AB 16384 z:cur                   56925.3 ns  first/this 1.149  range 1.132-1.152
+AB 16384 z:8x8x4x8x8             56559.0 ns  first/this 1.153  range 1.143-1.163
+AB 32768 w:cur                  208446.1 ns  first/this 1.000  range 1.000-1.000
+AB 32768 z:cur                  194644.9 ns  first/this 1.073  range 1.057-1.085
+AB 32768 z:4x4x8x8x8x4          211261.0 ns  first/this 0.987  range 0.976-0.989
+AB 32768 z:8x8x4x4x8x4          206777.5 ns  first/this 1.012  range 0.995-1.027
+PASS
+# end 20:07:27 load 0.37 0.30 0.18
