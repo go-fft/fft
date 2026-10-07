@@ -1,0 +1,1 @@
+SCRATCH pool 16.20 ns atomic 8.15 ns (TestR26ScratchCost -r26.ab=11,60, 2026-10-07 10:30 host time, load 1.5)

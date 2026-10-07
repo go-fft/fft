@@ -171,6 +171,16 @@ BENCHMARKS.md, all on Zen 3 (cfarm420, one pinned core unless stated):
 There is no Apple M4 Max data: the workstation's 1-minute load never fell
 below 3.
 
+## 2026-10-07, perf-amd64-comp2: composites and small real sizes on Zen 3 (Round 26)
+
+`round26-amd64-comp2-20261007` holds the measurements behind Round 26 of
+BENCHMARKS.md, all on Zen 3 (cfarm420, one pinned core): each pass of the
+composite and small power-of-two lengths timed alone, the RFFT split into
+its half transform and its untangle, Round 24's Intel rule timed on AMD, the
+radix-10/15/20 factorizations and the 148-length sweep behind the AMD rule,
+the interleaved A/B runs against main, the generator mutants, and four parity
+runs (main and the branch, twice each). See its README.
+
 ## 2026-10-07, arm64-real: float64 NEON untangle, rotating N-D passes, float32 on Neoverse-N1 (Round 27)
 
 `round27-arm64-real-20261007` holds the measurements behind Round 27 of
