@@ -2331,8 +2331,9 @@ radix-20 passes (e <= 8), then one radix-10 pass for a 2 and a 5 left (e <=
 7, by the same stride argument; not every such case was a candidate); a
 single 2 left over otherwise goes back with the last radix-20 (else
 radix-12) pass so the tail ends on radix 8; one radix-15 pass for a 3 and a 5
-left (e <= 6; radix 15 lost at e = 7 in the sweep, 0.93–0.99×). The order: the remaining 3s and 5s, the remaining powers of
-two (radix 4 before 8), then 15, 10, 12, 20. e = 10 takes Round 24's 8·8·16
+left (e <= 6; every radix-15 candidate lost at 1920, e = 7, 0.78–0.99×).
+The order: the remaining 3s and 5s, the remaining powers of two (radix 4
+before 8), then 15, 10, 12, 20. e = 10 takes Round 24's 8·8·16
 tail, e >= 11 keeps its factorization. Scored against the sweep
 (`scripts/an_sweep.py sweep1.txt scripts/rule_r6.py`): within 0.7% of the
 best candidate (geometric mean), never slower than the current
@@ -2414,8 +2415,8 @@ rebase, and every `.s` file regenerates unchanged.
   0.99–1.02× elsewhere in one process (21 rounds, `zen3/half-scratch.txt`),
   and 0.98–1.04× between binaries (eleven rounds,
   `zen3/ab-rfft-halfscratch-11.txt`), every row inside its spread, so it was
-  not kept: `run` is not inlined where `transform` is, which takes back most
-  of the 16 ns.
+  not kept. Why it saves less than the pool's 16 ns was not established
+  (`skPlan.run` is not inlined where `transform`'s loop is, one candidate).
 - **A one-slot atomic scratch cache** in front of the pool: 8 ns against 16
   (`zen3/scratch-cost.txt`), but every goroutine sharing a cached plan would
   contend on that one cache line, which one pinned core cannot measure.
@@ -2423,8 +2424,9 @@ rebase, and every `.s` file regenerates unchanged.
   (two bins and their mirrors, 102 ns for 31 iterations at 256 points),
   roughly twice what its 19 floating-point operations need at four per
   cycle; the cause was not established, so no variant was built.
-- **Fewer spills in the radix-5q kernels.** By the operation count above the
-  passes are bound by additions, not by the frame's stores and loads.
+- **Fewer spills in the radix-5q kernels** was not tried: a count of the
+  generated loop bodies suggests the additions, not the frame's stores and
+  loads, bound those passes, which was not verified with counters.
 - **Intel.** The AMD rule and the radix-10/15/20 kernels run where
   `kernels.IntelCPU` is false; Intel keeps Round 24's rule, unmeasured with
   the new radices.
