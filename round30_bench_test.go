@@ -7,7 +7,6 @@ package fft
 import (
 	"flag"
 	"fmt"
-	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -160,63 +159,6 @@ func BenchmarkR30AB(b *testing.B) {
 	}
 }
 
-// TestR30Direct times RFFT and IRFFT with the RealPlan's pooled buffer
-// (the pool) and without it (direct: the half transform writes dst and the
-// untangle runs in place), rotated.
-func TestR30Direct(t *testing.T) {
-	rounds, ms := smallRounds(t)
-	defer func(v bool) { smallRealDirect = v }(smallRealDirect)
-	for _, s := range strings.Split(*smallReals, ",") {
-		n, err := strconv.Atoi(s)
-		if err != nil {
-			t.Fatal(err)
-		}
-		p := NewRealPlan(n)
-		src := benchReal(n)
-		dst := make([]complex128, n/2+1)
-		p.RFFT(dst, src)
-		spec := slices.Clone(dst)
-		back := make([]float64, n)
-		times := smallRotate([]func(){
-			func() { smallRealDirect = false; p.RFFT(dst, src) },
-			func() { smallRealDirect = true; p.RFFT(dst, src) },
-			func() { smallRealDirect = false; p.IRFFT(back, spec) },
-			func() { smallRealDirect = true; p.IRFFT(back, spec) },
-		}, rounds, ms)
-		fmt.Printf("DIRECT %d rfft pool %.1f direct %.1f [pool/direct %s] irfft pool %.1f direct %.1f [pool/direct %s]\n", n,
-			smallMedian(times[0]), smallMedian(times[1]), smallRatio(times[0], times[1]),
-			smallMedian(times[2]), smallMedian(times[3]), smallRatio(times[2], times[3]))
-	}
-}
-
-// TestR30DirectSame checks the direct path against the pooled one bit for
-// bit (exploration).
-func TestR30DirectSame(t *testing.T) {
-	defer func(v bool) { smallRealDirect = v }(smallRealDirect)
-	for _, n := range []int{2, 4, 6, 8, 10, 16, 30, 64, 100, 128, 256, 512, 1000, 1024, 2048, 4096, 2 * 1009, 2 * 1201} {
-		p := NewRealPlan(n)
-		src := benchReal(n)
-		smallRealDirect = false
-		a := p.RFFT(make([]complex128, n/2+1), src)
-		ia := p.IRFFT(make([]float64, n), a)
-		ib2 := p.IRFFT(make([]float64, n), a[:n/4+1])
-		smallRealDirect = true
-		b := p.RFFT(make([]complex128, n/2+1), src)
-		ib := p.IRFFT(make([]float64, n), a)
-		ib3 := p.IRFFT(make([]float64, n), a[:n/4+1])
-		for k := range a {
-			if !sameBits(a[k], b[k]) {
-				t.Fatalf("n=%d bin %d", n, k)
-			}
-		}
-		for k := range ia {
-			if math.Float64bits(ia[k]) != math.Float64bits(ib[k]) || math.Float64bits(ib2[k]) != math.Float64bits(ib3[k]) {
-				t.Fatalf("n=%d sample %d", n, k)
-			}
-		}
-	}
-}
-
 var smallSets = flag.String("r30.sets", "", `factorizations to compare, "128:4x4x8,8x4x4;256:..." (first is the reference)`)
 
 // TestR30Orders times each listed factorization's whole transform and each
@@ -274,5 +216,79 @@ func TestR30Orders(t *testing.T) {
 			fmt.Printf("ORDER %d %-12s %.1f [ref/this %s]\n", n, nm, smallMedian(times[i]), smallRatio(ref, times[i]))
 		}
 		_ = npass
+	}
+}
+
+var smallSweepE = flag.String("r30.sweep", "5,13", "lo,hi: the powers of two TestR30Pow2Sweep times")
+
+// smallPow2Orders lists every ordered factorization of 2^e into radices 2, 4
+// and 8 with at most one radix 2.
+func smallPow2Orders(e int) [][]int {
+	var out [][]int
+	var rec func(rest int, cur []int, twos int)
+	rec = func(rest int, cur []int, twos int) {
+		if rest == 0 {
+			out = append(out, slices.Clone(cur))
+			return
+		}
+		for _, b := range []int{1, 2, 3} {
+			if b > rest || (b == 1 && twos > 0) {
+				continue
+			}
+			t := twos
+			if b == 1 {
+				t++
+			}
+			rec(rest-b, append(cur, 1<<b), t)
+		}
+	}
+	rec(e, nil, 0)
+	return out
+}
+
+// TestR30Pow2Sweep times, for each 2^e, skFactorize's factorization against
+// every ordered factorization into radices 2, 4 and 8, rotated, and prints
+// them fastest first.
+func TestR30Pow2Sweep(t *testing.T) {
+	rounds, ms := smallRounds(t)
+	var lo, hi int
+	if _, err := fmt.Sscanf(*smallSweepE, "%d,%d", &lo, &hi); err != nil {
+		t.Fatal(err)
+	}
+	for e := lo; e <= hi; e++ {
+		n := 1 << e
+		rule := skFactorize(n)
+		sets := [][]int{rule}
+		for _, f := range smallPow2Orders(e) {
+			if !slices.Equal(f, rule) {
+				sets = append(sets, f)
+			}
+		}
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		var fns []func()
+		for _, f := range sets {
+			p := newSKPlanFactors(n, f)
+			fns = append(fns, func() { p.transform(dst, src, false) })
+		}
+		times := smallRotate(fns, rounds, ms)
+		idx := make([]int, len(sets))
+		for i := range idx {
+			idx[i] = i
+		}
+		slices.SortFunc(idx, func(a, b int) int {
+			ma, mb := smallMedian(times[a]), smallMedian(times[b])
+			if ma < mb {
+				return -1
+			}
+			if ma > mb {
+				return 1
+			}
+			return 0
+		})
+		for rank, i := range idx[:min(6, len(idx))] {
+			fmt.Printf("SWEEP %d #%d %-14s %.1f [rule/this %s]\n", n, rank, factorName(sets[i]), smallMedian(times[i]), smallRatio(times[0], times[i]))
+		}
+		fmt.Printf("SWEEP %d rule %-14s %.1f\n", n, factorName(rule), smallMedian(times[0]))
 	}
 }

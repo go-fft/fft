@@ -65,8 +65,9 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 }
 
 // TestUntangleMatchesScalar holds the AVX2 real-FFT untangle to the Go loop,
-// bit for bit, at every half-length m up to 700 and a few large ones, on the
-// same generic, signed-zero and infinite signals as the pass kernels.
+// bit for bit, at every half-length m up to 700 and a few large ones, on
+// smallSignals (the pass kernels' generic, signed-zero and infinite signals,
+// random sign draws and subnormals of mixed parity).
 func TestUntangleMatchesScalar(t *testing.T) {
 	if !kernels.UseUntangleAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
@@ -78,7 +79,7 @@ func TestUntangleMatchesScalar(t *testing.T) {
 	}
 	for _, m := range sizes {
 		tw := NewRealPlan(2 * m).tw
-		for s, z := range simdSignals(m) {
+		for s, z := range smallSignals(m) {
 			kernels.UseUntangleAVX2 = true
 			simd := make([]complex128, m+1)
 			rfftUntangle(simd, z, tw, m)
@@ -107,8 +108,8 @@ func TestRetangleMatchesScalar(t *testing.T) {
 	}
 	for _, m := range sizes {
 		tw := NewRealPlan(2 * m).tw
-		for s, x := range simdSignals(m + 1) {
-			for _, h := range []float64{0.5, 0.5 / float64(m)} {
+		for s, x := range smallSignals(m + 1) {
+			for _, h := range []float64{0.5, 0.5 / float64(m), 1 / math.Sqrt(float64(2*m)), 0x1p-1030} {
 				kernels.UseUntangleAVX2 = true
 				simd := make([]complex128, m)
 				irfftRetangle(simd, x, tw, m, h)

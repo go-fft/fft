@@ -311,8 +311,6 @@ func main() {
 		genStockhamStrided(fb, r, false)
 		genStockhamStrided(fb, r, true)
 	}
-	genUntangleAVX2(fb)
-	genRetangleAVX2(fb)
 	writeFile("butterfly_amd64.s", fb.String())
 
 	// The gate in front of those AVX2 kernels. It used to be 24 hand-written
@@ -865,148 +863,6 @@ func genStockhamLastAVX2(f *emit.File, r int) {
 		Raw("JZ done")
 	x.body(r, false)
 	b.Raw("done:").
-		Raw("VZEROUPPER").
-		Ret()
-	f.Add(b.Func())
-}
-
-// genUntangleAVX2 emits untangleAVX2(dst, z, tw *complex128, k *skConst, m,
-// pairs int): the real-FFT untangle (the fft package's rfftUntangle) for bins
-// k = 1 .. 2·pairs, two consecutive k per YMM register. Bin k reads Z[k] and
-// Z[m-k]; for k and k+1 those are one forward load of Z[k..k+1] and one load of
-// Z[m-k-1..m-k] with its 128-bit halves swapped, and the two mirrored outputs
-// dst[m-k], dst[m-k-1] are stored the same way. Per bin, with Z[k] = a and
-// Z[m-k] = b, s = a + b and d = a - b:
-//
-//	xe = [s.re, d.im]·0.5          (a blend, then the multiply)
-//	xo = [s.im, -d.re]·0.5         (the other blend, a swap, a sign flip)
-//	t  = W^k · xo                  (the complex product, VADDSUBPD)
-//	dst[k] = xe + t;  dst[m-k] = conj(xe - t)
-//
-// which is rfftUntangle's arithmetic operation for operation (the scalar code
-// spells the same values out on real and imaginary parts), separately rounded
-// with no FMA: bit-identical at GOAMD64=v1. k's row 0 (the forward rotation
-// mask, [0, -0, 0, -0]) is exactly the imaginary-lane sign flip, row 1 is 0.5.
-func genUntangleAVX2(f *emit.File) {
-	sig := amd64.Layout(
-		[]string{"dst", "z", "tw", "k", "m", "pairs"},
-		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
-	)
-	b := amd64.NewFunc("untangleAVX2", sig, 0)
-	b.LoadArg("dst", "DI").LoadArg("z", "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
-		LoadArg("m", "DX").LoadArg("pairs", "R8")
-	b.Raw("SHLQ $4, DX"). // m·16
-				Raw("LEAQ 16(SI), AX").         // &Z[1]
-				Raw("LEAQ -32(SI)(DX*1), BX").  // &Z[m-2] = pair (m-2, m-1)
-				Raw("LEAQ 16(DI), R9").         // &dst[1]
-				Raw("LEAQ -32(DI)(DX*1), R10"). // &dst[m-2]
-				Raw("ADDQ $16, CX").            // &tw[1]
-				Raw("loop:").
-				Raw("TESTQ R8, R8").
-				Raw("JZ done").
-				Raw("VMOVUPD (AX), Y0").             // a = Z[k], Z[k+1]
-				Raw("VMOVUPD (BX), Y1").             // Z[m-k-1], Z[m-k]
-				Raw("VPERM2F128 $1, Y1, Y1, Y1").    // b = Z[m-k], Z[m-k-1]
-				Raw("VADDPD Y1, Y0, Y2").            // s
-				Raw("VSUBPD Y1, Y0, Y3").            // d
-				Raw("VBLENDPD $10, Y3, Y2, Y4").     // [s.re, d.im]
-				Raw("VMULPD 32(R14), Y4, Y4").       // xe
-				Raw("VBLENDPD $5, Y3, Y2, Y5").      // [d.re, s.im]
-				Raw("VPERMILPD $5, Y5, Y5").         // [s.im, d.re]
-				Raw("VXORPD 0(R14), Y5, Y5").        // [s.im, -d.re]
-				Raw("VMULPD 32(R14), Y5, Y5").       // xo
-				Raw("VMOVUPD (CX), Y6").             // w
-				Raw("VPERMILPD $0, Y6, Y7").         // [wr, wr]
-				Raw("VPERMILPD $15, Y6, Y8").        // [wi, wi]
-				Raw("VPERMILPD $5, Y5, Y9").         // [xo.im, xo.re]
-				Raw("VMULPD Y5, Y7, Y7").            // [wr·xo.re, wr·xo.im]
-				Raw("VMULPD Y9, Y8, Y8").            // [wi·xo.im, wi·xo.re]
-				Raw("VADDSUBPD Y8, Y7, Y7").         // t = w·xo
-				Raw("VADDPD Y7, Y4, Y10").           // dst[k], dst[k+1]
-				Raw("VSUBPD Y7, Y4, Y11").           // xe - t
-				Raw("VXORPD 0(R14), Y11, Y11").      // conj: dst[m-k], dst[m-k-1]
-				Raw("VPERM2F128 $1, Y11, Y11, Y11"). // dst[m-k-1], dst[m-k]
-				Raw("VMOVUPD Y10, (R9)").
-				Raw("VMOVUPD Y11, (R10)").
-				Raw("ADDQ $32, AX").
-				Raw("SUBQ $32, BX").
-				Raw("ADDQ $32, R9").
-				Raw("SUBQ $32, R10").
-				Raw("ADDQ $32, CX").
-				Raw("DECQ R8").
-				Raw("JMP loop").
-				Raw("done:").
-				Raw("VZEROUPPER").
-				Ret()
-	f.Add(b.Func())
-}
-
-// genRetangleAVX2 emits retangleAVX2(z, x, tw *complex128, k *skConst, h
-// *[4]float64, m, pairs int): the inverse of the untangle (the fft package's
-// irfftRetangle) for k = 1 .. 2·pairs, two consecutive k per YMM register,
-// with the same forward/mirrored load and store pairing. Per bin, with X[k] =
-// a, X[m-k] = b, s = a + b, d = a - b and h = 0.5·scale:
-//
-//	xe = [s.re, d.im]·h;  dd = [d.re, s.im]·h
-//	xo = conj(W^k)·dd     (conj: an exact sign flip of W's imaginary lane)
-//	Z[k] = xe + i·xo;  Z[m-k] = conj(xe - i·xo)
-//
-// operation for operation retangle's arithmetic, separately rounded, no FMA.
-// k's row 0 ([0,-0,0,-0]) flips imaginary lanes; skInv's row 0 would flip
-// real ones, so i·xo is a lane swap then a flip of the real lanes, done with
-// the imaginary mask after the swap.
-func genRetangleAVX2(f *emit.File) {
-	sig := amd64.Layout(
-		[]string{"z", "x", "tw", "k", "h", "m", "pairs"},
-		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
-	)
-	b := amd64.NewFunc("retangleAVX2", sig, 0)
-	b.LoadArg("z", "DI").LoadArg("x", "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
-		LoadArg("h", "R15").LoadArg("m", "DX").LoadArg("pairs", "R8")
-	b.Raw("SHLQ $4, DX").
-		Raw("LEAQ 16(SI), AX").         // &X[1]
-		Raw("LEAQ -32(SI)(DX*1), BX").  // &X[m-2]
-		Raw("LEAQ 16(DI), R9").         // &Z[1]
-		Raw("LEAQ -32(DI)(DX*1), R10"). // &Z[m-2]
-		Raw("ADDQ $16, CX").            // &tw[1]
-		Raw("VMOVUPD (R15), Y12").      // h
-		Raw("VMOVUPD 0(R14), Y13").     // imaginary-lane sign mask
-		Raw("loop:").
-		Raw("TESTQ R8, R8").
-		Raw("JZ done").
-		Raw("VMOVUPD (AX), Y0"). // a = X[k], X[k+1]
-		Raw("VMOVUPD (BX), Y1").
-		Raw("VPERM2F128 $1, Y1, Y1, Y1"). // b = X[m-k], X[m-k-1]
-		Raw("VADDPD Y1, Y0, Y2").         // s
-		Raw("VSUBPD Y1, Y0, Y3").         // d
-		Raw("VBLENDPD $10, Y3, Y2, Y4").  // [s.re, d.im]
-		Raw("VMULPD Y12, Y4, Y4").        // xe
-		Raw("VBLENDPD $5, Y3, Y2, Y5").   // [d.re, s.im]
-		Raw("VMULPD Y12, Y5, Y5").        // dd = [dr, di]
-		Raw("VMOVUPD (CX), Y6").
-		Raw("VXORPD Y13, Y6, Y6").    // conj(w) = [wr, -wi]
-		Raw("VPERMILPD $0, Y6, Y7").  // [wr, wr]
-		Raw("VPERMILPD $15, Y6, Y8"). // [-wi, -wi]
-		Raw("VPERMILPD $5, Y5, Y9").  // [di, dr]
-		Raw("VMULPD Y5, Y7, Y7").     // [wr·dr, wr·di]
-		Raw("VMULPD Y9, Y8, Y8").     // [-wi·di, -wi·dr]
-		Raw("VADDSUBPD Y8, Y7, Y7").  // xo = [wr·dr + wi·di, wr·di - wi·dr]
-		Raw("VPERMILPD $5, Y7, Y8").  // [xoi, xor]
-		Raw("VXORPD Y13, Y8, Y8").    // [xoi, -xor]
-		Raw("VSUBPD Y8, Y4, Y10").    // xe - [xoi, -xor] = [xer - xoi, xei + xor] = Z[k]
-		Raw("VADDPD Y8, Y4, Y11").    // [xer + xoi, xei - xor]
-		Raw("VXORPD Y13, Y11, Y11").  // Z[m-k] = [xer + xoi, -(xei - xor)]
-		Raw("VPERM2F128 $1, Y11, Y11, Y11").
-		Raw("VMOVUPD Y10, (R9)").
-		Raw("VMOVUPD Y11, (R10)").
-		Raw("ADDQ $32, AX").
-		Raw("SUBQ $32, BX").
-		Raw("ADDQ $32, R9").
-		Raw("SUBQ $32, R10").
-		Raw("ADDQ $32, CX").
-		Raw("DECQ R8").
-		Raw("JMP loop").
-		Raw("done:").
 		Raw("VZEROUPPER").
 		Ret()
 	f.Add(b.Func())
@@ -2628,8 +2484,8 @@ func genComp12Last(f *emit.File) {
 // f32rUntangleAVX2(dst, z, tw *complex64, k *float32, m, quads int) is the
 // fft package's f32Untangle for bins k = 1 .. 4·quads, and
 // f32rRetangleAVX2(z, x, tw *complex64, k, h *float32, m, quads int) its
-// f32Retangle loop (f32rRetangle) for the same k: genUntangleAVX2 and
-// genRetangleAVX2 with single-precision instructions, four consecutive k per
+// f32Retangle loop (f32rRetangle) for the same k: the float64 untangle
+// and retangle (smallUntangleStep) with single-precision instructions, four consecutive k per
 // YMM register. The mirrored bins m-k-3 .. m-k are one 32-byte load whose
 // four complex64 VPERMPD $0x1B reverses (and the same instruction reverses
 // them back before the store), so lane q of both registers holds the pair
@@ -3497,38 +3353,60 @@ func genIntelSplit512File() {
 }
 
 // ---------------------------------------------------------------------------
-// Round 30: the float64 untangle and retangle with independent steps
-// interleaved.
+// The float64 real-FFT untangle and its inverse (Round 4; Round 30), into
+// untangle_amd64.s.
 //
-// genUntangleAVX2 and genRetangleAVX2 run one step (two bins and their
-// mirrors) per iteration: a chain of some 20 dependent instructions. Round
-// 27 found on Neoverse-N1 that consecutive steps of such a loop hardly
-// overlap and that interleaving the instructions of independent steps is
-// what pays. genSmallUntangleFile writes the same arithmetic with `steps`
-// steps per iteration, instruction by instruction in turn, each step in its
-// own four registers, then the pairs left over one step at a time. Every
-// step is genUntangleAVX2's (genRetangleAVX2's) sequence operand for
-// operand, so the results are the same bits.
+// smallUntangleAVX2(dst, z, tw *complex128, k *skConst, m, pairs int) is the
+// fft package's rfftUntangle for bins k = 1 .. 2·pairs, two consecutive k per
+// YMM register. Bin k reads Z[k] and Z[m-k]; for k and k+1 those are one
+// forward load of Z[k..k+1] and one load of Z[m-k-1..m-k] with its 128-bit
+// halves swapped, and the two mirrored outputs dst[m-k], dst[m-k-1] are stored
+// the same way. Per bin, with Z[k] = a and Z[m-k] = b, s = a + b and
+// d = a - b:
+//
+//	xe = [s.re, d.im]·0.5          (a blend, then the multiply)
+//	xo = [s.im, -d.re]·0.5         (the other blend, a sign flip)
+//	t  = W^k · xo                  (the complex product, VADDSUBPD)
+//	dst[k] = xe + t;  dst[m-k] = conj(xe - t)
+//
+// which is rfftUntangle's arithmetic operation for operation, separately
+// rounded with no FMA: bit-identical at GOAMD64=v1. k's row 0 (the forward
+// rotation mask, [0, -0, 0, -0]) is the imaginary-lane sign flip, row 1 is
+// 0.5. smallRetangleAVX2(z, x, tw *complex128, k *skConst, h *[4]float64, m,
+// pairs int) is irfftRetangle's loop the same way: with X[k] = a, X[m-k] = b
+// and h = 0.5·scale,
+//
+//	xe = [s.re, d.im]·h;  dd = [d.re, s.im]·h
+//	xo = conj(W^k)·dd
+//	Z[k] = xe + i·xo;  Z[m-k] = conj(xe - i·xo)
+//
+// Round 4's kernels ran one step (two bins and their mirrors) per iteration,
+// a chain of some twenty dependent instructions, with five shuffles besides
+// the two lane swaps. Round 30 rebuilt them two ways, both of which pay on
+// Zen 3: three independent steps per iteration, their instructions
+// interleaved one by one (Round 27's lesson on Neoverse-N1), each step in its
+// own four registers; and two shuffles fewer per step: the twiddle's real
+// and imaginary parts come duplicated straight from memory (VMOVDDUP at tw
+// and at tw+8, no VPERMILPD), and the untangle builds xo with its lanes
+// swapped, [xo.im, xo.re] = [-d.re, s.im]·0.5 (the sign flipped before the
+// halving, which is exact either way), so that one swap serves both
+// products. Every product, sum and difference keeps the operands, in the
+// order, of the Go code, so the results are the same bits. The pairs left
+// over run one step at a time.
 
 // genSmallUntangleFile writes untangle_amd64.s.
 func genSmallUntangleFile() {
 	f := emit.NewFile("amd64")
-	for _, steps := range smallUntangleSteps {
-		genSmallUntangle(f, fmt.Sprintf("smallUntangle%dAVX2", steps), steps, false)
-		genSmallUntangle(f, fmt.Sprintf("smallRetangle%dAVX2", steps), steps, true)
-	}
-	for _, steps := range smallUntangleSteps {
-		genSmallUntangleDup(f, fmt.Sprintf("smallUntangle%dDupAVX2", steps), steps, false)
-		genSmallUntangleDup(f, fmt.Sprintf("smallRetangle%dDupAVX2", steps), steps, true)
-	}
+	genSmallUntangle(f, false)
+	genSmallUntangle(f, true)
 	writeFile("untangle_amd64.s", f.String())
 }
 
-// smallUntangleSteps lists the step counts generated.
-var smallUntangleSteps = []int{2, 3}
+// smallUntangleSteps is how many steps one iteration interleaves: three use
+// twelve registers, the constants three more.
+const smallUntangleSteps = 3
 
-// smallUntangleRegs gives step j its four registers Y(4j) .. Y(4j+3); the
-// constants sit in Y14 and Y15.
+// smallUntangleRegs gives step j its four registers Y(4j) .. Y(4j+3).
 func smallUntangleRegs(j int) (a, b, c, d string) {
 	r := func(i int) string { return fmt.Sprintf("Y%d", 4*j+i) }
 	return r(0), r(1), r(2), r(3)
@@ -3537,139 +3415,9 @@ func smallUntangleRegs(j int) (a, b, c, d string) {
 // smallUntangleStep returns step j's instructions, its loads and stores at
 // offset 32·j from the cursors (AX forward input, BX mirrored input, CX
 // twiddles, R9 forward output, R10 mirrored output). Y15 holds the
-// imaginary-lane sign mask; Y14 holds 0.5 (untangle) or h (retangle).
+// imaginary-lane sign mask, Y13 the real-lane one, Y12 both lanes'; Y14
+// holds 0.5 (untangle) or h (retangle).
 func smallUntangleStep(j int, inverse bool) []string {
-	a, b, c, d := smallUntangleRegs(j)
-	o := 32 * j
-	in := []string{
-		fmt.Sprintf("VMOVUPD %d(AX), %s", o, a),
-		fmt.Sprintf("VMOVUPD %d(BX), %s", -o, b),
-		fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", b, b, b),
-		fmt.Sprintf("VADDPD %s, %s, %s", b, a, c), // s
-		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, d), // d
-		fmt.Sprintf("VBLENDPD $10, %s, %s, %s", d, c, a),
-		fmt.Sprintf("VMULPD Y14, %s, %s", a, a), // xe
-		fmt.Sprintf("VBLENDPD $5, %s, %s, %s", d, c, b),
-	}
-	if !inverse {
-		// genUntangleAVX2: xo = [s.im, -d.re]·0.5, t = w·xo,
-		// dst[k] = xe + t, dst[m-k] = conj(xe - t).
-		return append(in,
-			fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
-			fmt.Sprintf("VXORPD Y15, %s, %s", b, b),
-			fmt.Sprintf("VMULPD Y14, %s, %s", b, b), // xo
-			fmt.Sprintf("VMOVUPD %d(CX), %s", o, c),
-			fmt.Sprintf("VPERMILPD $0, %s, %s", c, d),  // [wr, wr]
-			fmt.Sprintf("VPERMILPD $15, %s, %s", c, c), // [wi, wi]
-			fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
-			fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
-			fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
-			fmt.Sprintf("VADDSUBPD %s, %s, %s", c, d, d), // t
-			fmt.Sprintf("VADDPD %s, %s, %s", d, a, b),
-			fmt.Sprintf("VSUBPD %s, %s, %s", d, a, c),
-			fmt.Sprintf("VXORPD Y15, %s, %s", c, c),
-			fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", c, c, c),
-			fmt.Sprintf("VMOVUPD %s, %d(R9)", b, o),
-			fmt.Sprintf("VMOVUPD %s, %d(R10)", c, -o),
-		)
-	}
-	// genRetangleAVX2: dd = [d.re, s.im]·h, xo = conj(w)·dd,
-	// Z[k] = xe + i·xo, Z[m-k] = conj(xe - i·xo).
-	return append(in,
-		fmt.Sprintf("VMULPD Y14, %s, %s", b, b), // dd
-		fmt.Sprintf("VMOVUPD %d(CX), %s", o, c),
-		fmt.Sprintf("VXORPD Y15, %s, %s", c, c),    // conj(w)
-		fmt.Sprintf("VPERMILPD $0, %s, %s", c, d),  // [wr, wr]
-		fmt.Sprintf("VPERMILPD $15, %s, %s", c, c), // [-wi, -wi]
-		fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
-		fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
-		fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
-		fmt.Sprintf("VADDSUBPD %s, %s, %s", c, d, d), // xo
-		fmt.Sprintf("VPERMILPD $5, %s, %s", d, b),
-		fmt.Sprintf("VXORPD Y15, %s, %s", b, b), // [xoi, -xor]
-		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, c),
-		fmt.Sprintf("VADDPD %s, %s, %s", b, a, d),
-		fmt.Sprintf("VXORPD Y15, %s, %s", d, d),
-		fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", d, d, d),
-		fmt.Sprintf("VMOVUPD %s, %d(R9)", c, o),
-		fmt.Sprintf("VMOVUPD %s, %d(R10)", d, -o),
-	)
-}
-
-// smallAdvance moves the five cursors past n steps.
-func smallAdvance(b *amd64.Builder, n int) {
-	b.Raw("ADDQ $%d, AX", 32*n).
-		Raw("SUBQ $%d, BX", 32*n).
-		Raw("ADDQ $%d, R9", 32*n).
-		Raw("SUBQ $%d, R10", 32*n).
-		Raw("ADDQ $%d, CX", 32*n)
-}
-
-// genSmallUntangle emits name(dst, z, tw *complex128, k *float64, m, pairs
-// int) (untangle) or name(z, x, tw *complex128, k *float64, h *[4]float64,
-// m, pairs int) (retangle): `steps` steps per iteration while that many
-// pairs are left, then one at a time.
-func genSmallUntangle(f *emit.File, name string, steps int, inverse bool) {
-	names := []string{"dst", "z", "tw", "k", "m", "pairs"}
-	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
-	if inverse {
-		names = []string{"z", "x", "tw", "k", "h", "m", "pairs"}
-		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
-	}
-	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
-	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
-		LoadArg("m", "DX").LoadArg("pairs", "R8")
-	b.Raw("SHLQ $4, DX").
-		Raw("LEAQ 16(SI), AX").         // &in[1]
-		Raw("LEAQ -32(SI)(DX*1), BX").  // &in[m-2]
-		Raw("LEAQ 16(DI), R9").         // &out[1]
-		Raw("LEAQ -32(DI)(DX*1), R10"). // &out[m-2]
-		Raw("ADDQ $16, CX").            // &tw[1]
-		Raw("VMOVUPD 0(R14), Y15")      // imaginary-lane sign mask
-	if inverse {
-		b.LoadArg("h", "R15").Raw("VMOVUPD (R15), Y14")
-	} else {
-		b.Raw("VMOVUPD 32(R14), Y14") // 0.5
-	}
-	b.Raw("loop:").
-		Raw("CMPQ R8, $%d", steps).
-		Raw("JLT tail")
-	seqs := make([][]string, steps)
-	for j := range seqs {
-		seqs[j] = smallUntangleStep(j, inverse)
-	}
-	for i := range seqs[0] {
-		for j := range seqs {
-			b.Raw("%s", seqs[j][i])
-		}
-	}
-	smallAdvance(b, steps)
-	b.Raw("SUBQ $%d, R8", steps).
-		Raw("JMP loop").
-		Raw("tail:").
-		Raw("TESTQ R8, R8").
-		Raw("JZ done")
-	for _, ins := range smallUntangleStep(0, inverse) {
-		b.Raw("%s", ins)
-	}
-	smallAdvance(b, 1)
-	b.Raw("DECQ R8").
-		Raw("JMP tail").
-		Raw("done:").
-		Raw("VZEROUPPER").
-		Ret()
-	f.Add(b.Func())
-}
-
-// smallUntangleDupStep is smallUntangleStep with two shuffles fewer: the
-// twiddle's real and imaginary parts come duplicated straight from memory
-// (VMOVDDUP of tw and of tw+8), and the untangle builds xo with its lanes
-// swapped ([xo.im, xo.re] = [-d.re, s.im]·0.5: the sign flipped before the
-// halving, which is exact either way) so that one swap serves both
-// products. Y13 holds the real-lane sign mask, Y12 (retangle) both lanes'.
-// Each product, sum and difference has the operands, in the order, of
-// smallUntangleStep's.
-func smallUntangleDupStep(j int, inverse bool) []string {
 	a, b, c, d := smallUntangleRegs(j)
 	o := 32 * j
 	in := []string{
@@ -3720,13 +3468,25 @@ func smallUntangleDupStep(j int, inverse bool) []string {
 	)
 }
 
-// genSmallUntangleDup is genSmallUntangle on smallUntangleDupStep. Its last
-// step reads tw[2·pairs+1].re (the VMOVDDUP at tw+8), which the Go wrapper
-// bound-checks.
-func genSmallUntangleDup(f *emit.File, name string, steps int, inverse bool) {
+// smallAdvance moves the five cursors past n steps.
+func smallAdvance(b *amd64.Builder, n int) {
+	b.Raw("ADDQ $%d, AX", 32*n).
+		Raw("SUBQ $%d, BX", 32*n).
+		Raw("ADDQ $%d, R9", 32*n).
+		Raw("SUBQ $%d, R10", 32*n).
+		Raw("ADDQ $%d, CX", 32*n)
+}
+
+// genSmallUntangle emits smallUntangleAVX2 or, when inverse,
+// smallRetangleAVX2: smallUntangleSteps steps per iteration while that many
+// pairs are left, then one at a time. The last step reads tw[2·pairs+1].re
+// (the VMOVDDUP at tw+8), which the Go wrappers bound-check.
+func genSmallUntangle(f *emit.File, inverse bool) {
+	name := "smallUntangleAVX2"
 	names := []string{"dst", "z", "tw", "k", "m", "pairs"}
 	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
 	if inverse {
+		name = "smallRetangleAVX2"
 		names = []string{"z", "x", "tw", "k", "h", "m", "pairs"}
 		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
 	}
@@ -3748,24 +3508,24 @@ func genSmallUntangleDup(f *emit.File, name string, steps int, inverse bool) {
 		b.Raw("VMOVUPD 32(R14), Y14") // 0.5
 	}
 	b.Raw("loop:").
-		Raw("CMPQ R8, $%d", steps).
+		Raw("CMPQ R8, $%d", smallUntangleSteps).
 		Raw("JLT tail")
-	seqs := make([][]string, steps)
+	seqs := make([][]string, smallUntangleSteps)
 	for j := range seqs {
-		seqs[j] = smallUntangleDupStep(j, inverse)
+		seqs[j] = smallUntangleStep(j, inverse)
 	}
 	for i := range seqs[0] {
 		for j := range seqs {
 			b.Raw("%s", seqs[j][i])
 		}
 	}
-	smallAdvance(b, steps)
-	b.Raw("SUBQ $%d, R8", steps).
+	smallAdvance(b, smallUntangleSteps)
+	b.Raw("SUBQ $%d, R8", smallUntangleSteps).
 		Raw("JMP loop").
 		Raw("tail:").
 		Raw("TESTQ R8, R8").
 		Raw("JZ done")
-	for _, ins := range smallUntangleDupStep(0, inverse) {
+	for _, ins := range smallUntangleStep(0, inverse) {
 		b.Raw("%s", ins)
 	}
 	smallAdvance(b, 1)
