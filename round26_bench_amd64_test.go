@@ -444,3 +444,37 @@ func TestR26ScratchCost(t *testing.T) {
 	}, rounds, ms)
 	fmt.Printf("SCRATCH pool %.2f ns atomic %.2f ns\n", median(times[0]), median(times[1]))
 }
+
+// BenchmarkR26Large is the parity report's large rows, which Round 26's A/B
+// set leaves out: complex 2^16 and 2^20, RFFT 2^20, 2-D 512² and 1024².
+func BenchmarkR26Large(b *testing.B) {
+	compR24Warm(b)
+	for _, n := range []int{1 << 16, 1 << 20} {
+		p := NewPlan(n)
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		b.Run("C"+strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.FFT(dst, src)
+			}
+		})
+	}
+	rp := NewRealPlan(1 << 20)
+	rsrc := benchReal(1 << 20)
+	rdst := make([]complex128, 1<<19+1)
+	b.Run("R1048576", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			rp.RFFT(rdst, rsrc)
+		}
+	})
+	for _, n := range []int{512, 1024} {
+		p := NewPlanN(n, n)
+		src := benchComplex(n * n)
+		dst := make([]complex128, n*n)
+		b.Run("D"+strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.FFT(dst, src)
+			}
+		})
+	}
+}
