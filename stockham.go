@@ -142,7 +142,8 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // (Round 23).
 //
 // Some composites end with radix-12 or radix-16 passes (compFactorize, Round
-// 24) where the amd64 kernels run them, and the
+// 24) where the amd64 kernels run them, on AMD with radix-10, -12, -15 and -20
+// prime-factor passes (comp2Factors, Round 26), and the
 // complex128 order is compOddFirst, which may differ from the float32 plans'.
 func skFactorize(n int) []int {
 	if f := splitTable[n]; f != nil {
