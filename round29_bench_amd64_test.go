@@ -26,11 +26,22 @@ import (
 var hswComp = flag.String("hsw.comp", "", "TestHswComp: rounds,ms,min,max (e.g. 5,40,6,16384)")
 var hswList = flag.String("hsw.list", "", "TestHswComp: comma-separated lengths instead of min..max")
 
+// hswR24 is Round 24's Intel composite rule for n (radix-12 passes, else a
+// radix-16 tail, else skFactorizeOrder's), what Haswell ran before Round 29.
+func hswR24(n int) []int {
+	if f := comp2IntelRule(n); f != nil {
+		return f
+	}
+	return skFactorizeOrder(n, true)
+}
+
 // TestHswComp times, for every n = 2^e·3^a·5^b (e >= 1, a+b >= 1) in the
-// range, the current factorization (skFactorize: Round 24's Intel rule on an
-// Intel CPU) and comp2Factors' (Round 26's AMD rule), each interleaved (i)
-// and with the split layout (s), in rotated rounds. It prints each variant's
-// median and the median of its per-round ratios to cur/i, with their range.
+// range, Round 24's Intel rule (r24, interleaved: the reference),
+// comp2Factors' (c2, Round 26's AMD rule) and hswComp2Factors' (hsw)
+// factorizations, interleaved (i), with the split layout (s) and with the
+// split layout for runs of two passes or more only (s1), in rotated rounds.
+// It prints each variant's median and the median of its per-round ratios to
+// r24/i, with their range.
 func TestHswComp(t *testing.T) {
 	if *hswComp == "" {
 		t.Skip("set -hsw.comp=rounds,ms,min,max")
@@ -55,26 +66,28 @@ func TestHswComp(t *testing.T) {
 			}
 		}
 	}
-	defer func(v bool) { kernels.UseStockhamSplit = v }(kernels.UseStockhamSplit)
+	defer func(v, w bool) { kernels.UseStockhamSplit, kernels.UseStockhamSplitSingle = v, w }(kernels.UseStockhamSplit, kernels.UseStockhamSplitSingle)
 	for _, n := range ns {
-		cur, c2 := skFactorize(n), comp2Factors(n, true)
+		r24, c2, hsw := hswR24(n), comp2Factors(n, true), hswComp2Factors(n, true)
 		if c2 == nil {
-			c2 = cur
+			c2, hsw = r24, r24
 		}
 		type variant struct {
 			name string
 			p    *skPlan
 		}
 		var vs []variant
-		for _, f := range [][]int{cur, c2} {
-			if len(vs) > 0 && slices.Equal(f, cur) {
-				continue
-			}
-			for _, on := range []bool{false, true} {
-				kernels.UseStockhamSplit = on
-				tag := map[bool]string{false: "i", true: "s"}[on]
-				vs = append(vs, variant{factorName(f) + "/" + tag, newSKPlanFactors(n, f)})
-			}
+		add := func(tag string, f []int, mode string) {
+			kernels.UseStockhamSplit = mode != "i"
+			kernels.UseStockhamSplitSingle = mode != "s1"
+			vs = append(vs, variant{tag + ":" + factorName(f) + "/" + mode, newSKPlanFactors(n, f)})
+		}
+		add("r24", r24, "i")
+		add("hsw", hsw, "i")
+		add("hsw", hsw, "s")
+		add("hsw", hsw, "s1")
+		if !slices.Equal(c2, hsw) {
+			add("c2", c2, "i")
 		}
 		src := benchComplex(n)
 		dst := make([]complex128, n)
@@ -100,7 +113,7 @@ func TestHswComp(t *testing.T) {
 var hswExport = flag.String("hsw.export", "", "TestHswExport: directory the inputs and outputs go to")
 
 // TestHswExport writes, for each -hsw.list length, a random input and the
-// forward transforms of the current factorization (cur) and comp2Factors'
+// forward transforms of Round 24's Intel rule (cur) and hswComp2Factors'
 // (c2) as little-endian complex128, so numpy can judge both on the bytes
 // this code received.
 func TestHswExport(t *testing.T) {
@@ -128,7 +141,7 @@ func TestHswExport(t *testing.T) {
 			src[i] = complex(r.NormFloat64(), r.NormFloat64())
 		}
 		write(fmt.Sprintf("in_%d.bin", n), src)
-		for tag, f := range map[string][]int{"cur": skFactorize(n), "c2": comp2Factors(n, true)} {
+		for tag, f := range map[string][]int{"cur": hswR24(n), "c2": hswComp2Factors(n, true)} {
 			if f == nil {
 				continue
 			}

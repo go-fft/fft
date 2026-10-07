@@ -73,7 +73,28 @@ func StockhamSplitModes(r, ido, l1 []int) []uint8 {
 	if intelSplit512On() {
 		return intelSplitModes512(r, ido)
 	}
-	return splitModes(r, ido, UseStockhamSplit)
+	m := splitModes(r, ido, UseStockhamSplit)
+	if !UseStockhamSplitSingle {
+		hswDropSingles(m)
+	}
+	return m
+}
+
+// UseStockhamSplitSingle reports whether a run of one split pass (splitNone:
+// it splits its points on loading and joins them on storing) runs split;
+// when it is off, such a pass runs the interleaved kernel and only runs of
+// two passes or more keep their data split. A variable so the tests can turn
+// it on and off.
+var UseStockhamSplitSingle = true
+
+// hswDropSingles turns every run of one split pass (splitNone) of modes back
+// to the interleaved kernel. A pure function, tested on any machine.
+func hswDropSingles(modes []uint8) {
+	for k, m := range modes {
+		if m == splitNone {
+			modes[k] = 0
+		}
+	}
 }
 
 // splitModes gives every maximal run of consecutive passes that splitPass
