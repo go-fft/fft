@@ -3517,6 +3517,10 @@ func genSmallUntangleFile() {
 		genSmallUntangle(f, fmt.Sprintf("smallUntangle%dAVX2", steps), steps, false)
 		genSmallUntangle(f, fmt.Sprintf("smallRetangle%dAVX2", steps), steps, true)
 	}
+	for _, steps := range smallUntangleSteps {
+		genSmallUntangleDup(f, fmt.Sprintf("smallUntangle%dDupAVX2", steps), steps, false)
+		genSmallUntangleDup(f, fmt.Sprintf("smallRetangle%dDupAVX2", steps), steps, true)
+	}
 	writeFile("untangle_amd64.s", f.String())
 }
 
@@ -3646,6 +3650,122 @@ func genSmallUntangle(f *emit.File, name string, steps int, inverse bool) {
 		Raw("TESTQ R8, R8").
 		Raw("JZ done")
 	for _, ins := range smallUntangleStep(0, inverse) {
+		b.Raw("%s", ins)
+	}
+	smallAdvance(b, 1)
+	b.Raw("DECQ R8").
+		Raw("JMP tail").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// smallUntangleDupStep is smallUntangleStep with two shuffles fewer: the
+// twiddle's real and imaginary parts come duplicated straight from memory
+// (VMOVDDUP of tw and of tw+8), and the untangle builds xo with its lanes
+// swapped ([xo.im, xo.re] = [-d.re, s.im]·0.5: the sign flipped before the
+// halving, which is exact either way) so that one swap serves both
+// products. Y13 holds the real-lane sign mask, Y12 (retangle) both lanes'.
+// Each product, sum and difference has the operands, in the order, of
+// smallUntangleStep's.
+func smallUntangleDupStep(j int, inverse bool) []string {
+	a, b, c, d := smallUntangleRegs(j)
+	o := 32 * j
+	in := []string{
+		fmt.Sprintf("VMOVUPD %d(AX), %s", o, a),
+		fmt.Sprintf("VMOVUPD %d(BX), %s", -o, b),
+		fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", b, b, b),
+		fmt.Sprintf("VADDPD %s, %s, %s", b, a, c), // s
+		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, d), // d
+		fmt.Sprintf("VBLENDPD $10, %s, %s, %s", d, c, a),
+		fmt.Sprintf("VMULPD Y14, %s, %s", a, a), // xe
+		fmt.Sprintf("VBLENDPD $5, %s, %s, %s", d, c, b),
+	}
+	if !inverse {
+		return append(in,
+			fmt.Sprintf("VXORPD Y13, %s, %s", b, b),
+			fmt.Sprintf("VMULPD Y14, %s, %s", b, b),    // [xo.im, xo.re]
+			fmt.Sprintf("VMOVDDUP %d(CX), %s", o, c),   // [wr, wr]
+			fmt.Sprintf("VMOVDDUP %d(CX), %s", o+8, d), // [wi, wi]
+			fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
+			fmt.Sprintf("VPERMILPD $5, %s, %s", b, b), // xo
+			fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
+			fmt.Sprintf("VADDSUBPD %s, %s, %s", d, c, c), // t
+			fmt.Sprintf("VADDPD %s, %s, %s", c, a, b),
+			fmt.Sprintf("VSUBPD %s, %s, %s", c, a, d),
+			fmt.Sprintf("VXORPD Y15, %s, %s", d, d),
+			fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", d, d, d),
+			fmt.Sprintf("VMOVUPD %s, %d(R9)", b, o),
+			fmt.Sprintf("VMOVUPD %s, %d(R10)", d, -o),
+		)
+	}
+	return append(in,
+		fmt.Sprintf("VMULPD Y14, %s, %s", b, b),    // dd
+		fmt.Sprintf("VMOVDDUP %d(CX), %s", o, d),   // [wr, wr]
+		fmt.Sprintf("VMOVDDUP %d(CX), %s", o+8, c), // [wi, wi]
+		fmt.Sprintf("VXORPD Y12, %s, %s", c, c),    // [-wi, -wi]
+		fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
+		fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
+		fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
+		fmt.Sprintf("VADDSUBPD %s, %s, %s", c, d, d), // xo
+		fmt.Sprintf("VPERMILPD $5, %s, %s", d, b),
+		fmt.Sprintf("VXORPD Y15, %s, %s", b, b), // [xoi, -xor]
+		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, c),
+		fmt.Sprintf("VADDPD %s, %s, %s", b, a, d),
+		fmt.Sprintf("VXORPD Y15, %s, %s", d, d),
+		fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", d, d, d),
+		fmt.Sprintf("VMOVUPD %s, %d(R9)", c, o),
+		fmt.Sprintf("VMOVUPD %s, %d(R10)", d, -o),
+	)
+}
+
+// genSmallUntangleDup is genSmallUntangle on smallUntangleDupStep. Its last
+// step reads tw[2·pairs+1].re (the VMOVDDUP at tw+8), which the Go wrapper
+// bound-checks.
+func genSmallUntangleDup(f *emit.File, name string, steps int, inverse bool) {
+	names := []string{"dst", "z", "tw", "k", "m", "pairs"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	if inverse {
+		names = []string{"z", "x", "tw", "k", "h", "m", "pairs"}
+		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	}
+	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
+	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
+		LoadArg("m", "DX").LoadArg("pairs", "R8")
+	b.Raw("SHLQ $4, DX").
+		Raw("LEAQ 16(SI), AX").         // &in[1]
+		Raw("LEAQ -32(SI)(DX*1), BX").  // &in[m-2]
+		Raw("LEAQ 16(DI), R9").         // &out[1]
+		Raw("LEAQ -32(DI)(DX*1), R10"). // &out[m-2]
+		Raw("ADDQ $16, CX").            // &tw[1]
+		Raw("VMOVUPD 0(R14), Y15").     // imaginary-lane sign mask [0, -0]
+		Raw("VPERMILPD $5, Y15, Y13").  // real-lane sign mask [-0, 0]
+		Raw("VORPD Y15, Y13, Y12")      // both lanes
+	if inverse {
+		b.LoadArg("h", "R15").Raw("VMOVUPD (R15), Y14")
+	} else {
+		b.Raw("VMOVUPD 32(R14), Y14") // 0.5
+	}
+	b.Raw("loop:").
+		Raw("CMPQ R8, $%d", steps).
+		Raw("JLT tail")
+	seqs := make([][]string, steps)
+	for j := range seqs {
+		seqs[j] = smallUntangleDupStep(j, inverse)
+	}
+	for i := range seqs[0] {
+		for j := range seqs {
+			b.Raw("%s", seqs[j][i])
+		}
+	}
+	smallAdvance(b, steps)
+	b.Raw("SUBQ $%d, R8", steps).
+		Raw("JMP loop").
+		Raw("tail:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done")
+	for _, ins := range smallUntangleDupStep(0, inverse) {
 		b.Raw("%s", ins)
 	}
 	smallAdvance(b, 1)

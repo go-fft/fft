@@ -103,6 +103,12 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 
 	// Even length N = 2m: pack z[j] = src[2j] + i·src[2j+1], one m-point FFT.
 	m := n / 2
+	if p.half.it == nil && smallRealDirect {
+		Zd := dst[:m]
+		p.half.execute(Zd, asComplex(src[:2*m]), false)
+		rfftUntangle(dst, Zd, p.tw, m)
+		return dst[:m+1]
+	}
 	buf, _, Z := p.getScratch()
 	if p.half.it != nil {
 		// m is a power of two: fuse the real-pair packing into the iterative
@@ -259,6 +265,9 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 	//
 	// The 1/m normalization of the inverse is folded into this pass (scale), so
 	// the inverse FFT runs unnormalized and no separate scaling pass is needed.
+	if p.half.it == nil && smallRealDirect {
+		return p.irfftDirect(dst, src)
+	}
 	buf, z, Z := p.getScratch()
 	scale := 1.0
 	if p.half.it == nil {
@@ -356,4 +365,40 @@ func asComplex(f []float64) []complex128 {
 		return nil
 	}
 	return unsafe.Slice((*complex128)(unsafe.Pointer(&f[0])), len(f)/2)
+}
+
+// smallRealDirect: exploration switch for Round 30.
+var smallRealDirect = true
+
+func (p *RealPlan) irfftDirect(dst []float64, src []complex128) []float64 {
+	m := p.n / 2
+	Z := asComplex(dst[:2*m])
+	h := 0.5 * (1 / float64(m))
+	var x0, xm float64
+	if len(src) > 0 {
+		x0 = real(src[0])
+	}
+	if m < len(src) {
+		xm = real(src[m])
+	}
+	Z[0] = complex((x0+xm)*h, (x0-xm)*h)
+	if len(src) >= m+1 {
+		irfftRetangle(Z, src[:m+1], p.tw, m, h)
+	} else {
+		bin := func(k int) complex128 {
+			if k < len(src) {
+				return src[k]
+			}
+			return 0
+		}
+		for k := 1; k <= m-k; k++ {
+			zk, zmk := retangle(bin(k), bin(m-k), p.tw[k], h)
+			Z[k] = zk
+			if k != m-k {
+				Z[m-k] = zmk
+			}
+		}
+	}
+	p.half.execute(Z, Z, true)
+	return dst
 }

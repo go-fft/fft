@@ -428,6 +428,12 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		smallUntangle2AVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
 	case 3:
 		smallUntangle3AVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	case 22:
+		_ = tw[2*pairs+1]
+		smallUntangle2DupAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	case 23:
+		_ = tw[2*pairs+1]
+		smallUntangle3DupAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
 	default:
 		untangleAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
 	}
@@ -453,6 +459,12 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 		smallRetangle2AVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
 	case 3:
 		smallRetangle3AVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	case 22:
+		_ = tw[2*pairs+1]
+		smallRetangle2DupAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	case 23:
+		_ = tw[2*pairs+1]
+		smallRetangle3DupAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
 	default:
 		retangleAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
 	}

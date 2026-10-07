@@ -31,7 +31,7 @@ func TestR30Steps(t *testing.T) {
 		p.RFFT(dst, src)
 		back := make([]float64, n)
 		zb := make([]complex128, m)
-		steps := []int{1, 2, 3}
+		steps := []int{1, 3, 22, 23}
 		var fns []func()
 		for _, st := range steps {
 			fns = append(fns,
@@ -58,7 +58,7 @@ func TestR30Steps(t *testing.T) {
 // every step count.
 func TestR30StepsMatch(t *testing.T) {
 	defer func(v int) { kernels.UntangleSteps = v }(kernels.UntangleSteps)
-	for _, st := range []int{1, 2, 3} {
+	for _, st := range []int{1, 2, 3, 22, 23} {
 		kernels.UntangleSteps = st
 		TestUntangleMatchesScalar(t)
 		TestRetangleMatchesScalar(t)

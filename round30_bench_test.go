@@ -7,6 +7,7 @@ package fft
 import (
 	"flag"
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -156,5 +157,122 @@ func BenchmarkR30AB(b *testing.B) {
 				p.FFT(dst, src)
 			}
 		})
+	}
+}
+
+// TestR30Direct times RFFT and IRFFT with the RealPlan's pooled buffer
+// (the pool) and without it (direct: the half transform writes dst and the
+// untangle runs in place), rotated.
+func TestR30Direct(t *testing.T) {
+	rounds, ms := smallRounds(t)
+	defer func(v bool) { smallRealDirect = v }(smallRealDirect)
+	for _, s := range strings.Split(*smallReals, ",") {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p := NewRealPlan(n)
+		src := benchReal(n)
+		dst := make([]complex128, n/2+1)
+		p.RFFT(dst, src)
+		spec := slices.Clone(dst)
+		back := make([]float64, n)
+		times := smallRotate([]func(){
+			func() { smallRealDirect = false; p.RFFT(dst, src) },
+			func() { smallRealDirect = true; p.RFFT(dst, src) },
+			func() { smallRealDirect = false; p.IRFFT(back, spec) },
+			func() { smallRealDirect = true; p.IRFFT(back, spec) },
+		}, rounds, ms)
+		fmt.Printf("DIRECT %d rfft pool %.1f direct %.1f [pool/direct %s] irfft pool %.1f direct %.1f [pool/direct %s]\n", n,
+			smallMedian(times[0]), smallMedian(times[1]), smallRatio(times[0], times[1]),
+			smallMedian(times[2]), smallMedian(times[3]), smallRatio(times[2], times[3]))
+	}
+}
+
+// TestR30DirectSame checks the direct path against the pooled one bit for
+// bit (exploration).
+func TestR30DirectSame(t *testing.T) {
+	defer func(v bool) { smallRealDirect = v }(smallRealDirect)
+	for _, n := range []int{2, 4, 6, 8, 10, 16, 30, 64, 100, 128, 256, 512, 1000, 1024, 2048, 4096, 2 * 1009, 2 * 1201} {
+		p := NewRealPlan(n)
+		src := benchReal(n)
+		smallRealDirect = false
+		a := p.RFFT(make([]complex128, n/2+1), src)
+		ia := p.IRFFT(make([]float64, n), a)
+		ib2 := p.IRFFT(make([]float64, n), a[:n/4+1])
+		smallRealDirect = true
+		b := p.RFFT(make([]complex128, n/2+1), src)
+		ib := p.IRFFT(make([]float64, n), a)
+		ib3 := p.IRFFT(make([]float64, n), a[:n/4+1])
+		for k := range a {
+			if !sameBits(a[k], b[k]) {
+				t.Fatalf("n=%d bin %d", n, k)
+			}
+		}
+		for k := range ia {
+			if math.Float64bits(ia[k]) != math.Float64bits(ib[k]) || math.Float64bits(ib2[k]) != math.Float64bits(ib3[k]) {
+				t.Fatalf("n=%d sample %d", n, k)
+			}
+		}
+	}
+}
+
+var smallSets = flag.String("r30.sets", "", `factorizations to compare, "128:4x4x8,8x4x4;256:..." (first is the reference)`)
+
+// TestR30Orders times each listed factorization's whole transform and each
+// of its passes alone, all rotated, the first factorization the reference.
+func TestR30Orders(t *testing.T) {
+	rounds, ms := smallRounds(t)
+	for _, spec := range strings.Split(*smallSets, ";") {
+		ns, vs, ok := strings.Cut(spec, ":")
+		if !ok {
+			continue
+		}
+		n, err := strconv.Atoi(ns)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var names []string
+		var fns []func()
+		var npass []int
+		for _, v := range strings.Split(vs, ",") {
+			var f []int
+			for _, x := range strings.Split(v, "x") {
+				r, err := strconv.Atoi(x)
+				if err != nil {
+					t.Fatal(err)
+				}
+				f = append(f, r)
+			}
+			p := newSKPlanFactors(n, f)
+			src := benchComplex(n)
+			dst := make([]complex128, n)
+			scr := make([]complex128, n)
+			fns = append(fns, func() { p.transform(dst, src, false) })
+			names = append(names, v)
+			s := len(p.stages)
+			in := src
+			for k := range p.stages {
+				out := scr
+				if (s-1-k)%2 == 0 {
+					out = dst
+				}
+				st, i0, o0 := &p.stages[k], in, out
+				fns = append(fns, func() { st.pass(o0, i0, false) })
+				names = append(names, fmt.Sprintf("  r%d/i%d/s%d", st.r, st.ido, st.split))
+				in = out
+			}
+			npass = append(npass, s)
+		}
+		times := smallRotate(fns, rounds, ms)
+		ref := times[0]
+		for i, nm := range names {
+			if strings.HasPrefix(nm, " ") {
+				fmt.Printf("ORDER %d %s %.1f\n", n, nm, smallMedian(times[i]))
+				continue
+			}
+			fmt.Printf("ORDER %d %-12s %.1f [ref/this %s]\n", n, nm, smallMedian(times[i]), smallRatio(ref, times[i]))
+		}
+		_ = npass
 	}
 }

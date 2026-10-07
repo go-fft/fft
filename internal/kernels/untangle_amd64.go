@@ -16,3 +16,15 @@ func smallUntangle3AVX2(dst, z, tw *complex128, k *float64, m, pairs int)
 
 //go:noescape
 func smallRetangle3AVX2(z, x, tw *complex128, k *float64, h *[4]float64, m, pairs int)
+
+//go:noescape
+func smallUntangle2DupAVX2(dst, z, tw *complex128, k *float64, m, pairs int)
+
+//go:noescape
+func smallRetangle2DupAVX2(z, x, tw *complex128, k *float64, h *[4]float64, m, pairs int)
+
+//go:noescape
+func smallUntangle3DupAVX2(dst, z, tw *complex128, k *float64, m, pairs int)
+
+//go:noescape
+func smallRetangle3DupAVX2(z, x, tw *complex128, k *float64, h *[4]float64, m, pairs int)
