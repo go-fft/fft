@@ -2200,3 +2200,198 @@ At 128² and 160² the rule already runs one chunk. 192² is the one loss: it is
 **Not measured.** Intel (cfarm13, Haswell, had a load of 29.5). FFTW single precision (still no `libfftw3f` on either host).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round25-float32-real-nd-20261006/`](benchmarks/results/round25-float32-real-nd-20261006/).
+
+### Round 27 — arm64: the float64 untangle on NEON, rotating N-D passes, and float32 on a server (2026-10-07)
+
+Round 24 left go-fft behind FFTW on three of Neoverse-N1's 24 parity rows:
+RFFT 256 (1.14×), 2-D 64×64 (1.11×) and RFFT 1080 (1.10×). Round 25's float32
+NEON kernels had only been timed on a loaded Apple M4. Everything here was
+measured on Neoverse-N1 (cfarm424, 64 cores, used by this round alone; the
+1-minute load at the start of every run is given with each file), one pinned
+core (`GOMAXPROCS=1 taskset -c 40`), interleaved runs with the order of the
+variants rotated every round, medians of five rounds.
+
+**Where an RFFT's time went.** On arm64 the float64 untangle (`rfftUntangle`)
+and its inverse (`irfftRetangle`) ran in Go, while float32 (Round 25) and
+amd64 float64 (Round 4) have kernels. Timed alone on the buffers of the
+transform, main, ns (`shares-main.medians.txt`):
+
+| n | RFFT | untangle | share | IRFFT | retangle | share |
+|--:|--:|--:|--:|--:|--:|--:|
+| 256 | 831 | 309 | 37% | 959 | 383 | 40% |
+| 1024 | 3,546 | 1,228 | 35% | 3,925 | 1,510 | 38% |
+| 1080 | 4,675 | 1,309 | 28% | 5,136 | 1,604 | 31% |
+| 4096 | 16,639 | 4,957 | 30% | 17,922 | 6,192 | 35% |
+
+**1. NEON untangle and retangle for float64 (kept).** `genArmrealUntangleFile`
+(`asmgen/arm64/gen.go` → `untangle_arm64.s`; `kernels.Untangle`,
+`kernels.Retangle`, which on arm64 returned 0) runs bins k, k+1 against their
+mirrors m−k, m−k−1 in `.2D` registers: `VLD2` splits them, `VEXT $8` puts the
+mirrors in lane order, and the outputs go back the same way. gc compiles
+`rfftUntangle` and `retangle` with the fusions it gives their float32 twins
+(`go build -gcflags=-S`, Go 1.27.1): the halvings 0.5·s.im and −(0.5·d.re)
+rounded (`FMULD`, `FNMULD`), tr = round(wr·xor) − wi·xoi and ti = round(wr·xoi)
++ wi·xor fused, dst[k] = tr + 0.5·s.re fused, dst[m−k] = 0.5·s.re − tr by
+`FNMSUBD`, then the same pattern with h in the retangle. The kernel copies
+each, writing `FNMSUBD` (p − c, one rounding) as a negation and `VFMLA`, as
+Round 25 did.
+
+The first kernel, one step of two bins per iteration as the float32 kernels
+are written, did not speed the untangle up at all (main ÷ kernel 1.00–1.02;
+retangle 1.29–1.35, `untangle-1step.ratios.txt`). On N1 the scalar and vector
+floating point share the two vector pipes; a step is a chain of some 30
+cycles carrying about 30 vector µops (the `VLD2`/`VST2` deinterleave and the
+four `VEXT` included), so the queues held little more than one step and
+consecutive steps hardly overlapped. Interleaving the instructions of
+independent steps fixed that: two steps per iteration gave 1.17–1.20 on the
+untangle and 1.47–1.57 on the retangle (`untangle-2step.ratios.txt`); three,
+with each step's registers reused as its values die so that three fit in
+V0–V29, gave (kept, `untangle-3step.ratios.txt`):
+
+| main ÷ branch | 256 | 1024 | 1080 | 4096 |
+|:--|--:|--:|--:|--:|
+| untangle alone | 1.23 | 1.27 | 1.28 | 1.26 |
+| retangle alone | 1.54 | 1.60 | 1.60 | 1.63 |
+| RFFT | 1.07 | 1.06 | 1.06 | 1.07 |
+| IRFFT | 1.23 | 1.20 | 1.16 | 1.15 |
+
+Three steps over two: 1.04–1.07 on both loops. Every per-round ratio is
+outside 1, spreads ≤ 1.03. The Go retangle loop gained more than the
+untangle because gc reloads h from the stack and moves registers inside it.
+
+Tests: `TestUntangleMatchesScalarNEON` and `TestRetangleMatchesScalarNEON`
+(every m up to 700 and 2048, 4097, 32768; Round 18's eight signals plus
+subnormals of mixed parity; four values of h, one sending products
+subnormal) and `TestRealPlanUntangleNEONEndToEnd` (RFFT and IRFFT with the
+kernels on and off, complete and one-bin-short spectra) compare bit for bit,
+NaNs equal whatever their payload, and to rounding under `-race`, as Round
+18's tests do. `TestUntangleBoundsNEON` checks that the wrappers panic on
+every short slice before the kernel runs and do nothing below one pair or for
+a negative m. Seventeen mutations of the generator were each caught
+(`mutations-arm64.txt`): tr unfused, the halving rounded first, ti fusing the
+other product, the mirror not swapped on input or on output, dst[m−k].re as
+−(c − p), xoi's sign, xor and xoi of the retangle fusing the other product,
+h·s.re rounded first, z[m−k].im as `VFMLS`, the mirror pointer step, the
+twiddle not advanced, the first bin's offset, two steps' registers
+overlapping, a tail step skipped, the second step's mirror offset.
+
+**2. 2-D 64×64: rotating passes (kept, arm64).** The parity row runs
+`PlanN.FFT` on one core (`taskset`), where a 64×64 plan always runs on one
+goroutine (`parThresholdN`, Round 21), so the fan-out is not involved. Main,
+µs (`shares-main.medians.txt`):
+
+| | whole | rows | columns as strips | columns gathered |
+|:--|--:|--:|--:|--:|
+| 64×64 | 34.3 | 17.1 | 16.8 | 22.9 |
+| 128×128 | 141.4 | 65.3 | 75.8 | 88.1 |
+
+Rows and columns cost the same; neither had a lever of its own. But the whole
+64×64 transform, 4096 points, took 1.24 times a 4096-point 1-D transform
+(27.6 µs in the parity run), which makes the same number of passes over as
+many points: what the 2-D path pays is the per-line work, 64 calls of three
+short passes for the rows and four strips for the columns.
+
+A Stockham pass treats its l1 blocks alike: the twiddles depend on the point
+within a block, never on the block. So the 64 rows, contiguous, are 64 blocks
+of one pass sequence: each pass of the row plan runs once over the whole
+array with l1·64 blocks, every row gets exactly the passes of its own 1-D
+transform, and the sequence ends with output f of row c at f·64 + c — the
+row transforms transposed. The columns are now contiguous, and the same trick
+on them transposes back: six kernel calls instead of 3·64 calls and 4 strips
+(`armrealRotate`, `armreal_nd.go`). It holds for any number of axes (last
+axis first; each sequence moves its axis to the front) and any Stockham plan,
+the Go passes included (`passScalarL`, the Go pass with l1 as a parameter).
+The axes now run last first where the old path ran the first axis first, so
+2-D results differ from v0.16 by rounding; each line is still its own 1-D
+transform bit for bit.
+
+Rows and strips ÷ rotating, one core (`rotate-b.ratios.txt`; `rotate-a` is an
+earlier run of the same binaries, within 1% on every shared row):
+
+| 16² | 32² | 64² | 128² | 64×128 | 100² | 120² | 240² | 256² | 1000×3 | 16³ | 32³ | 64³ | 512² | 1024² |
+|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 1.65 | 1.34 | **1.23** | 1.08 | 1.12 | 1.14 | 1.13 | 1.12 | 1.11 | 2.53 | 1.47 | 1.26 | 1.13 | 0.97 | **0.86** |
+
+512² was within its spread (fifteen rounds: 1.007, per-round 0.92–1.07,
+`rotate-512-15.ratios.txt`) and 1024² lost: each pass of a sequence writes its streams a fraction of the array
+apart, which a 4 MB or 16 MB array does not survive. So the rotating passes
+run for plans of fewer than 2^18 elements (`armrealRotateMax`), on one
+goroutine (a plan that fans out keeps rows and strips), with every axis
+longer than 1 transformed by a Stockham plan without the blocked schedule,
+and on arm64 only (`armreal_route_arm64.go`): amd64 was not measured.
+64³ (2^18, 1.13) is left out with 512²; no rule tried separated them.
+
+Tests: `TestRotateMatchesLines` holds the rotating passes to every line's 1-D
+plan run axis by axis, last first, bit for bit on every architecture,
+forward and inverse, out of place and in place, with odd and even pass
+counts, length-1 axes, radix 7, the general radix (11, 13), three and four
+dimensions, on Round 18's signals; `TestRotateAgainstOldPath` compares with
+rows and strips to rounding; `TestRotateWhen` checks every condition above.
+Four mutations (the in-place copy for an odd pass count dropped, the axes run
+first to last, the ping-pong parity, one axis accepted) each fail them.
+
+**3. float32 on a server: Rounds 22 and 25 on Neoverse-N1.** The same
+benchmark source built against v0.12.0 (before Round 22's float32 NEON
+passes), v0.15.0 (before Round 25's untangle and batched columns) and v0.16.1
+(main), the three binaries rotated in each round, five rounds, load 0.55–1.08
+(`float32-releases.ratios.txt`; f32 ÷ f64 compares each release with its own
+float64):
+
+| float32, ns | v0.12.0 | v0.15.0 | v0.16.1 | v0.12 ÷ v0.16 | v0.15 ÷ v0.16 | f32 ÷ f64: v0.12 / v0.15 / v0.16 |
+|:--|--:|--:|--:|--:|--:|:--|
+| complex 256 | 1,759 | 819 | 815 | 2.16 | 1.00 | 1.57 / 0.73 / 0.73 |
+| complex 1024 | 8,728 | 3,700 | 3,691 | 2.36 | 1.00 | 1.64 / 0.69 / 0.70 |
+| complex 4096 | 43,263 | 17,848 | 17,843 | 2.42 | 1.00 | 1.56 / 0.64 / 0.64 |
+| complex 65536 | 1,095,344 | 428,741 | 426,118 | 2.57 | 1.01 | 1.49 / 0.58 / 0.58 |
+| complex 1000 / 1080 / 1920 | | | | 2.50 / 2.33 / 2.37 | 1.00 / 0.99 / 1.00 | 0.70 / 0.73 / 0.70 (v0.16) |
+| RFFT 256 | 1,178 | 699 | 578 | 2.04 | 1.21 | 1.42 / 0.84 / 0.70 |
+| RFFT 1024 | 5,199 | 2,916 | 2,377 | 2.19 | 1.23 | 1.43 / 0.81 / 0.66 |
+| RFFT 4096 | 23,927 | 12,882 | 10,658 | 2.24 | 1.21 | 1.41 / 0.77 / 0.64 |
+| RFFT 65536 | 595,526 | 300,234 | 269,505 | 2.21 | 1.11 | 1.39 / 0.72 / 0.65 |
+| RFFT 1000 / 1080 / 1920 | | | | 2.21 / 2.12 / 2.29 | 1.19 / 1.18 / 1.20 | 0.67 / 0.69 / 0.67 (v0.16) |
+| IRFFT 256 / 1024 / 4096 / 65536 | | | | 2.12 / 2.27 / 2.36 / 2.35 | 1.32 / 1.33 / 1.31 / 1.20 | 0.62 / 0.60 / 0.59 / 0.60 (v0.16) |
+| IRFFT 1000 / 1080 / 1920 | | | | 2.27 / 2.20 / 2.37 | 1.28 / 1.26 / 1.28 | 0.62 / 0.63 / 0.63 (v0.16) |
+| `PlanN32` 64² / 256² | 60,753 / 1,098,481 | 38,814 / 607,635 | 23,273 / 448,241 | 2.61 / 2.45 | 1.67 / 1.36 | 1.77 / 1.14 / 0.68; 1.43 / 0.80 / 0.58 |
+| `RealPlan2_32` 64² / 256² | 40,768 / 624,722 | 26,389 / 379,098 | 17,095 / 258,220 | 2.38 / 2.42 | 1.54 / 1.47 | 1.68 / 1.09 / 0.71; 1.40 / 0.88 / 0.59 |
+
+Every per-round ratio of v0.12 ÷ v0.16 is 2.01 or more and every v0.15 ÷
+v0.16 ratio of the real and N-D rows 1.11 or more; the complex rows, the same
+code in v0.15 and v0.16, read 0.997–1.001 over fifteen rounds, every one within its spread
+(`float32-complex-15.ratios.txt`). So on an
+arm64 server the float32 NEON kernels doubled float32 (2.0–2.6×), Round 25
+added 11–33% on the real transforms and 36–67% on the N-D ones, and float32
+now takes 0.58–0.73 of float64's time on every row, against 1.19–1.77 at
+v0.12.0. Round 25's M4 indication (untangle 35–39% of the RFFT32 time)
+matches: the untangle kernel is worth 1.21 at 256 points here. The float64
+rows of v0.16.1 against the branch are in parts 1 and 2; `PlanN32` does not
+take the rotating passes (not built for complex64 in this round).
+
+**Against FFTW**, `benchmarks/remote/run.sh` pinned to core 40, main
+(2d48924, v0.16.1) and the branch back to back, twice (`parity-main`,
+`parity-br`, `parity-main2`, `parity-br2`; each correct 24/24). go-fft time ÷
+FFTW time:
+
+| | main | branch | main (2nd) | branch (2nd) |
+|:--|--:|--:|--:|--:|
+| RFFT 256 | 1.16 | 1.07 | 1.15 | 1.05 |
+| RFFT 1,080 | 1.10 | **1.04** | 1.11 | **1.02** |
+| 2-D 64×64 | 1.12 | **0.90** | 1.10 | **0.91** |
+| IRFFT 256 / 1,080 | 1.20 / 1.14 | 0.95 / 0.99 | 1.19 / 1.13 | 0.95 / 1.00 |
+| RFFT 1,000 / 1,024 / 1,920 / 4,096 | 1.05 / 0.84 / 1.04 / 0.83 | 0.99 / 0.79 / 0.97 / 0.78 | 1.04 / 0.86 / 1.04 / 0.84 | 0.96 / 0.78 / 0.97 / 0.77 |
+| IRFFT 1,000 / 1,024 / 1,920 / 4,096 | 1.06 / 0.87 / 1.07 / 0.83 | 0.91 / 0.73 / 0.92 / 0.73 | 1.06 / 0.87 / 1.06 / 0.84 | 0.92 / 0.76 / 0.93 / 0.74 |
+| 2-D 128×128 / 256×256 | 0.74 / 0.58 | 0.64 / 0.48 | 0.74 / 0.58 | 0.66 / 0.54 |
+| complex 256 / 1,024 / 1,080 (unchanged code) | 0.96 / 0.81 / 0.90 | 0.97 / 0.83 / 0.89 | 0.95 / 0.83 / 0.90 | 0.96 / 0.84 / 0.88 |
+
+FFTW's own times agreed across the four runs within 1.6% (RFFT 256: 721–731
+ns; RFFT 1080: 4,201–4,269; 2-D 64×64: 30,842–30,970). 2-D 512×512 and
+1024×1024 run unchanged code (rows and strips) and moved within ±0.07.
+
+Rows at or above FFTW: 21/24 → 23/24 (numpy.fft and scipy.fft 24/24 both
+times). RFFT 256 still trails: its half-length 128-point transform alone
+takes about 530 ns of the 780, near three quarters of FFTW's whole r2c.
+
+**Not done.** The rotating passes for complex64 `PlanN32` (its 64² row is the
+same shape of problem) and on amd64; a pre-split twiddle table for the
+untangle, which would save its two `VLD2` deinterleave µops per step.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round27-arm64-real-20261007/`](benchmarks/results/round27-arm64-real-20261007/).

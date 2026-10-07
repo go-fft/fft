@@ -1,0 +1,181 @@
+# round 1 variant old2 10:59:11 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      90	   3361913 ns/op
+PASS
+# round 1 variant new2 10:59:12 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      91	   3341553 ns/op
+PASS
+# round 2 variant new2 10:59:12 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     108	   3396354 ns/op
+PASS
+# round 2 variant old2 10:59:13 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      91	   3357049 ns/op
+PASS
+# round 3 variant old2 10:59:13 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      86	   3495100 ns/op
+PASS
+# round 3 variant new2 10:59:13 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     108	   3344946 ns/op
+PASS
+# round 4 variant new2 10:59:14 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      90	   3382378 ns/op
+PASS
+# round 4 variant old2 10:59:14 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      90	   3364693 ns/op
+PASS
+# round 5 variant old2 10:59:15 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     104	   3661950 ns/op
+PASS
+# round 5 variant new2 10:59:16 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     105	   3415062 ns/op
+PASS
+# round 6 variant new2 10:59:16 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     105	   3346247 ns/op
+PASS
+# round 6 variant old2 10:59:17 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     106	   3496037 ns/op
+PASS
+# round 7 variant old2 10:59:18 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      93	   3454073 ns/op
+PASS
+# round 7 variant new2 10:59:18 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     104	   3428077 ns/op
+PASS
+# round 8 variant new2 10:59:19 load 0.94 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     102	   3485595 ns/op
+PASS
+# round 8 variant old2 10:59:20 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     100	   3391828 ns/op
+PASS
+# round 9 variant old2 10:59:20 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      93	   3541336 ns/op
+PASS
+# round 9 variant new2 10:59:21 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     108	   3351182 ns/op
+PASS
+# round 10 variant new2 10:59:21 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     108	   3395077 ns/op
+PASS
+# round 10 variant old2 10:59:22 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      91	   3561970 ns/op
+PASS
+# round 11 variant old2 10:59:22 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     105	   3414135 ns/op
+PASS
+# round 11 variant new2 10:59:23 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     109	   3364658 ns/op
+PASS
+# round 12 variant new2 10:59:24 load 0.95 0.97 0.96
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     104	   3457248 ns/op
+PASS
+# round 12 variant old2 10:59:25 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      93	   3405452 ns/op
+PASS
+# round 13 variant old2 10:59:25 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      91	   3418781 ns/op
+PASS
+# round 13 variant new2 10:59:25 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     102	   3431471 ns/op
+PASS
+# round 14 variant new2 10:59:26 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     104	   3645992 ns/op
+PASS
+# round 14 variant old2 10:59:27 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      91	   3369601 ns/op
+PASS
+# round 15 variant old2 10:59:27 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	      88	   3463340 ns/op
+PASS
+# round 15 variant new2 10:59:28 load 1.03 0.99 0.97
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR27ND/s512x512         	     105	   3409280 ns/op
+PASS
+# done 10:59:28 load 1.03 0.99 0.97

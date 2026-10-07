@@ -1,0 +1,6 @@
+# Mutations of armreal_nd.go, each applied alone with sed, then
+# `go test -run Rotate .` on the Apple M4 (arm64); each failed (2026-10-06).
+s/if t%2 == 1 && &dst[0] == &src[0] {/if false {/        => FAIL  (in-place copy for an odd pass count dropped)
+s/for ax := len(p.shape) - 1; ax >= 0; ax-- {/for ax := 0; ax < len(p.shape); ax++ {/  => FAIL  (axes first to last)
+s/if (t-1-k)%2 == 0 {/if (t-k)%2 == 0 {/                   => FAIL  (ping-pong parity)
+s/return axes >= 2/return axes >= 1/                       => FAIL  (one transformed axis accepted)
