@@ -338,6 +338,7 @@ func main() {
 	genF32RealFile()
 	genComp2File()
 	genIntelSplit512File()
+	genSmallUntangleFile()
 }
 
 func writeFile(name, content string) {
@@ -3493,4 +3494,165 @@ func genIntelSplit512File() {
 		}
 	}
 	writeFile("stockhamsplit512_amd64.s", f.String())
+}
+
+// ---------------------------------------------------------------------------
+// Round 30: the float64 untangle and retangle with independent steps
+// interleaved.
+//
+// genUntangleAVX2 and genRetangleAVX2 run one step (two bins and their
+// mirrors) per iteration: a chain of some 20 dependent instructions. Round
+// 27 found on Neoverse-N1 that consecutive steps of such a loop hardly
+// overlap and that interleaving the instructions of independent steps is
+// what pays. genSmallUntangleFile writes the same arithmetic with `steps`
+// steps per iteration, instruction by instruction in turn, each step in its
+// own four registers, then the pairs left over one step at a time. Every
+// step is genUntangleAVX2's (genRetangleAVX2's) sequence operand for
+// operand, so the results are the same bits.
+
+// genSmallUntangleFile writes untangle_amd64.s.
+func genSmallUntangleFile() {
+	f := emit.NewFile("amd64")
+	for _, steps := range smallUntangleSteps {
+		genSmallUntangle(f, fmt.Sprintf("smallUntangle%dAVX2", steps), steps, false)
+		genSmallUntangle(f, fmt.Sprintf("smallRetangle%dAVX2", steps), steps, true)
+	}
+	writeFile("untangle_amd64.s", f.String())
+}
+
+// smallUntangleSteps lists the step counts generated.
+var smallUntangleSteps = []int{2, 3}
+
+// smallUntangleRegs gives step j its four registers Y(4j) .. Y(4j+3); the
+// constants sit in Y14 and Y15.
+func smallUntangleRegs(j int) (a, b, c, d string) {
+	r := func(i int) string { return fmt.Sprintf("Y%d", 4*j+i) }
+	return r(0), r(1), r(2), r(3)
+}
+
+// smallUntangleStep returns step j's instructions, its loads and stores at
+// offset 32·j from the cursors (AX forward input, BX mirrored input, CX
+// twiddles, R9 forward output, R10 mirrored output). Y15 holds the
+// imaginary-lane sign mask; Y14 holds 0.5 (untangle) or h (retangle).
+func smallUntangleStep(j int, inverse bool) []string {
+	a, b, c, d := smallUntangleRegs(j)
+	o := 32 * j
+	in := []string{
+		fmt.Sprintf("VMOVUPD %d(AX), %s", o, a),
+		fmt.Sprintf("VMOVUPD %d(BX), %s", -o, b),
+		fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", b, b, b),
+		fmt.Sprintf("VADDPD %s, %s, %s", b, a, c), // s
+		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, d), // d
+		fmt.Sprintf("VBLENDPD $10, %s, %s, %s", d, c, a),
+		fmt.Sprintf("VMULPD Y14, %s, %s", a, a), // xe
+		fmt.Sprintf("VBLENDPD $5, %s, %s, %s", d, c, b),
+	}
+	if !inverse {
+		// genUntangleAVX2: xo = [s.im, -d.re]·0.5, t = w·xo,
+		// dst[k] = xe + t, dst[m-k] = conj(xe - t).
+		return append(in,
+			fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
+			fmt.Sprintf("VXORPD Y15, %s, %s", b, b),
+			fmt.Sprintf("VMULPD Y14, %s, %s", b, b), // xo
+			fmt.Sprintf("VMOVUPD %d(CX), %s", o, c),
+			fmt.Sprintf("VPERMILPD $0, %s, %s", c, d),  // [wr, wr]
+			fmt.Sprintf("VPERMILPD $15, %s, %s", c, c), // [wi, wi]
+			fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
+			fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
+			fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
+			fmt.Sprintf("VADDSUBPD %s, %s, %s", c, d, d), // t
+			fmt.Sprintf("VADDPD %s, %s, %s", d, a, b),
+			fmt.Sprintf("VSUBPD %s, %s, %s", d, a, c),
+			fmt.Sprintf("VXORPD Y15, %s, %s", c, c),
+			fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", c, c, c),
+			fmt.Sprintf("VMOVUPD %s, %d(R9)", b, o),
+			fmt.Sprintf("VMOVUPD %s, %d(R10)", c, -o),
+		)
+	}
+	// genRetangleAVX2: dd = [d.re, s.im]·h, xo = conj(w)·dd,
+	// Z[k] = xe + i·xo, Z[m-k] = conj(xe - i·xo).
+	return append(in,
+		fmt.Sprintf("VMULPD Y14, %s, %s", b, b), // dd
+		fmt.Sprintf("VMOVUPD %d(CX), %s", o, c),
+		fmt.Sprintf("VXORPD Y15, %s, %s", c, c),    // conj(w)
+		fmt.Sprintf("VPERMILPD $0, %s, %s", c, d),  // [wr, wr]
+		fmt.Sprintf("VPERMILPD $15, %s, %s", c, c), // [-wi, -wi]
+		fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
+		fmt.Sprintf("VPERMILPD $5, %s, %s", b, b),
+		fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
+		fmt.Sprintf("VADDSUBPD %s, %s, %s", c, d, d), // xo
+		fmt.Sprintf("VPERMILPD $5, %s, %s", d, b),
+		fmt.Sprintf("VXORPD Y15, %s, %s", b, b), // [xoi, -xor]
+		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, c),
+		fmt.Sprintf("VADDPD %s, %s, %s", b, a, d),
+		fmt.Sprintf("VXORPD Y15, %s, %s", d, d),
+		fmt.Sprintf("VPERM2F128 $1, %s, %s, %s", d, d, d),
+		fmt.Sprintf("VMOVUPD %s, %d(R9)", c, o),
+		fmt.Sprintf("VMOVUPD %s, %d(R10)", d, -o),
+	)
+}
+
+// smallAdvance moves the five cursors past n steps.
+func smallAdvance(b *amd64.Builder, n int) {
+	b.Raw("ADDQ $%d, AX", 32*n).
+		Raw("SUBQ $%d, BX", 32*n).
+		Raw("ADDQ $%d, R9", 32*n).
+		Raw("SUBQ $%d, R10", 32*n).
+		Raw("ADDQ $%d, CX", 32*n)
+}
+
+// genSmallUntangle emits name(dst, z, tw *complex128, k *float64, m, pairs
+// int) (untangle) or name(z, x, tw *complex128, k *float64, h *[4]float64,
+// m, pairs int) (retangle): `steps` steps per iteration while that many
+// pairs are left, then one at a time.
+func genSmallUntangle(f *emit.File, name string, steps int, inverse bool) {
+	names := []string{"dst", "z", "tw", "k", "m", "pairs"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	if inverse {
+		names = []string{"z", "x", "tw", "k", "h", "m", "pairs"}
+		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	}
+	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
+	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
+		LoadArg("m", "DX").LoadArg("pairs", "R8")
+	b.Raw("SHLQ $4, DX").
+		Raw("LEAQ 16(SI), AX").         // &in[1]
+		Raw("LEAQ -32(SI)(DX*1), BX").  // &in[m-2]
+		Raw("LEAQ 16(DI), R9").         // &out[1]
+		Raw("LEAQ -32(DI)(DX*1), R10"). // &out[m-2]
+		Raw("ADDQ $16, CX").            // &tw[1]
+		Raw("VMOVUPD 0(R14), Y15")      // imaginary-lane sign mask
+	if inverse {
+		b.LoadArg("h", "R15").Raw("VMOVUPD (R15), Y14")
+	} else {
+		b.Raw("VMOVUPD 32(R14), Y14") // 0.5
+	}
+	b.Raw("loop:").
+		Raw("CMPQ R8, $%d", steps).
+		Raw("JLT tail")
+	seqs := make([][]string, steps)
+	for j := range seqs {
+		seqs[j] = smallUntangleStep(j, inverse)
+	}
+	for i := range seqs[0] {
+		for j := range seqs {
+			b.Raw("%s", seqs[j][i])
+		}
+	}
+	smallAdvance(b, steps)
+	b.Raw("SUBQ $%d, R8", steps).
+		Raw("JMP loop").
+		Raw("tail:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done")
+	for _, ins := range smallUntangleStep(0, inverse) {
+		b.Raw("%s", ins)
+	}
+	smallAdvance(b, 1)
+	b.Raw("DECQ R8").
+		Raw("JMP tail").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
 }

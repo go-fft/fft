@@ -423,7 +423,14 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		return 0
 	}
 	_, _, _ = dst[m], z[m-1], tw[2*pairs] // the kernel trusts these lengths
-	untangleAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	switch UntangleSteps {
+	case 2:
+		smallUntangle2AVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	case 3:
+		smallUntangle3AVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	default:
+		untangleAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	}
 	return 2 * pairs
 }
 
@@ -441,7 +448,14 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	}
 	_, _, _ = z[m-1], x[m], tw[2*pairs]
 	hv := [4]float64{h, h, h, h}
-	retangleAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	switch UntangleSteps {
+	case 2:
+		smallRetangle2AVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	case 3:
+		smallRetangle3AVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	default:
+		retangleAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	}
 	return 2 * pairs
 }
 
