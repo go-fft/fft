@@ -2201,6 +2201,236 @@ At 128² and 160² the rule already runs one chunk. 192² is the one loss: it is
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round25-float32-real-nd-20261006/`](benchmarks/results/round25-float32-real-nd-20261006/).
 
+### Round 26 — Zen 3: radix-10, -15 and -20 passes, Round 24's composite rules on AMD, and the small real sizes (2026-10-07)
+
+**The question.** Round 23's Zen 3 parity run left go-fft behind FFTW on eleven
+rows: RFFT 256 1.40, RFFT 1080 1.31, complex 256 1.28, complex 1080 1.27,
+complex 1296 1.23, RFFT 1920 1.19, complex 1000 1.18, RFFT 1000 1.18, RFFT
+1024 1.16, complex 1920 1.15, complex 1024 1.11. Round 24 gave Intel a
+radix-12 pass and radix-16 tails for composites without measuring AMD, and
+named radix 10/20 (1000) and 15 (1080) as the next levers. This round located
+the time on Zen 3 first, then took those levers. Host: Zen 3 (cfarm420, one
+core pinned with `taskset -c 40`, `GOMAXPROCS=1`), load 2.2–3.8 on the
+evening of 2026-10-06 and 1.2–2.1 on 2026-10-07; every comparison
+interleaved, the order rotated every round. No Intel host was usable
+(cfarm151 busy, cfarm13 at load 29), so nothing changes on Intel.
+
+**Where the time goes**, main, each pass alone on the buffers and in the
+layout the transform gives it (`TestR26Passes`, median of seven rounds,
+`zen3/loc1.txt`), ns:
+
+| | whole | passes |
+|:--|--:|:--|
+| 1000 (5·5·5·8) | 2,346 | 614 (r5, ido 200) + 614 (r5, 40) + 631 (r5, 8) + 373 (r8, final) |
+| 1080 (3·3·3·5·8) | 2,782 | 517 + 522 + 511 (r3) + 694 (r5) + 456 (r8, final) |
+| 1296 (3·3·3·3·4·4) | 3,544 | 628 + 614 + 628 + 649 (r3) + 601 (r4, ido 4) + 420 (r4, final) |
+| 1920 (3·5·4·4·8) | 4,625 | 953 (r3) + 1,214 (r5) + 757 + 764 (r4, split) + 819 (r8, final) |
+| 2000 (5·5·5·4·4) | 5,482 | 1,221 + 1,231 + 1,271 (r5) + 918 (r4) + 665 (r4, final) |
+| 128 (8·16) / 256 (4·8·8) | 188 / 347 | 82 + 85 / 93 + 127 + 104 |
+| 512 (8·8·8) / 1024 (8·8·16) | 739 / 1,674 | 238 + 240 + 204 / 529 + 476 + 589 |
+
+- **The odd passes dominate the composites**: per point and per bit, a radix-3
+  pass costs 0.30 ns and a radix-5 pass 0.27, against 0.23 for a split
+  radix-4 pass and 0.12 for a final radix-8 one.
+- **The real transforms** (`TestR26Real`, nine rounds): the half-length complex
+  transform is 60–77% of an RFFT and the untangle 22–32%, ns:
+
+| RFFT | 256 | 512 | 1000 | 1024 | 1080 | 1920 | 2000 | 4096 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|
+| whole | 317 | 547 | 1,487 | 1,128 | 1,693 | 2,780 | 3,093 | 5,968 |
+| half transform | 191 (8·16) | 349 (4·8·8) | 1,092 (5·5·5·4) | 731 (8·8·8) | 1,284 (3·3·3·5·4) | 2,066 (3·5·8·8) | 2,367 (5·5·5·8) | 4,433 (8·8·8·4) |
+| untangle | 102 | 177 | 339 | 354 | 369 | 685 | 723 | 1,476 |
+
+- **The power-of-two halves are on their best measured path.** Every radix
+  order of 4, 8 and 16 for 128 and 512 points, split, was timed (`TestR26AB`,
+  `zen3/loc1.txt`): 128 runs 8·16 (4·4·8 0.998× its speed, 16·8 0.917×) and
+  512 8·8·8 (4·8·16 0.969×, 8·4·16 0.952×); 256 keeps 4·8·8 (16·16 0.913×),
+  1024 8·8·16 (4·16·16 0.896×). So the small real and complex powers of two
+  have no factorization left to gain on Zen 3.
+- **What surrounds the passes**: `Plan.FFT` at 128 points took 190 ns and its
+  passes on a fixed buffer 165; a `sync.Pool` Get and Put alone take 16 ns
+  (`TestR26Overhead`, eleven rounds, `zen3/real-overhead.txt`).
+
+**1. Round 24's Intel rules, timed on AMD.** `TestR26Rule` timed the Intel
+composite rule (radix-12 passes, else a radix-16 tail) against the current AMD
+factorization for every length up to 16384 it changes (seven rounds,
+`zen3/rule1.txt`), current time ÷ Intel rule's time:
+
+| power of two 2^e | radix 12 | radix-16 tail |
+|:--|:--|:--|
+| e = 2 | 1.06–1.31 (21 lengths) | |
+| e = 4 | 1.06–1.26 (14) | 1.045–1.175 (4) |
+| e = 5, 6 | 1.00–1.18 (22) | |
+| e = 7, 8 | 1.03–1.15 (12) | 0.98–1.02 (5) |
+| e = 9 | 1.00–1.02 (2) | |
+| e = 10 | | 1.05 (4) |
+
+Radix 12 wins on Zen 3 as it did on Cascade Lake; the radix-16 tails win at e
+= 4 and 10 and tie at 7 and 8.
+
+**2. Radix-10, -15 and -20 passes (kept).** `radix5q.go` builds them as
+radix 12 is built: the prime-factor algorithm for r = 5·q (q = 2, 3, 4), with
+n = (q·n1 + 5·n2) mod r and k = (a·k1 + b·k2) mod r, a ≡ 1 (mod 5), a ≡ 0
+(mod q), b ≡ 0 (mod 5), b ≡ 1 (mod q), so n·k ≡ q·n1·k1 + 5·n2·k2 (mod r):
+q radix-5 butterflies, then five radix-q ones, no twiddle between them.
+`genComp2` and `genComp2Last` (go-asmgen v0.16.0, `comp2_amd64.s`; no
+go-asmgen change was needed) generate the AVX2 kernels from the existing
+radix-5, radix-3 and radix-4 emitters, every stage-1 value spilled to the frame,
+twenty streams through four base registers each side (a base reaches its
+five streams as +0, +S, +2S, +3S and +4S). skEmit gained an `addr` hook so
+the shared emitters can address those streams; every other `.s` file
+regenerates identically.
+
+Each pass alone (`zen3/pfa1.txt`), per point and per bit: a twiddled radix-20
+pass 0.22 ns (2000, `ido` 20) against 0.25 for the radix-5 and radix-4
+passes it replaces, a final radix-20 pass 0.16, a twiddled radix-10 pass 0.26
+against 0.28. A radix-15 pass costs 0.27 — but 0.45 at `ido` 128 (1920),
+where its 15 input streams sit 2 KB apart and fall into two L1 sets. The
+gain is smaller than FFTW's 12–16% fewer operations; one likely reason, not
+verified with counters: on Zen 3 additions issue on two of the four FP pipes,
+and the prime-factor passes save the internal twiddles' multiplications more
+than additions.
+
+**Bit identity.** `TestComp2EachPassMatchesScalar` runs every kernel alone
+against the Go pass, output for output: radix 10, 15 and 20, l1 ∈ {1, 2, 3,
+4, 5, 9} (l1 = 1 is the pass first in a transform), `ido` from 1 (the final
+pass) to 33 (every remainder mod 4), forward and inverse, on Round 19's
+seven signals (generic, signed zeros, a ±0/−1 mix, an infinity, random draws
+from {±0} and {±0, ±1}, odd multiples of the smallest subnormal of mixed
+parity). `TestComp2TransformMatchesScalar` runs 21 whole factorizations with
+those passes next to radix 2, 3, 4, 5, 7, 8, 12 and 16, in place and not;
+`TestComp2AgainstNaive` holds them to the O(N²) DFT on every architecture and
+`TestComp2Maps` checks the index maps. All pass on Zen 3, as does the whole
+suite of both packages. Eight generator mutations, each run on Zen 3
+(`zen3/mutants.txt`), failed both tests: stream 4 addressed as stream 3, the
+point-0 blend removed, y1 and y4 of the radix-5 stage exchanged, two radix-3
+outputs exchanged, the next block one stride short, y0 summed in the other
+order, the radix-2 difference reversed, the final pass advancing half a
+block.
+
+`StockhamPass` now also refuses `ido` or `l1` below one before any kernel
+runs: two negative counts multiplied to a positive length that passed its
+bound checks (SECURITY.md's rule; `TestComp2PassRefuses`).
+
+**3. The AMD rule (kept).** `TestR26Sweep` timed, for each of the 148 lengths
+2^e·3^a·5^b (e >= 1, a+b >= 1) up to 16384, every factorization with t20
+radix-20, t12 radix-12, at most one radix-10 and one radix-15 pass, and the
+power-of-two tails of radix8Maximal or Round 24's radix 16 (1,251
+factorizations, five rounds, `zen3/sweep1.txt`). Two things showed up:
+- **A composite pass needs its streams off the L1 sets.** Every pass writes r
+  streams n/r points apart. Where n/r carries a high power of two the streams
+  share few sets, and from e = 9 (radix 20) or 10 (radix 12) the
+  prime-factor passes lost up to 1.5× (9216 = 8·8·12·12 0.67×). The same
+  conflict made radix 15 slow at 1920.
+- **A lone radix-2 pass costs more than it saves** (16000 = 2·20·20·20
+  0.95×).
+
+`comp2Factors` (`comp_route_amd64.go`, AMD only: `kernels.IntelCPU` false):
+t12 = min(a, ⌊e/2⌋) radix-12 passes (e <= 9), then t20 = min(b, ⌊e'/2⌋)
+radix-20 passes (e <= 8), then one radix-10 pass for a 2 and a 5 left (e <=
+7, by the same stride argument; not every such case was a candidate); a
+single 2 left over otherwise goes back with the last radix-20 (else
+radix-12) pass so the tail ends on radix 8; one radix-15 pass for a 3 and a 5
+left (e <= 6; radix 15 lost at e = 7 in the sweep, 0.93–0.99×). The order: the remaining 3s and 5s, the remaining powers of
+two (radix 4 before 8), then 15, 10, 12, 20. e = 10 takes Round 24's 8·8·16
+tail, e >= 11 keeps its factorization. Scored against the sweep
+(`scripts/an_sweep.py sweep1.txt scripts/rule_r6.py`): within 0.7% of the
+best candidate (geometric mean), never slower than the current
+factorization, and 1.10× as fast as it (geometric mean). A linear pass-cost
+model fitted to the sweep (`scripts/model.py`) picked worse (2.3% off the
+best, and 0.67× at 9216) because it cannot see the set conflict.
+
+Examples: 1000 → 5·10·20, 1080 → 3·3·10·12, 1296 → 3·3·12·12, 1920 →
+8·12·20, 2000 → 5·20·20, 6000 → 5·5·12·20; the real transforms' halves 500
+→ 5·5·20, 540 → 3·15·12, 960 → 4·12·20. N-D plans' columns keep a
+factorization without these radices (`compTakes16`), as they did for 12 and
+16: there is no batched kernel for them.
+
+**End to end against main.** `BenchmarkR26AB`, main ÷ branch time, fifteen
+interleaved rounds (`zen3/ab-main-branch-15.txt`, load 1.2–2.1; five rounds
+at load 2.4–3.3 in `ab-main-branch-5.txt` agree):
+
+| | main ÷ branch |
+|:--|--:|
+| complex 1000 / 1080 / 1296 / 1920 | 1.10 / 1.09 / 1.20 / 1.16 |
+| complex 2000 / 6000 | 1.19 / 1.19 |
+| complex 240 / 480 / 720 / 960 / 1200 / 1440 | 1.24 / 1.14 / 1.18 / 1.14 / 1.22 / 1.15 |
+| complex 3600 / 7200 / 15360 / 16000 | 1.18 / 1.09 / 1.04 / 1.08 |
+| Rader 1201 (convolution 1200) | 1.12 |
+| RFFT 1000 / 1080 / 1920 / 2000 | 1.09 / 1.06 / 1.06 / 1.05 |
+| 2-D 100² / 120² / 240² | 1.06 / 1.04 / 1.09 |
+| complex 128 / 256 / 512 / 1024 / 4096 / 65536 | 1.02 / 1.01 / 1.00 / 1.00 / 1.00 / 1.01 |
+| Rader 1009, Bluestein 10007, 1008, 2100 | 1.00 / 1.00 / 1.01 / 1.00 |
+| RFFT 256 / 512 / 1024 / 4096 | 1.03 / 1.03 / 1.00 / 0.99 |
+
+The powers of two, the primes and the lengths with a 7 run the same passes
+(the `StockhamPass` check is two compares) and stayed inside their spreads.
+Several rows had a round or two disturbed by the host (per-round ranges in
+the files); the medians of the five- and fifteen-round runs agree except
+RFFT 2000 (0.92 over five rounds inside a 1.22 spread, 1.05 over fifteen).
+RFFT 256 and 512 (1.03) run unchanged passes and are inside their spreads.
+
+**Against FFTW on Zen 3.** The parity harness, pinned to core 40, four times
+back to back: main, the branch, the branch again, main again
+(`zen3/parity-{main,br,br2,main2}/`, `scripts/parity26.sh`; correct 24/24
+every time; load 1.5–2.6, rising to 5.1 at the end of the last run). FFTW's
+own time moved by up to 22% between runs on a row (complex 1920: 3,893–4,771
+ns; RFFT 256: 224–268; RFFT 1024: 979–1,224), so each ratio below is go-fft's
+time (mean of its two runs) ÷ the median of FFTW's four:
+
+| | main | branch |
+|:--|--:|--:|
+| complex 256 / 1,024 | 1.27 / 1.12 | 1.24 / 1.13 |
+| complex 1,000 / 1,080 | 1.15 / 1.18 | **1.07** / 1.10 |
+| complex 1,296 / 1,920 | 1.16 / 1.12 | **0.97** / **0.97** |
+| RFFT 256 / 1,024 | 1.36 / 1.14 | 1.31 / 1.14 |
+| RFFT 1,000 / 1,080 / 1,920 | 1.19 / 1.24 / 1.21 | 1.11 / 1.15 / 1.09 |
+| IRFFT 1,000 / 1,080 / 1,920 | 1.05 / 1.09 / 1.06 | **0.99** / **1.04** / **0.97** |
+
+(bold: at or above FFTW, within 5%.) go-fft's own times moved as the A/B
+says: complex 1296 3,552 → 2,978 ns, 1920 4,435 → 3,860, 1000 2,355 →
+2,192; RFFT 1080 1,735 → 1,614. The power-of-two rows run the same code: the
+256 and RFFT 256 differences are FFTW's (its 256-point time ranged 274–293
+ns) and the A/B's 1.01–1.03 inside their spreads. On the large rows
+(complex 2^16 and 2^20, RFFT 2^20, 2-D 512² and 1024²) go-fft's branch runs
+read 3–10% slower than the first main run, but main's own two runs differed
+by as much (complex 2^20: 5.33 and 6.14 ms); they run the same passes as on main
+(the `StockhamPass` count check aside, which the A/B's complex 65536 row,
+1.007 over fifteen rounds, covers). A dedicated interleaved A/B of those rows
+(`BenchmarkR26Large`) was not run: from 11:19 host time another user's
+builds kept the load at 9–17.
+
+**Which main.** "Main" in this round is v0.16.1 (2d48924): every timing
+above was taken on it. The branch was then rebased onto v0.17.0 (Round 27),
+which changes arm64 files and the shared Go pass's signature
+(`passScalarL`); both packages' suites passed again on Zen 3 after the
+rebase, and every `.s` file regenerates unchanged.
+
+**Tried and dropped, or not done:**
+- **The half transform on the RealPlan's buffer.** An RFFT borrows two
+  scratch buffers, its own and the half plan's, each a `sync.Pool` round
+  trip. Running the half plan on the tail of the RealPlan's buffer
+  (`scripts/half-scratch-dropped.patch`) measured 1.04× at 256 points and
+  0.99–1.02× elsewhere in one process (21 rounds, `zen3/half-scratch.txt`),
+  and 0.98–1.04× between binaries (eleven rounds,
+  `zen3/ab-rfft-halfscratch-11.txt`), every row inside its spread, so it was
+  not kept: `run` is not inlined where `transform` is, which takes back most
+  of the 16 ns.
+- **A one-slot atomic scratch cache** in front of the pool: 8 ns against 16
+  (`zen3/scratch-cost.txt`), but every goroutine sharing a cached plan would
+  contend on that one cache line, which one pinned core cannot measure.
+- **A faster untangle.** The AVX2 untangle takes about 3 ns per iteration
+  (two bins and their mirrors, 102 ns for 31 iterations at 256 points),
+  roughly twice what its 19 floating-point operations need at four per
+  cycle; the cause was not established, so no variant was built.
+- **Fewer spills in the radix-5q kernels.** By the operation count above the
+  passes are bound by additions, not by the frame's stores and loads.
+- **Intel.** The AMD rule and the radix-10/15/20 kernels run where
+  `kernels.IntelCPU` is false; Intel keeps Round 24's rule, unmeasured with
+  the new radices.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round26-amd64-comp2-20261007/`](benchmarks/results/round26-amd64-comp2-20261007/).
+
 ### Round 27 — arm64: the float64 untangle on NEON, rotating N-D passes, and float32 on a server (2026-10-07)
 
 Round 24 left go-fft behind FFTW on three of Neoverse-N1's 24 parity rows:
