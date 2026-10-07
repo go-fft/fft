@@ -1,0 +1,1351 @@
+# round 1 variant abA.test 10:19:48 load 1.15 1.17 1.16
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  149875	      2348 ns/op
+BenchmarkR26AB/C1000         	  152790	      2372 ns/op
+BenchmarkR26AB/C1080         	  129741	      2882 ns/op
+BenchmarkR26AB/C1296         	   94500	      3782 ns/op
+BenchmarkR26AB/C1920         	   80611	      5380 ns/op
+BenchmarkR26AB/C2000         	   62245	      5328 ns/op
+BenchmarkR26AB/C6000         	   18050	     20285 ns/op
+BenchmarkR26AB/C240          	  742953	       481.1 ns/op
+BenchmarkR26AB/C480          	  372543	       967.8 ns/op
+BenchmarkR26AB/C720          	  215796	      1674 ns/op
+BenchmarkR26AB/C960          	  172039	      2382 ns/op
+BenchmarkR26AB/C1200         	  117904	      3037 ns/op
+BenchmarkR26AB/C1440         	  100464	      3593 ns/op
+BenchmarkR26AB/C3600         	   32847	     10941 ns/op
+BenchmarkR26AB/C7200         	   15426	     23470 ns/op
+BenchmarkR26AB/C15360        	    6610	     53660 ns/op
+BenchmarkR26AB/C16000        	    6769	     57265 ns/op
+BenchmarkR26AB/C128          	 1896300	       189.3 ns/op
+BenchmarkR26AB/C256          	 1000000	       355.2 ns/op
+BenchmarkR26AB/C512          	  493144	       732.5 ns/op
+BenchmarkR26AB/C1024         	  212396	      1763 ns/op
+BenchmarkR26AB/C4096         	   37250	      9688 ns/op
+BenchmarkR26AB/C65536        	    1320	    270794 ns/op
+BenchmarkR26AB/C1009         	   27970	     13094 ns/op
+BenchmarkR26AB/C1201         	   33744	     10635 ns/op
+BenchmarkR26AB/C10007        	    1676	    214512 ns/op
+BenchmarkR26AB/C1008         	   79580	      4556 ns/op
+BenchmarkR26AB/C2100         	   34927	     10319 ns/op
+BenchmarkR26AB/R256          	 1000000	       325.0 ns/op
+BenchmarkR26AB/R512          	  648019	       555.8 ns/op
+BenchmarkR26AB/R1000         	  241900	      1494 ns/op
+BenchmarkR26AB/R1024         	  320688	      1115 ns/op
+BenchmarkR26AB/R1080         	  213231	      1744 ns/op
+BenchmarkR26AB/R1920         	  131090	      2741 ns/op
+BenchmarkR26AB/R2000         	  116721	      3082 ns/op
+BenchmarkR26AB/R4096         	   61594	      5837 ns/op
+BenchmarkR26AB/D100          	    9864	     36392 ns/op
+BenchmarkR26AB/D120          	    6813	     53062 ns/op
+BenchmarkR26AB/D240          	    1364	    262951 ns/op
+PASS
+# round 1 variant abB.test 10:20:05 load 1.34 1.22 1.17
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  164660	      2225 ns/op
+BenchmarkR26AB/C1000         	  162742	      2162 ns/op
+BenchmarkR26AB/C1080         	  140059	      2560 ns/op
+BenchmarkR26AB/C1296         	  121465	      2995 ns/op
+BenchmarkR26AB/C1920         	   92905	      3990 ns/op
+BenchmarkR26AB/C2000         	   80762	      6138 ns/op
+BenchmarkR26AB/C6000         	   22308	     15933 ns/op
+BenchmarkR26AB/C240          	  934107	       388.8 ns/op
+BenchmarkR26AB/C480          	  425311	       850.0 ns/op
+BenchmarkR26AB/C720          	  203851	      2330 ns/op
+BenchmarkR26AB/C960          	  193947	      1844 ns/op
+BenchmarkR26AB/C1200         	  142344	      2549 ns/op
+BenchmarkR26AB/C1440         	  115198	      3188 ns/op
+BenchmarkR26AB/C3600         	   38329	      9270 ns/op
+BenchmarkR26AB/C7200         	   17709	     20479 ns/op
+BenchmarkR26AB/C15360        	    7212	     49380 ns/op
+BenchmarkR26AB/C16000        	    6850	     50164 ns/op
+BenchmarkR26AB/C128          	 1882082	       191.5 ns/op
+BenchmarkR26AB/C256          	 1040608	       341.3 ns/op
+BenchmarkR26AB/C512          	  507241	       706.2 ns/op
+BenchmarkR26AB/C1024         	  215941	      1661 ns/op
+BenchmarkR26AB/C4096         	   39097	      9191 ns/op
+BenchmarkR26AB/C65536        	    1447	    250081 ns/op
+BenchmarkR26AB/C1009         	   27483	     12831 ns/op
+BenchmarkR26AB/C1201         	   37884	      9442 ns/op
+BenchmarkR26AB/C10007        	    1719	    210933 ns/op
+BenchmarkR26AB/C1008         	   79186	      4508 ns/op
+BenchmarkR26AB/C2100         	   35566	     10250 ns/op
+BenchmarkR26AB/R256          	 1174887	       301.5 ns/op
+BenchmarkR26AB/R512          	  663739	       539.0 ns/op
+BenchmarkR26AB/R1000         	  263308	      1388 ns/op
+BenchmarkR26AB/R1024         	  319864	      1130 ns/op
+BenchmarkR26AB/R1080         	  225864	      1653 ns/op
+BenchmarkR26AB/R1920         	  141752	      2605 ns/op
+BenchmarkR26AB/R2000         	  119275	      2969 ns/op
+BenchmarkR26AB/R4096         	   61210	      5831 ns/op
+BenchmarkR26AB/D100          	    8427	     37497 ns/op
+BenchmarkR26AB/D120          	    7254	     56035 ns/op
+BenchmarkR26AB/D240          	    1484	    259307 ns/op
+PASS
+# round 2 variant abB.test 10:20:21 load 1.49 1.25 1.18
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  158089	      2274 ns/op
+BenchmarkR26AB/C1000         	  165686	      2175 ns/op
+BenchmarkR26AB/C1080         	  140336	      2604 ns/op
+BenchmarkR26AB/C1296         	  121366	      3023 ns/op
+BenchmarkR26AB/C1920         	   94413	      4559 ns/op
+BenchmarkR26AB/C2000         	   80725	      4815 ns/op
+BenchmarkR26AB/C6000         	   21067	     17320 ns/op
+BenchmarkR26AB/C240          	  930825	       384.5 ns/op
+BenchmarkR26AB/C480          	  421892	       879.0 ns/op
+BenchmarkR26AB/C720          	  255742	      1480 ns/op
+BenchmarkR26AB/C960          	  162763	      1958 ns/op
+BenchmarkR26AB/C1200         	  122104	      2527 ns/op
+BenchmarkR26AB/C1440         	  116829	      3117 ns/op
+BenchmarkR26AB/C3600         	   39885	      9064 ns/op
+BenchmarkR26AB/C7200         	   17340	     20533 ns/op
+BenchmarkR26AB/C15360        	    6752	     51224 ns/op
+BenchmarkR26AB/C16000        	    6979	     49863 ns/op
+BenchmarkR26AB/C128          	 1950770	       185.8 ns/op
+BenchmarkR26AB/C256          	 1000000	       395.2 ns/op
+BenchmarkR26AB/C512          	  497426	       719.6 ns/op
+BenchmarkR26AB/C1024         	  212390	      1795 ns/op
+BenchmarkR26AB/C4096         	   36115	     10622 ns/op
+BenchmarkR26AB/C65536        	    1351	    254286 ns/op
+BenchmarkR26AB/C1009         	   27810	     12901 ns/op
+BenchmarkR26AB/C1201         	   38163	      9451 ns/op
+BenchmarkR26AB/C10007        	    1698	    208687 ns/op
+BenchmarkR26AB/C1008         	   79746	      4640 ns/op
+BenchmarkR26AB/C2100         	   35013	     10238 ns/op
+BenchmarkR26AB/R256          	 1000000	       307.5 ns/op
+BenchmarkR26AB/R512          	  670846	       539.2 ns/op
+BenchmarkR26AB/R1000         	  261374	      1396 ns/op
+BenchmarkR26AB/R1024         	  296882	      1204 ns/op
+BenchmarkR26AB/R1080         	  205110	      1646 ns/op
+BenchmarkR26AB/R1920         	  141087	      2680 ns/op
+BenchmarkR26AB/R2000         	  122127	      2979 ns/op
+BenchmarkR26AB/R4096         	   57459	      6467 ns/op
+BenchmarkR26AB/D100          	   10000	     47406 ns/op
+BenchmarkR26AB/D120          	    7059	     50762 ns/op
+BenchmarkR26AB/D240          	    1513	    247025 ns/op
+PASS
+# round 2 variant abA.test 10:20:38 load 1.63 1.30 1.20
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  146647	      2338 ns/op
+BenchmarkR26AB/C1000         	  151472	      2401 ns/op
+BenchmarkR26AB/C1080         	   95968	      3874 ns/op
+BenchmarkR26AB/C1296         	  101430	      3543 ns/op
+BenchmarkR26AB/C1920         	   80712	      4455 ns/op
+BenchmarkR26AB/C2000         	   67137	      5422 ns/op
+BenchmarkR26AB/C6000         	   19226	     18779 ns/op
+BenchmarkR26AB/C240          	  755970	       474.6 ns/op
+BenchmarkR26AB/C480          	  379104	       970.3 ns/op
+BenchmarkR26AB/C720          	  216597	      1657 ns/op
+BenchmarkR26AB/C960          	  176790	      2394 ns/op
+BenchmarkR26AB/C1200         	  118886	      3076 ns/op
+BenchmarkR26AB/C1440         	  102074	      3543 ns/op
+BenchmarkR26AB/C3600         	   33602	     10989 ns/op
+BenchmarkR26AB/C7200         	   16002	     23309 ns/op
+BenchmarkR26AB/C15360        	    6808	     51454 ns/op
+BenchmarkR26AB/C16000        	    6808	     52105 ns/op
+BenchmarkR26AB/C128          	 1874316	       191.1 ns/op
+BenchmarkR26AB/C256          	 1000000	       353.6 ns/op
+BenchmarkR26AB/C512          	  498637	       743.5 ns/op
+BenchmarkR26AB/C1024         	  208269	      1678 ns/op
+BenchmarkR26AB/C4096         	   38961	      9082 ns/op
+BenchmarkR26AB/C65536        	    1446	    248521 ns/op
+BenchmarkR26AB/C1009         	   27819	     12803 ns/op
+BenchmarkR26AB/C1201         	   34335	     10566 ns/op
+BenchmarkR26AB/C10007        	    1732	    206969 ns/op
+BenchmarkR26AB/C1008         	   79866	      4504 ns/op
+BenchmarkR26AB/C2100         	   35346	     10321 ns/op
+BenchmarkR26AB/R256          	 1000000	       313.7 ns/op
+BenchmarkR26AB/R512          	  642592	       562.6 ns/op
+BenchmarkR26AB/R1000         	  244219	      1672 ns/op
+BenchmarkR26AB/R1024         	  300304	      1124 ns/op
+BenchmarkR26AB/R1080         	  210702	      1726 ns/op
+BenchmarkR26AB/R1920         	  131866	      2734 ns/op
+BenchmarkR26AB/R2000         	  115950	      3240 ns/op
+BenchmarkR26AB/R4096         	   61816	      5947 ns/op
+BenchmarkR26AB/D100          	    9258	     43098 ns/op
+BenchmarkR26AB/D120          	    6854	     52781 ns/op
+BenchmarkR26AB/D240          	    1371	    264093 ns/op
+PASS
+# round 3 variant abA.test 10:20:54 load 1.80 1.36 1.22
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  147871	      2326 ns/op
+BenchmarkR26AB/C1000         	  154593	      2411 ns/op
+BenchmarkR26AB/C1080         	  129079	      2795 ns/op
+BenchmarkR26AB/C1296         	  101180	      3573 ns/op
+BenchmarkR26AB/C1920         	   80349	      4474 ns/op
+BenchmarkR26AB/C2000         	   66912	      5457 ns/op
+BenchmarkR26AB/C6000         	   18802	     18840 ns/op
+BenchmarkR26AB/C240          	  733926	       488.7 ns/op
+BenchmarkR26AB/C480          	  370155	       976.7 ns/op
+BenchmarkR26AB/C720          	  213228	      1682 ns/op
+BenchmarkR26AB/C960          	  173502	      2069 ns/op
+BenchmarkR26AB/C1200         	  118342	      3137 ns/op
+BenchmarkR26AB/C1440         	  100670	      3579 ns/op
+BenchmarkR26AB/C3600         	   32175	     10875 ns/op
+BenchmarkR26AB/C7200         	   16220	     22245 ns/op
+BenchmarkR26AB/C15360        	    6838	     52233 ns/op
+BenchmarkR26AB/C16000        	    6729	     58337 ns/op
+BenchmarkR26AB/C128          	 1897106	       193.4 ns/op
+BenchmarkR26AB/C256          	 1000000	       345.1 ns/op
+BenchmarkR26AB/C512          	  502861	       731.0 ns/op
+BenchmarkR26AB/C1024         	  215968	      1690 ns/op
+BenchmarkR26AB/C4096         	   39336	      9147 ns/op
+BenchmarkR26AB/C65536        	    1473	    245884 ns/op
+BenchmarkR26AB/C1009         	   28123	     12835 ns/op
+BenchmarkR26AB/C1201         	   33765	     10705 ns/op
+BenchmarkR26AB/C10007        	    1755	    217981 ns/op
+BenchmarkR26AB/C1008         	   79724	      4558 ns/op
+BenchmarkR26AB/C2100         	   34620	     10066 ns/op
+BenchmarkR26AB/R256          	 1000000	       314.5 ns/op
+BenchmarkR26AB/R512          	  643136	       581.0 ns/op
+BenchmarkR26AB/R1000         	  214878	      1524 ns/op
+BenchmarkR26AB/R1024         	  323047	      1418 ns/op
+BenchmarkR26AB/R1080         	  195252	      1689 ns/op
+BenchmarkR26AB/R1920         	  131386	      2743 ns/op
+BenchmarkR26AB/R2000         	  115156	      3174 ns/op
+BenchmarkR26AB/R4096         	   60559	      7914 ns/op
+BenchmarkR26AB/D100          	    9772	     36853 ns/op
+BenchmarkR26AB/D120          	    6804	     53040 ns/op
+BenchmarkR26AB/D240          	    1395	    257599 ns/op
+PASS
+# round 3 variant abB.test 10:21:10 load 1.92 1.40 1.24
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  158382	      2178 ns/op
+BenchmarkR26AB/C1000         	  168630	      2128 ns/op
+BenchmarkR26AB/C1080         	  141613	      2542 ns/op
+BenchmarkR26AB/C1296         	  121719	      2946 ns/op
+BenchmarkR26AB/C1920         	   93764	      3796 ns/op
+BenchmarkR26AB/C2000         	   81555	      5408 ns/op
+BenchmarkR26AB/C6000         	   22251	     16262 ns/op
+BenchmarkR26AB/C240          	  927162	       385.4 ns/op
+BenchmarkR26AB/C480          	  426105	       860.6 ns/op
+BenchmarkR26AB/C720          	  256590	      1510 ns/op
+BenchmarkR26AB/C960          	  176053	      1836 ns/op
+BenchmarkR26AB/C1200         	  141344	      2510 ns/op
+BenchmarkR26AB/C1440         	  117031	      3117 ns/op
+BenchmarkR26AB/C3600         	   35956	      9063 ns/op
+BenchmarkR26AB/C7200         	   18079	     21306 ns/op
+BenchmarkR26AB/C15360        	    6991	     48885 ns/op
+BenchmarkR26AB/C16000        	    7599	     47002 ns/op
+BenchmarkR26AB/C128          	 1946059	       184.9 ns/op
+BenchmarkR26AB/C256          	 1000000	       346.7 ns/op
+BenchmarkR26AB/C512          	  503413	       717.7 ns/op
+BenchmarkR26AB/C1024         	  206352	      1737 ns/op
+BenchmarkR26AB/C4096         	   39424	      9123 ns/op
+BenchmarkR26AB/C65536        	    1482	    244180 ns/op
+BenchmarkR26AB/C1009         	   27426	     13208 ns/op
+BenchmarkR26AB/C1201         	   37921	      9398 ns/op
+BenchmarkR26AB/C10007        	    1494	    206982 ns/op
+BenchmarkR26AB/C1008         	   79584	      4507 ns/op
+BenchmarkR26AB/C2100         	   35680	     10115 ns/op
+BenchmarkR26AB/R256          	 1000000	       302.0 ns/op
+BenchmarkR26AB/R512          	  664958	       538.4 ns/op
+BenchmarkR26AB/R1000         	  264168	      1356 ns/op
+BenchmarkR26AB/R1024         	  285589	      1118 ns/op
+BenchmarkR26AB/R1080         	  226042	      1596 ns/op
+BenchmarkR26AB/R1920         	  141303	      2539 ns/op
+BenchmarkR26AB/R2000         	  116713	      3105 ns/op
+BenchmarkR26AB/R4096         	   59660	      5944 ns/op
+BenchmarkR26AB/D100          	   10000	     34693 ns/op
+BenchmarkR26AB/D120          	    7178	     51329 ns/op
+BenchmarkR26AB/D240          	    1452	    239389 ns/op
+PASS
+# round 4 variant abB.test 10:21:27 load 2.07 1.47 1.26
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  158979	      2251 ns/op
+BenchmarkR26AB/C1000         	  168074	      2133 ns/op
+BenchmarkR26AB/C1080         	  140522	      2546 ns/op
+BenchmarkR26AB/C1296         	  122058	      2944 ns/op
+BenchmarkR26AB/C1920         	   94446	      3799 ns/op
+BenchmarkR26AB/C2000         	   81249	      4403 ns/op
+BenchmarkR26AB/C6000         	   22615	     15887 ns/op
+BenchmarkR26AB/C240          	  939585	       382.8 ns/op
+BenchmarkR26AB/C480          	  425420	       843.2 ns/op
+BenchmarkR26AB/C720          	  243356	      1417 ns/op
+BenchmarkR26AB/C960          	  197821	      1812 ns/op
+BenchmarkR26AB/C1200         	  144716	      2481 ns/op
+BenchmarkR26AB/C1440         	  117274	      3063 ns/op
+BenchmarkR26AB/C3600         	   39814	      9085 ns/op
+BenchmarkR26AB/C7200         	   17703	     20073 ns/op
+BenchmarkR26AB/C15360        	    7248	     49650 ns/op
+BenchmarkR26AB/C16000        	    7245	     49476 ns/op
+BenchmarkR26AB/C128          	 1951920	       184.9 ns/op
+BenchmarkR26AB/C256          	 1000000	       342.3 ns/op
+BenchmarkR26AB/C512          	  500959	       713.5 ns/op
+BenchmarkR26AB/C1024         	  214602	      1665 ns/op
+BenchmarkR26AB/C4096         	   39434	      9548 ns/op
+BenchmarkR26AB/C65536        	    1460	    243504 ns/op
+BenchmarkR26AB/C1009         	   28052	     12779 ns/op
+BenchmarkR26AB/C1201         	   37482	      9584 ns/op
+BenchmarkR26AB/C10007        	    1743	    206797 ns/op
+BenchmarkR26AB/C1008         	   68498	      4495 ns/op
+BenchmarkR26AB/C2100         	   35787	     10045 ns/op
+BenchmarkR26AB/R256          	 1000000	       303.3 ns/op
+BenchmarkR26AB/R512          	  675376	       532.1 ns/op
+BenchmarkR26AB/R1000         	  264280	      2088 ns/op
+BenchmarkR26AB/R1024         	  321204	      1125 ns/op
+BenchmarkR26AB/R1080         	  226249	      1629 ns/op
+BenchmarkR26AB/R1920         	  140019	      2608 ns/op
+BenchmarkR26AB/R2000         	  122388	      2992 ns/op
+BenchmarkR26AB/R4096         	   60382	      5964 ns/op
+BenchmarkR26AB/D100          	   10000	     33409 ns/op
+BenchmarkR26AB/D120          	    7290	     49319 ns/op
+BenchmarkR26AB/D240          	    1506	    270466 ns/op
+PASS
+# round 4 variant abA.test 10:21:43 load 2.05 1.50 1.28
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  153076	      2343 ns/op
+BenchmarkR26AB/C1000         	  152400	      2355 ns/op
+BenchmarkR26AB/C1080         	  129530	      2808 ns/op
+BenchmarkR26AB/C1296         	  101970	      3697 ns/op
+BenchmarkR26AB/C1920         	   80803	      4455 ns/op
+BenchmarkR26AB/C2000         	   67610	      5321 ns/op
+BenchmarkR26AB/C6000         	   18070	     19169 ns/op
+BenchmarkR26AB/C240          	  751366	       476.5 ns/op
+BenchmarkR26AB/C480          	  373710	       961.8 ns/op
+BenchmarkR26AB/C720          	  215424	      1668 ns/op
+BenchmarkR26AB/C960          	  175632	      2044 ns/op
+BenchmarkR26AB/C1200         	  119211	      3012 ns/op
+BenchmarkR26AB/C1440         	  100976	      3541 ns/op
+BenchmarkR26AB/C3600         	   33537	     10729 ns/op
+BenchmarkR26AB/C7200         	   16124	     22336 ns/op
+BenchmarkR26AB/C15360        	    6979	     51339 ns/op
+BenchmarkR26AB/C16000        	    6787	     51308 ns/op
+BenchmarkR26AB/C128          	 1915852	       187.3 ns/op
+BenchmarkR26AB/C256          	 1000000	       349.7 ns/op
+BenchmarkR26AB/C512          	  500370	       712.6 ns/op
+BenchmarkR26AB/C1024         	  216349	      1673 ns/op
+BenchmarkR26AB/C4096         	   39274	      9142 ns/op
+BenchmarkR26AB/C65536        	    1456	    250566 ns/op
+BenchmarkR26AB/C1009         	   28084	     12774 ns/op
+BenchmarkR26AB/C1201         	   33726	     11096 ns/op
+BenchmarkR26AB/C10007        	    1737	    208661 ns/op
+BenchmarkR26AB/C1008         	   79467	      4530 ns/op
+BenchmarkR26AB/C2100         	   35427	     10160 ns/op
+BenchmarkR26AB/R256          	 1000000	       314.8 ns/op
+BenchmarkR26AB/R512          	  632769	       595.9 ns/op
+BenchmarkR26AB/R1000         	  245085	      1476 ns/op
+BenchmarkR26AB/R1024         	  322228	      1120 ns/op
+BenchmarkR26AB/R1080         	  210904	      1707 ns/op
+BenchmarkR26AB/R1920         	  122694	      2827 ns/op
+BenchmarkR26AB/R2000         	  116878	      3078 ns/op
+BenchmarkR26AB/R4096         	   61330	      5848 ns/op
+BenchmarkR26AB/D100          	    9705	     37206 ns/op
+BenchmarkR26AB/D120          	    6808	     52625 ns/op
+BenchmarkR26AB/D240          	    1392	    264940 ns/op
+PASS
+# round 5 variant abA.test 10:22:00 load 2.04 1.53 1.29
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  150145	      2329 ns/op
+BenchmarkR26AB/C1000         	  154842	      2343 ns/op
+BenchmarkR26AB/C1080         	  130274	      2764 ns/op
+BenchmarkR26AB/C1296         	  102090	      3519 ns/op
+BenchmarkR26AB/C1920         	   81637	      4409 ns/op
+BenchmarkR26AB/C2000         	   63729	      5430 ns/op
+BenchmarkR26AB/C6000         	   17779	     19768 ns/op
+BenchmarkR26AB/C240          	  749721	       481.2 ns/op
+BenchmarkR26AB/C480          	  372901	       958.7 ns/op
+BenchmarkR26AB/C720          	  216540	      1657 ns/op
+BenchmarkR26AB/C960          	  177381	      2024 ns/op
+BenchmarkR26AB/C1200         	  118978	      3051 ns/op
+BenchmarkR26AB/C1440         	  100993	      3570 ns/op
+BenchmarkR26AB/C3600         	   33794	     10684 ns/op
+BenchmarkR26AB/C7200         	   16201	     22017 ns/op
+BenchmarkR26AB/C15360        	    6764	     51695 ns/op
+BenchmarkR26AB/C16000        	    6928	     52833 ns/op
+BenchmarkR26AB/C128          	 1900563	       190.4 ns/op
+BenchmarkR26AB/C256          	 1000000	       351.2 ns/op
+BenchmarkR26AB/C512          	  492134	       723.1 ns/op
+BenchmarkR26AB/C1024         	  211417	      1695 ns/op
+BenchmarkR26AB/C4096         	   39259	      9155 ns/op
+BenchmarkR26AB/C65536        	    1446	    253492 ns/op
+BenchmarkR26AB/C1009         	   27873	     12954 ns/op
+BenchmarkR26AB/C1201         	   33495	     10783 ns/op
+BenchmarkR26AB/C10007        	    1718	    210207 ns/op
+BenchmarkR26AB/C1008         	   79524	      4717 ns/op
+BenchmarkR26AB/C2100         	   34834	     10281 ns/op
+BenchmarkR26AB/R256          	 1000000	       315.2 ns/op
+BenchmarkR26AB/R512          	  637744	       568.0 ns/op
+BenchmarkR26AB/R1000         	  160216	      1910 ns/op
+BenchmarkR26AB/R1024         	  321001	      1132 ns/op
+BenchmarkR26AB/R1080         	  209809	      1724 ns/op
+BenchmarkR26AB/R1920         	  126602	      2758 ns/op
+BenchmarkR26AB/R2000         	   97797	      3293 ns/op
+BenchmarkR26AB/R4096         	   61154	      5881 ns/op
+BenchmarkR26AB/D100          	    9715	     37015 ns/op
+BenchmarkR26AB/D120          	    6906	     52557 ns/op
+BenchmarkR26AB/D240          	    1372	    263862 ns/op
+PASS
+# round 5 variant abB.test 10:22:16 load 2.03 1.55 1.30
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  158683	      2193 ns/op
+BenchmarkR26AB/C1000         	  167103	      2133 ns/op
+BenchmarkR26AB/C1080         	  141781	      2541 ns/op
+BenchmarkR26AB/C1296         	  117955	      2963 ns/op
+BenchmarkR26AB/C1920         	   89721	      3805 ns/op
+BenchmarkR26AB/C2000         	   81499	      4523 ns/op
+BenchmarkR26AB/C6000         	   22087	     16352 ns/op
+BenchmarkR26AB/C240          	  936896	       404.0 ns/op
+BenchmarkR26AB/C480          	  424591	       852.1 ns/op
+BenchmarkR26AB/C720          	  253148	      1430 ns/op
+BenchmarkR26AB/C960          	  197658	      1840 ns/op
+BenchmarkR26AB/C1200         	  145014	      2525 ns/op
+BenchmarkR26AB/C1440         	  117140	      3476 ns/op
+BenchmarkR26AB/C3600         	   39193	      9292 ns/op
+BenchmarkR26AB/C7200         	   17928	     20807 ns/op
+BenchmarkR26AB/C15360        	    7068	     49577 ns/op
+BenchmarkR26AB/C16000        	    7141	     49407 ns/op
+BenchmarkR26AB/C128          	 1955988	       185.9 ns/op
+BenchmarkR26AB/C256          	 1000000	       373.5 ns/op
+BenchmarkR26AB/C512          	  510582	       719.4 ns/op
+BenchmarkR26AB/C1024         	  212624	      1695 ns/op
+BenchmarkR26AB/C4096         	   39458	      9129 ns/op
+BenchmarkR26AB/C65536        	    1444	    245748 ns/op
+BenchmarkR26AB/C1009         	   27972	     12869 ns/op
+BenchmarkR26AB/C1201         	   38349	      9607 ns/op
+BenchmarkR26AB/C10007        	    1730	    216494 ns/op
+BenchmarkR26AB/C1008         	   78969	      4515 ns/op
+BenchmarkR26AB/C2100         	   35732	     10113 ns/op
+BenchmarkR26AB/R256          	 1000000	       305.1 ns/op
+BenchmarkR26AB/R512          	  654172	       547.8 ns/op
+BenchmarkR26AB/R1000         	  247281	      1415 ns/op
+BenchmarkR26AB/R1024         	  314781	      1117 ns/op
+BenchmarkR26AB/R1080         	  226244	      1589 ns/op
+BenchmarkR26AB/R1920         	  133068	      2605 ns/op
+BenchmarkR26AB/R2000         	  120744	      2981 ns/op
+BenchmarkR26AB/R4096         	   60696	      5922 ns/op
+BenchmarkR26AB/D100          	   10000	     34968 ns/op
+BenchmarkR26AB/D120          	    7233	     50048 ns/op
+BenchmarkR26AB/D240          	    1468	    245165 ns/op
+PASS
+# round 6 variant abB.test 10:22:32 load 2.02 1.58 1.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  159220	      2186 ns/op
+BenchmarkR26AB/C1000         	  168554	      2145 ns/op
+BenchmarkR26AB/C1080         	  139017	      2573 ns/op
+BenchmarkR26AB/C1296         	  119220	      2963 ns/op
+BenchmarkR26AB/C1920         	   94118	      3822 ns/op
+BenchmarkR26AB/C2000         	   81079	      4402 ns/op
+BenchmarkR26AB/C6000         	   22358	     16173 ns/op
+BenchmarkR26AB/C240          	  929716	       384.9 ns/op
+BenchmarkR26AB/C480          	  422421	       845.7 ns/op
+BenchmarkR26AB/C720          	  256056	      1413 ns/op
+BenchmarkR26AB/C960          	  198732	      1805 ns/op
+BenchmarkR26AB/C1200         	  144520	      2490 ns/op
+BenchmarkR26AB/C1440         	  116856	      3124 ns/op
+BenchmarkR26AB/C3600         	   39904	      9285 ns/op
+BenchmarkR26AB/C7200         	   10000	     34057 ns/op
+BenchmarkR26AB/C15360        	    6799	     49454 ns/op
+BenchmarkR26AB/C16000        	    7312	     49072 ns/op
+BenchmarkR26AB/C128          	 1951036	       184.6 ns/op
+BenchmarkR26AB/C256          	 1000000	       342.2 ns/op
+BenchmarkR26AB/C512          	  507690	       967.5 ns/op
+BenchmarkR26AB/C1024         	  217611	      1658 ns/op
+BenchmarkR26AB/C4096         	   39579	      9096 ns/op
+BenchmarkR26AB/C65536        	    1429	    249527 ns/op
+BenchmarkR26AB/C1009         	   28048	     13036 ns/op
+BenchmarkR26AB/C1201         	   34566	      9771 ns/op
+BenchmarkR26AB/C10007        	    1698	    212470 ns/op
+BenchmarkR26AB/C1008         	   79440	      5696 ns/op
+BenchmarkR26AB/C2100         	   34806	     10263 ns/op
+BenchmarkR26AB/R256          	 1000000	       307.1 ns/op
+BenchmarkR26AB/R512          	  664693	       538.1 ns/op
+BenchmarkR26AB/R1000         	  261465	      1368 ns/op
+BenchmarkR26AB/R1024         	  320972	      1156 ns/op
+BenchmarkR26AB/R1080         	  224253	      1603 ns/op
+BenchmarkR26AB/R1920         	  140910	      2602 ns/op
+BenchmarkR26AB/R2000         	  121377	      2931 ns/op
+BenchmarkR26AB/R4096         	   61182	      5916 ns/op
+BenchmarkR26AB/D100          	   10000	     34561 ns/op
+BenchmarkR26AB/D120          	    6784	     50602 ns/op
+BenchmarkR26AB/D240          	    1496	    236197 ns/op
+PASS
+# round 6 variant abA.test 10:22:48 load 2.02 1.60 1.33
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  148090	      2339 ns/op
+BenchmarkR26AB/C1000         	  153019	      2349 ns/op
+BenchmarkR26AB/C1080         	  130018	      2775 ns/op
+BenchmarkR26AB/C1296         	  101823	      3524 ns/op
+BenchmarkR26AB/C1920         	   81532	      4504 ns/op
+BenchmarkR26AB/C2000         	   66286	      5317 ns/op
+BenchmarkR26AB/C6000         	   19255	     18999 ns/op
+BenchmarkR26AB/C240          	  751012	       477.3 ns/op
+BenchmarkR26AB/C480          	  377680	      1131 ns/op
+BenchmarkR26AB/C720          	  218342	      1648 ns/op
+BenchmarkR26AB/C960          	  173854	      2061 ns/op
+BenchmarkR26AB/C1200         	  120205	      3090 ns/op
+BenchmarkR26AB/C1440         	   95316	      3561 ns/op
+BenchmarkR26AB/C3600         	   33342	     10742 ns/op
+BenchmarkR26AB/C7200         	   16297	     22080 ns/op
+BenchmarkR26AB/C15360        	    6423	     51599 ns/op
+BenchmarkR26AB/C16000        	    6700	     52267 ns/op
+BenchmarkR26AB/C128          	 1909588	       187.9 ns/op
+BenchmarkR26AB/C256          	 1000000	       347.5 ns/op
+BenchmarkR26AB/C512          	  495264	       720.1 ns/op
+BenchmarkR26AB/C1024         	  214072	      1700 ns/op
+BenchmarkR26AB/C4096         	   38646	      9258 ns/op
+BenchmarkR26AB/C65536        	    1429	    255114 ns/op
+BenchmarkR26AB/C1009         	   28012	     12826 ns/op
+BenchmarkR26AB/C1201         	   33920	     10670 ns/op
+BenchmarkR26AB/C10007        	    1740	    211180 ns/op
+BenchmarkR26AB/C1008         	   79249	      4596 ns/op
+BenchmarkR26AB/C2100         	   34176	     10151 ns/op
+BenchmarkR26AB/R256          	 1000000	       314.7 ns/op
+BenchmarkR26AB/R512          	  647172	       556.4 ns/op
+BenchmarkR26AB/R1000         	  242460	      1466 ns/op
+BenchmarkR26AB/R1024         	  314611	      1124 ns/op
+BenchmarkR26AB/R1080         	  212311	      1719 ns/op
+BenchmarkR26AB/R1920         	  132126	      2743 ns/op
+BenchmarkR26AB/R2000         	  115287	      3109 ns/op
+BenchmarkR26AB/R4096         	   60729	      5890 ns/op
+BenchmarkR26AB/D100          	    9780	     36293 ns/op
+BenchmarkR26AB/D120          	    6832	     52406 ns/op
+BenchmarkR26AB/D240          	    1374	    264241 ns/op
+PASS
+# round 7 variant abA.test 10:23:04 load 2.09 1.64 1.35
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  146394	      2350 ns/op
+BenchmarkR26AB/C1000         	  151702	      2370 ns/op
+BenchmarkR26AB/C1080         	  130134	      2795 ns/op
+BenchmarkR26AB/C1296         	  101497	      3534 ns/op
+BenchmarkR26AB/C1920         	   81781	      4411 ns/op
+BenchmarkR26AB/C2000         	   67755	      5304 ns/op
+BenchmarkR26AB/C6000         	   19074	     19073 ns/op
+BenchmarkR26AB/C240          	  746665	       482.4 ns/op
+BenchmarkR26AB/C480          	  378595	       951.9 ns/op
+BenchmarkR26AB/C720          	  216866	      2205 ns/op
+BenchmarkR26AB/C960          	  173906	      2047 ns/op
+BenchmarkR26AB/C1200         	  113065	      2995 ns/op
+BenchmarkR26AB/C1440         	  101758	      3538 ns/op
+BenchmarkR26AB/C3600         	   33474	     10936 ns/op
+BenchmarkR26AB/C7200         	   16096	     30153 ns/op
+BenchmarkR26AB/C15360        	    5928	     60440 ns/op
+BenchmarkR26AB/C16000        	    6703	     53182 ns/op
+BenchmarkR26AB/C128          	 1909836	       188.5 ns/op
+BenchmarkR26AB/C256          	 1000000	       345.3 ns/op
+BenchmarkR26AB/C512          	  495177	       722.8 ns/op
+BenchmarkR26AB/C1024         	  211652	      1725 ns/op
+BenchmarkR26AB/C4096         	   38670	     10577 ns/op
+BenchmarkR26AB/C65536        	    1441	    248552 ns/op
+BenchmarkR26AB/C1009         	   28039	     12804 ns/op
+BenchmarkR26AB/C1201         	   33390	     10526 ns/op
+BenchmarkR26AB/C10007        	    1732	    206290 ns/op
+BenchmarkR26AB/C1008         	   79636	      4549 ns/op
+BenchmarkR26AB/C2100         	   35548	     10172 ns/op
+BenchmarkR26AB/R256          	 1000000	       314.5 ns/op
+BenchmarkR26AB/R512          	  638289	       568.8 ns/op
+BenchmarkR26AB/R1000         	  201476	      1549 ns/op
+BenchmarkR26AB/R1024         	  323919	      1108 ns/op
+BenchmarkR26AB/R1080         	  211621	      1695 ns/op
+BenchmarkR26AB/R1920         	  123638	      2793 ns/op
+BenchmarkR26AB/R2000         	  115069	      3106 ns/op
+BenchmarkR26AB/R4096         	   60277	      5932 ns/op
+BenchmarkR26AB/D100          	    9724	     36765 ns/op
+BenchmarkR26AB/D120          	    6801	     53894 ns/op
+BenchmarkR26AB/D240          	    1393	    275713 ns/op
+PASS
+# round 7 variant abB.test 10:23:20 load 2.14 1.67 1.37
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  152251	      2218 ns/op
+BenchmarkR26AB/C1000         	  166812	      2150 ns/op
+BenchmarkR26AB/C1080         	  141943	      2539 ns/op
+BenchmarkR26AB/C1296         	  121862	      3499 ns/op
+BenchmarkR26AB/C1920         	   95061	      3837 ns/op
+BenchmarkR26AB/C2000         	   81958	      4389 ns/op
+BenchmarkR26AB/C6000         	   22032	     16877 ns/op
+BenchmarkR26AB/C240          	  939770	       383.9 ns/op
+BenchmarkR26AB/C480          	  426409	       946.7 ns/op
+BenchmarkR26AB/C720          	  253042	      1407 ns/op
+BenchmarkR26AB/C960          	  188798	      1907 ns/op
+BenchmarkR26AB/C1200         	  144079	      2493 ns/op
+BenchmarkR26AB/C1440         	  117231	      3070 ns/op
+BenchmarkR26AB/C3600         	   39848	      9016 ns/op
+BenchmarkR26AB/C7200         	   18147	     19825 ns/op
+BenchmarkR26AB/C15360        	    7213	     49672 ns/op
+BenchmarkR26AB/C16000        	    7201	     47687 ns/op
+BenchmarkR26AB/C128          	 1946056	       184.9 ns/op
+BenchmarkR26AB/C256          	 1037862	       343.1 ns/op
+BenchmarkR26AB/C512          	  506688	       733.1 ns/op
+BenchmarkR26AB/C1024         	  212797	      1713 ns/op
+BenchmarkR26AB/C4096         	   38803	      9299 ns/op
+BenchmarkR26AB/C65536        	    1436	    250508 ns/op
+BenchmarkR26AB/C1009         	   25236	     12806 ns/op
+BenchmarkR26AB/C1201         	   38151	      9513 ns/op
+BenchmarkR26AB/C10007        	    1734	    208267 ns/op
+BenchmarkR26AB/C1008         	   79624	      4545 ns/op
+BenchmarkR26AB/C2100         	   35800	     10052 ns/op
+BenchmarkR26AB/R256          	 1000000	       302.2 ns/op
+BenchmarkR26AB/R512          	  668751	       532.4 ns/op
+BenchmarkR26AB/R1000         	  256363	      1408 ns/op
+BenchmarkR26AB/R1024         	  313068	      1135 ns/op
+BenchmarkR26AB/R1080         	  225954	      1600 ns/op
+BenchmarkR26AB/R1920         	  126828	      2836 ns/op
+BenchmarkR26AB/R2000         	  121654	      2966 ns/op
+BenchmarkR26AB/R4096         	   60984	      5959 ns/op
+BenchmarkR26AB/D100          	   10000	     34107 ns/op
+BenchmarkR26AB/D120          	    7185	     50851 ns/op
+BenchmarkR26AB/D240          	    1512	    237287 ns/op
+PASS
+# round 8 variant abB.test 10:23:36 load 2.11 1.69 1.38
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  158220	      2189 ns/op
+BenchmarkR26AB/C1000         	  168742	      2133 ns/op
+BenchmarkR26AB/C1080         	  141727	      2537 ns/op
+BenchmarkR26AB/C1296         	  121747	      2961 ns/op
+BenchmarkR26AB/C1920         	   94268	      4890 ns/op
+BenchmarkR26AB/C2000         	   79939	      4570 ns/op
+BenchmarkR26AB/C6000         	   22527	     15863 ns/op
+BenchmarkR26AB/C240          	  938743	       386.5 ns/op
+BenchmarkR26AB/C480          	  424118	       929.0 ns/op
+BenchmarkR26AB/C720          	  254467	      1858 ns/op
+BenchmarkR26AB/C960          	  198300	      1809 ns/op
+BenchmarkR26AB/C1200         	  144703	      2478 ns/op
+BenchmarkR26AB/C1440         	  116694	      3079 ns/op
+BenchmarkR26AB/C3600         	   38690	      9273 ns/op
+BenchmarkR26AB/C7200         	   17922	     20169 ns/op
+BenchmarkR26AB/C15360        	    7064	     50758 ns/op
+BenchmarkR26AB/C16000        	    7644	     59082 ns/op
+BenchmarkR26AB/C128          	 1850449	       184.3 ns/op
+BenchmarkR26AB/C256          	 1000000	       346.4 ns/op
+BenchmarkR26AB/C512          	  494084	       718.5 ns/op
+BenchmarkR26AB/C1024         	  213456	      1786 ns/op
+BenchmarkR26AB/C4096         	   33224	      9286 ns/op
+BenchmarkR26AB/C65536        	    1443	    248714 ns/op
+BenchmarkR26AB/C1009         	   28141	     12748 ns/op
+BenchmarkR26AB/C1201         	   37921	      9512 ns/op
+BenchmarkR26AB/C10007        	    1711	    209276 ns/op
+BenchmarkR26AB/C1008         	   79051	      4529 ns/op
+BenchmarkR26AB/C2100         	   35644	     10066 ns/op
+BenchmarkR26AB/R256          	 1000000	       301.2 ns/op
+BenchmarkR26AB/R512          	  669963	       553.8 ns/op
+BenchmarkR26AB/R1000         	  264594	      1358 ns/op
+BenchmarkR26AB/R1024         	  315606	      1130 ns/op
+BenchmarkR26AB/R1080         	  222373	      1610 ns/op
+BenchmarkR26AB/R1920         	  141241	      2543 ns/op
+BenchmarkR26AB/R2000         	  120943	      2966 ns/op
+BenchmarkR26AB/R4096         	   61608	      5860 ns/op
+BenchmarkR26AB/D100          	   10000	     40373 ns/op
+BenchmarkR26AB/D120          	    7032	     50476 ns/op
+BenchmarkR26AB/D240          	    1498	    238109 ns/op
+PASS
+# round 8 variant abA.test 10:23:52 load 2.15 1.73 1.39
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  134816	      2361 ns/op
+BenchmarkR26AB/C1000         	  151850	      2356 ns/op
+BenchmarkR26AB/C1080         	  129366	      2760 ns/op
+BenchmarkR26AB/C1296         	  101492	      4051 ns/op
+BenchmarkR26AB/C1920         	   80821	      4445 ns/op
+BenchmarkR26AB/C2000         	   65046	      5383 ns/op
+BenchmarkR26AB/C6000         	   19066	     19219 ns/op
+BenchmarkR26AB/C240          	  744688	       479.1 ns/op
+BenchmarkR26AB/C480          	  369416	       962.5 ns/op
+BenchmarkR26AB/C720          	  217383	      1655 ns/op
+BenchmarkR26AB/C960          	  176232	      2084 ns/op
+BenchmarkR26AB/C1200         	  119470	      3050 ns/op
+BenchmarkR26AB/C1440         	  101972	      3552 ns/op
+BenchmarkR26AB/C3600         	   33582	     10907 ns/op
+BenchmarkR26AB/C7200         	   16107	     22441 ns/op
+BenchmarkR26AB/C15360        	    6883	     51450 ns/op
+BenchmarkR26AB/C16000        	    7010	     52010 ns/op
+BenchmarkR26AB/C128          	 1923030	       187.7 ns/op
+BenchmarkR26AB/C256          	 1000000	       345.2 ns/op
+BenchmarkR26AB/C512          	  500134	       721.3 ns/op
+BenchmarkR26AB/C1024         	  214584	      1688 ns/op
+BenchmarkR26AB/C4096         	   38764	      9300 ns/op
+BenchmarkR26AB/C65536        	    1448	    249308 ns/op
+BenchmarkR26AB/C1009         	   28106	     12848 ns/op
+BenchmarkR26AB/C1201         	   34149	     10574 ns/op
+BenchmarkR26AB/C10007        	    1712	    208948 ns/op
+BenchmarkR26AB/C1008         	   79537	      4535 ns/op
+BenchmarkR26AB/C2100         	   33403	     11065 ns/op
+BenchmarkR26AB/R256          	 1000000	       331.3 ns/op
+BenchmarkR26AB/R512          	  661080	       549.2 ns/op
+BenchmarkR26AB/R1000         	  242006	      1479 ns/op
+BenchmarkR26AB/R1024         	  321027	      1122 ns/op
+BenchmarkR26AB/R1080         	  209264	      1711 ns/op
+BenchmarkR26AB/R1920         	  132237	      2723 ns/op
+BenchmarkR26AB/R2000         	  117985	      3048 ns/op
+BenchmarkR26AB/R4096         	   61867	      5847 ns/op
+BenchmarkR26AB/D100          	    9636	     36582 ns/op
+BenchmarkR26AB/D120          	    6915	     73815 ns/op
+BenchmarkR26AB/D240          	    1190	    269848 ns/op
+PASS
+# round 9 variant abA.test 10:24:09 load 2.12 1.74 1.41
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  149070	      2353 ns/op
+BenchmarkR26AB/C1000         	  154489	      2353 ns/op
+BenchmarkR26AB/C1080         	  129085	      2791 ns/op
+BenchmarkR26AB/C1296         	   99532	      3765 ns/op
+BenchmarkR26AB/C1920         	   80988	      5926 ns/op
+BenchmarkR26AB/C2000         	   67411	      5337 ns/op
+BenchmarkR26AB/C6000         	   18934	     19036 ns/op
+BenchmarkR26AB/C240          	  750199	       478.7 ns/op
+BenchmarkR26AB/C480          	  370656	       965.7 ns/op
+BenchmarkR26AB/C720          	  216380	      1698 ns/op
+BenchmarkR26AB/C960          	  174375	      2058 ns/op
+BenchmarkR26AB/C1200         	  119260	      3534 ns/op
+BenchmarkR26AB/C1440         	  100882	      3565 ns/op
+BenchmarkR26AB/C3600         	   33301	     10738 ns/op
+BenchmarkR26AB/C7200         	   16119	     22301 ns/op
+BenchmarkR26AB/C15360        	    6766	     51578 ns/op
+BenchmarkR26AB/C16000        	    6582	     53172 ns/op
+BenchmarkR26AB/C128          	 1913545	       189.3 ns/op
+BenchmarkR26AB/C256          	 1000000	       359.6 ns/op
+BenchmarkR26AB/C512          	  496852	       722.7 ns/op
+BenchmarkR26AB/C1024         	  211990	      1699 ns/op
+BenchmarkR26AB/C4096         	   39000	      9202 ns/op
+BenchmarkR26AB/C65536        	    1424	    248055 ns/op
+BenchmarkR26AB/C1009         	   28029	     12809 ns/op
+BenchmarkR26AB/C1201         	   33879	     10579 ns/op
+BenchmarkR26AB/C10007        	    1735	    209228 ns/op
+BenchmarkR26AB/C1008         	   79528	      4553 ns/op
+BenchmarkR26AB/C2100         	   34701	     10103 ns/op
+BenchmarkR26AB/R256          	 1000000	       304.8 ns/op
+BenchmarkR26AB/R512          	  648937	       552.9 ns/op
+BenchmarkR26AB/R1000         	  240952	      1675 ns/op
+BenchmarkR26AB/R1024         	  321303	      1136 ns/op
+BenchmarkR26AB/R1080         	  211648	      1702 ns/op
+BenchmarkR26AB/R1920         	  130568	      2759 ns/op
+BenchmarkR26AB/R2000         	  105054	      3054 ns/op
+BenchmarkR26AB/R4096         	   61809	      5828 ns/op
+BenchmarkR26AB/D100          	    9888	     40697 ns/op
+BenchmarkR26AB/D120          	    6952	     51940 ns/op
+BenchmarkR26AB/D240          	    1383	    258593 ns/op
+PASS
+# round 9 variant abB.test 10:24:25 load 2.09 1.76 1.42
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  157857	      2175 ns/op
+BenchmarkR26AB/C1000         	  167881	      2167 ns/op
+BenchmarkR26AB/C1080         	  141090	      2602 ns/op
+BenchmarkR26AB/C1296         	  122230	      2935 ns/op
+BenchmarkR26AB/C1920         	   94126	      3851 ns/op
+BenchmarkR26AB/C2000         	   81340	      4738 ns/op
+BenchmarkR26AB/C6000         	   22551	     16708 ns/op
+BenchmarkR26AB/C240          	  945034	       390.2 ns/op
+BenchmarkR26AB/C480          	  425678	       839.4 ns/op
+BenchmarkR26AB/C720          	  253154	      1394 ns/op
+BenchmarkR26AB/C960          	  199728	      1800 ns/op
+BenchmarkR26AB/C1200         	  146101	      2467 ns/op
+BenchmarkR26AB/C1440         	  117217	      3062 ns/op
+BenchmarkR26AB/C3600         	   39124	      9622 ns/op
+BenchmarkR26AB/C7200         	   18020	     19901 ns/op
+BenchmarkR26AB/C15360        	    7214	     48535 ns/op
+BenchmarkR26AB/C16000        	    7213	     49488 ns/op
+BenchmarkR26AB/C128          	 1942840	       185.0 ns/op
+BenchmarkR26AB/C256          	 1000000	       347.8 ns/op
+BenchmarkR26AB/C512          	  518618	       721.4 ns/op
+BenchmarkR26AB/C1024         	  211612	      1698 ns/op
+BenchmarkR26AB/C4096         	   38430	      9355 ns/op
+BenchmarkR26AB/C65536        	    1435	    249021 ns/op
+BenchmarkR26AB/C1009         	   27805	     12890 ns/op
+BenchmarkR26AB/C1201         	   37737	      9563 ns/op
+BenchmarkR26AB/C10007        	    1723	    220560 ns/op
+BenchmarkR26AB/C1008         	   77782	      4702 ns/op
+BenchmarkR26AB/C2100         	   35283	     10212 ns/op
+BenchmarkR26AB/R256          	 1000000	       306.2 ns/op
+BenchmarkR26AB/R512          	  657788	       557.6 ns/op
+BenchmarkR26AB/R1000         	  258764	      1382 ns/op
+BenchmarkR26AB/R1024         	  318181	      1132 ns/op
+BenchmarkR26AB/R1080         	  222603	      1620 ns/op
+BenchmarkR26AB/R1920         	  134396	      3522 ns/op
+BenchmarkR26AB/R2000         	  113828	      3167 ns/op
+BenchmarkR26AB/R4096         	   61492	      5825 ns/op
+BenchmarkR26AB/D100          	   10000	     34420 ns/op
+BenchmarkR26AB/D120          	    7234	     49469 ns/op
+BenchmarkR26AB/D240          	    1477	    334957 ns/op
+PASS
+# round 10 variant abB.test 10:24:41 load 2.07 1.77 1.43
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  158883	      2176 ns/op
+BenchmarkR26AB/C1000         	  167516	      2150 ns/op
+BenchmarkR26AB/C1080         	  140677	      2553 ns/op
+BenchmarkR26AB/C1296         	  120770	      2971 ns/op
+BenchmarkR26AB/C1920         	   93086	      3825 ns/op
+BenchmarkR26AB/C2000         	   81162	      4586 ns/op
+BenchmarkR26AB/C6000         	   22423	     19864 ns/op
+BenchmarkR26AB/C240          	  932068	       384.8 ns/op
+BenchmarkR26AB/C480          	  425407	       841.3 ns/op
+BenchmarkR26AB/C720          	  256544	      1406 ns/op
+BenchmarkR26AB/C960          	  196962	      1818 ns/op
+BenchmarkR26AB/C1200         	  143376	      2502 ns/op
+BenchmarkR26AB/C1440         	  114813	      3101 ns/op
+BenchmarkR26AB/C3600         	   39783	      9098 ns/op
+BenchmarkR26AB/C7200         	   17607	     20602 ns/op
+BenchmarkR26AB/C15360        	    6902	     50016 ns/op
+BenchmarkR26AB/C16000        	    7190	     48303 ns/op
+BenchmarkR26AB/C128          	 1941985	       185.2 ns/op
+BenchmarkR26AB/C256          	 1000000	       346.9 ns/op
+BenchmarkR26AB/C512          	  495099	       722.2 ns/op
+BenchmarkR26AB/C1024         	  217395	      1654 ns/op
+BenchmarkR26AB/C4096         	   39333	      9173 ns/op
+BenchmarkR26AB/C65536        	    1432	    249477 ns/op
+BenchmarkR26AB/C1009         	   28094	     12768 ns/op
+BenchmarkR26AB/C1201         	   33789	      9729 ns/op
+BenchmarkR26AB/C10007        	    1713	    237153 ns/op
+BenchmarkR26AB/C1008         	   79915	      4589 ns/op
+BenchmarkR26AB/C2100         	   35214	     10212 ns/op
+BenchmarkR26AB/R256          	 1000000	       301.1 ns/op
+BenchmarkR26AB/R512          	  664100	       541.1 ns/op
+BenchmarkR26AB/R1000         	  261790	      1371 ns/op
+BenchmarkR26AB/R1024         	  321578	      1122 ns/op
+BenchmarkR26AB/R1080         	  223672	      1784 ns/op
+BenchmarkR26AB/R1920         	  139777	      2575 ns/op
+BenchmarkR26AB/R2000         	  121681	      3003 ns/op
+BenchmarkR26AB/R4096         	   61206	      5928 ns/op
+BenchmarkR26AB/D100          	   10000	     34488 ns/op
+BenchmarkR26AB/D120          	    6993	     50878 ns/op
+BenchmarkR26AB/D240          	    1503	    242031 ns/op
+PASS
+# round 10 variant abA.test 10:24:57 load 2.05 1.78 1.44
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  148376	      2340 ns/op
+BenchmarkR26AB/C1000         	  136198	      2344 ns/op
+BenchmarkR26AB/C1080         	  129471	      2774 ns/op
+BenchmarkR26AB/C1296         	  102530	      3509 ns/op
+BenchmarkR26AB/C1920         	   81354	      4416 ns/op
+BenchmarkR26AB/C2000         	   67485	      5309 ns/op
+BenchmarkR26AB/C6000         	   19208	     18713 ns/op
+BenchmarkR26AB/C240          	  749566	       479.7 ns/op
+BenchmarkR26AB/C480          	  372151	       980.0 ns/op
+BenchmarkR26AB/C720          	  214275	      1673 ns/op
+BenchmarkR26AB/C960          	  174417	      2052 ns/op
+BenchmarkR26AB/C1200         	  118068	      3018 ns/op
+BenchmarkR26AB/C1440         	  101074	      3585 ns/op
+BenchmarkR26AB/C3600         	   32743	     11009 ns/op
+BenchmarkR26AB/C7200         	   16108	     21933 ns/op
+BenchmarkR26AB/C15360        	    6962	     51825 ns/op
+BenchmarkR26AB/C16000        	    6886	     52223 ns/op
+BenchmarkR26AB/C128          	 1911070	       188.3 ns/op
+BenchmarkR26AB/C256          	 1000000	       353.6 ns/op
+BenchmarkR26AB/C512          	  495271	       722.1 ns/op
+BenchmarkR26AB/C1024         	  214315	      1691 ns/op
+BenchmarkR26AB/C4096         	   39175	      9257 ns/op
+BenchmarkR26AB/C65536        	    1424	    250741 ns/op
+BenchmarkR26AB/C1009         	   27440	     13072 ns/op
+BenchmarkR26AB/C1201         	   34074	     10589 ns/op
+BenchmarkR26AB/C10007        	    1467	    210173 ns/op
+BenchmarkR26AB/C1008         	   78808	      4534 ns/op
+BenchmarkR26AB/C2100         	   35826	     10111 ns/op
+BenchmarkR26AB/R256          	 1000000	       308.7 ns/op
+BenchmarkR26AB/R512          	  654724	       548.6 ns/op
+BenchmarkR26AB/R1000         	  241530	      1480 ns/op
+BenchmarkR26AB/R1024         	  319098	      1127 ns/op
+BenchmarkR26AB/R1080         	  213363	      1707 ns/op
+BenchmarkR26AB/R1920         	  129316	      4232 ns/op
+BenchmarkR26AB/R2000         	  116490	      3180 ns/op
+BenchmarkR26AB/R4096         	   61603	      5823 ns/op
+BenchmarkR26AB/D100          	   10000	     35462 ns/op
+BenchmarkR26AB/D120          	    6897	     52330 ns/op
+BenchmarkR26AB/D240          	    1365	    262397 ns/op
+PASS
+# round 11 variant abA.test 10:25:13 load 2.18 1.83 1.46
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  136670	      2367 ns/op
+BenchmarkR26AB/C1000         	  152418	      2766 ns/op
+BenchmarkR26AB/C1080         	  127837	      2805 ns/op
+BenchmarkR26AB/C1296         	  101054	      3564 ns/op
+BenchmarkR26AB/C1920         	   80130	      4480 ns/op
+BenchmarkR26AB/C2000         	   66992	      5385 ns/op
+BenchmarkR26AB/C6000         	   18966	     19463 ns/op
+BenchmarkR26AB/C240          	  653875	       490.1 ns/op
+BenchmarkR26AB/C480          	  374234	       968.0 ns/op
+BenchmarkR26AB/C720          	  213057	      1682 ns/op
+BenchmarkR26AB/C960          	  175208	      2129 ns/op
+BenchmarkR26AB/C1200         	  118869	      3055 ns/op
+BenchmarkR26AB/C1440         	   98775	      3705 ns/op
+BenchmarkR26AB/C3600         	   31214	     11633 ns/op
+BenchmarkR26AB/C7200         	   14749	     24478 ns/op
+BenchmarkR26AB/C15360        	    6124	     55188 ns/op
+BenchmarkR26AB/C16000        	    6835	     54124 ns/op
+BenchmarkR26AB/C128          	 1868988	       190.5 ns/op
+BenchmarkR26AB/C256          	 1000000	       378.9 ns/op
+BenchmarkR26AB/C512          	  494158	       730.9 ns/op
+BenchmarkR26AB/C1024         	  162304	      2023 ns/op
+BenchmarkR26AB/C4096         	   39274	      9405 ns/op
+BenchmarkR26AB/C65536        	    1423	    256202 ns/op
+BenchmarkR26AB/C1009         	   27055	     13279 ns/op
+BenchmarkR26AB/C1201         	   32782	     11872 ns/op
+BenchmarkR26AB/C10007        	    1420	    216857 ns/op
+BenchmarkR26AB/C1008         	   78636	      4647 ns/op
+BenchmarkR26AB/C2100         	   35086	     10502 ns/op
+BenchmarkR26AB/R256          	 1000000	       312.6 ns/op
+BenchmarkR26AB/R512          	  641508	       565.9 ns/op
+BenchmarkR26AB/R1000         	  234163	      1518 ns/op
+BenchmarkR26AB/R1024         	  311760	      1195 ns/op
+BenchmarkR26AB/R1080         	  210061	      1758 ns/op
+BenchmarkR26AB/R1920         	  129693	      2870 ns/op
+BenchmarkR26AB/R2000         	  114417	      3186 ns/op
+BenchmarkR26AB/R4096         	   61380	      5929 ns/op
+BenchmarkR26AB/D100          	    9668	     36602 ns/op
+BenchmarkR26AB/D120          	    6199	     53111 ns/op
+BenchmarkR26AB/D240          	    1389	    258491 ns/op
+PASS
+# round 11 variant abB.test 10:25:30 load 2.29 1.87 1.48
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  159134	      2185 ns/op
+BenchmarkR26AB/C1000         	  168745	      2174 ns/op
+BenchmarkR26AB/C1080         	  140109	      2558 ns/op
+BenchmarkR26AB/C1296         	  121915	      2996 ns/op
+BenchmarkR26AB/C1920         	   93114	      3843 ns/op
+BenchmarkR26AB/C2000         	   80421	      4438 ns/op
+BenchmarkR26AB/C6000         	   22622	     15887 ns/op
+BenchmarkR26AB/C240          	  923239	       391.5 ns/op
+BenchmarkR26AB/C480          	  425433	       845.3 ns/op
+BenchmarkR26AB/C720          	  256878	      1405 ns/op
+BenchmarkR26AB/C960          	  197572	      1816 ns/op
+BenchmarkR26AB/C1200         	  137794	      2495 ns/op
+BenchmarkR26AB/C1440         	  115887	      3106 ns/op
+BenchmarkR26AB/C3600         	   39651	      9035 ns/op
+BenchmarkR26AB/C7200         	   18202	     19804 ns/op
+BenchmarkR26AB/C15360        	    7208	     48309 ns/op
+BenchmarkR26AB/C16000        	    7502	     49424 ns/op
+BenchmarkR26AB/C128          	 1944416	       185.3 ns/op
+BenchmarkR26AB/C256          	 1000000	       345.2 ns/op
+BenchmarkR26AB/C512          	  499996	       709.5 ns/op
+BenchmarkR26AB/C1024         	  212419	      1675 ns/op
+BenchmarkR26AB/C4096         	   39488	     12397 ns/op
+BenchmarkR26AB/C65536        	    1455	    248960 ns/op
+BenchmarkR26AB/C1009         	   27994	     12932 ns/op
+BenchmarkR26AB/C1201         	   37755	      9566 ns/op
+BenchmarkR26AB/C10007        	    1466	    212510 ns/op
+BenchmarkR26AB/C1008         	   79842	      5864 ns/op
+BenchmarkR26AB/C2100         	   35031	     10238 ns/op
+BenchmarkR26AB/R256          	 1000000	       305.2 ns/op
+BenchmarkR26AB/R512          	  644217	       537.6 ns/op
+BenchmarkR26AB/R1000         	  262497	      1409 ns/op
+BenchmarkR26AB/R1024         	  319429	      1142 ns/op
+BenchmarkR26AB/R1080         	  222606	      1615 ns/op
+BenchmarkR26AB/R1920         	  138188	      2898 ns/op
+BenchmarkR26AB/R2000         	  122572	      2948 ns/op
+BenchmarkR26AB/R4096         	   61006	      5910 ns/op
+BenchmarkR26AB/D100          	   10000	     34136 ns/op
+BenchmarkR26AB/D120          	    7191	     49307 ns/op
+BenchmarkR26AB/D240          	    1507	    240328 ns/op
+PASS
+# round 12 variant abB.test 10:25:46 load 2.23 1.88 1.49
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  156405	      2190 ns/op
+BenchmarkR26AB/C1000         	  168474	      2134 ns/op
+BenchmarkR26AB/C1080         	  135909	      2610 ns/op
+BenchmarkR26AB/C1296         	  116268	      3046 ns/op
+BenchmarkR26AB/C1920         	   94818	      3787 ns/op
+BenchmarkR26AB/C2000         	   81123	      4531 ns/op
+BenchmarkR26AB/C6000         	   22844	     15824 ns/op
+BenchmarkR26AB/C240          	  925927	       422.1 ns/op
+BenchmarkR26AB/C480          	  425010	       845.9 ns/op
+BenchmarkR26AB/C720          	  255732	      1437 ns/op
+BenchmarkR26AB/C960          	  196533	      1808 ns/op
+BenchmarkR26AB/C1200         	  145618	      2526 ns/op
+BenchmarkR26AB/C1440         	  117188	      3328 ns/op
+BenchmarkR26AB/C3600         	   38397	      9394 ns/op
+BenchmarkR26AB/C7200         	   17260	     22351 ns/op
+BenchmarkR26AB/C15360        	    7192	     49196 ns/op
+BenchmarkR26AB/C16000        	    7555	     46654 ns/op
+BenchmarkR26AB/C128          	 1955706	       184.0 ns/op
+BenchmarkR26AB/C256          	 1000000	       342.1 ns/op
+BenchmarkR26AB/C512          	  500876	       723.8 ns/op
+BenchmarkR26AB/C1024         	  205501	      1937 ns/op
+BenchmarkR26AB/C4096         	   37744	      9309 ns/op
+BenchmarkR26AB/C65536        	    1464	    247298 ns/op
+BenchmarkR26AB/C1009         	   27530	     13155 ns/op
+BenchmarkR26AB/C1201         	   36730	      9456 ns/op
+BenchmarkR26AB/C10007        	    1734	    208931 ns/op
+BenchmarkR26AB/C1008         	   79424	      4503 ns/op
+BenchmarkR26AB/C2100         	   35719	     10204 ns/op
+BenchmarkR26AB/R256          	 1000000	       309.8 ns/op
+BenchmarkR26AB/R512          	  672266	       532.9 ns/op
+BenchmarkR26AB/R1000         	  265783	      1350 ns/op
+BenchmarkR26AB/R1024         	  319965	      1128 ns/op
+BenchmarkR26AB/R1080         	  227204	      1634 ns/op
+BenchmarkR26AB/R1920         	  139422	      2606 ns/op
+BenchmarkR26AB/R2000         	  122376	      2955 ns/op
+BenchmarkR26AB/R4096         	   61179	      5879 ns/op
+BenchmarkR26AB/D100          	   10000	     34939 ns/op
+BenchmarkR26AB/D120          	    7215	     50997 ns/op
+BenchmarkR26AB/D240          	    1527	    240532 ns/op
+PASS
+# round 12 variant abA.test 10:26:02 load 2.16 1.89 1.50
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  134323	      2355 ns/op
+BenchmarkR26AB/C1000         	  152598	      2408 ns/op
+BenchmarkR26AB/C1080         	  129501	      2840 ns/op
+BenchmarkR26AB/C1296         	   97593	      3629 ns/op
+BenchmarkR26AB/C1920         	   78231	      4561 ns/op
+BenchmarkR26AB/C2000         	   66282	      5405 ns/op
+BenchmarkR26AB/C6000         	   17295	     19658 ns/op
+BenchmarkR26AB/C240          	  752779	       479.2 ns/op
+BenchmarkR26AB/C480          	  371335	       971.4 ns/op
+BenchmarkR26AB/C720          	  194650	      1664 ns/op
+BenchmarkR26AB/C960          	  173101	      2166 ns/op
+BenchmarkR26AB/C1200         	  117397	      3047 ns/op
+BenchmarkR26AB/C1440         	  102536	      3505 ns/op
+BenchmarkR26AB/C3600         	   32682	     11722 ns/op
+BenchmarkR26AB/C7200         	   16304	     22155 ns/op
+BenchmarkR26AB/C15360        	    6943	     50983 ns/op
+BenchmarkR26AB/C16000        	    6632	     53324 ns/op
+BenchmarkR26AB/C128          	 1810400	       195.6 ns/op
+BenchmarkR26AB/C256          	 1000000	       344.9 ns/op
+BenchmarkR26AB/C512          	  500330	       714.6 ns/op
+BenchmarkR26AB/C1024         	  213862	      1706 ns/op
+BenchmarkR26AB/C4096         	   37788	      9492 ns/op
+BenchmarkR26AB/C65536        	    1436	    357127 ns/op
+BenchmarkR26AB/C1009         	   27288	     12869 ns/op
+BenchmarkR26AB/C1201         	   34251	     11143 ns/op
+BenchmarkR26AB/C10007        	    1731	    208796 ns/op
+BenchmarkR26AB/C1008         	   66979	      4524 ns/op
+BenchmarkR26AB/C2100         	   36024	     10036 ns/op
+BenchmarkR26AB/R256          	 1000000	       311.5 ns/op
+BenchmarkR26AB/R512          	  660327	       543.7 ns/op
+BenchmarkR26AB/R1000         	  245154	      1466 ns/op
+BenchmarkR26AB/R1024         	  322611	      1116 ns/op
+BenchmarkR26AB/R1080         	  213867	      1700 ns/op
+BenchmarkR26AB/R1920         	  128949	      2762 ns/op
+BenchmarkR26AB/R2000         	  118344	      3050 ns/op
+BenchmarkR26AB/R4096         	   60690	      5807 ns/op
+BenchmarkR26AB/D100          	    9978	     35984 ns/op
+BenchmarkR26AB/D120          	    6954	     51774 ns/op
+BenchmarkR26AB/D240          	    1383	    258239 ns/op
+PASS
+# round 13 variant abA.test 10:26:18 load 2.13 1.89 1.51
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  147680	      2334 ns/op
+BenchmarkR26AB/C1000         	  147144	      2397 ns/op
+BenchmarkR26AB/C1080         	  128956	      2773 ns/op
+BenchmarkR26AB/C1296         	  101481	      3529 ns/op
+BenchmarkR26AB/C1920         	   81262	      4416 ns/op
+BenchmarkR26AB/C2000         	   67387	      5340 ns/op
+BenchmarkR26AB/C6000         	   18688	     19379 ns/op
+BenchmarkR26AB/C240          	  752386	       477.6 ns/op
+BenchmarkR26AB/C480          	  377424	       968.4 ns/op
+BenchmarkR26AB/C720          	  212464	      1924 ns/op
+BenchmarkR26AB/C960          	  174247	      2061 ns/op
+BenchmarkR26AB/C1200         	  118905	      3021 ns/op
+BenchmarkR26AB/C1440         	  100710	      3628 ns/op
+BenchmarkR26AB/C3600         	   33068	     10907 ns/op
+BenchmarkR26AB/C7200         	   15618	     22675 ns/op
+BenchmarkR26AB/C15360        	    6922	     58637 ns/op
+BenchmarkR26AB/C16000        	    6088	     52487 ns/op
+BenchmarkR26AB/C128          	 1885089	       193.0 ns/op
+BenchmarkR26AB/C256          	 1000000	       370.4 ns/op
+BenchmarkR26AB/C512          	  492572	       744.1 ns/op
+BenchmarkR26AB/C1024         	  210751	      1725 ns/op
+BenchmarkR26AB/C4096         	   38652	      9413 ns/op
+BenchmarkR26AB/C65536        	    1444	    254059 ns/op
+BenchmarkR26AB/C1009         	   27373	     13867 ns/op
+BenchmarkR26AB/C1201         	   33643	     10993 ns/op
+BenchmarkR26AB/C10007        	    1657	    213771 ns/op
+BenchmarkR26AB/C1008         	   79094	      4557 ns/op
+BenchmarkR26AB/C2100         	   35346	     10280 ns/op
+BenchmarkR26AB/R256          	 1000000	       311.0 ns/op
+BenchmarkR26AB/R512          	  646376	       554.0 ns/op
+BenchmarkR26AB/R1000         	  241620	      1506 ns/op
+BenchmarkR26AB/R1024         	  314700	      1155 ns/op
+BenchmarkR26AB/R1080         	  203815	      1727 ns/op
+BenchmarkR26AB/R1920         	  130551	      2820 ns/op
+BenchmarkR26AB/R2000         	  114948	      3153 ns/op
+BenchmarkR26AB/R4096         	   59169	      5870 ns/op
+BenchmarkR26AB/D100          	    9516	     36815 ns/op
+BenchmarkR26AB/D120          	    6897	     52990 ns/op
+BenchmarkR26AB/D240          	    1335	    264226 ns/op
+PASS
+# round 13 variant abB.test 10:26:34 load 2.10 1.90 1.52
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  156549	      2376 ns/op
+BenchmarkR26AB/C1000         	  159006	      2180 ns/op
+BenchmarkR26AB/C1080         	  132613	      2584 ns/op
+BenchmarkR26AB/C1296         	  121178	      3011 ns/op
+BenchmarkR26AB/C1920         	   92188	      3897 ns/op
+BenchmarkR26AB/C2000         	   78735	      4528 ns/op
+BenchmarkR26AB/C6000         	   22497	     15782 ns/op
+BenchmarkR26AB/C240          	  918994	       437.4 ns/op
+BenchmarkR26AB/C480          	  412708	       853.1 ns/op
+BenchmarkR26AB/C720          	  251898	      1424 ns/op
+BenchmarkR26AB/C960          	  198932	      1794 ns/op
+BenchmarkR26AB/C1200         	  151359	      2495 ns/op
+BenchmarkR26AB/C1440         	  116608	      3084 ns/op
+BenchmarkR26AB/C3600         	   39242	     12285 ns/op
+BenchmarkR26AB/C7200         	   18234	     19822 ns/op
+BenchmarkR26AB/C15360        	    6121	     50755 ns/op
+BenchmarkR26AB/C16000        	    7672	     49016 ns/op
+BenchmarkR26AB/C128          	 1953088	       192.4 ns/op
+BenchmarkR26AB/C256          	 1000000	       349.8 ns/op
+BenchmarkR26AB/C512          	  504342	       714.9 ns/op
+BenchmarkR26AB/C1024         	  212612	      1693 ns/op
+BenchmarkR26AB/C4096         	   37779	      9371 ns/op
+BenchmarkR26AB/C65536        	    1459	    243110 ns/op
+BenchmarkR26AB/C1009         	   27514	     13180 ns/op
+BenchmarkR26AB/C1201         	   35762	     11472 ns/op
+BenchmarkR26AB/C10007        	    1737	    208005 ns/op
+BenchmarkR26AB/C1008         	   80283	      4540 ns/op
+BenchmarkR26AB/C2100         	   35607	     10160 ns/op
+BenchmarkR26AB/R256          	 1000000	       303.5 ns/op
+BenchmarkR26AB/R512          	  669501	       537.5 ns/op
+BenchmarkR26AB/R1000         	  257248	      1406 ns/op
+BenchmarkR26AB/R1024         	  320739	      1125 ns/op
+BenchmarkR26AB/R1080         	  225250	      1594 ns/op
+BenchmarkR26AB/R1920         	  140781	      2553 ns/op
+BenchmarkR26AB/R2000         	  122800	      2931 ns/op
+BenchmarkR26AB/R4096         	   60112	      5893 ns/op
+BenchmarkR26AB/D100          	   10000	     34983 ns/op
+BenchmarkR26AB/D120          	    7098	     50319 ns/op
+BenchmarkR26AB/D240          	    1512	    237515 ns/op
+PASS
+# round 14 variant abB.test 10:26:50 load 2.08 1.90 1.53
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  143419	      2181 ns/op
+BenchmarkR26AB/C1000         	  168814	      2143 ns/op
+BenchmarkR26AB/C1080         	  139083	      2599 ns/op
+BenchmarkR26AB/C1296         	  121490	      2953 ns/op
+BenchmarkR26AB/C1920         	   94729	      3854 ns/op
+BenchmarkR26AB/C2000         	   81594	      4986 ns/op
+BenchmarkR26AB/C6000         	   20671	     16015 ns/op
+BenchmarkR26AB/C240          	  935085	       383.4 ns/op
+BenchmarkR26AB/C480          	  426336	       834.6 ns/op
+BenchmarkR26AB/C720          	  253952	      1415 ns/op
+BenchmarkR26AB/C960          	  199885	      1805 ns/op
+BenchmarkR26AB/C1200         	  144123	      2722 ns/op
+BenchmarkR26AB/C1440         	  116995	      3069 ns/op
+BenchmarkR26AB/C3600         	   39570	      9080 ns/op
+BenchmarkR26AB/C7200         	   18001	     19967 ns/op
+BenchmarkR26AB/C15360        	    7154	     47815 ns/op
+BenchmarkR26AB/C16000        	    7546	     47376 ns/op
+BenchmarkR26AB/C128          	 1948549	       184.7 ns/op
+BenchmarkR26AB/C256          	 1000000	       360.6 ns/op
+BenchmarkR26AB/C512          	  498398	       720.2 ns/op
+BenchmarkR26AB/C1024         	  204748	      1756 ns/op
+BenchmarkR26AB/C4096         	   39488	      9129 ns/op
+BenchmarkR26AB/C65536        	    1372	    248470 ns/op
+BenchmarkR26AB/C1009         	   27909	     13050 ns/op
+BenchmarkR26AB/C1201         	   37987	      9481 ns/op
+BenchmarkR26AB/C10007        	    1738	    208140 ns/op
+BenchmarkR26AB/C1008         	   79251	      4529 ns/op
+BenchmarkR26AB/C2100         	   34777	     10108 ns/op
+BenchmarkR26AB/R256          	 1000000	       311.4 ns/op
+BenchmarkR26AB/R512          	  655290	       546.8 ns/op
+BenchmarkR26AB/R1000         	  263764	      1372 ns/op
+BenchmarkR26AB/R1024         	  312609	      1125 ns/op
+BenchmarkR26AB/R1080         	  226293	      1597 ns/op
+BenchmarkR26AB/R1920         	  140730	      2565 ns/op
+BenchmarkR26AB/R2000         	  113571	      3161 ns/op
+BenchmarkR26AB/R4096         	   60354	      5855 ns/op
+BenchmarkR26AB/D100          	   10000	     34705 ns/op
+BenchmarkR26AB/D120          	    6621	     50265 ns/op
+BenchmarkR26AB/D240          	    1494	    247083 ns/op
+PASS
+# round 14 variant abA.test 10:27:05 load 2.21 1.94 1.55
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  146281	      2420 ns/op
+BenchmarkR26AB/C1000         	  153811	      2350 ns/op
+BenchmarkR26AB/C1080         	  131239	      2740 ns/op
+BenchmarkR26AB/C1296         	  102124	      3519 ns/op
+BenchmarkR26AB/C1920         	   82054	      4386 ns/op
+BenchmarkR26AB/C2000         	   68284	      5375 ns/op
+BenchmarkR26AB/C6000         	   19356	     18542 ns/op
+BenchmarkR26AB/C240          	  754234	       476.2 ns/op
+BenchmarkR26AB/C480          	  367599	       975.9 ns/op
+BenchmarkR26AB/C720          	  217473	      2245 ns/op
+BenchmarkR26AB/C960          	  176359	      2040 ns/op
+BenchmarkR26AB/C1200         	  119829	      2985 ns/op
+BenchmarkR26AB/C1440         	  102270	      3514 ns/op
+BenchmarkR26AB/C3600         	   33424	     10813 ns/op
+BenchmarkR26AB/C7200         	   16242	     29243 ns/op
+BenchmarkR26AB/C15360        	    6918	     51345 ns/op
+BenchmarkR26AB/C16000        	    6818	     55357 ns/op
+BenchmarkR26AB/C128          	 1926606	       187.1 ns/op
+BenchmarkR26AB/C256          	 1000000	       344.4 ns/op
+BenchmarkR26AB/C512          	  498571	       724.9 ns/op
+BenchmarkR26AB/C1024         	  212910	      2130 ns/op
+BenchmarkR26AB/C4096         	   39270	      9165 ns/op
+BenchmarkR26AB/C65536        	    1414	    253080 ns/op
+BenchmarkR26AB/C1009         	   26917	     12974 ns/op
+BenchmarkR26AB/C1201         	   33955	     11083 ns/op
+BenchmarkR26AB/C10007        	    1537	    218038 ns/op
+BenchmarkR26AB/C1008         	   79144	      4557 ns/op
+BenchmarkR26AB/C2100         	   35047	     10180 ns/op
+BenchmarkR26AB/R256          	 1000000	       308.2 ns/op
+BenchmarkR26AB/R512          	  616335	       543.4 ns/op
+BenchmarkR26AB/R1000         	  244479	      1476 ns/op
+BenchmarkR26AB/R1024         	  322525	      1151 ns/op
+BenchmarkR26AB/R1080         	  210544	      1707 ns/op
+BenchmarkR26AB/R1920         	  130714	      2737 ns/op
+BenchmarkR26AB/R2000         	  117202	      3075 ns/op
+BenchmarkR26AB/R4096         	   61713	      5842 ns/op
+BenchmarkR26AB/D100          	    9759	     36844 ns/op
+BenchmarkR26AB/D120          	    6897	     52555 ns/op
+BenchmarkR26AB/D240          	    1398	    257457 ns/op
+PASS
+# round 15 variant abA.test 10:27:22 load 2.15 1.95 1.56
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  146584	      2777 ns/op
+BenchmarkR26AB/C1000         	  154060	      2328 ns/op
+BenchmarkR26AB/C1080         	  130720	      2775 ns/op
+BenchmarkR26AB/C1296         	  100272	      3586 ns/op
+BenchmarkR26AB/C1920         	   80616	      4517 ns/op
+BenchmarkR26AB/C2000         	   66508	      5473 ns/op
+BenchmarkR26AB/C6000         	   18517	     20771 ns/op
+BenchmarkR26AB/C240          	  753363	       486.9 ns/op
+BenchmarkR26AB/C480          	  370162	       970.9 ns/op
+BenchmarkR26AB/C720          	  217208	      1655 ns/op
+BenchmarkR26AB/C960          	  174818	      2051 ns/op
+BenchmarkR26AB/C1200         	  118587	      3038 ns/op
+BenchmarkR26AB/C1440         	  101046	      3524 ns/op
+BenchmarkR26AB/C3600         	   33589	     10719 ns/op
+BenchmarkR26AB/C7200         	   16255	     22007 ns/op
+BenchmarkR26AB/C15360        	    6896	     50835 ns/op
+BenchmarkR26AB/C16000        	    6799	     53360 ns/op
+BenchmarkR26AB/C128          	 1908978	       189.2 ns/op
+BenchmarkR26AB/C256          	 1000000	       348.4 ns/op
+BenchmarkR26AB/C512          	  499830	       715.8 ns/op
+BenchmarkR26AB/C1024         	  213954	      1680 ns/op
+BenchmarkR26AB/C4096         	   36231	      9289 ns/op
+BenchmarkR26AB/C65536        	    1462	    245595 ns/op
+BenchmarkR26AB/C1009         	   28039	     12820 ns/op
+BenchmarkR26AB/C1201         	   33151	     10861 ns/op
+BenchmarkR26AB/C10007        	    1744	    210226 ns/op
+BenchmarkR26AB/C1008         	   78682	      4534 ns/op
+BenchmarkR26AB/C2100         	   35920	     10223 ns/op
+BenchmarkR26AB/R256          	 1000000	       305.5 ns/op
+BenchmarkR26AB/R512          	  639660	       551.8 ns/op
+BenchmarkR26AB/R1000         	  236680	      1544 ns/op
+BenchmarkR26AB/R1024         	  320206	      1119 ns/op
+BenchmarkR26AB/R1080         	  210699	      1696 ns/op
+BenchmarkR26AB/R1920         	  131814	      2750 ns/op
+BenchmarkR26AB/R2000         	  116986	      3104 ns/op
+BenchmarkR26AB/R4096         	   61332	      5851 ns/op
+BenchmarkR26AB/D100          	    9789	     37036 ns/op
+BenchmarkR26AB/D120          	    6649	     53067 ns/op
+BenchmarkR26AB/D240          	    1420	    257561 ns/op
+PASS
+# round 15 variant abB.test 10:27:38 load 2.12 1.95 1.56
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR26AB/0warm         	  147489	      2221 ns/op
+BenchmarkR26AB/C1000         	  167580	      2139 ns/op
+BenchmarkR26AB/C1080         	  126260	      2645 ns/op
+BenchmarkR26AB/C1296         	  121590	      4043 ns/op
+BenchmarkR26AB/C1920         	   94453	      3791 ns/op
+BenchmarkR26AB/C2000         	   74982	      4430 ns/op
+BenchmarkR26AB/C6000         	   22305	     16508 ns/op
+BenchmarkR26AB/C240          	  931234	       384.0 ns/op
+BenchmarkR26AB/C480          	  424910	      1256 ns/op
+BenchmarkR26AB/C720          	  254964	      1466 ns/op
+BenchmarkR26AB/C960          	  196521	      1898 ns/op
+BenchmarkR26AB/C1200         	  140886	      2544 ns/op
+BenchmarkR26AB/C1440         	  115803	      3118 ns/op
+BenchmarkR26AB/C3600         	   36811	      9358 ns/op
+BenchmarkR26AB/C7200         	   17784	     25291 ns/op
+BenchmarkR26AB/C15360        	    7225	     48725 ns/op
+BenchmarkR26AB/C16000        	    7510	     47688 ns/op
+BenchmarkR26AB/C128          	 1949122	       187.9 ns/op
+BenchmarkR26AB/C256          	 1000000	       355.8 ns/op
+BenchmarkR26AB/C512          	  497859	       726.6 ns/op
+BenchmarkR26AB/C1024         	  208784	      1736 ns/op
+BenchmarkR26AB/C4096         	   39800	      8925 ns/op
+BenchmarkR26AB/C65536        	    1422	    251684 ns/op
+BenchmarkR26AB/C1009         	   27844	     13147 ns/op
+BenchmarkR26AB/C1201         	   35608	      9533 ns/op
+BenchmarkR26AB/C10007        	    1687	    217163 ns/op
+BenchmarkR26AB/C1008         	   79527	      4522 ns/op
+BenchmarkR26AB/C2100         	   35398	     10300 ns/op
+BenchmarkR26AB/R256          	 1000000	       301.7 ns/op
+BenchmarkR26AB/R512          	  668168	       538.6 ns/op
+BenchmarkR26AB/R1000         	  261650	      1370 ns/op
+BenchmarkR26AB/R1024         	  318255	      1134 ns/op
+BenchmarkR26AB/R1080         	  210036	      1608 ns/op
+BenchmarkR26AB/R1920         	  142082	      2869 ns/op
+BenchmarkR26AB/R2000         	  123292	      2927 ns/op
+BenchmarkR26AB/R4096         	   61413	      5868 ns/op
+BenchmarkR26AB/D100          	   10000	     33700 ns/op
+BenchmarkR26AB/D120          	    6280	     52337 ns/op
+BenchmarkR26AB/D240          	    1468	    242168 ns/op
+PASS
+# done 10:27:54 load 2.09 1.95 1.57

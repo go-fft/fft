@@ -1,0 +1,32 @@
+ 10:28:30 up 25 days, 18:53,  8 users,  load average: 1.83, 1.91, 1.57
+== abA
+REAL 256 whole 312 half(8x16) 192 untangle 93 half+untangle 296
+REAL 512 whole 549 half(4x8x8) 346 untangle 176 half+untangle 524
+REAL 1000 whole 1499 half(5x5x5x4) 1088 untangle 343 half+untangle 1476
+REAL 1024 whole 1123 half(8x8x8) 725 untangle 352 half+untangle 1113
+REAL 1080 whole 1712 half(3x3x3x5x4) 1293 untangle 373 half+untangle 1704
+REAL 1920 whole 2838 half(3x5x8x8) 2088 untangle 687 half+untangle 2792
+REAL 2000 whole 3063 half(5x5x5x8) 2337 untangle 717 half+untangle 3043
+REAL 4096 whole 5969 half(8x8x8x4) 4354 untangle 1470 half+untangle 5860
+OVER 64 8x8 FFT 102.3 transform 98.9 passes 85.2 pool 15.9
+OVER 128 8x16 FFT 189.7 transform 186.7 passes 164.9 pool 16.0
+OVER 256 4x8x8 FFT 349.6 transform 343.2 passes 333.3 pool 16.0
+OVER 512 8x8x8 FFT 721.7 transform 721.3 passes 705.2 pool 16.1
+OVER 1024 8x8x16 FFT 1687.2 transform 1706.7 passes 1644.7 pool 15.9
+OVER 1000 5x5x5x8 FFT 2355.6 transform 2349.0 passes 2335.9 pool 16.0
+== abB
+REAL 256 whole 303 half(8x16) 186 untangle 92 half+untangle 276
+REAL 512 whole 547 half(4x8x8) 346 untangle 176 half+untangle 524
+REAL 1000 whole 1383 half(5x5x20) 1008 untangle 343 half+untangle 1363
+REAL 1024 whole 1130 half(8x8x8) 708 untangle 348 half+untangle 1107
+REAL 1080 whole 1634 half(3x15x12) 1186 untangle 368 half+untangle 1594
+REAL 1920 whole 2580 half(4x12x20) 1891 untangle 681 half+untangle 2553
+REAL 2000 whole 2942 half(5x10x20) 2222 untangle 721 half+untangle 2938
+REAL 4096 whole 5885 half(8x8x8x4) 4396 untangle 1459 half+untangle 5923
+OVER 64 8x8 FFT 105.5 transform 100.3 passes 86.8 pool 16.7
+OVER 128 8x16 FFT 185.3 transform 184.0 passes 170.9 pool 15.7
+OVER 256 4x8x8 FFT 345.5 transform 342.9 passes 327.8 pool 16.6
+OVER 512 8x8x8 FFT 717.8 transform 716.6 passes 700.3 pool 16.5
+OVER 1024 8x8x16 FFT 1685.2 transform 1709.9 passes 1669.5 pool 16.5
+OVER 1000 5x10x20 FFT 2207.8 transform 2180.8 passes 2130.6 pool 15.7
+ 10:29:57 up 25 days, 18:55,  8 users,  load average: 2.11, 2.00, 1.64

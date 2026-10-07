@@ -1,0 +1,8 @@
+addr4 | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+noblend | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+y1y4 | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+bfly3swap | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.01s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+knext | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+y0assoc | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+q2sub | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL
+lastadv | per-pass: --- FAIL: TestComp2EachPassMatchesScalar (0.00s)     radix16_amd64_test.go:53: no AVX-512 on this CPU: only the AVX2 kernels are compared  | transform: FAIL

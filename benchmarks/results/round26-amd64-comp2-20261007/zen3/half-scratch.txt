@@ -1,0 +1,10 @@
+ 10:35:45 up 25 days, 19:00,  8 users,  load average: 1.47, 1.63, 1.59
+HALF 256 own 299.7 shared 288.1 own/shared 1.039 spread 1.099
+HALF 512 own 567.1 shared 564.0 own/shared 0.993 spread 1.091
+HALF 1000 own 1391.4 shared 1379.1 own/shared 1.014 spread 1.464
+HALF 1024 own 1146.2 shared 1141.8 own/shared 1.004 spread 2.688
+HALF 1080 own 1590.1 shared 1560.2 own/shared 1.017 spread 1.175
+HALF 1920 own 2556.1 shared 2567.6 own/shared 0.997 spread 1.268
+HALF 2000 own 2943.7 shared 2895.3 own/shared 1.017 spread 1.201
+HALF 4096 own 5898.7 shared 5855.2 own/shared 1.008 spread 1.155
+ 10:36:05 up 25 days, 19:01,  8 users,  load average: 1.62, 1.65, 1.60

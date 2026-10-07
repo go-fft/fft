@@ -12,6 +12,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -420,4 +422,25 @@ func BenchmarkR26AB(b *testing.B) {
 			}
 		})
 	}
+}
+
+// TestR26ScratchCost times what a transform pays to borrow its scratch
+// buffer: a sync.Pool Get and Put, against a one-slot atomic cache (Swap,
+// then CompareAndSwap back).
+func TestR26ScratchCost(t *testing.T) {
+	rounds, ms := comp2Rounds(t)
+	pool := sync.Pool{New: func() any { b := make([]complex128, 256); return &b }}
+	var slot atomic.Pointer[[]complex128]
+	b0 := make([]complex128, 256)
+	slot.Store(&b0)
+	times := comp2Rotate([]func(){
+		func() { pool.Put(pool.Get()) },
+		func() {
+			b := slot.Swap(nil)
+			if !slot.CompareAndSwap(nil, b) {
+				panic("slot")
+			}
+		},
+	}, rounds, ms)
+	fmt.Printf("SCRATCH pool %.2f ns atomic %.2f ns\n", median(times[0]), median(times[1]))
 }

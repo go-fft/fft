@@ -1,0 +1,100 @@
+ 19:54:58 up 25 days,  4:20,  7 users,  load average: 2.28, 2.24, 2.30
+== passes
+PASSES 1000 5x5x5x8            whole 2346 sum 2233 | r5/i200/s0 614 r5/i40/s0 614 r5/i8/s0 631 r8/i1/s0 373
+PASSES 1000 5x5x5x2x4          whole 2639 sum 2550 | r5/i200/s0 612 r5/i40/s0 605 r5/i8/s0 626 r2/i4/s0 454 r4/i1/s0 253
+PASSES 1000 5x5x5x4x2          whole 2615 sum 2518 | r5/i200/s0 612 r5/i40/s0 602 r5/i8/s0 632 r4/i2/s0 450 r2/i1/s0 223
+PASSES 1080 3x3x3x5x8          whole 2782 sum 2700 | r3/i360/s0 517 r3/i120/s0 522 r3/i40/s0 511 r5/i8/s0 694 r8/i1/s0 456
+PASSES 1080 3x3x5x2x12         whole 2781 sum 2665 | r3/i360/s0 523 r3/i120/s0 512 r5/i24/s0 672 r2/i12/s0 373 r12/i1/s0 586
+PASSES 1080 3x3x5x12x2         whole 2869 sum 2834 | r3/i360/s0 514 r3/i120/s0 508 r5/i24/s0 664 r12/i2/s0 885 r2/i1/s0 263
+PASSES 1080 3x3x3x5x2x4        whole 3094 sum 3027 | r3/i360/s0 512 r3/i120/s0 505 r3/i40/s0 514 r5/i8/s0 699 r2/i4/s0 492 r4/i1/s0 304
+PASSES 1296 3x3x3x3x4x4        whole 3544 sum 3540 | r3/i432/s0 628 r3/i144/s0 614 r3/i48/s0 628 r3/i16/s0 649 r4/i4/s4 601 r4/i1/s0 420
+PASSES 1296 3x3x3x3x16         whole 3346 sum 3326 | r3/i432/s0 619 r3/i144/s0 628 r3/i48/s0 633 r3/i16/s0 662 r16/i1/s0 785
+PASSES 1296 3x3x12x12          whole 3033 sum 2966 | r3/i432/s0 625 r3/i144/s0 618 r12/i12/s0 1013 r12/i1/s0 711
+PASSES 1296 3x3x3x4x12         whole 3170 sum 3149 | r3/i432/s0 615 r3/i144/s0 614 r3/i48/s0 633 r4/i12/s4 577 r12/i1/s0 710
+PASSES 1920 3x5x4x4x8          whole 4625 sum 4507 | r3/i640/s0 953 r5/i128/s0 1214 r4/i32/s1 757 r4/i8/s3 764 r8/i1/s0 819
+PASSES 1920 3x5x8x16           whole 4408 sum 4343 | r3/i640/s0 921 r5/i128/s0 1215 r8/i16/s4 1060 r16/i1/s0 1147
+PASSES 1920 3x5x16x8           whole 4824 sum 4332 | r3/i640/s0 914 r5/i128/s0 1205 r16/i8/s0 1407 r8/i1/s0 804
+PASSES 1920 5x4x8x12           whole 4072 sum 3988 | r5/i384/s0 1207 r4/i96/s1 726 r8/i12/s3 970 r12/i1/s0 1085
+PASSES 1920 5x8x4x12           whole 4023 sum 3917 | r5/i384/s0 1179 r8/i48/s1 935 r4/i12/s3 739 r12/i1/s0 1064
+PASSES 2000 5x5x5x4x4          whole 5482 sum 5306 | r5/i400/s0 1221 r5/i80/s0 1231 r5/i16/s0 1271 r4/i4/s4 918 r4/i1/s0 665
+PASSES 2000 5x5x5x16           whole 4993 sum 4902 | r5/i400/s0 1219 r5/i80/s0 1230 r5/i16/s0 1268 r16/i1/s0 1185
+PASSES 6000 3x5x5x5x4x4        whole 19596 sum 19889 | r3/i2000/s0 2768 r5/i400/s0 4039 r5/i80/s0 4044 r5/i16/s0 4254 r4/i4/s4 2753 r4/i1/s0 2031
+PASSES 6000 3x5x5x5x16         whole 18312 sum 17818 | r3/i2000/s0 2953 r5/i400/s0 3671 r5/i80/s0 3708 r5/i16/s0 3764 r16/i1/s0 3722
+PASSES 6000 5x5x5x4x12         whole 17329 sum 16822 | r5/i1200/s0 3592 r5/i240/s0 3679 r5/i48/s0 3681 r4/i12/s4 2566 r12/i1/s0 3304
+PASSES 256 4x8x8              whole 347 sum 324 | r4/i64/s1 93 r8/i8/s3 127 r8/i1/s0 104
+PASSES 256 16x16              whole 379 sum 345 | r16/i16/s0 191 r16/i1/s0 154
+PASSES 256 4x4x16             whole 376 sum 354 | r4/i64/s1 107 r4/i16/s3 93 r16/i1/s0 154
+PASSES 1024 8x8x16             whole 1674 sum 1594 | r8/i128/s1 529 r8/i16/s3 476 r16/i1/s0 589
+PASSES 1024 4x16x16            whole 1916 sum 1830 | r4/i256/s4 485 r16/i16/s0 761 r16/i1/s0 584
+PASSES 1024 16x4x16            whole 2163 sum 2079 | r16/i64/s0 1014 r4/i16/s4 427 r16/i1/s0 638
+PASSES 128 8x16               whole 188 sum 166 | r8/i16/s4 82 r16/i1/s0 85
+PASSES 128 16x8               whole 206 sum 164 | r16/i8/s0 104 r8/i1/s0 59
+PASSES 128 4x4x8              whole 190 sum 166 | r4/i32/s1 54 r4/i8/s3 55 r8/i1/s0 57
+PASSES 512 8x8x8              whole 739 sum 682 | r8/i64/s1 238 r8/i8/s3 240 r8/i1/s0 204
+PASSES 512 4x8x16             whole 742 sum 692 | r4/i128/s1 168 r8/i16/s3 230 r16/i1/s0 294
+PASSES 512 8x4x16             whole 756 sum 704 | r8/i64/s1 238 r4/i16/s3 173 r16/i1/s0 293
+PASSES 540 3x3x3x5x4          whole 1284 sum 1213 | r3/i180/s0 241 r3/i60/s0 242 r3/i20/s0 249 r5/i4/s0 345 r4/i1/s0 136
+PASSES 540 3x3x5x12           whole 1168 sum 1131 | r3/i180/s0 250 r3/i60/s0 245 r5/i12/s0 327 r12/i1/s0 309
+PASSES 540 3x3x3x5x4          whole 1262 sum 1219 | r3/i180/s0 241 r3/i60/s0 246 r3/i20/s0 251 r5/i4/s0 347 r4/i1/s0 135
+PASSES 500 5x5x5x4            whole 1083 sum 1048 | r5/i100/s0 297 r5/i20/s0 303 r5/i4/s0 321 r4/i1/s0 127
+PASSES 500 5x5x5x2x2          whole 1373 sum 1298 | r5/i100/s0 298 r5/i20/s0 302 r5/i4/s0 321 r2/i2/s0 256 r2/i1/s0 120
+PASSES 960 3x5x8x8            whole 2061 sum 1951 | r3/i320/s0 462 r5/i64/s0 591 r8/i8/s4 528 r8/i1/s0 370
+PASSES 960 3x5x4x16           whole 2081 sum 1980 | r3/i320/s0 454 r5/i64/s0 585 r4/i16/s4 396 r16/i1/s0 545
+PASSES 960 3x5x16x4           whole 2077 sum 1974 | r3/i320/s0 451 r5/i64/s0 585 r16/i4/s0 702 r4/i1/s0 236
+PASSES 960 5x4x4x12           whole 1889 sum 1776 | r5/i192/s0 593 r4/i48/s1 337 r4/i12/s3 335 r12/i1/s0 511
+ 19:56:31 up 25 days,  4:21,  7 users,  load average: 3.13, 2.59, 2.43
+== real
+REAL 256 whole 317 half(8x16) 191 untangle 102
+REAL 512 whole 547 half(4x8x8) 349 untangle 177
+REAL 1000 whole 1487 half(5x5x5x4) 1092 untangle 339
+REAL 1024 whole 1128 half(8x8x8) 731 untangle 354
+REAL 1080 whole 1693 half(3x3x3x5x4) 1284 untangle 369
+REAL 1920 whole 2780 half(3x5x8x8) 2066 untangle 685
+REAL 2000 whole 3093 half(5x5x5x8) 2367 untangle 723
+REAL 4096 whole 5968 half(8x8x8x4) 4433 untangle 1476
+ 19:56:55 up 25 days,  4:22,  7 users,  load average: 3.09, 2.62, 2.45
+== ab
+AB 1000 5x5x5x8                2358.4 ns  first/this 1.000  spread 1.000
+AB 1000 5x5x5x2x4              2679.6 ns  first/this 0.878  spread 1.012
+AB 1000 5x5x5x4x2              2633.1 ns  first/this 0.892  spread 1.016
+AB 1080 3x3x3x5x8              2891.7 ns  first/this 1.000  spread 1.000
+AB 1080 3x3x5x2x12             2731.1 ns  first/this 1.053  spread 1.062
+AB 1080 3x3x5x12x2             2944.4 ns  first/this 0.988  spread 1.802
+AB 1080 3x3x3x5x2x4            3124.0 ns  first/this 0.920  spread 1.036
+AB 1296 3x3x3x3x4x4            3533.9 ns  first/this 1.000  spread 1.000
+AB 1296 3x3x3x3x16             3307.4 ns  first/this 1.067  spread 1.063
+AB 1296 3x3x12x12              2992.1 ns  first/this 1.184  spread 1.032
+AB 1296 3x3x3x4x12             3167.4 ns  first/this 1.123  spread 1.066
+AB 1920 3x5x4x4x8              4429.4 ns  first/this 1.000  spread 1.000
+AB 1920 3x5x8x16               4396.3 ns  first/this 1.005  spread 2.726
+AB 1920 3x5x16x8               4366.2 ns  first/this 1.018  spread 10.649
+AB 1920 5x4x8x12               3960.1 ns  first/this 1.114  spread 3.093
+AB 1920 5x8x4x12               3943.1 ns  first/this 1.118  spread 2.323
+AB 2000 5x5x5x4x4              5340.5 ns  first/this 1.000  spread 1.000
+AB 2000 5x5x5x16               4902.4 ns  first/this 1.088  spread 2.152
+AB 6000 3x5x5x5x4x4           19231.6 ns  first/this 1.000  spread 1.000
+AB 6000 3x5x5x5x16            17866.5 ns  first/this 1.073  spread 1.082
+AB 6000 5x5x5x4x12            16957.1 ns  first/this 1.130  spread 1.201
+AB 256 4x8x8                   346.9 ns  first/this 1.000  spread 1.000
+AB 256 16x16                   380.5 ns  first/this 0.913  spread 1.022
+AB 256 4x4x16                  369.6 ns  first/this 0.937  spread 1.034
+AB 1024 8x8x16                 1698.4 ns  first/this 1.000  spread 1.000
+AB 1024 4x16x16                1889.6 ns  first/this 0.896  spread 1.079
+AB 1024 16x4x16                2018.4 ns  first/this 0.836  spread 2.188
+AB 128 8x16                    186.9 ns  first/this 1.000  spread 1.000
+AB 128 16x8                    204.1 ns  first/this 0.917  spread 1.036
+AB 128 4x4x8                   186.6 ns  first/this 0.998  spread 1.037
+AB 512 8x8x8                   717.4 ns  first/this 1.000  spread 1.000
+AB 512 4x8x16                  742.8 ns  first/this 0.969  spread 2.664
+AB 512 8x4x16                  752.4 ns  first/this 0.952  spread 1.771
+AB 540 3x3x3x5x4              1278.3 ns  first/this 1.000  spread 1.000
+AB 540 3x3x5x12               1163.8 ns  first/this 1.099  spread 3.370
+AB 540 3x3x3x5x4              1300.8 ns  first/this 0.980  spread 2.638
+AB 500 5x5x5x4                1091.0 ns  first/this 1.000  spread 1.000
+AB 500 5x5x5x2x2              1340.0 ns  first/this 0.818  spread 1.052
+AB 960 3x5x8x8                2054.5 ns  first/this 1.000  spread 1.000
+AB 960 3x5x4x16               2103.1 ns  first/this 0.976  spread 1.023
+AB 960 3x5x16x4               2088.9 ns  first/this 0.983  spread 1.050
+AB 960 5x4x4x12               1885.0 ns  first/this 1.087  spread 1.024
+ 19:57:59 up 25 days,  4:23,  7 users,  load average: 3.21, 2.76, 2.51
+END
