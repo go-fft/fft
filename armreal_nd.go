@@ -2,12 +2,21 @@ package fft
 
 import "github.com/go-fft/fft/internal/kernels"
 
+// armrealRotateMax bounds the plans that take the rotating passes: fewer
+// than 2^18 elements. On one Neoverse-N1 core (Round 27), rows-and-strips
+// time ÷ rotating time was 1.65 at 16×16, 1.23 at 64×64, 1.11 at 256×256,
+// 2.53 at 1000×3 and 1.13 at 64×64×64, but 0.97 (within the spread) at
+// 512×512 and 0.86 at 1024×1024, where each pass writes its streams a
+// fraction of a large array apart. 64×64×64, 2^18 elements, is left out
+// with 512×512: no rule tried separates the two.
+const armrealRotateMax = 1 << 18
+
 // armrealRotates reports whether p runs as rotating passes (armrealRotate):
-// every axis longer than 1 is transformed, by a Stockham plan without the blocked schedule,
-// at least two of them, and the plan is small enough to run on one
-// goroutine.
+// every axis longer than 1 is transformed, by a Stockham plan without the
+// blocked schedule, at least two of them; the plan has fewer than
+// armrealRotateMax elements and is run on one goroutine.
 func (p *PlanN) armrealRotates() bool {
-	if !armrealRotateND {
+	if !armrealRotateND || p.size >= armrealRotateMax {
 		return false
 	}
 	axes := 0

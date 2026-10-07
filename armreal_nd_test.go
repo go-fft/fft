@@ -43,15 +43,19 @@ func withRotate(on bool, shape ...int) *PlanN {
 // three and four dimensions, on neonSignals (generic, signed zeros, ±0/−1, an
 // infinity, a constant, ±0 and ±1 draws, subnormals).
 func TestRotateMatchesLines(t *testing.T) {
+	ran := 0
 	for _, shape := range [][]int{
 		{2, 2}, {4, 8}, {8, 4}, {16, 16}, {64, 64}, {5, 7}, {7, 9}, {49, 6},
-		{12, 10}, {11, 13}, {100, 3}, {3, 100}, {1, 64, 1, 32}, {3, 4, 5}, {8, 1, 8}, {16, 12, 10}, {2, 3, 4, 5},
+		{12, 10}, {11, 13}, {100, 3}, {6, 10}, {9, 15}, {24, 20}, {3, 100}, {1, 64, 1, 32}, {3, 4, 5}, {8, 1, 8}, {16, 12, 10}, {2, 3, 4, 5},
 	} {
 		p := withRotate(true, shape...)
 		if p.rot == nil {
-			t.Fatalf("shape %v: no rotating passes", shape)
+			// A power of two on the iterative kernel (amd64 without
+			// AVX2, or above pow2StockhamMax) has no Stockham passes.
+			continue
 		}
-		for s, x := range neonSignals(p.Len()) {
+		ran++
+		for s, x := range armrealNDSignals(p.Len()) {
 			for _, inverse := range []bool{false, true} {
 				want := armrealLines(p, x, inverse)
 				got := make([]complex128, p.Len())
@@ -59,12 +63,15 @@ func TestRotateMatchesLines(t *testing.T) {
 				in := append([]complex128(nil), x...)
 				p.transform(in, in, inverse)
 				for i := range want {
-					if !neonSameBits(got[i], want[i]) || !neonSameBits(in[i], want[i]) {
+					if !armrealSameBits(got[i], want[i]) || !armrealSameBits(in[i], want[i]) {
 						t.Fatalf("shape %v signal %d inverse=%v index %d: rotating %v, in place %v, lines %v", shape, s, inverse, i, got[i], in[i], want[i])
 					}
 				}
 			}
 		}
+	}
+	if ran < 10 {
+		t.Fatalf("only %d shapes ran as rotating passes", ran)
 	}
 }
 
@@ -96,20 +103,22 @@ func TestRotateAgainstOldPath(t *testing.T) {
 
 // TestRotateWhen: the rotating passes need every axis longer than 1
 // transformed by a Stockham plan without the blocked schedule, at least two
-// such axes, and a plan run on one goroutine; with the switch off no plan
+// such axes, fewer than 2^18 elements and one goroutine; with the switch off no plan
 // takes them.
 func TestRotateWhen(t *testing.T) {
 	for _, c := range []struct {
 		shape []int
 		want  bool
 	}{
-		{[]int{64, 64}, true},
-		{[]int{1, 64, 1, 32}, true},
-		{[]int{64}, false},       // one axis
-		{[]int{1, 64}, false},    // one axis longer than 1
+		{[]int{60, 48}, true},
+		{[]int{1, 60, 1, 12}, true},
+		{[]int{60}, false},       // one axis
+		{[]int{1, 60}, false},    // one axis longer than 1
 		{[]int{1, 1}, false},     // none
-		{[]int{17, 64}, false},   // a prime axis: no Stockham plan
-		{[]int{64, 1031}, false}, // the same, last
+		{[]int{17, 60}, false},   // a prime axis: no Stockham plan
+		{[]int{60, 1031}, false}, // the same, last
+		{[]int{1000, 3}, true},
+		{[]int{48, 64, 90}, false}, // 2^18 elements and more
 	} {
 		if got := withRotate(true, c.shape...).rot != nil; got != c.want {
 			t.Errorf("shape %v: rotating %v, want %v", c.shape, got, c.want)
@@ -120,14 +129,56 @@ func TestRotateWhen(t *testing.T) {
 	}
 	// Fanned out across goroutines: not rotated.
 	withWorkers(4, func() {
-		if withRotate(true, 256, 256).rot != nil {
-			t.Error("256×256 on four workers: rotating")
+		if withRotate(true, 240, 240).rot != nil {
+			t.Error("240×240 on four workers: rotating")
 		}
 	})
 	// An axis left out of the transform keeps the rows-and-columns path.
 	defer func(v bool) { armrealRotateND = v }(armrealRotateND)
 	armrealRotateND = true
-	if p := newPlanNAxes([]int{8, 16}, []int{0}); p.rot != nil {
+	if p := newPlanNAxes([]int{12, 10}, []int{0}); p.rot != nil {
 		t.Error("an axis left out: rotating")
 	}
+}
+
+// armrealNDSignals are the arm64 tests' neonSignals, built here for every
+// architecture: a generic signal, signed zeros, a ±0/−1 mix, an infinity,
+// pseudo-random draws from {±0} and {±0, ±1}, and odd subnormals.
+func armrealNDSignals(n int) [][]complex128 {
+	neg := math.Copysign(0, -1)
+	vals := [4]float64{0, neg, 1, -1}
+	seed := uint32(1)
+	draw := func(k uint32) float64 {
+		seed = seed*1664525 + 1013904223
+		return vals[seed>>(32-k)]
+	}
+	zeros, mixed, inf := make([]complex128, n), make([]complex128, n), cmplxSignal(n)
+	zsigns, signs, tiny := make([]complex128, n), make([]complex128, n), make([]complex128, n)
+	for i := range zeros {
+		zeros[i] = complex(neg, neg)
+		re, im := neg, 0.0
+		if i%3 == 0 {
+			re = 0
+		}
+		if i%2 == 0 {
+			im = neg
+		}
+		if i%5 == 0 {
+			re = -1
+		}
+		mixed[i] = complex(re, im)
+		zsigns[i] = complex(draw(1), draw(1))
+		signs[i] = complex(draw(2), draw(2))
+		tiny[i] = complex(float64(2*(i%7)+1)*5e-324, -float64(2*(i%5)+1)*5e-324)
+	}
+	inf[n/2] = complex(math.Inf(1), 0)
+	return [][]complex128{cmplxSignal(n), zeros, mixed, inf, zsigns, signs, tiny}
+}
+
+// armrealSameBits compares bit patterns; two NaNs count as equal.
+func armrealSameBits(a, b complex128) bool {
+	eq := func(x, y float64) bool {
+		return math.Float64bits(x) == math.Float64bits(y) || (math.IsNaN(x) && math.IsNaN(y))
+	}
+	return eq(real(a), real(b)) && eq(imag(a), imag(b))
 }
