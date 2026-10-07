@@ -1,0 +1,67 @@
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_a5inv.test: time stamp 2026-10-07 10:53:14.980016662 is 39.691273281 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_a7neg.test: time stamp 2026-10-07 10:53:11.775864044 is 36.426483726 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_a7sum.test: time stamp 2026-10-07 10:53:15.808910667 is 40.409702594 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_blend.test: time stamp 2026-10-07 10:53:08.919790602 is 33.47225882 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_hconst.test: time stamp 2026-10-07 10:53:18.280981749 is 42.785251796 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_load.test: time stamp 2026-10-07 10:53:14.14367242 is 38.599501339 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_noblend.test: time stamp 2026-10-07 10:53:09.813589324 is 34.221646316 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_rotinv.test: time stamp 2026-10-07 10:53:10.926349208 is 35.286159346 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_spill.test: time stamp 2026-10-07 10:53:16.622917738 is 40.934573773 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_store.test: time stamp 2026-10-07 10:53:13.320289812 is 37.583836641 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_twnext.test: time stamp 2026-10-07 10:53:19.109944045 is 43.325068328 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_twoff.test: time stamp 2026-10-07 10:53:17.451745742 is 41.618685557 s in the future
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: m_tworder.test: time stamp 2026-10-07 10:53:12.495059405 is 36.61395494 s in the future
+# start 10:52:35 load 0.79 0.77 0.89
+== a5inv per-pass:     intelsplit512_amd64_test.go:114: r=8 l1=1 ido=8 mode 5 signal 0 inverse=true index 8: (-8.501813207975554-1.3643086793274226i) vs Go (3.4714450777902885-1.3643086793274226i)
+== a5inv transform:     intelsplit512_amd64_test.go:169: avx512=false factors [8 4 8] signal 0 inverse=true index 1: (-14.632712747006625+1.303014832002627i) (in place (-14.632712747006625+1.303014832002627i)) vs Go (2.025988416880809+5.701237116807482i)
+== a5inv other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=true index 1: (-3.1264694683327234-0.45044107698076075i) (in place (-3.1264694683327234-0.45044107698076075i)) vs scalar (0.615647045412863+1.5553348669760527i) (factors [8 8 8 8])
+== a7neg per-pass:     intelsplit512_amd64_test.go:114: r=8 l1=1 ido=8 mode 5 signal 0 inverse=false index 24: (-11.370966390853823+10.60894960643842i) vs Go (-11.370966390853823+7.739796423560151i)
+== a7neg transform:     intelsplit512_amd64_test.go:169: avx512=false factors [8 4 8] signal 0 inverse=false index 3: (-1.7278153862446892+9.016681298482013i) (in place (-1.7278153862446892+9.016681298482013i)) vs Go (1.0942482891119791+5.888926377141465i)
+== a7neg other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 3: (-0.05310703841418096+4.53091444976886i) (in place (-0.05310703841418096+4.53091444976886i)) vs scalar (0.48478306671611504+1.5415428477701387i) (factors [8 8 8 8])
+== a7sum per-pass:     intelsplit512_amd64_test.go:114: r=8 l1=1 ido=40 mode 5 signal 4 inverse=false index 127: (0-0i) vs Go (0+0i)
+== a7sum transform: PASS
+== a7sum other suites: PASS
+== blend per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 5 signal 0 inverse=false index 12: (-1.0330889677564263-3.7704478201938416i) vs Go (-3.3966134364386815-1.9356050070995223i)
+== blend transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=false index 1: (1.8362831963498032+5.778043259037357i) (in place (1.8362831963498032+5.778043259037357i)) vs Go (1.5658518789206572+5.698338116159121i)
+== blend other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 1: (0.5756315402992559+1.5623608499545352i) (in place (0.5756315402992559+1.5623608499545352i)) vs scalar (0.5501863331065521+1.548577264152442i) (factors [8 8 8 8])
+== hconst per-pass:     intelsplit512_amd64_test.go:114: r=8 l1=1 ido=8 mode 5 signal 0 inverse=false index 8: (0.7448720227746333+4.78163183947189i) vs Go (-1.04358893765967+5.585625898575799i)
+== hconst transform:     intelsplit512_amd64_test.go:169: avx512=false factors [8 4 8] signal 0 inverse=false index 1: (6.646978259173239+1.4053299817061622i) (in place (6.646978259173239+1.4053299817061622i)) vs Go (1.5658518789206557+5.698338116159121i)
+== hconst other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 1: (1.3709139010817801-1.0063723528123063i) (in place (1.3709139010817801-1.0063723528123063i)) vs scalar (0.5501863331065521+1.548577264152442i) (factors [8 8 8 8])
+== load per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 5 signal 0 inverse=false index 0: (6.86215803400719-7.041543417569543i) vs Go (0.501988599394858-7.041543417569543i)
+== load transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=false index 1: (1.9829146831954207+6.108256263777379i) (in place (1.9829146831954207+6.108256263777379i)) vs Go (1.5658518789206572+5.698338116159121i)
+== load other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 1: (0.5509698870463126+1.6115666677468017i) (in place (0.5509698870463126+1.6115666677468017i)) vs scalar (0.5501863331065521+1.548577264152442i) (factors [8 8 8 8])
+== noblend per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 5 signal 3 inverse=false index 8: (-Inf+NaNi) vs Go (-Inf-1.2563003957091814i)
+== noblend transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 3 inverse=false index 1: (-Inf+NaNi) (in place (-Inf+NaNi)) vs Go (-Inf+3.4626078354579017i)
+== noblend other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 3 inverse=false index 1: (-Inf+NaNi) (in place (-Inf+NaNi)) vs scalar (-Inf-1.2345242216004066i) (factors [8 8 8 8])
+== rotinv per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 5 signal 0 inverse=true index 8: (-0.36656730092218315-0.3437993791486278i) vs Go (0.32492275922481795+4.168801412269735i)
+== rotinv transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=true index 1: (4.039006814992737-1.315723076723052i) (in place (4.039006814992737-1.315723076723052i)) vs Go (2.0259884168808053+5.701237116807481i)
+== rotinv other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=true index 1: (-0.6759670459755278-5.08348792456524i) (in place (-0.6759670459755278-5.08348792456524i)) vs scalar (0.615647045412863+1.5553348669760527i) (factors [8 8 8 8])
+== spill per-pass:     intelsplit512_amd64_test.go:114: r=8 l1=1 ido=8 mode 5 signal 0 inverse=false index 0: (2.9706816073629407-13.902873258256296i) vs Go (7.190662378015546-13.902873258256296i)
+== spill transform:     intelsplit512_amd64_test.go:169: avx512=false factors [8 4 8] signal 0 inverse=false index 0: (129.2768013594595-506.32295536734614i) (in place (129.2768013594595-506.32295536734614i)) vs Go (257.7925220427656-506.32295536734614i)
+== spill other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 0: (513.3226524254815-8190.4480093816655i) (in place (513.3226524254815-8190.4480093816655i)) vs scalar (4096.5829069624315-8190.4480093816655i) (factors [8 8 8 8])
+== store per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 7 signal 0 inverse=false index 0: (6.86215803400719-9.093519029323794i) vs Go (0.501988599394858-7.041543417569543i)
+== store transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=false index 16: (5.8115951263528745+8.849837902922314i) (in place (5.8115951263528745+8.849837902922314i)) vs Go (8.144665947404949-2.0232887935809676i)
+== store other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 512: (6.912378587281486-9.295821683851615i) (in place (6.912378587281486-9.295821683851615i)) vs scalar (-6.912378587281486+9.295821683851615i) (factors [8 8 8 8])
+== twnext per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=24 mode 5 signal 0 inverse=false index 40: (-1.590197219792726-0.8090983484406412i) vs Go (1.7271991413525665-1.1230640705196402i)
+== twnext transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=false index 1: (23.454963838546394+26.005206158351914i) (in place (23.454963838546394+26.005206158351914i)) vs Go (1.5658518789206572+5.698338116159121i)
+== twnext other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 1: (3.3312098977870725-19.871422963232217i) (in place (3.3312098977870725-19.871422963232217i)) vs scalar (0.5501863331065521+1.548577264152442i) (factors [8 8 8 8])
+== twoff per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 5 signal 0 inverse=false index 9: (-6.210314716566784-2.5931985831952944i) vs Go (-4.583300535803617+2.5276443962000696i)
+== twoff transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=false index 1: (-0.44053039480694545+9.491008222808338i) (in place (-0.44053039480694545+9.491008222808338i)) vs Go (1.5658518789206572+5.698338116159121i)
+== twoff other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 1: (1.2195718218783265+3.461727073059797i) (in place (1.2195718218783265+3.461727073059797i)) vs scalar (0.5501863331065521+1.548577264152442i) (factors [8 8 8 8])
+== tworder per-pass:     intelsplit512_amd64_test.go:114: r=4 l1=1 ido=8 mode 5 signal 0 inverse=false index 9: (-4.002114741983493+3.3732339953133605i) vs Go (-4.583300535803617+2.5276443962000696i)
+== tworder transform:     intelsplit512_amd64_test.go:169: avx512=false factors [4 4 16] signal 0 inverse=false index 1: (1.9433387301343252+5.835826633483404i) (in place (1.9433387301343252+5.835826633483404i)) vs Go (1.5658518789206572+5.698338116159121i)
+== tworder other suites:     stockham_simd_amd64_test.go:57: AVX2 n=4096 signal 0 inverse=false index 1: (0.5691440141671736+1.568460768371206i) (in place (0.5691440141671736+1.568460768371206i)) vs scalar (0.5501863331065521+1.548577264152442i) (factors [8 8 8 8])
+# end 10:53:08 load 0.96 0.81 0.90

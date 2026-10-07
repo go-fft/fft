@@ -2627,3 +2627,199 @@ same shape of problem) and on amd64; a pre-split twiddle table for the
 untangle, which would save its two `VLD2` deinterleave µops per step.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round27-arm64-real-20261007/`](benchmarks/results/round27-arm64-real-20261007/).
+
+### Round 28 — Cascade Lake, 64 to 32768 points: the split layout at 512 bits, radix 16 at 128 (2026-10-07)
+
+**The question.** Round 24's parity runs left go-fft at 1.34× FFTW's time on
+Cascade Lake at 256 points, 1.27 at 1024, 0.99 at 4096, 1.23 on RFFT 4096 and
+1.18 on 2-D 128². Round 23 had gained 1.08–1.42× on Zen 3 by keeping the data
+split between AVX2 passes, but left the layout off where the AVX-512 kernels
+run. Three questions, answered by measurement on one host: does the AVX2
+split layout beat the AVX-512 interleaved passes here (the 512-bit licence
+costs this core about a quarter of its clock, Round 20); if the layout pays on
+this core, does a 512-bit split kernel; and does radix 16 pay from 128 to 1024
+on an AVX-512 machine, where Round 19 left it out. Host: Cascade Lake
+(cfarm151, an 8-vCPU VM, AVX-512), one pinned core (`GOMAXPROCS=1 taskset -c
+3`), load average below 1.0 at the start of every run and at most 1.3 during
+one (the runs' own core counts as 1); every A/B rotates or alternates its
+order every round. Zen 3 and Neoverse-N1 belonged to other rounds.
+
+**1. The AVX2 split passes against the AVX-512 interleaved ones.** Every
+ordering of radix-4, -8 and -16 passes from 64 to 16384 points, timed in four
+modes in one process, three rounds, order rotated (`TestIntelSweep`,
+`raw/sweep1.txt`): `w` interleaved with the AVX-512 kernels where main runs
+them, `a` interleaved AVX2 only, `s` split (Round 23's kernels) with AVX2
+interleaved passes, `sw` split with the final pass at 512 bits. Main's time ÷
+the best of each mode:
+
+| n | best interleaved (w) | best split, AVX2 (s) | split, final pass AVX-512 (sw) | same factorization: AVX2 interleaved ÷ AVX2 split |
+|:--|--:|--:|--:|--:|
+| 64 | 1.00 (main's) | 0.96 | — | 0.97 |
+| 128 | 1.18 (16·8) | 1.14 (16·8) | — | 1.06 |
+| 256 | 1.02 (16·16) | 1.03 (16·16) | 1.03 | 1.11 |
+| 512 | 1.00 | 0.94 | 0.93 | 1.13 |
+| 1024 | 1.03 | 1.04 (8·8·16) | 1.04 | 1.17 |
+| 2048 | 1.02 | 0.97 | 0.98 | 1.19 |
+| 4096 | 1.00 | 0.88 | 0.83 | 1.21 |
+| 8192 | 1.02 | 0.90 | 0.86 | 1.19 |
+| 16384 | 1.01 | 0.85 | 0.83 | 1.25 |
+
+- **No, the AVX2 split layout does not beat the AVX-512 interleaved passes**:
+  at best it ties them (256, 1024, where radix 16 does the work) and from 2048
+  it loses 12–17%. The licence costs less than the width gives.
+- **But the layout pays on this core**: at equal width and factorization, AVX2
+  split runs 1.06–1.25× faster than AVX2 interleaved from 128 points, as on
+  Zen 3 (Round 23: 1.14–1.43). Round 23 had guessed the gain would be smaller
+  on Intel, whose shuffles have a port of their own; it is not, at 256 bits.
+  At 512 bits the case is stronger still: the interleaved AVX-512 twiddle
+  product spends three shuffles and a sign flip per four points, and on
+  Skylake-SP cores with two 512-bit FMA units the 512-bit shuffles share
+  port 5 with the second of them.
+
+**2. A 512-bit split kernel.** So it was built: `genIntelSplit512`
+(go-asmgen v0.16.0, unchanged; `stockhamsplit512_amd64.s`), radix 4 and 8, the
+four layouts, both directions, sixteen kernels. Eight points 8q … 8q+7 occupy
+their 128 bytes as eight real parts in the order (0, 4, 1, 5, 2, 6, 3, 7), then
+the eight imaginary parts in that order: what `VUNPCKLPD`/`VUNPCKHPD` make of
+two interleaved ZMM loads, one in-lane shuffle per register each way as at 256
+bits, with the twiddles stored in that order (`intelSplitTwiddles512`). The
+bodies are Round 23's, operation for operation; the i = 0 point is restored by
+a blend under opmask K1 = 1, the sign flip is `VPXORQ` (AVX-512F has no 512-bit
+`VXORPD` without DQ), and √2/2 and −0 come from the constants by embedded
+broadcast (`VMULPD.BCST`, `VPXORQ.BCST`). A run of radix-4/8 passes whose `ido`
+is a multiple of eight runs split, in a power of two of at least 256 points
+(the lengths main gives the AVX-512 kernels, `wide512`); the modes are Round
+23's plus four (`intelSplitModes512`), so a plan says which width wrote its
+data and never mixes the two layouts. Below 65536 nothing else changes; from
+65536 the blocked schedule (Round 20) still runs interleaved.
+
+Main's time ÷ the 512-bit split's, same factorization, seven rounds
+(`raw/ab1.txt`; this first build, see below, kept four values in Z16..Z19):
+256 1.10, 512 1.17, 1024 1.13, 2048 1.11, 4096 1.18, 8192 1.08, 16384 1.15,
+32768 1.07. 64 and 128 were timed with the layout allowed (a build with the
+256-point floor lowered): 64 lost (0.69–0.96), and 128's best split
+factorization (4·4·8, 1.09) lost to radix 16 (1.20), so the floor stays 256.
+
+**A kernel that slowed code it never ran.** The first build's radix-8 body,
+with 32 registers, kept its four spilled values in Z16..Z19 and the two
+constants in Z30, Z31. End to end, every power of two gained, and every
+composite lost 4–5%, with tight spreads (`raw/e2e7-zmm16.txt`, seven rounds:
+1000 0.943, 1080 0.957, 1920 0.951, 2000 0.957, 6000 0.957, RFFT 1000 0.958,
+2-D 32² 0.969), on code paths the change did not touch. Run alone, the same
+composites tied main (`raw/comp7.txt`, 0.993–1.005): they lost only after the
+powers of two had run in the same process. `VZEROUPPER` clears the upper
+halves of Z0..Z15 only; a core whose Z16..Z31 are dirty stays in its AVX-512
+state. Zeroing those six registers with `VPXORQ` before returning did not
+help (`raw/e2e7-zmm16-zeroed.txt`: 0.943–0.964 again). The kernels now write
+Z0..Z15 only and the radix-8 body spills to a 256-byte frame as the AVX2 one
+does: composites back to 0.996–1.010 (`raw/e2e7-spill.txt`), at a price on
+the powers of two of 1.07 and 1.08 at 2048 and 4096 against the Z16 build
+(`raw/zero9.txt`, nine rounds; 256–1024 within 2%, 8192 1.03, 16384 1.07
+inside its spread). A schedule of the radix-8 body in sixteen registers
+without a spill was attempted and does not fit as counted: the even half needs
+seventeen at its peak.
+
+**Which factorizations.** Every ordering of radix-4, -8 and -16 passes, in
+the 512-bit split mode and interleaved, three rounds (`raw/sweep2.txt`, Z16
+build; `raw/sweep3.txt`, the final kernels, same winners), then the best few
+against main's factorization split, seven rounds and fifteen for the close
+ones (`raw/ab1.txt`, `raw/ab2.txt`):
+- **1024 → 8·4·4·8**: 1.036 over 4·4·8·8, every one of fifteen rounds above
+  1.017; **8192 → 8·8·4·4·8**: 1.045 over 4·4·8·8·8, every round above 1.030
+  (`intelSplitTable512`).
+- 256, 2048 and 16384 had a candidate within 1% and keep main's; 512, 4096
+  and 32768 kept the best.
+- **N-D strips keep main's order** for those two lengths (`intelStripOrder`):
+  the columns of a 2-D plan run Round 17's batched passes, interleaved, and
+  8·4·4·8 made 2-D 1024² 1.10× slower there (`raw/col5.txt`, five rounds,
+  19.4 against 17.6 ms).
+
+**3. Radix 16 at 128–1024 on an AVX-512 machine.** At 128 points, where the
+AVX-512 kernels do not run, 16·8 on the AVX2 radix-16 kernel ran 1.177× as
+fast as main's 4·4·8 (`raw/ab2.txt`, fifteen rounds, every round above 1.15;
+8·16 1.178). From 256 the 512-bit split layout runs, and the best
+factorization with a radix-16 pass took 1.08–1.55× its time at every size
+from 256 to 16384 (`raw/sweep2.txt`; 256: 16·16 0.90 of the split 4·8·8; 1024:
+8·8·16 0.92). So 128 = 16·8 on Intel CPUs with AVX-512
+(`intelRadix16Table512`), nothing else.
+
+**Bit identity.** `TestIntelSplit512EachPassMatchesScalar` runs each of the
+sixteen kernels alone against the Go pass, output for output, in all four
+layouts (the input converted to the 512-bit layout where the kernel reads it
+so, the output converted back), radix 4 and 8, l1 ∈ {1, 2, 3, 4, 5, 9}, ido ∈
+{8, 16, 24, 40, 72}, forward and inverse, on Round 19's seven signals (±0,
+∞, subnormals of mixed parity, random draws from {±0} and {±0, ±1}).
+`TestIntelSplit512TransformMatchesScalar` runs 19 whole factorizations with
+512-bit runs of one, two and more passes next to radix-2, radix-16 and ido-4
+passes, in place and not, with the AVX-512 interleaved kernels on and off. The
+whole suite passes on Cascade Lake with the layout on, so every power-of-two
+test of the package ran it. Thirteen mutations of the generator or the
+twiddle table (`scripts/mutate.py`, `raw/mutants.txt`): the blend on lane 1,
+no blend, the inverse rotation with the forward operands, the twiddles in
+natural order, the interleaved store's halves swapped, the deinterleaving
+load's operands swapped, the forward a7 sign flip dropped, the inverse a5 sum
+taken as an add, a spill slot read for the wrong value, the wi offset, √2/2
+replaced by −0, the twiddle cursor advanced by half a group: each fails both
+tests; the forward a7 imaginary part computed as −(a7r + a7i), which differs
+only in a zero's sign, fails the per-pass test alone (r = 8, ido 40, signal
+4), as in Round 23. `StockhamPassLayout` refuses a 512-bit mode with an
+`ido` that is not a positive multiple of eight, a radix other than 4 and 8, l1
+below one, or on a CPU without AVX-512, and bound-checks `cc`, `ch` and the
+twiddle table, before any kernel runs (`TestIntelSplit512PassLayoutRefuses`).
+
+**End to end against main.** `BenchmarkAB`, main (v0.18.0) and the branch rebased on it
+alternating, fifteen rounds, one pinned core, load at most 1.0
+(`raw/e2e15-v018.txt`; `raw/e2e15-final.txt` is the same against v0.17.0 and
+agrees within 0.03 on every row but
+the noisy 2-D 512² and 1024²). Main time ÷ branch time:
+
+| | ratio | per-round range |
+|:--|--:|:--|
+| complex 64 | 1.00 | inside |
+| complex 128 / 256 / 512 / 1024 | **1.19** / 1.09 / 1.13 / 1.12 | all above 1.02 |
+| complex 2048 / 4096 / 8192 / 16384 | 1.04 / 1.07 / 1.09 / 1.09 | 2048 inside (0.95–1.08), the others above 1.00 |
+| complex 65536, 2^18 | 1.00, 1.02 | inside (blocked schedule, unchanged) |
+| complex 1000, 1080, 1296, 1920, 2000, 6000, 1009, 10007 | 0.999–1.007 | inside |
+| RFFT 256 / 1024 / 4096 / 1000 | 1.12 / 1.07 / 1.02 / 1.00 | 4096 and 1000 inside |
+| 2-D 32² / 64² / 128² / 256² / 512² | 1.01 / 1.00 / 1.08 / 1.02 / 1.04 | 128² above 1.02, the others inside |
+| 2-D 1024² | **0.94** | 0.82–1.02 |
+
+- **2-D 1024² lost**, in both final runs (0.968, 0.937) and in eleven rounds
+  of that row alone at 1 s per run (`raw/d1024.txt`, 0.938, every round below
+  0.99). Its columns already run main's factorization (`intelStripOrder`), so
+  the loss is in the 1024 rows of a 16 MB array, where the 1-D 1024 gains
+  1.12 in cache. Taking 1024 out of the table recovered 1.036 of it, inside
+  the spread (`raw/d1024b.txt`); the layout off with the table kept tied main
+  (`raw/d1024c.txt`, 0.989, inside). Not resolved: see Not done.
+- The composites tie main: the cost the Z16 build put on them is gone.
+
+**Against FFTW.** The parity harness ran four times back to back on one pinned
+core, main (v0.16.1), the branch, the branch, main (`parity-main1/`,
+`parity-br1/`, `parity-br2/`, `parity-main2/`, load 1.0–1.3, the run's own
+core included; the branch before its rebases, whose changes are arm64 code,
+AMD-only composite routing and a scalar-pass wrapper). Correctness 24/24 in
+all four. go-fft time ÷ FFTW time, the two runs of each:
+
+| | complex 256 | 1,024 | 4,096 | RFFT 256 | 1,024 | 4,096 | 2-D 128² | complex 1,000 | 1,296 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| main | 1.34, 1.33 | 1.31, 1.30 | 0.99, 1.04 | 1.30, 1.39 | 1.20, 1.18 | 1.28, 1.23 | 1.17, 1.03 | 1.23, 1.24 | 1.22, 1.21 |
+| branch | **1.21, 1.27** | **1.16, 1.18** | **0.96, 0.93** | 1.21, 1.21 | 1.14, 1.10 | 1.25, 1.20 | 1.12, 1.00 | 1.24, 1.23 | 1.20, 1.24 |
+
+- **go-fft's own times** moved as the A/B says: complex 256 500 → 456–462 ns,
+  1024 2,769–2,795 → 2,483–2,493, 4096 12,991–13,315 → 11,942–12,198; RFFT
+  4096 9,265–9,385 → 9,178–9,244; 2-D 128² 84,788–86,954 → 79,554–79,844 ns.
+- **FFTW's** 2-D 128² moved by 13% between runs (71,085–81,937 ns), so that
+  row's ratio reads 1.03–1.17 for main and 1.00–1.12 for the branch on nearly
+  constant go-fft times; complex 4096 is now below FFTW in both branch runs.
+
+**Not done.**
+- **Intel AVX2-only (Haswell)** keeps its rules: not measured.
+- **The blocked schedule (65536 and up)** still runs interleaved; split groups
+  in L2 are the obvious next step.
+- **2-D 1024²** loses 6% (above); rows of a large N-D array may want the
+  interleaved passes or main's order, which needs its own A/B.
+- **A radix-8 body without the spill.** Seventeen registers at the even
+  half's peak; reading one twiddle half or one input from memory might close
+  the gap the Z16 build showed (7–8% at 2048 and 4096).
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round28-intel-small-20261007/`](benchmarks/results/round28-intel-small-20261007/).

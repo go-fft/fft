@@ -1,0 +1,491 @@
+# round 1 variant main.test 10:37:02 load 0.43 0.88 0.78
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2096292	       172.7 ns/op
+BenchmarkAB/C/128        	 1000000	       359.6 ns/op
+BenchmarkAB/C/256        	  612147	       588.1 ns/op
+BenchmarkAB/C/512        	  304862	      1171 ns/op
+BenchmarkAB/C/1024       	  114207	      3147 ns/op
+BenchmarkAB/C/2048       	   48962	      7330 ns/op
+BenchmarkAB/C/4096       	   24576	     14782 ns/op
+BenchmarkAB/C/8192       	   10000	     33600 ns/op
+BenchmarkAB/C/16384      	    4830	     74135 ns/op
+BenchmarkAB/C/65536      	     703	    513085 ns/op
+BenchmarkAB/C/262144     	     123	   2882360 ns/op
+BenchmarkAB/C/1000       	   93945	      3795 ns/op
+BenchmarkAB/C/1080       	   75247	      4756 ns/op
+BenchmarkAB/C/1296       	   71626	      4979 ns/op
+BenchmarkAB/C/1920       	   49903	      7200 ns/op
+BenchmarkAB/C/2000       	   44421	      8092 ns/op
+BenchmarkAB/C/6000       	   12651	     28261 ns/op
+BenchmarkAB/C/1009       	   16921	     21327 ns/op
+BenchmarkAB/C/10007      	     938	    383229 ns/op
+BenchmarkAB/R/256        	  652220	       556.6 ns/op
+BenchmarkAB/R/1024       	  174607	      2024 ns/op
+BenchmarkAB/R/4096       	   34567	     10414 ns/op
+BenchmarkAB/R/1000       	  141340	      2574 ns/op
+BenchmarkAB/2D/32        	   69433	      5134 ns/op
+BenchmarkAB/2D/64        	   17798	     20415 ns/op
+BenchmarkAB/2D/128       	    3567	    100297 ns/op
+BenchmarkAB/2D/256       	     636	    577159 ns/op
+BenchmarkAB/2D/512       	      85	   4501234 ns/op
+BenchmarkAB/2D/1024      	      19	  18130750 ns/op
+PASS
+# round 1 variant br.test 10:37:16 load 0.56 0.89 0.78
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2342367	       155.3 ns/op
+BenchmarkAB/C/128        	 1344655	       267.5 ns/op
+BenchmarkAB/C/256        	  789072	       483.0 ns/op
+BenchmarkAB/C/512        	  377080	       912.3 ns/op
+BenchmarkAB/C/1024       	  141727	      2530 ns/op
+BenchmarkAB/C/2048       	   55455	      6467 ns/op
+BenchmarkAB/C/4096       	   29079	     12353 ns/op
+BenchmarkAB/C/8192       	   12751	     27346 ns/op
+BenchmarkAB/C/16384      	    5946	     59170 ns/op
+BenchmarkAB/C/65536      	     770	    468937 ns/op
+BenchmarkAB/C/262144     	     130	   2679707 ns/op
+BenchmarkAB/C/1000       	  106078	      3361 ns/op
+BenchmarkAB/C/1080       	   86551	      4147 ns/op
+BenchmarkAB/C/1296       	   81756	      4405 ns/op
+BenchmarkAB/C/1920       	   55419	      6518 ns/op
+BenchmarkAB/C/2000       	   49254	      7327 ns/op
+BenchmarkAB/C/6000       	   14374	     25173 ns/op
+BenchmarkAB/C/1009       	   18022	     20140 ns/op
+BenchmarkAB/C/10007      	    1056	    345038 ns/op
+BenchmarkAB/R/256        	  836043	       434.8 ns/op
+BenchmarkAB/R/1024       	  211465	      1684 ns/op
+BenchmarkAB/R/4096       	   39381	      9084 ns/op
+BenchmarkAB/R/1000       	  161773	      2277 ns/op
+BenchmarkAB/2D/32        	   82306	      4382 ns/op
+BenchmarkAB/2D/64        	   20077	     18022 ns/op
+BenchmarkAB/2D/128       	    4408	     79280 ns/op
+BenchmarkAB/2D/256       	     734	    479532 ns/op
+BenchmarkAB/2D/512       	      81	   4319750 ns/op
+BenchmarkAB/2D/1024      	      18	  19029565 ns/op
+PASS
+# round 2 variant br.test 10:37:30 load 0.66 0.89 0.79
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2398393	       149.2 ns/op
+BenchmarkAB/C/128        	 1377567	       259.4 ns/op
+BenchmarkAB/C/256        	  782467	       461.8 ns/op
+BenchmarkAB/C/512        	  401334	       903.0 ns/op
+BenchmarkAB/C/1024       	  138699	      2663 ns/op
+BenchmarkAB/C/2048       	   57289	      6292 ns/op
+BenchmarkAB/C/4096       	   29398	     12248 ns/op
+BenchmarkAB/C/8192       	   12992	     27521 ns/op
+BenchmarkAB/C/16384      	    5858	     60922 ns/op
+BenchmarkAB/C/65536      	     758	    474866 ns/op
+BenchmarkAB/C/262144     	      92	   3650824 ns/op
+BenchmarkAB/C/1000       	  105084	      3431 ns/op
+BenchmarkAB/C/1080       	   85028	      4172 ns/op
+BenchmarkAB/C/1296       	   80452	      4630 ns/op
+BenchmarkAB/C/1920       	   51578	      7189 ns/op
+BenchmarkAB/C/2000       	   48591	      7388 ns/op
+BenchmarkAB/C/6000       	   13977	     24927 ns/op
+BenchmarkAB/C/1009       	   18969	     18673 ns/op
+BenchmarkAB/C/10007      	    1035	    340980 ns/op
+BenchmarkAB/R/256        	  821545	       448.5 ns/op
+BenchmarkAB/R/1024       	  212073	      1781 ns/op
+BenchmarkAB/R/4096       	   39663	      9121 ns/op
+BenchmarkAB/R/1000       	  159762	      2252 ns/op
+BenchmarkAB/2D/32        	   80595	      4482 ns/op
+BenchmarkAB/2D/64        	   20236	     17716 ns/op
+BenchmarkAB/2D/128       	    4495	     80890 ns/op
+BenchmarkAB/2D/256       	     714	    507987 ns/op
+BenchmarkAB/2D/512       	      92	   3553640 ns/op
+BenchmarkAB/2D/1024      	      18	  18891830 ns/op
+PASS
+# round 2 variant main.test 10:37:43 load 0.71 0.90 0.79
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2378277	       149.9 ns/op
+BenchmarkAB/C/128        	 1000000	       354.1 ns/op
+BenchmarkAB/C/256        	  626571	       506.8 ns/op
+BenchmarkAB/C/512        	  351230	      1047 ns/op
+BenchmarkAB/C/1024       	  127702	      2860 ns/op
+BenchmarkAB/C/2048       	   53857	      7030 ns/op
+BenchmarkAB/C/4096       	   26847	     13371 ns/op
+BenchmarkAB/C/8192       	   10000	     30302 ns/op
+BenchmarkAB/C/16384      	    5167	     73576 ns/op
+BenchmarkAB/C/65536      	     724	    488799 ns/op
+BenchmarkAB/C/262144     	      94	   3941562 ns/op
+BenchmarkAB/C/1000       	   97774	      3475 ns/op
+BenchmarkAB/C/1080       	   83632	      4330 ns/op
+BenchmarkAB/C/1296       	   78069	      4548 ns/op
+BenchmarkAB/C/1920       	   56206	      6465 ns/op
+BenchmarkAB/C/2000       	   48520	      7355 ns/op
+BenchmarkAB/C/6000       	   14422	     25112 ns/op
+BenchmarkAB/C/1009       	   19002	     18913 ns/op
+BenchmarkAB/C/10007      	    1047	    356581 ns/op
+BenchmarkAB/R/256        	  758666	       477.9 ns/op
+BenchmarkAB/R/1024       	  201447	      1793 ns/op
+BenchmarkAB/R/4096       	   37951	      9533 ns/op
+BenchmarkAB/R/1000       	  160622	      2237 ns/op
+BenchmarkAB/2D/32        	   79519	      4541 ns/op
+BenchmarkAB/2D/64        	   19693	     18114 ns/op
+BenchmarkAB/2D/128       	    4076	     88730 ns/op
+BenchmarkAB/2D/256       	     732	    487789 ns/op
+BenchmarkAB/2D/512       	      67	   5433499 ns/op
+BenchmarkAB/2D/1024      	      19	  17902505 ns/op
+PASS
+# round 3 variant main.test 10:37:56 load 0.78 0.90 0.79
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2411617	       149.5 ns/op
+BenchmarkAB/C/128        	 1000000	       305.4 ns/op
+BenchmarkAB/C/256        	  708735	       507.2 ns/op
+BenchmarkAB/C/512        	  354774	      1020 ns/op
+BenchmarkAB/C/1024       	  127644	      2842 ns/op
+BenchmarkAB/C/2048       	   53790	      6739 ns/op
+BenchmarkAB/C/4096       	   26991	     13384 ns/op
+BenchmarkAB/C/8192       	   10000	     30229 ns/op
+BenchmarkAB/C/16384      	    5265	     68696 ns/op
+BenchmarkAB/C/65536      	     751	    472444 ns/op
+BenchmarkAB/C/262144     	      88	   3804982 ns/op
+BenchmarkAB/C/1000       	  106720	      3364 ns/op
+BenchmarkAB/C/1080       	   86121	      4205 ns/op
+BenchmarkAB/C/1296       	   81475	      4427 ns/op
+BenchmarkAB/C/1920       	   55714	      6490 ns/op
+BenchmarkAB/C/2000       	   48207	      7320 ns/op
+BenchmarkAB/C/6000       	   14444	     24824 ns/op
+BenchmarkAB/C/1009       	   19215	     18733 ns/op
+BenchmarkAB/C/10007      	    1059	    337253 ns/op
+BenchmarkAB/R/256        	  764409	       479.9 ns/op
+BenchmarkAB/R/1024       	  202945	      1783 ns/op
+BenchmarkAB/R/4096       	   38368	      9358 ns/op
+BenchmarkAB/R/1000       	  161846	      2211 ns/op
+BenchmarkAB/2D/32        	   82316	      4431 ns/op
+BenchmarkAB/2D/64        	   20305	     17928 ns/op
+BenchmarkAB/2D/128       	    3855	     87778 ns/op
+BenchmarkAB/2D/256       	     746	    481805 ns/op
+BenchmarkAB/2D/512       	      70	   4879379 ns/op
+BenchmarkAB/2D/1024      	      18	  19457795 ns/op
+PASS
+# round 3 variant br.test 10:38:09 load 0.90 0.92 0.80
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2419059	       148.6 ns/op
+BenchmarkAB/C/128        	 1384166	       258.6 ns/op
+BenchmarkAB/C/256        	  767397	       457.0 ns/op
+BenchmarkAB/C/512        	  405600	       896.3 ns/op
+BenchmarkAB/C/1024       	  141290	      2555 ns/op
+BenchmarkAB/C/2048       	   54405	      6612 ns/op
+BenchmarkAB/C/4096       	   28653	     12429 ns/op
+BenchmarkAB/C/8192       	   13226	     27196 ns/op
+BenchmarkAB/C/16384      	    5638	     63387 ns/op
+BenchmarkAB/C/65536      	     770	    463067 ns/op
+BenchmarkAB/C/262144     	     111	   3008626 ns/op
+BenchmarkAB/C/1000       	  106477	      3369 ns/op
+BenchmarkAB/C/1080       	   84937	      4157 ns/op
+BenchmarkAB/C/1296       	   80800	      4381 ns/op
+BenchmarkAB/C/1920       	   55291	      6497 ns/op
+BenchmarkAB/C/2000       	   49648	      7293 ns/op
+BenchmarkAB/C/6000       	   14296	     25343 ns/op
+BenchmarkAB/C/1009       	   19024	     18861 ns/op
+BenchmarkAB/C/10007      	    1096	    326624 ns/op
+BenchmarkAB/R/256        	  837603	       433.2 ns/op
+BenchmarkAB/R/1024       	  214381	      1679 ns/op
+BenchmarkAB/R/4096       	   39060	      9188 ns/op
+BenchmarkAB/R/1000       	  157510	      2207 ns/op
+BenchmarkAB/2D/32        	   82790	      4354 ns/op
+BenchmarkAB/2D/64        	   20191	     17781 ns/op
+BenchmarkAB/2D/128       	    4465	     84146 ns/op
+BenchmarkAB/2D/256       	     752	    479780 ns/op
+BenchmarkAB/2D/512       	     157	   2304895 ns/op
+BenchmarkAB/2D/1024      	      19	  17256755 ns/op
+PASS
+# round 4 variant br.test 10:38:22 load 0.92 0.93 0.81
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2421716	       148.3 ns/op
+BenchmarkAB/C/128        	 1391265	       257.4 ns/op
+BenchmarkAB/C/256        	  791222	       455.7 ns/op
+BenchmarkAB/C/512        	  404055	       892.7 ns/op
+BenchmarkAB/C/1024       	  143571	      2508 ns/op
+BenchmarkAB/C/2048       	   57259	      6282 ns/op
+BenchmarkAB/C/4096       	   29584	     12180 ns/op
+BenchmarkAB/C/8192       	   13263	     27256 ns/op
+BenchmarkAB/C/16384      	    6072	     59106 ns/op
+BenchmarkAB/C/65536      	     762	    469929 ns/op
+BenchmarkAB/C/262144     	     147	   2394897 ns/op
+BenchmarkAB/C/1000       	  106923	      3366 ns/op
+BenchmarkAB/C/1080       	   87369	      4120 ns/op
+BenchmarkAB/C/1296       	   82180	      4380 ns/op
+BenchmarkAB/C/1920       	   55249	      6511 ns/op
+BenchmarkAB/C/2000       	   49611	      7254 ns/op
+BenchmarkAB/C/6000       	   14440	     25006 ns/op
+BenchmarkAB/C/1009       	   19152	     18832 ns/op
+BenchmarkAB/C/10007      	    1081	    335466 ns/op
+BenchmarkAB/R/256        	  838890	       431.1 ns/op
+BenchmarkAB/R/1024       	  213919	      1695 ns/op
+BenchmarkAB/R/4096       	   38889	      9242 ns/op
+BenchmarkAB/R/1000       	  160254	      2224 ns/op
+BenchmarkAB/2D/32        	   81462	      4423 ns/op
+BenchmarkAB/2D/64        	   19916	     18188 ns/op
+BenchmarkAB/2D/128       	    4315	     80093 ns/op
+BenchmarkAB/2D/256       	     732	    485494 ns/op
+BenchmarkAB/2D/512       	      81	   4363198 ns/op
+BenchmarkAB/2D/1024      	      20	  17278483 ns/op
+PASS
+# round 4 variant main.test 10:38:36 load 1.09 0.96 0.82
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2315418	       154.8 ns/op
+BenchmarkAB/C/128        	 1000000	       314.1 ns/op
+BenchmarkAB/C/256        	  697576	       510.8 ns/op
+BenchmarkAB/C/512        	  348724	      1031 ns/op
+BenchmarkAB/C/1024       	  125178	      2901 ns/op
+BenchmarkAB/C/2048       	   51531	      6993 ns/op
+BenchmarkAB/C/4096       	   26610	     13447 ns/op
+BenchmarkAB/C/8192       	   12108	     29943 ns/op
+BenchmarkAB/C/16384      	    5632	     64161 ns/op
+BenchmarkAB/C/65536      	     766	    464233 ns/op
+BenchmarkAB/C/262144     	     148	   2408358 ns/op
+BenchmarkAB/C/1000       	  104706	      3395 ns/op
+BenchmarkAB/C/1080       	   86557	      4160 ns/op
+BenchmarkAB/C/1296       	   81288	      4413 ns/op
+BenchmarkAB/C/1920       	   55818	      6454 ns/op
+BenchmarkAB/C/2000       	   49358	      7281 ns/op
+BenchmarkAB/C/6000       	   14455	     24858 ns/op
+BenchmarkAB/C/1009       	   19165	     18824 ns/op
+BenchmarkAB/C/10007      	    1048	    341979 ns/op
+BenchmarkAB/R/256        	  737728	       479.5 ns/op
+BenchmarkAB/R/1024       	  199593	      1780 ns/op
+BenchmarkAB/R/4096       	   38156	      9375 ns/op
+BenchmarkAB/R/1000       	  162084	      2222 ns/op
+BenchmarkAB/2D/32        	   75733	      4426 ns/op
+BenchmarkAB/2D/64        	   19941	     18066 ns/op
+BenchmarkAB/2D/128       	    4076	     88226 ns/op
+BenchmarkAB/2D/256       	     714	    503222 ns/op
+BenchmarkAB/2D/512       	     104	   3269638 ns/op
+BenchmarkAB/2D/1024      	      19	  17615053 ns/op
+PASS
+# round 5 variant main.test 10:38:48 load 1.15 0.98 0.83
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2412558	       148.9 ns/op
+BenchmarkAB/C/128        	 1000000	       307.4 ns/op
+BenchmarkAB/C/256        	  713992	       506.3 ns/op
+BenchmarkAB/C/512        	  356377	      1016 ns/op
+BenchmarkAB/C/1024       	  125520	      2845 ns/op
+BenchmarkAB/C/2048       	   50768	      7087 ns/op
+BenchmarkAB/C/4096       	   26696	     13470 ns/op
+BenchmarkAB/C/8192       	   12037	     29992 ns/op
+BenchmarkAB/C/16384      	    5262	     68886 ns/op
+BenchmarkAB/C/65536      	     769	    468227 ns/op
+BenchmarkAB/C/262144     	     132	   2709527 ns/op
+BenchmarkAB/C/1000       	  107175	      3351 ns/op
+BenchmarkAB/C/1080       	   85890	      4190 ns/op
+BenchmarkAB/C/1296       	   80443	      4427 ns/op
+BenchmarkAB/C/1920       	   55546	      6458 ns/op
+BenchmarkAB/C/2000       	   49527	      7259 ns/op
+BenchmarkAB/C/6000       	   14425	     24943 ns/op
+BenchmarkAB/C/1009       	   19089	     18810 ns/op
+BenchmarkAB/C/10007      	    1058	    338816 ns/op
+BenchmarkAB/R/256        	  750621	       482.1 ns/op
+BenchmarkAB/R/1024       	  199926	      1796 ns/op
+BenchmarkAB/R/4096       	   37582	      9578 ns/op
+BenchmarkAB/R/1000       	  162636	      2207 ns/op
+BenchmarkAB/2D/32        	   80192	      4480 ns/op
+BenchmarkAB/2D/64        	   19779	     18257 ns/op
+BenchmarkAB/2D/128       	    4096	     87513 ns/op
+BenchmarkAB/2D/256       	     711	    501925 ns/op
+BenchmarkAB/2D/512       	      73	   4762362 ns/op
+BenchmarkAB/2D/1024      	      19	  18211057 ns/op
+PASS
+# round 5 variant br.test 10:39:02 load 1.42 1.05 0.85
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2421447	       148.0 ns/op
+BenchmarkAB/C/128        	 1394672	       257.5 ns/op
+BenchmarkAB/C/256        	  784178	       458.3 ns/op
+BenchmarkAB/C/512        	  403460	       893.6 ns/op
+BenchmarkAB/C/1024       	  140620	      2570 ns/op
+BenchmarkAB/C/2048       	   55462	      6482 ns/op
+BenchmarkAB/C/4096       	   28720	     12461 ns/op
+BenchmarkAB/C/8192       	   12984	     27762 ns/op
+BenchmarkAB/C/16384      	    5808	     61905 ns/op
+BenchmarkAB/C/65536      	     744	    475707 ns/op
+BenchmarkAB/C/262144     	      97	   3867610 ns/op
+BenchmarkAB/C/1000       	  106002	      3335 ns/op
+BenchmarkAB/C/1080       	   88168	      4106 ns/op
+BenchmarkAB/C/1296       	   82303	      4375 ns/op
+BenchmarkAB/C/1920       	   56270	      6411 ns/op
+BenchmarkAB/C/2000       	   49968	      7202 ns/op
+BenchmarkAB/C/6000       	   14577	     24701 ns/op
+BenchmarkAB/C/1009       	   19494	     18517 ns/op
+BenchmarkAB/C/10007      	    1046	    341371 ns/op
+BenchmarkAB/R/256        	  834982	       427.7 ns/op
+BenchmarkAB/R/1024       	  215392	      1664 ns/op
+BenchmarkAB/R/4096       	   39033	      9242 ns/op
+BenchmarkAB/R/1000       	  163591	      2204 ns/op
+BenchmarkAB/2D/32        	   82422	      4347 ns/op
+BenchmarkAB/2D/64        	   20774	     17490 ns/op
+BenchmarkAB/2D/128       	    4545	     80413 ns/op
+BenchmarkAB/2D/256       	     729	    491063 ns/op
+BenchmarkAB/2D/512       	      79	   4486056 ns/op
+BenchmarkAB/2D/1024      	      18	  18507130 ns/op
+PASS
+# round 6 variant br.test 10:39:15 load 1.32 1.05 0.86
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2445502	       151.2 ns/op
+BenchmarkAB/C/128        	 1360654	       269.3 ns/op
+BenchmarkAB/C/256        	  801126	       464.4 ns/op
+BenchmarkAB/C/512        	  399205	       906.8 ns/op
+BenchmarkAB/C/1024       	  137366	      2549 ns/op
+BenchmarkAB/C/2048       	   55370	      6443 ns/op
+BenchmarkAB/C/4096       	   28982	     12330 ns/op
+BenchmarkAB/C/8192       	   13005	     27914 ns/op
+BenchmarkAB/C/16384      	    5448	     64005 ns/op
+BenchmarkAB/C/65536      	     720	    483147 ns/op
+BenchmarkAB/C/262144     	      90	   3919923 ns/op
+BenchmarkAB/C/1000       	  102850	      3440 ns/op
+BenchmarkAB/C/1080       	   85197	      4183 ns/op
+BenchmarkAB/C/1296       	   81838	      4435 ns/op
+BenchmarkAB/C/1920       	   54267	      6720 ns/op
+BenchmarkAB/C/2000       	   47329	      7475 ns/op
+BenchmarkAB/C/6000       	   14312	     25148 ns/op
+BenchmarkAB/C/1009       	   18987	     19022 ns/op
+BenchmarkAB/C/10007      	    1032	    351645 ns/op
+BenchmarkAB/R/256        	  774694	       439.3 ns/op
+BenchmarkAB/R/1024       	  212318	      1704 ns/op
+BenchmarkAB/R/4096       	   39166	      9321 ns/op
+BenchmarkAB/R/1000       	  161160	      2239 ns/op
+BenchmarkAB/2D/32        	   80982	      4455 ns/op
+BenchmarkAB/2D/64        	   20343	     17545 ns/op
+BenchmarkAB/2D/128       	    4492	     80257 ns/op
+BenchmarkAB/2D/256       	     709	    498570 ns/op
+BenchmarkAB/2D/512       	      73	   5152508 ns/op
+BenchmarkAB/2D/1024      	      18	  18963468 ns/op
+PASS
+# round 6 variant main.test 10:39:28 load 1.27 1.04 0.86
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2377292	       149.5 ns/op
+BenchmarkAB/C/128        	 1000000	       309.3 ns/op
+BenchmarkAB/C/256        	  692883	       518.9 ns/op
+BenchmarkAB/C/512        	  349581	      1038 ns/op
+BenchmarkAB/C/1024       	  127318	      2797 ns/op
+BenchmarkAB/C/2048       	   54063	      6564 ns/op
+BenchmarkAB/C/4096       	   26935	     13372 ns/op
+BenchmarkAB/C/8192       	   10000	     30065 ns/op
+BenchmarkAB/C/16384      	    5421	     67174 ns/op
+BenchmarkAB/C/65536      	     759	    482508 ns/op
+BenchmarkAB/C/262144     	     116	   3113991 ns/op
+BenchmarkAB/C/1000       	  105456	      3397 ns/op
+BenchmarkAB/C/1080       	   87393	      4150 ns/op
+BenchmarkAB/C/1296       	   80403	      4432 ns/op
+BenchmarkAB/C/1920       	   54013	      6560 ns/op
+BenchmarkAB/C/2000       	   48482	      7379 ns/op
+BenchmarkAB/C/6000       	   14307	     25283 ns/op
+BenchmarkAB/C/1009       	   19051	     19032 ns/op
+BenchmarkAB/C/10007      	    1052	    341278 ns/op
+BenchmarkAB/R/256        	  747758	       483.0 ns/op
+BenchmarkAB/R/1024       	  193759	      1795 ns/op
+BenchmarkAB/R/4096       	   38781	      9279 ns/op
+BenchmarkAB/R/1000       	  161394	      2241 ns/op
+BenchmarkAB/2D/32        	   81536	      4452 ns/op
+BenchmarkAB/2D/64        	   20175	     17844 ns/op
+BenchmarkAB/2D/128       	    4202	     87142 ns/op
+BenchmarkAB/2D/256       	     715	    506313 ns/op
+BenchmarkAB/2D/512       	      72	   4967053 ns/op
+BenchmarkAB/2D/1024      	      16	  19844088 ns/op
+PASS
+# round 7 variant main.test 10:39:41 load 1.21 1.04 0.86
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2372316	       151.9 ns/op
+BenchmarkAB/C/128        	 1000000	       315.1 ns/op
+BenchmarkAB/C/256        	  687558	       513.5 ns/op
+BenchmarkAB/C/512        	  352148	      1027 ns/op
+BenchmarkAB/C/1024       	  129180	      2790 ns/op
+BenchmarkAB/C/2048       	   55104	      6622 ns/op
+BenchmarkAB/C/4096       	   27136	     13376 ns/op
+BenchmarkAB/C/8192       	   10000	     30783 ns/op
+BenchmarkAB/C/16384      	    5485	     68350 ns/op
+BenchmarkAB/C/65536      	     759	    482363 ns/op
+BenchmarkAB/C/262144     	      93	   3641303 ns/op
+BenchmarkAB/C/1000       	  106018	      3743 ns/op
+BenchmarkAB/C/1080       	   86502	      4161 ns/op
+BenchmarkAB/C/1296       	   81628	      4507 ns/op
+BenchmarkAB/C/1920       	   54121	      6735 ns/op
+BenchmarkAB/C/2000       	   48519	      7675 ns/op
+BenchmarkAB/C/6000       	   13659	     25483 ns/op
+BenchmarkAB/C/1009       	   18782	     19092 ns/op
+BenchmarkAB/C/10007      	    1082	    336102 ns/op
+BenchmarkAB/R/256        	  731985	       497.5 ns/op
+BenchmarkAB/R/1024       	  201504	      1802 ns/op
+BenchmarkAB/R/4096       	   38325	      9418 ns/op
+BenchmarkAB/R/1000       	  148006	      2323 ns/op
+BenchmarkAB/2D/32        	   82566	      4463 ns/op
+BenchmarkAB/2D/64        	   19946	     18223 ns/op
+BenchmarkAB/2D/128       	    4250	     86796 ns/op
+BenchmarkAB/2D/256       	     730	    490705 ns/op
+BenchmarkAB/2D/512       	      75	   5031519 ns/op
+BenchmarkAB/2D/1024      	      19	  17438345 ns/op
+PASS
+# round 7 variant br.test 10:39:54 load 1.16 1.04 0.86
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkAB/C/64         	 2414408	       149.7 ns/op
+BenchmarkAB/C/128        	 1382211	       257.3 ns/op
+BenchmarkAB/C/256        	  773450	       456.6 ns/op
+BenchmarkAB/C/512        	  405112	       892.4 ns/op
+BenchmarkAB/C/1024       	  145189	      2483 ns/op
+BenchmarkAB/C/2048       	   57094	      6269 ns/op
+BenchmarkAB/C/4096       	   28525	     12751 ns/op
+BenchmarkAB/C/8192       	   12380	     27845 ns/op
+BenchmarkAB/C/16384      	    5968	     60891 ns/op
+BenchmarkAB/C/65536      	     769	    466820 ns/op
+BenchmarkAB/C/262144     	     105	   3222089 ns/op
+BenchmarkAB/C/1000       	  105606	      3407 ns/op
+BenchmarkAB/C/1080       	   86986	      4142 ns/op
+BenchmarkAB/C/1296       	   82102	      4448 ns/op
+BenchmarkAB/C/1920       	   54712	      6566 ns/op
+BenchmarkAB/C/2000       	   47817	      7370 ns/op
+BenchmarkAB/C/6000       	   14493	     25002 ns/op
+BenchmarkAB/C/1009       	   19047	     18899 ns/op
+BenchmarkAB/C/10007      	    1068	    345871 ns/op
+BenchmarkAB/R/256        	  833136	       441.8 ns/op
+BenchmarkAB/R/1024       	  198087	      1760 ns/op
+BenchmarkAB/R/4096       	   38547	      9335 ns/op
+BenchmarkAB/R/1000       	  158509	      2248 ns/op
+BenchmarkAB/2D/32        	   69336	      4419 ns/op
+BenchmarkAB/2D/64        	   20013	     18095 ns/op
+BenchmarkAB/2D/128       	    4568	     80166 ns/op
+BenchmarkAB/2D/256       	     770	    478012 ns/op
+BenchmarkAB/2D/512       	      85	   4446912 ns/op
+BenchmarkAB/2D/1024      	      19	  18205177 ns/op
+PASS
+# done 10:40:08 load 1.14 1.04 0.87
