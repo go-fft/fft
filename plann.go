@@ -34,6 +34,9 @@ type PlanN struct {
 	// PlanN threshold, 256×256 real columns on one goroutine after rows on
 	// many took 858 µs against 584 µs, Neoverse-N1, 2026-10-05.)
 	colsOf2 bool
+	// rot, when not nil, runs the whole transform as these rotating passes
+	// (armrealRotate).
+	rot []armrealPass
 }
 
 // stripAxes makes NewPlanN run a non-contiguous axis as batched Stockham
@@ -123,6 +126,11 @@ func (p *PlanN) initScratch() {
 			bl = max(bl, 2*n*stripWidth(n))
 		}
 	}
+	p.rot = nil
+	if p.armrealRotates() {
+		p.rot = p.armrealPasses()
+		bl = max(bl, p.size)
+	}
 	p.bufs.New = func() any { b := make([]complex128, bl); return &b }
 }
 
@@ -154,6 +162,12 @@ func (p *PlanN) IFFT(dst, src []complex128) []complex128 {
 func (p *PlanN) transform(dst, src []complex128, inverse bool) {
 	if len(dst) != p.size || len(src) != p.size {
 		panic("fft: PlanN slice length does not match the plan's shape")
+	}
+	if p.rot != nil {
+		bp := p.bufs.Get().(*[]complex128)
+		p.armrealRotate(dst, src, (*bp)[:p.size], inverse)
+		p.bufs.Put(bp)
+		return
 	}
 	// The first axis transformed reads src: no copy into dst first.
 	in := src

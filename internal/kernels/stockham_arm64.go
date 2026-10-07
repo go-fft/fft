@@ -107,12 +107,6 @@ func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) b
 	return true
 }
 
-// Untangle returns 0: the fft package untangles every bin in Go.
-func Untangle(dst, z, tw []complex128, m int) int { return 0 }
-
-// Retangle returns 0: the fft package rebuilds every bin in Go.
-func Retangle(z, x, tw []complex128, m int, h float64) int { return 0 }
-
 //go:noescape
 func skPass3NEON(cc, ch, tw *complex128, ido, l1 int)
 
