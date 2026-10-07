@@ -9,8 +9,13 @@ package fft
 // composites use TestHswComp below and Round 26's TestR26Sweep.
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"math"
+	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -89,5 +94,48 @@ func TestHswComp(t *testing.T) {
 				slices.Min(ratios), slices.Max(ratios))
 		}
 		fmt.Printf("HC %d%s\n", n, b.String())
+	}
+}
+
+var hswExport = flag.String("hsw.export", "", "TestHswExport: directory the inputs and outputs go to")
+
+// TestHswExport writes, for each -hsw.list length, a random input and the
+// forward transforms of the current factorization (cur) and comp2Factors'
+// (c2) as little-endian complex128, so numpy can judge both on the bytes
+// this code received.
+func TestHswExport(t *testing.T) {
+	if *hswExport == "" || *hswList == "" {
+		t.Skip("set -hsw.export=dir and -hsw.list")
+	}
+	r := rand.New(rand.NewPCG(29, 2026))
+	write := func(name string, x []complex128) {
+		b := make([]byte, 0, 16*len(x))
+		for _, v := range x {
+			b = binary.LittleEndian.AppendUint64(b, math.Float64bits(real(v)))
+			b = binary.LittleEndian.AppendUint64(b, math.Float64bits(imag(v)))
+		}
+		if err := os.WriteFile(filepath.Join(*hswExport, name), b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range strings.Split(*hswList, ",") {
+		var n int
+		if _, err := fmt.Sscanf(s, "%d", &n); err != nil {
+			t.Fatal(err)
+		}
+		src := make([]complex128, n)
+		for i := range src {
+			src[i] = complex(r.NormFloat64(), r.NormFloat64())
+		}
+		write(fmt.Sprintf("in_%d.bin", n), src)
+		for tag, f := range map[string][]int{"cur": skFactorize(n), "c2": comp2Factors(n, true)} {
+			if f == nil {
+				continue
+			}
+			dst := make([]complex128, n)
+			newSKPlanFactors(n, f).transform(dst, src, false)
+			write(fmt.Sprintf("%s_%d.bin", tag, n), dst)
+			fmt.Printf("EXPORT %d %s %s\n", n, tag, factorName(f))
+		}
 	}
 }
