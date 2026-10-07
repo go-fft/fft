@@ -12,7 +12,7 @@ the smallest input that shows the problem.
 
 ## Supported versions
 
-Only the latest release (v0.16.x at the time of writing) receives fixes. It
+Only the latest release (v0.19.x at the time of writing) receives fixes. It
 requires Go 1.27.1 or later, so the standard library it runs on carries that
 release's security fixes; v0.1.x (Go 1.26.4) is no longer maintained. The module follows semantic
 versioning; while it is at v0, a fix ships as a patch release.
@@ -179,3 +179,18 @@ Each entry point added since v0.13.1 was read against the rule above:
 
 No gap was found. govulncheck reports nothing for the module or the benchmark
 module, and the repository has no secret-scanning or Dependabot alert.
+
+### Follow-up, 2026-10-07 (v0.19.1): non-positive pass counts on arm64
+
+v0.18.0 made the amd64 `StockhamPass` refuse `ido` or `l1` below 1: two
+negative counts multiply to a positive length that passes the bound checks. The
+arm64 entry points had no such check. `StockhamPass` was protected by accident,
+because a negative `ido` makes the twiddle-table length negative and Go panics
+first. `StockhamPassLayout` was not: its split final pass takes `l1` without a
+twiddle table, so `ido = -2, l1 = -3` reached the kernel with a negative block
+count. Their only callers pass a plan's positive geometry, so this was not
+reachable from the public API. Both now panic on such counts
+(`TestStockhamPassRefusesNonPositiveCounts`). The other entry points added in
+v0.17.0–v0.19.0 (the float64 NEON `Untangle`/`Retangle`, the radix-10/15/20 and
+512-bit split kernels behind `StockhamPass`/`StockhamPassLayout`) bound-check
+before any kernel runs.

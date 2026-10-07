@@ -2,41 +2,44 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-## Current numbers (2026-10-06, v0.16.0)
+## Current numbers (2026-10-07, v0.19.0)
 
 Measured on three GCC Compile Farm hosts against FFTW 3.3.10 (built from source
 with the host's SIMD; AVX-512 codelets on Cascade Lake), numpy.fft 2.5.3 and
 scipy.fft 1.18.1 (pocketfft), and gonum, with go1.27.1, every row on one pinned
 core. Every transform first passed the correctness gate (24/24 against
-`numpy.fft`, `rtol=1e-9`). The newest parity run on each host:
-- Zen 3: Round 23 ([`round23-amd64-split-20261006/zen3-parity-split/`](benchmarks/results/round23-amd64-split-20261006/zen3-parity-split/)), v0.14.0;
-- Neoverse-N1: Round 24 ([`round24-composites-20261006/neoverse-n1/parity-br2/`](benchmarks/results/round24-composites-20261006/neoverse-n1/parity-br2/)), v0.15.0;
-- Cascade Lake: Round 24 ([`round24-composites-20261006/cascadelake/parity-br2/`](benchmarks/results/round24-composites-20261006/cascadelake/parity-br2/)), v0.15.0.
+`numpy.fft`, `rtol=1e-9`). FFTW's own times move by up to 22% between runs on
+one host (Round 26), so each ratio below is the mean of the two "branch" runs
+of the newest round on that host:
+- Zen 3: Round 26 ([`round26-amd64-comp2-20261007/zen3/`](benchmarks/results/round26-amd64-comp2-20261007/zen3/) `parity-br`, `parity-br2`), v0.18.0;
+- Neoverse-N1: Round 27 ([`round27-arm64-real-20261007/neoverse-n1/`](benchmarks/results/round27-arm64-real-20261007/neoverse-n1/) `parity-br`, `parity-br2`), v0.17.0;
+- Cascade Lake: Round 28 ([`round28-intel-small-20261007/`](benchmarks/results/round28-intel-small-20261007/) `parity-br1`, `parity-br2`), v0.19.0.
 
-v0.15.0 changes nothing for float64 on AMD, and v0.16.0 changes only float32.
-go-fft time ÷ FFTW time, below 1 means go-fft is faster (bold: at or above
-FFTW, within 5%):
+No later release changes the float64 path on those machines. go-fft time ÷ FFTW
+time, below 1 means go-fft is faster (bold: at or above FFTW, within 5%):
 
 | transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64, NEON) | Xeon Cascade Lake (AVX-512) |
 |:--|--:|--:|--:|
-| complex 256 | 1.28 | **0.94** | 1.34 |
-| complex 1,024 | 1.11 | **0.79** | 1.27 |
-| complex 4,096 | **0.90** | **0.65** | **0.99** |
-| complex 65,536 | **0.87** | **0.51** | 1.14 |
-| complex 1,048,576 | **0.49** | **0.47** | **0.83** |
-| complex 1,000 (2³·5³) | 1.18 | **0.82** | 1.19 |
-| complex 1,296 (2⁴·3⁴) | 1.23 | **0.76** | 1.22 |
-| complex 1,009 (prime, Rader) | **0.64** | **0.44** | **0.62** |
-| complex 10,007 (prime, Bluestein) | **1.04** | **0.70** | **0.93** |
-| RFFT 4,096 | **1.02** | **0.83** | 1.23 |
-| RFFT 1,048,576 | **0.80** | **0.53** | 1.41 |
-| 2-D 128×128 | **0.85** | **0.71** | 1.18 |
-| 2-D 1024×1024 | **0.87** | **0.39** | **0.77** |
+| complex 256 | 1.24 | **0.96** | 1.24 |
+| complex 1,024 | 1.13 | **0.83** | 1.17 |
+| complex 4,096 | **0.84** | **0.68** | **0.95** |
+| complex 65,536 | **0.88** | **0.57** | 1.15 |
+| complex 1,048,576 | **0.52** | **0.46** | **0.83** |
+| complex 1,000 (2³·5³) | 1.06 | **0.83** | 1.23 |
+| complex 1,296 (2⁴·3⁴) | **1.02** | **0.76** | 1.22 |
+| complex 1,009 (prime, Rader) | **0.66** | **0.45** | **0.61** |
+| complex 10,007 (prime, Bluestein) | **1.02** | **0.69** | **0.94** |
+| RFFT 256 | 1.21 | 1.06 | 1.21 |
+| RFFT 4,096 | 1.14 | **0.78** | 1.23 |
+| RFFT 1,048,576 | **0.79** | **0.56** | 1.09 |
+| 2-D 128×128 | **0.83** | **0.65** | 1.06 |
+| 2-D 1024×1024 | **0.96** | **0.40** | **0.82** |
 
-- **Against FFTW:** at or above it on 13 of the 24 rows on Zen 3, 21 on Neoverse-N1 and 6 on Cascade Lake.
-- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows on every host.
-- **Cascade Lake beyond 2^19 is noisy:** RFFT 2^20 read 0.92× FFTW in Round 20 and 1.41× here; within-run spreads there reach 1.45–1.6 (Round 20). One of Round 24's four Cascade Lake runs was discarded because FFTW itself ran 3–33% slow.
-- **Single precision** (Rounds 22, 25): float32 complex transforms take 0.51–0.68× the float64 time on Zen 3, real ones 0.55–0.83×, N-D 0.46–0.77×. FFTW's single-precision library is not built on the hosts.
+- **Against FFTW:** at or above it on 15 of the 24 rows on Zen 3, 23 on Neoverse-N1 and 7 on Cascade Lake (means of two runs).
+- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows in every one of the six runs.
+- **FFTW's variance:** Zen 3's RFFT 4096 reads 1.14 here and 1.02 in Round 23 with the same go-fft code; Cascade Lake beyond 2^19 is noisier still (Round 20).
+- **Known regression:** 2-D 1024² on Cascade Lake runs at 0.94× v0.18.0's speed since v0.19.0 (Round 28), cause not established.
+- **Single precision** (Rounds 22, 25, 27): float32 takes 0.46–0.83× the float64 time on Zen 3 and 0.58–0.73× on Neoverse-N1. FFTW's single-precision library is not built on the hosts.
 - **Earlier tables** are in the git history of this file and in the dated rounds below.
 
 The dated rounds below (from "Stockham round" on) record how the code got
