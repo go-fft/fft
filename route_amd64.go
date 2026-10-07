@@ -171,38 +171,77 @@ func cascadeMinAMD64(avx512, intel bool) int {
 	return 0
 }
 
-// splitTableDefault is splitTableAMD64, or intelSplitTable512 where the
-// 512-bit split layout runs, for this machine.
+// splitTableDefault is splitTableAMD64, intelSplitTable512 where the
+// 512-bit split layout runs, or hswSplitTable on an Intel CPU with the
+// 256-bit one, for this machine.
 func splitTableDefault() map[int][]int {
-	return intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512)
+	return intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.IntelCPU)
 }
 
 // intelSplitTableAMD64 is splitTableDefault's choice: intelSplitTable512 with
-// the 512-bit split layout (kernels.UseStockhamSplit512), else
-// splitTableAMD64.
-func intelSplitTableAMD64(on, on512 bool) map[int][]int {
-	if on512 {
+// the 512-bit split layout (kernels.UseStockhamSplit512), hswSplitTable with
+// the 256-bit one on an Intel CPU (Haswell, Round 29), else splitTableAMD64.
+func intelSplitTableAMD64(on, on512, intel bool) map[int][]int {
+	switch {
+	case on512:
 		return intelSplitTable512()
+	case on && intel:
+		return hswSplitTable()
 	}
 	return splitTableAMD64(on)
 }
 
-func init() { intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512) }
+func init() {
+	intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512, kernels.UseStockhamSplit && kernels.IntelCPU)
+}
 
 // intelStripOrderAMD64 is intelStripOrder: the lengths of intelSplitTable512
-// when the 512-bit split layout runs. On Cascade Lake (Round 28) the batched
-// column passes of 1024×1024 ran 8·4·4·8 1.10× slower than 4·4·8·8 (five
-// rotated rounds, 2-D 1024² 19.4 against 17.6 ms); the strips run
-// interleaved whatever the layout, and the table was chosen for it.
-func intelStripOrderAMD64(on512 bool) map[int]bool {
-	if !on512 {
+// when the 512-bit split layout runs, of hswSplitTable when the 256-bit one
+// runs on an Intel CPU. On Cascade Lake (Round 28) the batched column passes
+// of 1024×1024 ran 8·4·4·8 1.10× slower than 4·4·8·8 (five rotated rounds,
+// 2-D 1024² 19.4 against 17.6 ms); the strips run interleaved whatever the
+// layout, and the tables were chosen for it, so the strips keep main's
+// factorizations.
+func intelStripOrderAMD64(on512, hsw bool) map[int]bool {
+	var tab map[int][]int
+	switch {
+	case on512:
+		tab = intelSplitTable512()
+	case hsw:
+		tab = hswSplitTable()
+	default:
 		return nil
 	}
 	m := map[int]bool{}
-	for n := range intelSplitTable512() {
+	for n := range tab {
 		m[n] = true
 	}
 	return m
+}
+
+// hswSplitTable gives the powers of two whose factorization changes when the
+// 256-bit split layout runs on an Intel CPU without AVX-512 (Round 29,
+// Haswell, one pinned core). Every ordering of radix-4, -8 and -16 passes
+// from 64 to 65536 points was timed split and interleaved (three rotated
+// rounds), then the best few against the current factorization split and
+// interleaved (seven rounds; from 2^17 to 2^20 the current one, Round 23's
+// splitPow2Factors and one more). The current factorization interleaved ÷
+// the table's split: 512 (8·8·8 → 8·4·16) 1.024; 8192 (4·4·8·8·8 →
+// 8·8·4·4·8) 1.209; 16384 (4·8·8·8·8 → 8·4·8·8·8) 1.140; 2^19 and 2^20
+// (splitPow2Factors) 1.072 and 1.064, every round above 1.02. Everywhere
+// else, 1024 to 2^18, the current factorization ran split as fast as
+// anything timed (1.029 at 1024 to 1.141 at 4096); beyond 2^20, not timed,
+// splitPow2Factors as on Zen 3.
+func hswSplitTable() map[int][]int {
+	t := map[int][]int{
+		512:   {8, 4, 16},
+		8192:  {8, 8, 4, 4, 8},
+		16384: {8, 4, 8, 8, 8},
+	}
+	for e := 19; e <= 30; e++ {
+		t[1<<e] = splitPow2Factors(e)
+	}
+	return t
 }
 
 // intelSplitTable512 gives the powers of two whose factorization changes

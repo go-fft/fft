@@ -35,11 +35,18 @@ func TestSplitModes(t *testing.T) {
 			t.Errorf("splitModes(%v, %v, off) = %v, want all zero", c.r, c.ido, got)
 		}
 	}
-	old := UseStockhamSplit
-	defer func() { UseStockhamSplit = old }()
-	UseStockhamSplit = true
+	old, old1 := UseStockhamSplit, UseStockhamSplitSingle
+	defer func() { UseStockhamSplit, UseStockhamSplitSingle = old, old1 }()
+	UseStockhamSplit, UseStockhamSplitSingle = true, true
 	if got := StockhamSplitModes([]int{4, 4}, []int{4, 1}, []int{1, 4}); got[0] != splitNone {
 		t.Errorf("StockhamSplitModes on: %v", got)
+	}
+	// Runs of one off (Round 29): the run of one goes back to the
+	// interleaved kernel, a run of two stays split.
+	UseStockhamSplitSingle = false
+	got := StockhamSplitModes([]int{4, 3, 4, 4, 8}, []int{384, 128, 32, 8, 1}, []int{1, 4, 12, 48, 192})
+	if !slices.Equal(got, []uint8{0, 0, splitOut, splitIn, 0}) {
+		t.Errorf("StockhamSplitModes, runs of one off: %v", got)
 	}
 	UseStockhamSplit = false
 	if got := StockhamSplitModes([]int{4, 4}, []int{4, 1}, []int{1, 4}); got[0] != 0 {
@@ -140,15 +147,14 @@ func TestSplitTwiddles(t *testing.T) {
 	}
 }
 
-// TestSplitDefault: the split layout runs with AVX2 alone, on a CPU that does
-// not report GenuineIntel.
+// TestSplitDefault: the 256-bit split layout runs with AVX2 alone, whatever
+// the vendor (Round 29 measured Haswell).
 func TestSplitDefault(t *testing.T) {
-	for _, c := range []struct{ avx2, avx512, intel, want bool }{
-		{true, false, false, true}, {true, false, true, false}, {true, true, false, false},
-		{false, false, false, false}, {true, true, true, false},
+	for _, c := range []struct{ avx2, avx512, want bool }{
+		{true, false, true}, {true, true, false}, {false, false, false}, {false, true, false},
 	} {
-		if got := splitDefault(c.avx2, c.avx512, c.intel); got != c.want {
-			t.Errorf("splitDefault(avx2=%v, avx512=%v, intel=%v) = %v", c.avx2, c.avx512, c.intel, got)
+		if got := splitDefault(c.avx2, c.avx512); got != c.want {
+			t.Errorf("splitDefault(avx2=%v, avx512=%v) = %v", c.avx2, c.avx512, got)
 		}
 	}
 }
