@@ -31,7 +31,7 @@ var radix16Table = radix16TableDefault()
 // built and timed (Round 19): n×n time with radix-16 columns ÷ without, on
 // Haswell, was 0.89 at 128, 1.18 at 256, 0.99 at 1024 and 1.07 at 2048, and
 // on Zen 3 every 2-D row from 128 to 1024 lost 9–15% with it; so the
-// kernel was dropped.
+// kernel was dropped. The lengths of intelStripOrder take it too (Round 28).
 func cachedPlanNo16(n int) *Plan {
 	planMu.Lock()
 	defer planMu.Unlock()

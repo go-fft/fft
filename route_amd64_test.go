@@ -74,6 +74,18 @@ func TestIntelSplitTableAMD64(t *testing.T) {
 	}
 }
 
+// TestIntelStripOrderAMD64: with the 512-bit layout, the strips of the
+// lengths intelSplitTable512 changes keep skFactorizeOrder's factorization.
+func TestIntelStripOrderAMD64(t *testing.T) {
+	if intelStripOrderAMD64(false) != nil {
+		t.Error("strip orders without the 512-bit layout")
+	}
+	m := intelStripOrderAMD64(true)
+	if len(m) != len(intelSplitTable512()) || !m[1024] || !m[8192] {
+		t.Errorf("strip orders %v", m)
+	}
+}
+
 // TestSplitTableAMD64 pins which powers of two change their factorization
 // with the split layout.
 func TestSplitTableAMD64(t *testing.T) {

@@ -30,3 +30,11 @@ func splitPow2Factors(e int) []int {
 	}
 	return append(f, 4)
 }
+
+// intelStripOrder lists the lengths whose N-D strip axes (every axis but the
+// last) take skFactorizeOrder's factorization, as cachedPlanNo16 builds it,
+// although splitTable gives their 1-D plans another one: the batched passes
+// of a strip run interleaved, and those factorizations were chosen for the
+// split layout's 1-D passes. Set per architecture (route_amd64.go: Round 28's
+// table); nil elsewhere.
+var intelStripOrder map[int]bool

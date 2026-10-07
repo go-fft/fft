@@ -187,6 +187,24 @@ func intelSplitTableAMD64(on, on512 bool) map[int][]int {
 	return splitTableAMD64(on)
 }
 
+func init() { intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512) }
+
+// intelStripOrderAMD64 is intelStripOrder: the lengths of intelSplitTable512
+// when the 512-bit split layout runs. On Cascade Lake (Round 28) the batched
+// column passes of 1024×1024 ran 8·4·4·8 1.10× slower than 4·4·8·8 (five
+// rotated rounds, 2-D 1024² 19.4 against 17.6 ms); the strips run
+// interleaved whatever the layout, and the table was chosen for it.
+func intelStripOrderAMD64(on512 bool) map[int]bool {
+	if !on512 {
+		return nil
+	}
+	m := map[int]bool{}
+	for n := range intelSplitTable512() {
+		m[n] = true
+	}
+	return m
+}
+
 // intelSplitTable512 gives the powers of two whose factorization changes
 // with the 512-bit split layout (Round 28, Cascade Lake, one pinned core).
 // Every ordering of radix-4, -8 and -16 passes from 256 to 16384 points was
