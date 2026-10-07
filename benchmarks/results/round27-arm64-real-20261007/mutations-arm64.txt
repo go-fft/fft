@@ -1,0 +1,17 @@
+untangle tr unfused                      CAUGHT
+untangle xe halving rounded first        CAUGHT
+untangle ti fuses the other product      CAUGHT
+mirror input not swapped                 CAUGHT
+mirror output not swapped                CAUGHT
+untangle -(c - p) form                   CAUGHT
+untangle xoi sign                        CAUGHT
+retangle xor fuses the other product     CAUGHT
+retangle h·s.re rounded first            CAUGHT
+retangle xoi fuses the other product     CAUGHT
+retangle z[m-k].im as VFMLS              CAUGHT
+mirror pointer step                      CAUGHT
+twiddle not advanced                     CAUGHT
+first bin offset                         CAUGHT
+steps overlap their registers            CAUGHT
+a tail step skipped                      CAUGHT
+second step's mirror offset              CAUGHT
