@@ -198,6 +198,13 @@ factorization sweeps in every layout and width, the rotated A/B runs, the
 end-to-end runs against main (including the build whose use of Z16..Z31 slowed
 the composites), the mutation log and four parity runs. See its README.
 
+`round29-haswell-20261007` holds the measurements behind Round 29 of
+BENCHMARKS.md, all on Haswell (cfarm13, one pinned core, each run gated on a
+load below 2): the power-of-two sweeps and A/B split against interleaved, the
+composite sweeps of Round 24's and Round 26's rules, the hardware counters,
+the accuracy check against numpy and the end-to-end runs against main. See its
+README.
+
 `round30-small-real-20261008` holds the measurements behind Round 30 of
 BENCHMARKS.md, on Zen 3 (cfarm420) and Neoverse-N1 (cfarm424): RFFT and
 complex 256 split part by part, the untangle kernel variants, the RealPlan
