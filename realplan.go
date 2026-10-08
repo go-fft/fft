@@ -76,9 +76,9 @@ func (p *RealPlan) Len() int { return p.n }
 
 // RFFT writes the non-redundant N/2+1 spectral bins of the real signal src into
 // dst and returns dst. src must have length Len(); dst must have length
-// Len()/2+1. src is not modified. dst must not overlap src (which only an
-// unsafe conversion can arrange): dst holds the intermediate half-length
-// spectrum while src is still being read.
+// Len()/2+1. src is not modified. dst may share memory with src (which only an
+// unsafe conversion can arrange): the transform then goes through a private
+// buffer instead of building the half-length spectrum in dst.
 func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	n := p.n
 	if len(src) < n || (n > 0 && len(dst) < n/2+1) {
@@ -123,10 +123,27 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	// pair is read before it is written): no buffer of the RealPlan's own, one
 	// sync.Pool round trip fewer per call (Round 30: 1.04-1.07× at 256 and
 	// 512 points on Zen 3, 1.03× at 256 on Neoverse-N1).
+	if realOverlap(unsafe.Pointer(unsafe.SliceData(dst)), 16*(m+1), unsafe.Pointer(unsafe.SliceData(src)), 8*n) {
+		// dst would hold the half spectrum while src is still being read:
+		// build it in the RealPlan's own buffer instead.
+		buf, _, Zs := p.getScratch()
+		p.half.execute(Zs, asComplex(src[:2*m]), false)
+		rfftUntangle(dst, Zs, p.tw, m)
+		p.putScratch(buf)
+		return dst[:m+1]
+	}
 	Z := dst[:m]
 	p.half.execute(Z, asComplex(src[:2*m]), false)
 	rfftUntangle(dst, Z, p.tw, m)
 	return dst[:m+1]
+}
+
+// realOverlap reports whether the byte ranges [a, a+an) and [b, b+bn)
+// share memory. Pointers become integers only for this comparison, as in
+// offTheSets; they are never turned back into pointers.
+func realOverlap(a unsafe.Pointer, an int, b unsafe.Pointer, bn int) bool {
+	x, y := uintptr(a), uintptr(b)
+	return x < y+uintptr(bn) && y < x+uintptr(an)
 }
 
 // rfftUntangle splits the m-point packed spectrum Z into the m+1 real-FFT bins
@@ -242,7 +259,7 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 	n := p.n
 	m := n / 2
 
-	if smallIRFFTInPlace(p.half) {
+	if smallIRFFTInPlace(p.half) && !realOverlap(unsafe.Pointer(unsafe.SliceData(dst)), 8*n, unsafe.Pointer(unsafe.SliceData(src)), 16*(m+1)) {
 		// Z built in dst, read as complex128 (the layout the inverse writes
 		// anyway), and the half-length inverse run in place on it: one
 		// sync.Pool round trip fewer (Round 30).
