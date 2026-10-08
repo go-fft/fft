@@ -1,6 +1,10 @@
 package fft
 
-import "github.com/go-fft/fft/internal/kernels"
+import (
+	"slices"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
 
 // compOddFirstDefault is oddRadicesFirst on amd64 (Round 17's order with the
 // AVX2 kernels).
@@ -19,10 +23,19 @@ func compRadix16(n int) []int { return compRadix16For(n, compRadix16On) }
 // routes on any machine.
 var comp2On = kernels.UseStockhamAVX2 && !kernels.IntelCPU
 
+// hswCompOn enables hswComp2Factors: the AVX2 kernels on an Intel CPU
+// without the AVX-512 ones (Haswell, Round 29). A variable so the tests can
+// take the route on any machine.
+var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU && !kernels.UseStockhamAVX512
+
 // compFactorize is skFactorize past radix16Table: on AMD comp2Factors, on
-// Intel a composite's radix-12 passes, else its radix-16 tail; else
-// skFactorizeOrder's factorization.
+// Intel without AVX-512 hswComp2Factors, on Intel with it a composite's
+// radix-12 passes, else its radix-16 tail; else skFactorizeOrder's
+// factorization.
 func compFactorize(n int) []int {
+	if f := hswComp2Factors(n, hswCompOn); f != nil {
+		return f
+	}
 	if f := comp2Factors(n, comp2On); f != nil {
 		return f
 	}
@@ -215,4 +228,38 @@ func comp2Factors(n int, on bool) []int {
 		f = append(f, tail[i])
 	}
 	return rep(rep(rep(rep(f, 15, t15), 10, t10), 12, t12), 20, t20)
+}
+
+// hswComp2Factors is comp2Factors with Round 24's radix-16 tails: where
+// comp2Factors closes the powers of two left over by its radix-12 and -20
+// passes with 4·4 (four bits) or 4·4·8 (seven), it takes 16 or 8·16 instead.
+// Every factorization comp2Candidates lists was timed for the 145 lengths n
+// = 2^e·3^a·5^b up to 16384 (e >= 1, a+b >= 1) on Haswell (Round 29, one
+// pinned core, five rotated rounds). comp2Factors' choice took 1.013× the
+// best candidate's time (geometric mean) and lost to Round 24's Intel rule
+// at 1536, 3840, 6400 and 7680 (0.945–0.990), all of them a 4·4 or 4·4·8
+// tail; with the radix-16 tails, 1.009× the best, 1.077× as fast as Round
+// 24's rule, none slower than it beyond 1.6%.
+func hswComp2Factors(n int, on bool) []int {
+	f := comp2Factors(n, on)
+	var tail []int
+	at := -1
+	for k, r := range f {
+		if r == 4 || r == 8 {
+			if at < 0 {
+				at = k
+			}
+			tail = append(tail, r)
+		}
+	}
+	var r16 []int
+	switch {
+	case slices.Equal(tail, []int{4, 4}):
+		r16 = []int{16}
+	case slices.Equal(tail, []int{4, 4, 8}):
+		r16 = []int{8, 16}
+	default:
+		return f
+	}
+	return slices.Concat(f[:at], r16, f[at+len(tail):])
 }

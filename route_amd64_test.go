@@ -64,25 +64,58 @@ func TestRadix16TableAMD64(t *testing.T) {
 // whatever the 256-bit setting, and only 1024 and 8192 change.
 func TestIntelSplitTableAMD64(t *testing.T) {
 	for _, on := range []bool{false, true} {
-		tab := intelSplitTableAMD64(on, true)
-		if len(tab) != 2 || !slices.Equal(tab[1024], []int{8, 4, 4, 8}) || !slices.Equal(tab[8192], []int{8, 8, 4, 4, 8}) {
-			t.Errorf("512 on, 256 %v: %v", on, tab)
+		for _, intel := range []bool{false, true} {
+			tab := intelSplitTableAMD64(on, true, intel)
+			if len(tab) != 2 || !slices.Equal(tab[1024], []int{8, 4, 4, 8}) || !slices.Equal(tab[8192], []int{8, 8, 4, 4, 8}) {
+				t.Errorf("512 on, 256 %v, intel %v: %v", on, intel, tab)
+			}
 		}
 	}
-	if intelSplitTableAMD64(false, false) != nil || len(intelSplitTableAMD64(true, false)) != len(splitTableAMD64(true)) {
+	if intelSplitTableAMD64(false, false, false) != nil || intelSplitTableAMD64(false, false, true) != nil ||
+		len(intelSplitTableAMD64(true, false, false)) != len(splitTableAMD64(true)) {
 		t.Error("512 off: want splitTableAMD64")
+	}
+	if len(intelSplitTableAMD64(true, false, true)) != len(hswSplitTable()) {
+		t.Error("256-bit layout on Intel: want hswSplitTable")
+	}
+}
+
+// TestHswSplitTable pins Round 29's Haswell table: 512, 8192, 16384 and
+// splitPow2Factors from 2^19; 1024 to 2^18 but those keep their
+// factorization.
+func TestHswSplitTable(t *testing.T) {
+	tab := hswSplitTable()
+	for n, f := range tab {
+		if p := product(f); p != n {
+			t.Errorf("%d factored as %v", n, f)
+		}
+	}
+	for _, n := range []int{64, 128, 256, 1024, 2048, 4096, 32768, 65536, 1 << 17, 1 << 18} {
+		if tab[n] != nil {
+			t.Errorf("%d: %v, want its interleaved factorization", n, tab[n])
+		}
+	}
+	if !slices.Equal(tab[512], []int{8, 4, 16}) || !slices.Equal(tab[8192], []int{8, 8, 4, 4, 8}) ||
+		!slices.Equal(tab[16384], []int{8, 4, 8, 8, 8}) || !slices.Equal(tab[1<<20], splitPow2Factors(20)) || tab[1<<30] == nil {
+		t.Errorf("hswSplitTable %v", tab)
 	}
 }
 
 // TestIntelStripOrderAMD64: with the 512-bit layout, the strips of the
 // lengths intelSplitTable512 changes keep skFactorizeOrder's factorization.
 func TestIntelStripOrderAMD64(t *testing.T) {
-	if intelStripOrderAMD64(false) != nil {
-		t.Error("strip orders without the 512-bit layout")
+	if intelStripOrderAMD64(false, false) != nil {
+		t.Error("strip orders without the 512-bit layout or Haswell's table")
 	}
-	m := intelStripOrderAMD64(true)
-	if len(m) != len(intelSplitTable512()) || !m[1024] || !m[8192] {
-		t.Errorf("strip orders %v", m)
+	for _, hsw := range []bool{false, true} {
+		m := intelStripOrderAMD64(true, hsw)
+		if len(m) != len(intelSplitTable512()) || !m[1024] || !m[8192] {
+			t.Errorf("strip orders %v", m)
+		}
+	}
+	m := intelStripOrderAMD64(false, true)
+	if len(m) != len(hswSplitTable()) || !m[512] || !m[8192] || !m[16384] || m[1024] {
+		t.Errorf("Haswell strip orders %v", m)
 	}
 }
 

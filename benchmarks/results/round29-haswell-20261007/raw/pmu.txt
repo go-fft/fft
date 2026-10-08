@@ -1,0 +1,274 @@
+## 64=a:cur
+# start try 1 00:23:56 load 1.98 4.96 8.76 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=64=a:cur
+AB 64 a:cur                     170.9 ns  first/this 1.000  range 1.000-1.000
+PASS
+9413543323,,cycles,2419447671,66.64,,
+27292527120,,instructions,3026547800,83.36,2.90,insn per cycle
+3523716244,,uops_dispatched_port.port_0,3026556540,83.36,,
+6258970935,,uops_dispatched_port.port_1,3026543901,83.36,,
+4256134539,,uops_dispatched_port.port_5,3026549559,83.36,,
+2062390712,,resource_stalls.any,3023016437,83.27,,
+# end 00:23:59 load 1.98 4.91 8.72
+## 64=a:cur
+# start try 1 00:23:59 load 1.98 4.91 8.72 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=64=a:cur
+AB 64 a:cur                     170.7 ns  first/this 1.000  range 1.000-1.000
+PASS
+9407526108,,cycles,2898981165,79.93,,
+441727,,l1d.replacement,2900286041,79.96,,
+85743142,,ld_blocks_partial.address_alias,2903023206,80.04,,
+3365294,,resource_stalls.sb,2903015156,80.04,,
+3826864,,cycle_activity.stalls_l1d_pending,2902658948,80.03,,
+# end 00:24:03 load 1.98 4.86 8.69
+## 64=s:cur
+# start try 1 00:24:03 load 1.98 4.86 8.69 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=64=s:cur
+AB 64 s:cur                     186.7 ns  first/this 1.000  range 1.000-1.000
+PASS
+5143441838,,cycles,1320088729,66.54,,
+13615971960,,instructions,1652087851,83.27,2.65,insn per cycle
+1760451695,,uops_dispatched_port.port_0,1652039644,83.27,,
+3168591470,,uops_dispatched_port.port_1,1652031491,83.27,,
+1875991944,,uops_dispatched_port.port_5,1657112075,83.52,,
+1519056942,,resource_stalls.any,1654842541,83.41,,
+# end 00:24:05 load 1.98 4.86 8.69
+## 64=s:cur
+# start try 1 00:24:05 load 1.98 4.86 8.69 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=64=s:cur
+AB 64 s:cur                     186.4 ns  first/this 1.000  range 1.000-1.000
+PASS
+10274060809,,cycles,3169291966,80.00,,
+523227,,l1d.replacement,3169583750,80.01,,
+280655610,,ld_blocks_partial.address_alias,3169478224,80.01,,
+2484296,,resource_stalls.sb,3169512626,80.01,,
+5538061,,cycle_activity.stalls_l1d_pending,3167997190,79.97,,
+# end 00:24:09 load 1.98 4.81 8.65
+## 4096=a:cur
+# start try 1 00:24:09 load 1.98 4.81 8.65 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=4096=a:cur
+AB 4096 a:cur                   23103.0 ns  first/this 1.000  range 1.000-1.000
+PASS
+9947002623,,cycles,2556312589,66.64,,
+16441771208,,instructions,3196266778,83.32,1.65,insn per cycle
+2459962723,,uops_dispatched_port.port_0,3196084110,83.32,,
+5450498111,,uops_dispatched_port.port_1,3196072729,83.32,,
+3683850060,,uops_dispatched_port.port_5,3199139711,83.40,,
+5508384546,,resource_stalls.any,3196660669,83.33,,
+# end 00:24:13 load 1.98 4.77 8.61
+## 4096=a:cur
+# start try 1 00:24:13 load 1.98 4.77 8.61 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=4096=a:cur
+AB 4096 a:cur                   23069.6 ns  first/this 1.000  range 1.000-1.000
+PASS
+9934509766,,cycles,3063080108,79.97,,
+1763872964,,l1d.replacement,3066140842,80.05,,
+825940898,,ld_blocks_partial.address_alias,3066134167,80.05,,
+2025027947,,resource_stalls.sb,3066172557,80.05,,
+721859948,,cycle_activity.stalls_l1d_pending,3058988058,79.87,,
+# end 00:24:17 load 1.99 4.72 8.58
+## 4096=s:cur
+# start try 1 00:24:17 load 1.99 4.72 8.58 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=4096=s:cur
+AB 4096 s:cur                   20364.6 ns  first/this 1.000  range 1.000-1.000
+PASS
+8768963602,,cycles,2245962215,66.41,,
+14276777614,,instructions,2813857570,83.21,1.63,insn per cycle
+2434975627,,uops_dispatched_port.port_0,2816719605,83.29,,
+5476749396,,uops_dispatched_port.port_1,2821831028,83.44,,
+1557191529,,uops_dispatched_port.port_5,2821949928,83.44,,
+5098662611,,resource_stalls.any,2820846276,83.41,,
+# end 00:24:20 load 1.99 4.72 8.58
+## 4096=s:cur
+# start try 1 00:24:20 load 1.99 4.72 8.58 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=4096=s:cur
+AB 4096 s:cur                   20199.8 ns  first/this 1.000  range 1.000-1.000
+PASS
+8700647075,,cycles,2682557986,79.97,,
+1607923595,,l1d.replacement,2682491939,79.97,,
+503168527,,ld_blocks_partial.address_alias,2683345996,79.99,,
+1242381677,,resource_stalls.sb,2686454546,80.09,,
+654110228,,cycle_activity.stalls_l1d_pending,2682882669,79.98,,
+# end 00:24:24 load 1.99 4.67 8.54
+## 65536=a:cur
+# start try 1 00:24:24 load 1.99 4.67 8.54 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=65536=a:cur
+AB 65536 a:cur                  696261.0 ns  first/this 1.000  range 1.000-1.000
+PASS
+9388542174,,cycles,2413006491,66.64,,
+11795521473,,instructions,3016977719,83.32,1.26,insn per cycle
+1733714985,,uops_dispatched_port.port_0,3016927329,83.32,,
+3687507306,,uops_dispatched_port.port_1,3017008818,83.32,,
+2551870122,,uops_dispatched_port.port_5,3020876689,83.43,,
+6207125523,,resource_stalls.any,3015837365,83.29,,
+# end 00:24:27 load 1.99 4.63 8.51
+## 65536=a:cur
+# start try 1 00:24:27 load 1.99 4.63 8.51 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=65536=a:cur
+AB 65536 a:cur                  696820.1 ns  first/this 1.000  range 1.000-1.000
+PASS
+9398305655,,cycles,2895934770,79.92,,
+1349071567,,l1d.replacement,2899627071,80.02,,
+637205837,,ld_blocks_partial.address_alias,2899605838,80.02,,
+3357165603,,resource_stalls.sb,2899613577,80.02,,
+2041367952,,cycle_activity.stalls_l1d_pending,2899559108,80.02,,
+# end 00:24:31 load 1.99 4.63 8.51
+## 65536=s:cur
+# start try 1 00:24:31 load 1.99 4.63 8.51 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=65536=s:cur
+AB 65536 s:cur                  619218.5 ns  first/this 1.000  range 1.000-1.000
+PASS
+8357774249,,cycles,2143539696,66.50,,
+9781465348,,instructions,2683456793,83.25,1.17,insn per cycle
+1732013303,,uops_dispatched_port.port_0,2683473523,83.25,,
+3670847024,,uops_dispatched_port.port_1,2687427466,83.37,,
+833232601,,uops_dispatched_port.port_5,2688940955,83.42,,
+5851451139,,resource_stalls.any,2690417348,83.46,,
+# end 00:24:34 load 1.99 4.59 8.47
+## 65536=s:cur
+# start try 1 00:24:34 load 1.99 4.59 8.47 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=65536=s:cur
+AB 65536 s:cur                  620582.5 ns  first/this 1.000  range 1.000-1.000
+PASS
+8380134259,,cycles,2583338797,79.95,,
+1267563329,,l1d.replacement,2583290732,79.95,,
+297966701,,ld_blocks_partial.address_alias,2583269784,79.95,,
+1023993115,,resource_stalls.sb,2587284183,80.07,,
+2364915518,,cycle_activity.stalls_l1d_pending,2587840588,80.09,,
+# end 00:24:38 load 1.99 4.54 8.44
+## 65536=s:8x8x8x8x16
+# start try 1 00:24:38 load 1.99 4.54 8.44 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=65536=s:8x8x8x8x16
+AB 65536 s:8x8x8x8x16           650388.2 ns  first/this 1.000  range 1.000-1.000
+PASS
+8774708324,,cycles,2254922694,66.63,,
+9253194001,,instructions,2820154721,83.33,1.05,insn per cycle
+1644321711,,uops_dispatched_port.port_0,2820171848,83.34,,
+3655891778,,uops_dispatched_port.port_1,2820165388,83.34,,
+902975229,,uops_dispatched_port.port_5,2824130035,83.45,,
+6391236502,,resource_stalls.any,2817132187,83.25,,
+# end 00:24:41 load 1.99 4.54 8.44
+## 65536=s:8x8x8x8x16
+# start try 1 00:24:41 load 1.99 4.54 8.44 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestIntelAB$ -intel.ab=40,50 -intel.set=65536=s:8x8x8x8x16
+AB 65536 s:8x8x8x8x16           635522.0 ns  first/this 1.000  range 1.000-1.000
+PASS
+8575735467,,cycles,2642570652,79.92,,
+1121948740,,l1d.replacement,2646552768,80.04,,
+304405214,,ld_blocks_partial.address_alias,2646545284,80.04,,
+1639562693,,resource_stalls.sb,2646427735,80.04,,
+1809888853,,cycle_activity.stalls_l1d_pending,2643631589,79.95,,
+# end 00:24:44 load 1.99 4.50 8.40
+## 3840:5x8x8x12
+# start try 1 00:24:44 load 1.99 4.50 8.40 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=3840:5x8x8x12
+AB 3840 5x8x8x12              17545.0 ns  first/this 1.000  spread 1.000
+PASS
+7555959265,,cycles,1938154233,66.51,,
+16320582147,,instructions,2426132765,83.25,2.16,insn per cycle
+2810157256,,uops_dispatched_port.port_0,2427724376,83.31,,
+5245919100,,uops_dispatched_port.port_1,2430174959,83.39,,
+3230671088,,uops_dispatched_port.port_5,2434104059,83.53,,
+3170835911,,resource_stalls.any,2426321473,83.26,,
+# end 00:24:47 load 1.99 4.46 8.37
+## 3840:5x8x8x12
+# start try 1 00:24:47 load 1.99 4.46 8.37 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=3840:5x8x8x12
+AB 3840 5x8x8x12              17763.9 ns  first/this 1.000  spread 1.000
+PASS
+7650527394,,cycles,2357612326,79.93,,
+1536437280,,l1d.replacement,2357616758,79.93,,
+351768324,,ld_blocks_partial.address_alias,2361586195,80.07,,
+41971281,,resource_stalls.sb,2365581333,80.20,,
+417819937,,cycle_activity.stalls_l1d_pending,2355922856,79.87,,
+# end 00:24:50 load 1.99 4.46 8.37
+## 3840:4x4x12x20
+# start try 1 00:24:50 load 1.99 4.46 8.37 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=3840:4x4x12x20
+AB 3840 4x4x12x20             18093.5 ns  first/this 1.000  spread 1.000
+PASS
+7790606527,,cycles,2002252023,66.64,,
+16245080812,,instructions,2504532512,83.36,2.09,insn per cycle
+2484623178,,uops_dispatched_port.port_0,2504620912,83.36,,
+5036274613,,uops_dispatched_port.port_1,2504532401,83.36,,
+2888793855,,uops_dispatched_port.port_5,2504560396,83.36,,
+3415386746,,resource_stalls.any,2502111736,83.28,,
+# end 00:24:53 load 1.99 4.42 8.33
+## 3840:4x4x12x20
+# start try 1 00:24:53 load 1.99 4.42 8.33 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=3840:4x4x12x20
+AB 3840 4x4x12x20             18242.7 ns  first/this 1.000  spread 1.000
+PASS
+7856787145,,cycles,2421097047,79.93,,
+1523834755,,l1d.replacement,2421567405,79.94,,
+661666630,,ld_blocks_partial.address_alias,2425125317,80.06,,
+651073793,,resource_stalls.sb,2425149663,80.06,,
+501927278,,cycle_activity.stalls_l1d_pending,2423453996,80.01,,
+# end 00:24:57 load 1.99 4.38 8.30
+## 3840:16x12x20
+# start try 1 00:24:57 load 1.99 4.38 8.30 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=3840:16x12x20
+AB 3840 16x12x20              17308.7 ns  first/this 1.000  spread 1.000
+PASS
+7454126938,,cycles,1914803199,66.61,,
+14087317208,,instructions,2394778335,83.30,1.89,insn per cycle
+2411112953,,uops_dispatched_port.port_0,2394781736,83.30,,
+5042356662,,uops_dispatched_port.port_1,2398839068,83.44,,
+2459259661,,uops_dispatched_port.port_5,2398783204,83.44,,
+3718160689,,resource_stalls.any,2391870377,83.20,,
+# end 00:24:59 load 1.99 4.38 8.30
+## 3840:16x12x20
+# start try 1 00:24:59 load 1.99 4.38 8.30 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=3840:16x12x20
+AB 3840 16x12x20              17406.8 ns  first/this 1.000  spread 1.000
+PASS
+7496996203,,cycles,2310562738,79.94,,
+1278979277,,l1d.replacement,2311639970,79.97,,
+444671436,,ld_blocks_partial.address_alias,2314518635,80.07,,
+214921565,,resource_stalls.sb,2314587281,80.08,,
+504895200,,cycle_activity.stalls_l1d_pending,2310688768,79.94,,
+# end 00:25:02 load 2.00 4.34 8.27
+## 1536:3x8x8x8
+# start try 1 00:25:22 load 1.71 4.12 8.11 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=1536:3x8x8x8
+AB 1536 3x8x8x8                6413.6 ns  first/this 1.000  spread 1.000
+PASS
+5526293299,,cycles,1419304185,66.59,,
+12195800660,,instructions,1775300100,83.30,2.21,insn per cycle
+1884661876,,uops_dispatched_port.port_0,1775288958,83.30,,
+3700264963,,uops_dispatched_port.port_1,1775632708,83.31,,
+2479343669,,uops_dispatched_port.port_5,1779281797,83.48,,
+2238398004,,resource_stalls.any,1775602948,83.31,,
+# end 00:25:25 load 1.71 4.12 8.11
+## 1536:3x8x8x8
+# start try 1 00:25:25 load 1.71 4.12 8.11 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=1536:3x8x8x8
+AB 1536 3x8x8x8                6400.7 ns  first/this 1.000  spread 1.000
+PASS
+5514038815,,cycles,1697738152,79.87,,
+1044079047,,l1d.replacement,1699197023,79.93,,
+350341667,,ld_blocks_partial.address_alias,1701801046,80.06,,
+338392386,,resource_stalls.sb,1705721063,80.24,,
+235537345,,cycle_activity.stalls_l1d_pending,1698488564,79.90,,
+# end 00:25:27 load 1.74 4.09 8.08
+## 1536:4x4x8x12
+# start try 1 00:25:27 load 1.74 4.09 8.08 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=1536:4x4x8x12
+AB 1536 4x4x8x12               6643.8 ns  first/this 1.000  spread 1.000
+PASS
+5723188836,,cycles,1469259802,66.57,,
+11920031919,,instructions,1839042813,83.33,2.08,insn per cycle
+1708078164,,uops_dispatched_port.port_0,1839087021,83.33,,
+3547940242,,uops_dispatched_port.port_1,1839020873,83.33,,
+2268346270,,uops_dispatched_port.port_5,1842991265,83.51,,
+2509139036,,resource_stalls.any,1837620531,83.26,,
+# end 00:25:29 load 1.74 4.09 8.08
+## 1536:4x4x8x12
+# start try 1 00:25:29 load 1.74 4.09 8.08 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=1536:4x4x8x12
+AB 1536 4x4x8x12               6652.9 ns  first/this 1.000  spread 1.000
+PASS
+5731683021,,cycles,1766083141,79.91,,
+1027509201,,l1d.replacement,1766042967,79.91,,
+408406288,,ld_blocks_partial.address_alias,1770038096,80.09,,
+641473666,,resource_stalls.sb,1774015358,80.27,,
+331966635,,cycle_activity.stalls_l1d_pending,1763970766,79.82,,
+# end 00:25:31 load 1.74 4.09 8.08
+## 1536:8x16x12
+# start try 1 00:25:31 load 1.74 4.09 8.08 :: perf stat -x, -e cycles,instructions,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_5,resource_stalls.any ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=1536:8x16x12
+AB 1536 8x16x12                5599.1 ns  first/this 1.000  spread 1.000
+PASS
+9651312951,,cycles,2474301615,66.48,,
+20235091260,,instructions,3098113577,83.24,2.10,insn per cycle
+3351821649,,uops_dispatched_port.port_0,3098111891,83.24,,
+7034155702,,uops_dispatched_port.port_1,3103959640,83.39,,
+3834725704,,uops_dispatched_port.port_5,3106143492,83.45,,
+4319371433,,resource_stalls.any,3105850514,83.44,,
+# end 00:25:35 load 1.92 4.08 8.05
+## 1536:8x16x12
+# start try 1 00:25:35 load 1.92 4.08 8.05 :: perf stat -x, -e cycles,l1d.replacement,ld_blocks_partial.address_alias,resource_stalls.sb,cycle_activity.stalls_l1d_pending ./r29b.test -test.run ^TestR26AB$ -r26.ab=40,50 -r26.sets=1536:8x16x12
+AB 1536 8x16x12                5597.8 ns  first/this 1.000  spread 1.000
+PASS
+9641038113,,cycles,2969190915,79.89,,
+1752826973,,l1d.replacement,2972747042,79.98,,
+561552575,,ld_blocks_partial.address_alias,2972734639,79.98,,
+638110027,,resource_stalls.sb,2980700850,80.20,,
+344606656,,cycle_activity.stalls_l1d_pending,2971484950,79.95,,
+# end 00:25:39 load 1.92 4.05 8.02
+# PHASE4 DONE 00:25:39

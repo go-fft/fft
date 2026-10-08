@@ -38,3 +38,15 @@ func splitPow2Factors(e int) []int {
 // split layout's 1-D passes. Set per architecture (route_amd64.go: Round 28's
 // table); nil elsewhere.
 var intelStripOrder map[int]bool
+
+// hswSplitFloor, when positive, keeps the split layout to the powers of two
+// of at least that many points: every other plan runs its passes
+// interleaved. Set per architecture (route_amd64.go: 512 on an Intel CPU
+// with the 256-bit layout, Round 29); 0 elsewhere.
+var hswSplitFloor int
+
+// hswSplitKept reports whether a plan of n points keeps the split modes
+// kernels.StockhamSplitModes gave it, under hswSplitFloor.
+func hswSplitKept(n int) bool {
+	return hswSplitFloor <= 0 || n >= hswSplitFloor && n&(n-1) == 0
+}

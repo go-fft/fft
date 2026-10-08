@@ -1,0 +1,36 @@
+# start try 1 00:23:40 load 1.97 5.11 8.87 :: ./r29b.test -test.run ^TestIntelAB$ -intel.ab=7,40 -intel.set=32=a:cur,s:cur,s1:cur;64=a:cur,s:cur,s1:cur;512=a:cur,s:cur,s1:cur,s1:8x4x16;1024=a:cur,s:cur,s1:cur;2048=a:cur,s:cur,s1:cur;4096=a:cur,s:cur,s1:cur;8192=a:cur,s:cur,s1:cur,s1:8x8x4x4x8;16384=a:cur,s:cur,s1:cur;32768=a:cur,s:cur,s1:cur;65536=a:cur,s:cur,s1:cur,s1:8x8x8x8x16
+AB 32 a:cur                     109.7 ns  first/this 1.000  range 1.000-1.000
+AB 32 s:cur                     114.8 ns  first/this 0.955  range 0.955-0.956
+AB 32 s1:cur                    110.3 ns  first/this 0.994  range 0.993-0.995
+AB 64 a:cur                     172.1 ns  first/this 1.000  range 1.000-1.000
+AB 64 s:cur                     178.1 ns  first/this 0.963  range 0.931-0.968
+AB 64 s1:cur                    170.2 ns  first/this 1.008  range 1.007-1.054
+AB 512 a:cur                    1435.4 ns  first/this 1.000  range 1.000-1.000
+AB 512 s:cur                    1424.8 ns  first/this 1.006  range 1.003-1.008
+AB 512 s1:cur                   1432.9 ns  first/this 1.001  range 0.997-1.002
+AB 512 s1:8x4x16                1392.4 ns  first/this 1.031  range 1.025-1.033
+AB 1024 a:cur                    3570.1 ns  first/this 1.000  range 1.000-1.000
+AB 1024 s:cur                    3434.7 ns  first/this 1.040  range 1.039-1.040
+AB 1024 s1:cur                   3451.0 ns  first/this 1.035  range 1.034-1.035
+AB 2048 a:cur                    8901.2 ns  first/this 1.000  range 1.000-1.000
+AB 2048 s:cur                    8495.1 ns  first/this 1.047  range 1.045-1.050
+AB 2048 s1:cur                   8895.9 ns  first/this 1.000  range 0.999-1.005
+AB 4096 a:cur                   23064.6 ns  first/this 1.000  range 1.000-1.000
+AB 4096 s:cur                   20250.5 ns  first/this 1.139  range 1.138-1.139
+AB 4096 s1:cur                  20176.0 ns  first/this 1.144  range 1.143-1.144
+AB 8192 a:cur                   62377.3 ns  first/this 1.000  range 1.000-1.000
+AB 8192 s:cur                   54416.4 ns  first/this 1.147  range 1.140-1.157
+AB 8192 s1:cur                  54534.2 ns  first/this 1.144  range 1.123-1.155
+AB 8192 s1:8x8x4x4x8            51631.9 ns  first/this 1.208  range 1.127-1.220
+AB 16384 a:cur                  144406.2 ns  first/this 1.000  range 1.000-1.000
+AB 16384 s:cur                  127947.9 ns  first/this 1.129  range 1.126-1.129
+AB 16384 s1:cur                 126986.1 ns  first/this 1.137  range 1.136-1.138
+AB 32768 a:cur                  295733.4 ns  first/this 1.000  range 1.000-1.000
+AB 32768 s:cur                  262805.1 ns  first/this 1.126  range 1.124-1.129
+AB 32768 s1:cur                 263073.3 ns  first/this 1.125  range 1.123-1.126
+AB 65536 a:cur                  696924.5 ns  first/this 1.000  range 1.000-1.000
+AB 65536 s:cur                  621443.4 ns  first/this 1.122  range 1.108-1.124
+AB 65536 s1:cur                 621003.3 ns  first/this 1.123  range 1.121-1.123
+AB 65536 s1:8x8x8x8x16          648810.8 ns  first/this 1.074  range 1.061-1.076
+PASS
+# end 00:23:54 load 1.98 4.96 8.76

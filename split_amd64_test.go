@@ -35,12 +35,13 @@ func splitFromBlocks(y []complex128) []complex128 {
 	return x
 }
 
-// splitOn builds plans with the 256-bit split layout on (or off), and the
-// 512-bit one off, until the returned function restores the settings.
+// splitOn builds plans with the 256-bit split layout on (or off) for every
+// length (no hswSplitFloor), and the 512-bit one off, until the returned
+// function restores the settings.
 func splitOn(on bool) func() {
-	old, old512 := kernels.UseStockhamSplit, kernels.UseStockhamSplit512
-	kernels.UseStockhamSplit, kernels.UseStockhamSplit512 = on, false
-	return func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512 = old, old512 }
+	old, old512, floor := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor
+	kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor = on, false, 0
+	return func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor = old, old512, floor }
 }
 
 // TestSplitEachPassMatchesScalar compares every split pass kernel alone with
@@ -154,6 +155,26 @@ func TestSplitTransformMatchesScalar(t *testing.T) {
 					}
 				}
 			}
+		}
+	}
+}
+
+// TestHswSplitFloorAMD64: 512 on Haswell's route, none elsewhere; a plan
+// below it, or a composite, runs interleaved there.
+func TestHswSplitFloorAMD64(t *testing.T) {
+	if hswSplitFloorAMD64(false) != 0 || hswSplitFloorAMD64(true) != 512 {
+		t.Error("hswSplitFloorAMD64")
+	}
+	defer splitOn(true)()
+	hswSplitFloor = 512
+	for n, want := range map[int]bool{64: false, 1920: false, 4096: true} {
+		p := newSKPlanFactors(n, skFactorizeOrder(n, true))
+		split := false
+		for _, st := range p.stages {
+			split = split || st.split != 0
+		}
+		if split != want {
+			t.Errorf("%d: split %v, want %v", n, split, want)
 		}
 	}
 }

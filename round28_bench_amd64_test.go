@@ -61,9 +61,10 @@ func intelVariant(n int, name string) (*skPlan, error) {
 	if product(f) != n {
 		return nil, fmt.Errorf("%d: %s multiplies to %d", n, name, product(f))
 	}
-	old, old512 := kernels.UseStockhamSplit, kernels.UseStockhamSplit512
-	defer func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512 = old, old512 }()
+	old, old512, oldFloor := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor
+	defer func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor = old, old512, oldFloor }()
 	kernels.UseStockhamSplit = mode == "s" || mode == "sw"
+	hswSplitFloor = 0 // every length its mode says, whatever Round 29's floor
 	kernels.UseStockhamSplit512 = mode == "z"
 	p := newSKPlanFactors(n, f)
 	for k := range p.stages {

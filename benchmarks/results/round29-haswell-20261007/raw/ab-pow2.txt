@@ -1,0 +1,96 @@
+# start try 1 23:28:50 load 1.79 1.94 2.81 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,40 -intel.set=32=a:cur,s:cur,a:8x4;64=a:cur,s:cur,s:16x4,a:4x16;128=a:cur,s:cur,a:4x4x8,s:4x4x8;256=a:cur,s:cur,a:4x8x8,s:4x8x8
+AB 32 a:cur                     111.3 ns  first/this 1.000  range 1.000-1.000
+AB 32 s:cur                     114.9 ns  first/this 0.969  range 0.968-0.971
+AB 32 a:8x4                     113.4 ns  first/this 0.981  range 0.980-0.982
+AB 64 a:cur                     172.4 ns  first/this 1.000  range 1.000-1.000
+AB 64 s:cur                     178.7 ns  first/this 0.965  range 0.963-0.969
+AB 64 s:16x4                    175.8 ns  first/this 0.981  range 0.979-0.982
+AB 64 a:4x16                    173.0 ns  first/this 0.997  range 0.995-0.999
+AB 128 a:cur                     302.2 ns  first/this 1.000  range 1.000-1.000
+AB 128 s:cur                     308.9 ns  first/this 0.978  range 0.977-0.979
+AB 128 a:4x4x8                   343.6 ns  first/this 0.879  range 0.879-0.880
+AB 128 s:4x4x8                   340.9 ns  first/this 0.886  range 0.886-0.887
+AB 256 a:cur                     616.4 ns  first/this 1.000  range 1.000-1.000
+AB 256 s:cur                     616.6 ns  first/this 0.999  range 0.998-1.001
+AB 256 a:4x8x8                   665.7 ns  first/this 0.926  range 0.925-0.927
+AB 256 s:4x8x8                   669.5 ns  first/this 0.921  range 0.920-0.922
+PASS
+# end 23:28:56 load 1.81 1.94 2.81
+# start try 1 23:28:56 load 1.81 1.94 2.81 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,40 -intel.set=512=a:cur,s:cur,s:8x4x16,s:4x8x16,a:4x8x16;1024=a:cur,s:cur,s:8x16x8,s:8x4x4x8;2048=a:cur,s:cur,s:16x8x16,s:8x8x4x8
+AB 512 a:cur                    1425.7 ns  first/this 1.000  range 1.000-1.000
+AB 512 s:cur                    1428.6 ns  first/this 0.998  range 0.997-0.999
+AB 512 s:8x4x16                 1393.0 ns  first/this 1.024  range 1.022-1.026
+AB 512 s:4x8x16                 1400.3 ns  first/this 1.018  range 1.017-1.019
+AB 512 a:4x8x16                 1414.4 ns  first/this 1.008  range 1.007-1.009
+AB 1024 a:cur                    3540.0 ns  first/this 1.000  range 1.000-1.000
+AB 1024 s:cur                    3440.5 ns  first/this 1.029  range 1.028-1.030
+AB 1024 s:8x16x8                 3483.3 ns  first/this 1.017  range 1.015-1.017
+AB 1024 s:8x4x4x8                3569.5 ns  first/this 0.991  range 0.991-0.993
+AB 2048 a:cur                    8897.3 ns  first/this 1.000  range 1.000-1.000
+AB 2048 s:cur                    8502.1 ns  first/this 1.046  range 1.045-1.047
+AB 2048 s:16x8x16                8672.2 ns  first/this 1.026  range 1.020-1.026
+AB 2048 s:8x8x4x8                9127.3 ns  first/this 0.975  range 0.968-0.975
+PASS
+# end 23:29:01 load 1.82 1.94 2.80
+# start try 1 23:29:01 load 1.82 1.94 2.80 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,40 -intel.set=4096=a:cur,s:cur,s:8x4x4x4x8,s:4x8x4x8x4;8192=a:cur,s:cur,s:8x8x4x4x8,s:8x8x8x4x4,s:4x4x4x4x8x4
+AB 4096 a:cur                   23046.0 ns  first/this 1.000  range 1.000-1.000
+AB 4096 s:cur                   20202.0 ns  first/this 1.141  range 1.140-1.149
+AB 4096 s:8x4x4x4x8             21193.0 ns  first/this 1.088  range 1.087-1.095
+AB 4096 s:4x8x4x8x4             21627.6 ns  first/this 1.066  range 1.064-1.073
+AB 8192 a:cur                   62396.5 ns  first/this 1.000  range 1.000-1.000
+AB 8192 s:cur                   54528.1 ns  first/this 1.144  range 1.143-1.145
+AB 8192 s:8x8x4x4x8             51632.9 ns  first/this 1.209  range 1.208-1.209
+AB 8192 s:8x8x8x4x4             52304.2 ns  first/this 1.193  range 1.192-1.195
+AB 8192 s:4x4x4x4x8x4           57932.1 ns  first/this 1.077  range 1.077-1.078
+PASS
+# end 23:29:05 load 1.84 1.94 2.80
+# start try 1 23:29:05 load 1.84 1.94 2.80 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,40 -intel.set=16384=a:cur,s:cur,s:8x4x8x8x8,s:4x8x8x4x4x4;32768=a:cur,s:cur,s:8x8x8x4x16,s:8x8x8x4x4x4
+AB 16384 a:cur                  142974.8 ns  first/this 1.000  range 1.000-1.000
+AB 16384 s:cur                  127505.1 ns  first/this 1.122  range 1.121-1.122
+AB 16384 s:8x4x8x8x8            125461.0 ns  first/this 1.140  range 1.139-1.141
+AB 16384 s:4x8x8x4x4x4          141478.0 ns  first/this 1.011  range 1.010-1.011
+AB 32768 a:cur                  295062.5 ns  first/this 1.000  range 1.000-1.000
+AB 32768 s:cur                  262882.6 ns  first/this 1.122  range 1.117-1.123
+AB 32768 s:8x8x8x4x16           305373.1 ns  first/this 0.966  range 0.966-0.967
+AB 32768 s:8x8x8x4x4x4          301958.0 ns  first/this 0.977  range 0.976-0.978
+PASS
+# end 23:29:09 load 1.84 1.94 2.80
+# start try 1 23:29:09 load 1.84 1.94 2.80 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,40 -intel.set=65536=a:cur,s:cur,s:8x8x8x8x16,s:8x8x8x16x8,a:8x8x8x8x16,s:r23
+AB 65536 a:cur                  695264.0 ns  first/this 1.000  range 1.000-1.000
+AB 65536 s:cur                  620089.4 ns  first/this 1.122  range 1.107-1.123
+AB 65536 s:8x8x8x8x16           650626.5 ns  first/this 1.068  range 1.067-1.069
+AB 65536 s:8x8x8x16x8           665823.3 ns  first/this 1.045  range 1.025-1.046
+AB 65536 a:8x8x8x8x16           714091.0 ns  first/this 0.973  range 0.972-0.975
+AB 65536 s:r23                  616391.5 ns  first/this 1.128  range 1.123-1.130
+PASS
+# end 23:29:11 load 1.85 1.94 2.79
+# start try 1 23:29:11 load 1.85 1.94 2.79 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,100 -intel.set=131072=a:cur,s:cur,s:r23,s:8x8x8x16x16,s:8x8x8x8x8x4
+AB 131072 a:cur                 1428568.5 ns  first/this 1.000  range 1.000-1.000
+AB 131072 s:cur                 1259296.8 ns  first/this 1.134  range 1.131-1.138
+AB 131072 s:r23                 1286259.8 ns  first/this 1.112  range 1.088-1.117
+AB 131072 s:8x8x8x16x16         1548142.9 ns  first/this 0.924  range 0.837-0.925
+AB 131072 s:8x8x8x8x8x4         1313977.5 ns  first/this 1.090  range 1.084-1.093
+PASS
+# end 23:29:17 load 1.86 1.94 2.79
+# start try 1 23:29:17 load 1.86 1.94 2.79 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,100 -intel.set=262144=a:cur,s:cur,s:r23,s:8x8x8x8x16x4
+AB 262144 a:cur                 3145468.8 ns  first/this 1.000  range 1.000-1.000
+AB 262144 s:cur                 2816351.6 ns  first/this 1.116  range 1.103-1.123
+AB 262144 s:r23                 3100442.6 ns  first/this 1.015  range 1.004-1.021
+AB 262144 s:8x8x8x8x16x4        3254882.4 ns  first/this 0.966  range 0.958-0.972
+PASS
+# end 23:29:20 load 1.87 1.94 2.79
+# start try 1 23:29:20 load 1.87 1.94 2.79 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,100 -intel.set=524288=a:cur,s:cur,s:r23,s:8x8x8x8x8x16
+AB 524288 a:cur                 9694419.9 ns  first/this 1.000  range 1.000-1.000
+AB 524288 s:cur                 9270505.2 ns  first/this 1.046  range 1.031-1.056
+AB 524288 s:r23                 9040034.1 ns  first/this 1.072  range 1.058-1.082
+AB 524288 s:8x8x8x8x8x16        9026113.1 ns  first/this 1.074  range 1.063-1.085
+PASS
+# end 23:29:24 load 1.80 1.93 2.78
+# start try 1 23:29:24 load 1.80 1.93 2.78 :: ./r29m.test -test.run ^TestIntelAB$ -intel.ab=7,100 -intel.set=1048576=a:cur,s:cur,s:r23,s:8x8x8x8x16x16
+AB 1048576 a:cur                24380898.2 ns  first/this 1.000  range 1.000-1.000
+AB 1048576 s:cur                23519159.5 ns  first/this 1.037  range 0.995-1.038
+AB 1048576 s:r23                22915737.5 ns  first/this 1.064  range 1.020-1.065
+AB 1048576 s:8x8x8x8x16x16      22970074.0 ns  first/this 1.061  range 1.021-1.063
+PASS
+# end 23:29:27 load 1.80 1.93 2.78
+# PHASE2 DONE 23:29:27

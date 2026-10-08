@@ -140,15 +140,14 @@ func TestSplitTwiddles(t *testing.T) {
 	}
 }
 
-// TestSplitDefault: the split layout runs with AVX2 alone, on a CPU that does
-// not report GenuineIntel.
+// TestSplitDefault: the 256-bit split layout runs with AVX2 alone, whatever
+// the vendor (Round 29 measured Haswell).
 func TestSplitDefault(t *testing.T) {
-	for _, c := range []struct{ avx2, avx512, intel, want bool }{
-		{true, false, false, true}, {true, false, true, false}, {true, true, false, false},
-		{false, false, false, false}, {true, true, true, false},
+	for _, c := range []struct{ avx2, avx512, want bool }{
+		{true, false, true}, {true, true, false}, {false, false, false}, {false, true, false},
 	} {
-		if got := splitDefault(c.avx2, c.avx512, c.intel); got != c.want {
-			t.Errorf("splitDefault(avx2=%v, avx512=%v, intel=%v) = %v", c.avx2, c.avx512, c.intel, got)
+		if got := splitDefault(c.avx2, c.avx512); got != c.want {
+			t.Errorf("splitDefault(avx2=%v, avx512=%v) = %v", c.avx2, c.avx512, got)
 		}
 	}
 }

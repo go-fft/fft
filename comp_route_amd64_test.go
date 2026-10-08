@@ -53,8 +53,8 @@ func TestCompRadix16For(t *testing.T) {
 
 // TestCompFactorize takes skFactorize through both routes of compRadix16On.
 func TestCompFactorize(t *testing.T) {
-	defer func(v, w bool) { compRadix16On, comp2On = v, w }(compRadix16On, comp2On)
-	compRadix16On, comp2On = true, false
+	defer func(v, w, x bool) { compRadix16On, comp2On, hswCompOn = v, w, x }(compRadix16On, comp2On, hswCompOn)
+	compRadix16On, comp2On, hswCompOn = true, false, false
 	for n, want := range map[int][]int{1296: {3, 3, 12, 12}, 2000: {5, 5, 5, 16}, 1000: skFactorizeOrder(1000, compOddFirst)} {
 		if got := skFactorize(n); !slices.Equal(got, want) {
 			t.Errorf("skFactorize(%d) with the composite routes = %v, want %v", n, got, want)
@@ -163,5 +163,41 @@ func TestCompRadix12For(t *testing.T) {
 		if f != nil && p != n {
 			t.Fatalf("compRadix12For(%d) = %v, product %d", n, f, p)
 		}
+	}
+}
+
+// TestHswComp2Factors pins Round 29's Haswell composite rule: comp2Factors,
+// with 16 for a 4·4 tail and 8·16 for a 4·4·8 one.
+func TestHswComp2Factors(t *testing.T) {
+	for _, c := range []struct {
+		n    int
+		on   bool
+		want []int
+	}{
+		{1536, false, nil},
+		{1536, true, []int{8, 16, 12}},         // comp2: 4·4·8·12
+		{3840, true, []int{16, 12, 20}},        // comp2: 4·4·12·20
+		{6400, true, []int{16, 20, 20}},        // comp2: 4·4·20·20
+		{7680, true, []int{5, 8, 16, 12}},      // comp2: 5·4·4·8·12
+		{192, true, []int{16, 12}},             // comp2: 4·4·12
+		{1000, true, comp2Factors(1000, true)}, // a 4-free tail: comp2's
+		{1296, true, comp2Factors(1296, true)},
+		{9216, true, comp2Factors(9216, true)}, // e = 10: 8·8·16
+		{4096, true, nil},
+		{24576, true, nil},
+	} {
+		if got := hswComp2Factors(c.n, c.on); !slices.Equal(got, c.want) {
+			t.Errorf("hswComp2Factors(%d, %v) = %v, want %v", c.n, c.on, got, c.want)
+		}
+	}
+	for n := 2; n <= 1<<14; n++ {
+		if f := hswComp2Factors(n, true); f != nil && product(f) != n {
+			t.Fatalf("hswComp2Factors(%d) = %v", n, f)
+		}
+	}
+	defer func(v, w, x bool) { hswCompOn, comp2On, compRadix16On = v, w, x }(hswCompOn, comp2On, compRadix16On)
+	hswCompOn, comp2On, compRadix16On = true, false, false
+	if got := skFactorize(3840); !slices.Equal(got, []int{16, 12, 20}) {
+		t.Errorf("skFactorize(3840) on Haswell's route = %v", got)
 	}
 }
