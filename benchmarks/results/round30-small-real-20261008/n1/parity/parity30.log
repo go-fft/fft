@@ -1,0 +1,9 @@
+# main start 07:00:08 load 0.08 0.03 0.00
+# main end 07:08:54 load 1.10 0.93 0.50
+# br start 07:08:54 load 1.10 0.93 0.50
+# br end 07:17:39 load 1.00 1.00 0.74
+# br start 07:17:39 load 1.00 1.00 0.74
+# br end 07:26:25 load 1.12 1.08 0.91
+# main start 07:26:25 load 1.12 1.08 0.91
+# main end 07:35:09 load 1.25 1.09 1.01
+END

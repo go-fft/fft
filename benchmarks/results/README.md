@@ -197,3 +197,10 @@ BENCHMARKS.md, all on Cascade Lake (cfarm151, one pinned core): the
 factorization sweeps in every layout and width, the rotated A/B runs, the
 end-to-end runs against main (including the build whose use of Z16..Z31 slowed
 the composites), the mutation log and four parity runs. See its README.
+
+`round30-small-real-20261008` holds the measurements behind Round 30 of
+BENCHMARKS.md, on Zen 3 (cfarm420) and Neoverse-N1 (cfarm424): RFFT and
+complex 256 split part by part, the untangle kernel variants, the RealPlan
+buffer dropped, N1's power-of-two radix sweep, fifteen-round main/branch A/B
+runs, the complex-64 layout investigation, the mutation log and four parity
+runs per host. See its README.

@@ -2826,3 +2826,186 @@ all four. go-fft time ÷ FFTW time, the two runs of each:
   the gap the Z16 build showed (7–8% at 2048 and 4096).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round28-intel-small-20261007/`](benchmarks/results/round28-intel-small-20261007/).
+
+### Round 30 — the smallest sizes: RFFT 256 and complex 256 on Zen 3 and Neoverse-N1 (2026-10-08)
+
+**The question.** Of the parity rows FFTW still won on both hosts, the
+smallest were complex 256 (1.24 on Zen 3), RFFT 256 (1.21 on Zen 3, 1.06 on
+Neoverse-N1). Hosts: Zen 3 (cfarm420) and Neoverse-N1 (cfarm424), each used
+by this round alone, one pinned core (`GOMAXPROCS=1 taskset -c 40`),
+interleaved runs with the order rotated every round. cfarm420 carried a load
+of 2.0–4.9 from other users throughout, cfarm424 0.0–1.3; each file gives
+the load at its head.
+
+**Where the time goes**, main (`TestR30Real`, `TestR26Overhead`,
+`TestR26Passes`, nine rounds), ns:
+
+| | Zen 3 | Neoverse-N1 |
+|:--|--:|--:|
+| RFFT 256 | 293 | 771 |
+| half transform (128 points, its own pool round trip included) | 185 (8·16) | 498 (4·4·8) |
+| untangle | 93 | 252 |
+| the RealPlan's pool round trip / the half plan's | 16.6 / 16.7 | 17.8 / 18.5 |
+| complex 256: `Plan.FFT` / its passes | 349 / 334: 95 (r4) + 129 (r8, split) + 106 (r8, final) | 1,106 (4·4·4·4) |
+
+On Zen 3 the untangle ran 2.9 ns per iteration (two bins and their mirrors;
+slope of 256 to 4096 points), about twice what its operations need at four
+per cycle (Round 26).
+
+**1. The AVX2 untangle and retangle (kept).** Round 4's kernels run one step
+per iteration. Following Round 27, `genSmallUntangle`
+(`asmgen/amd64/gen.go` → `untangle_amd64.s`) interleaves the instructions of
+independent steps, each in its own four YMM registers; and since on Zen 3 the
+shuffles share two pipes, it drops two of a step's seven: the twiddle's real
+and imaginary parts come duplicated straight from memory (`VMOVDDUP` at tw
+and tw+8, no `VPERMILPD`), and the untangle builds xo with its lanes swapped,
+[−d.re, s.im]·0.5 (the sign flipped before the halving instead of after,
+exact either way), so one swap serves both products. Every product, sum and
+difference keeps the Go code's operands and order (no FMA on amd64), so the
+results are the same bits. Main ÷ variant, alone and inside the transform,
+one process, eleven rounds (`zen3/steps-dup.txt`, `steps-halves.txt`):
+
+| main ÷ | untangle 256 / 1024 / 4096 | retangle 256 / 1024 / 4096 | RFFT 256 | IRFFT 256 |
+|:--|:--|:--|--:|--:|
+| 3 steps | 1.07 / 1.10 / 1.14 | 1.06 / 1.11 / 1.13 | 1.02 | 1.01 |
+| 2 steps + VMOVDDUP | 1.12 / 1.15 / 1.16 | 1.05 / 1.16 / 1.12 | 1.05 | 1.02 |
+| **3 steps + VMOVDDUP** | **1.17–1.20 / 1.23–1.25 / 1.24–1.26** | **1.11–1.13 / 1.18–1.19 / 1.19–1.20** | 1.05–1.09 | 1.04–1.06 |
+| 3 steps + VMOVDDUP, mirrors as two 128-bit halves | 1.16 / 1.23 / 1.24 | 1.11 / 1.17 / 1.18 | 1.05 | 1.03 |
+
+So on Zen 3 interleaving alone paid less than on N1 (1.07–1.14 against
+1.23–1.28) and the shuffles were the larger part; loading and storing the
+mirrors as halves (`VINSERTF128`/`VEXTRACTF128` instead of `VPERM2F128`)
+gained nothing more and was dropped. Three steps use twelve registers and
+the three masks and constant three more, so four do not fit.
+
+Tests: `TestUntangleMatchesScalar` and `TestRetangleMatchesScalar` (every
+m to 700 and 2048, 4097, 32768, bit for bit) now run `smallSignals`:
+random draws from {±0} and {±0, ±1}, ±∞ on both halves, odd multiples of
+the smallest subnormal of both parities, and h ∈ {0.5, 0.5/m, 1/√(2m),
+2⁻¹⁰³⁰}; `TestUntangleInPlace` (below); `TestUntangleBoundsAVX2` checks
+that the wrappers panic before the kernel runs on a short dst, z or tw (the
+last step reads tw[2·pairs+1].re) and do nothing below one pair or for a
+negative m. Fourteen generator mutations were built and run on Zen 3
+(`zen3/mutants.txt`): thirteen fail (xo's sign mask, wi read as wr, xo not
+swapped, dst[m−k] as t − xe, the mirror not conjugated, the twiddle cursor
+half a step, later steps' mirror offset, three steps run with two pairs left
+— a segmentation fault —, the tail step not advancing, the retangle's −wi as
++wi, h replaced by 0.5, Z[k] as a sum, two steps sharing registers); the
+survivor exchanges a product's operands, which changes only which NaN
+payload propagates, a difference the tests deliberately ignore.
+
+**2. RFFT and IRFFT without the RealPlan's buffer (kept, every
+architecture).** An RFFT borrowed two pooled buffers: the RealPlan's, for the
+packed spectrum Z, and the half plan's scratch. Round 26 dropped the
+second (the half plan on the RealPlan's buffer) and measured it inside the
+spread. This round drops the first: the half transform writes Z straight
+into dst[:m], and the untangle runs in place (each conjugate pair is read
+before it is written and no two steps touch the same bins, in the Go loop,
+the AVX2 kernel and the NEON kernel alike; `TestUntangleInPlace` holds every
+m to 300 and three large ones to the out-of-place bits). The inverse builds Z
+in dst read as complex128 (`packSpectrum`, shared with the buffered path)
+and runs the half inverse in place on it, except where in place costs a
+copy: an odd pass count where the scratch slides off dst's sets (IRFFT 4096
+lost 5% on N1 that way), the blocked schedule (not measured in place) and the
+iterative pow2 kernel, which keep the buffer (`smallIRFFTInPlace`,
+`TestIRFFTInPlaceWhen`). `TestRealPlanInPlaceMatchesBuffered` holds both to
+the buffered composition bit for bit for every engine the half plan takes
+(Stockham with odd and even pass counts, with the scratch gap, Rader,
+Bluestein), complete, short and over-long spectra. Same binary, rotated,
+eleven rounds (`zen3/direct.txt`, `n1/direct-orders.txt`), pool ÷ direct:
+Zen 3 RFFT 1.07 / 1.04 / 1.06 / 1.01 at 256 / 512 / 1024 / 4096, IRFFT 1.06
+at 256 and 1.00–1.01 above; N1 RFFT 1.03 / 1.01 / 1.01 / 1.01, IRFFT 1.01 /
+1.01 / 1.02 and 0.95 at 4096 before the rule above. RFFT's dst must not
+overlap src now (only an unsafe conversion can arrange that; documented).
+
+**3. arm64: radix-8 powers of two (kept).** On N1 the order of 128's passes
+was already the best of six (`n1/direct-orders.txt`), but 256 = 4·4·4·4
+lost to 4·8·8 by 10%. Every ordering of radix-2, 4 and 8 passes for 2^5 …
+2^13 timed against the rule, seven rounds (`n1/pow2-sweep.txt`), rule time ÷
+best: 64 1.17 (8·8), 256 1.10 (8·4·8; 4·8·8 1.10), 512 1.07 (8·8·8), 1024
+1.07, 2048 1.10 (4·8·8·8), 4096 1.14 (8·8·8·8); 32 and 128 were already the
+best, 8192 1.006. The arm64 rule for powers of two (radix 4, at most one
+radix-8 pass) was timed in 2026-09 on interleaved passes; since Round 21 a
+power of two runs split between NEON passes, and radix 8 now wins. So a
+complex128 power of two from 64 to 4096 points takes radix8Maximal's passes
+with the radix-4 passes first (`smallArmPow2`, `comp_route_arm64.go`; within
+0.5% of the best ordering timed at every size but 1024, 1.073 against
+1.075); float32 plans keep the old rule (not timed).
+
+**End to end against main**, `BenchmarkR30AB`, the two binaries alternating,
+fifteen rounds (`*/ab-main-branch-15.txt`; Zen 3 twice, `-15b`), main ÷
+branch time, median (per-round range):
+
+| | Zen 3 | Zen 3 (2nd run) | Neoverse-N1 |
+|:--|:--|:--|:--|
+| RFFT 256 / IRFFT 256 | 1.08 / 1.13 | 1.10 / 1.14 | 1.04 (1.03–1.06) / 1.01 (1.00–1.03) |
+| RFFT 512 / 1024 / 2048 | 1.09 / 1.10 / 1.08 | 1.09 / 1.10 / 1.10 | 1.09 / 1.07 / 1.06 |
+| RFFT 4096 / 8192 / 1000 | 1.05 / 1.06 / 1.08 | 1.07 / 1.06 / 1.09 | 1.05 / 1.12 / 1.01 |
+| IRFFT 512 … 8192 / 1000 | 1.03–1.07 / 1.06 | 1.04–1.08 / 1.06 | 1.05–1.13 / 1.02 |
+| complex 64 / 128 / 256 / 512 | **0.88** / 1.01 / 0.99 / 1.00 | **0.89** / 1.02 / 1.01 / 1.00 | 1.17 / 1.00 / 1.10 / 1.07 |
+| complex 1024 / 2048 / 4096 / 8192 | 0.99 / 1.00 / 1.00 / 1.01 | 1.01 / 1.01 / 1.01 / 0.99 | 1.07 / 1.09 / 1.16 / 1.00 |
+| complex 1000 / 1080 | 1.01 / 1.00 | 1.02 / 0.99 | 1.00 / 1.00 |
+| 2-D 64² / 128² / 256² | 0.98 / 1.00 / 1.01 | 0.97 / 1.01 / 1.00 | 1.13 / 1.00 / 1.09 |
+
+The Zen 3 per-round ranges are wide (0.7–1.5 on several rows: other users'
+load); every N1 row the branch touches has its whole range above 1, the
+untouched ones (128, 8192, 1000, 1080, 128²) within 0.96–1.03.
+
+**Complex 64 on Zen 3 (not explained).** The branch does not change the
+64-point path on amd64, yet it read 0.88 and 0.89 over fifteen rounds, 0.86
+alone in its own process (`c64-alone-15.txt`) and 0.85–0.88 in every later
+run. What was ruled out: the passes alone on buffers placed at 24 offsets
+modulo 4 KB read 94.8 ns (main) and 96.8 (branch), within 2%, and flat over
+the offsets (`offsets-main-branch.txt`, `offsets-64.txt`); restoring the old
+`butterfly_amd64.s` (the asm layout) left it at 0.90 (`layout-pad-15.txt`);
+padding the fft package or the kernels package by one to ten functions left
+it at 0.89–0.92 (`layout-pads-11.txt`, `layout-kpads-11.txt`); inlining
+decisions are the same. Bisected, the RealPlan change alone reads 0.97 and
+the kernels change alone 0.95 (`bisect-11.txt`). `TestR26Overhead` puts the
+difference mostly around the passes: `skPlan.transform` 102–103 → 114–120
+ns while the passes went 87–91 → 91–94 (`overhead-main-branch.txt`; a third
+main round, disturbed, read 159 / 113). The cause was not
+established; 128 points and up are within their spreads.
+
+**Against FFTW**, `benchmarks/remote/run.sh` pinned to core 40, main, branch,
+branch, main back to back on each host (`*/parity/`; correct 24/24 every
+time). go-fft's time (mean of its two runs) ÷ the median of FFTW's four:
+
+| | Zen 3 main | Zen 3 branch | N1 main | N1 branch |
+|:--|--:|--:|--:|--:|
+| RFFT 256 | 1.36 | **1.22** | 1.07 | **1.05** |
+| complex 256 | 1.26 | 1.23 | 0.97 | **0.88** |
+| RFFT 1,024 / 4,096 | 1.15 / 1.13 | 1.05 / 1.11 | 0.78 / 0.78 | 0.74 / 0.75 |
+| RFFT 1,000 / 1,080 / 1,920 | 1.14 / 1.21 / 1.13 | 1.05 / 1.11 / 1.05 | 0.99 / 1.04 / 0.97 | 0.99 / 1.04 / 0.97 |
+| IRFFT 256 / 1,024 / 4,096 | 0.95 / 1.00 / 1.04 | 0.85 / 0.92 / 1.02 | 0.95 / 0.73 / 0.73 | 0.94 / 0.70 / 0.69 |
+| complex 1,024 / 4,096 | 1.13 / 0.93 | 1.11 / 0.92 | 0.83 / 0.67 | 0.77 / 0.58 |
+| 2-D 64×64 | 0.75 | 0.78 | 0.87 | 0.76 |
+
+FFTW's own time moved by up to 37% on Zen 3 between runs (complex 1024:
+1,501–2,130 ns; RFFT 256: 226–236; complex 256: 274–289) and by under 1% on
+N1 (RFFT 256: 719–722). go-fft's RFFT 256 went 306–314 → 278–279 ns on Zen 3
+and 771–772 → 751–754 on N1. Complex 256 on Zen 3 runs unchanged code
+(350–361 → 345–353 ns, inside its spread): no lever was found for it.
+
+**Tried and dropped, or not done:**
+- **Complex 256 on Zen 3.** Its three passes are 95 + 129 + 106 ns; every
+  radix order of 4, 8 and 16 timed again (`passes-orders-256.txt`): 4·8·8
+  stays the best (8·8·4 0.99, 8·4·8 0.97, 4·4·4·4 0.95, 4·4·16 0.94, 16·16
+  0.97). The pass breakdown does not change Round 19's judgement of a fused
+  256-point kernel (the passes are 95% of the transform, the pool 5%).
+- **The half plan's pool round trip** (16–19 ns) remains: a Stockham pass
+  is out of place, so one buffer besides dst and src is needed, and a stack
+  array would be zeroed on every call (2–4 KB). No shared mutable state was
+  added.
+- **Fusing the untangle into the half transform's last pass**: not built.
+  Bins k and m−k come from the final pass's blocks k1 and 8−k1, so a fused
+  kernel would run two radix-16 butterflies per step; with the untangle now
+  78 ns of RFFT 256's 278 on Zen 3, the store and reload of Z it would save
+  is worth at most ~15 ns, not measured.
+- **N1's RFFT 256** is now 1.05: its 128-point half (500 ns, 4·4·8, the
+  best order) is still near 70% of FFTW's whole r2c. A pre-split twiddle
+  table for the NEON untangle (Round 27's open item) would save one
+  deinterleave per step; not built.
+- **float32** plans on arm64 keep the old power-of-two rule: not timed.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round30-small-real-20261008/`](benchmarks/results/round30-small-real-20261008/).
