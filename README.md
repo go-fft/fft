@@ -3,6 +3,7 @@
 # fft — go-fft
 
 [![Docs](https://img.shields.io/badge/docs-hugo%20%2B%20relearn-059669)](https://go-fft.github.io/docs/)
+[![Playground](https://img.shields.io/badge/playground-try%20it%20in%20your%20browser-059669)](https://go-fft.github.io/playground/)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 [![Go](https://img.shields.io/badge/go-1.27.1%2B-00ADD8)](https://go.dev/dl/)
 [![Status](https://img.shields.io/badge/status-phase%206-1a7f37)](docs/plan-fft.md)
@@ -10,6 +11,9 @@
 **A pure-Go (no cgo) FFT library** — the `numpy.fft` / `scipy.fft` equivalent for
 Go. It computes the discrete Fourier transform of complex and real signals of
 **any length**, with no dependency on the native FFTW3 C library.
+
+**Try it without installing anything:** the [playground](https://go-fft.github.io/playground/)
+runs go-fft compiled to WebAssembly in your browser.
 
 Ruby has no cgo-free FFT (every option wraps FFTW3); `gonum/dsp/fourier` is pure
 Go but its optimized assembly is amd64-only. This module is a portable Go core

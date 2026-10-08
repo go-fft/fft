@@ -3007,6 +3007,16 @@ the ends). Main time ÷ branch time, fifteen rounds:
   ran 1.05–1.12× faster in the sweep (10240: 8·8·16·10), but no rule covers
   them on either vendor; left for a round that sweeps 2^11 and above.
 - **The blocked schedule (Round 20)** stays off on Haswell; not measured.
+- **Other AVX2-only Intel cores** (Broadwell, Skylake client, the hybrid
+  cores whose AVX-512 is fused off) take this route too: the rule keys on the
+  vendor and the instruction sets, and only one Haswell (Xeon E5-2620 v3) was
+  timed.
+- **Coordinator check before the merge**, on cfarm13 with an input and seed
+  the round did not choose: every factorization `hswComp2Factors` returns
+  multiplies back to its length (all 150 routed lengths), and FFT against a
+  naive DFT at the 7 lengths the rule changes plus 14 split or composite
+  lengths from 512 to 16384 agrees to a relative RMS of at most 4.3e-15
+  (the naive sum's own error included).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
 
