@@ -3,6 +3,7 @@
 package fft
 
 import (
+	"math"
 	"testing"
 
 	"github.com/go-fft/fft/internal/kernels"

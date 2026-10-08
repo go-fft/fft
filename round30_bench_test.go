@@ -127,10 +127,11 @@ func TestR30Real(t *testing.T) {
 }
 
 // BenchmarkR30AB is the row set Round 30's A/B runs between binaries time:
-// the touched rows (RFFT and IRFFT, complex 128 and 256) first, then
-// untouched ones in the same process.
+// the touched rows (RFFT and IRFFT; on arm64 the complex powers of two from
+// 64 to 4096 and the 2-D plans built on them) first, then untouched ones in
+// the same process.
 func BenchmarkR30AB(b *testing.B) {
-	for _, n := range []int{256, 512, 1024, 4096} {
+	for _, n := range []int{256, 512, 1024, 2048, 4096, 8192, 1000} {
 		p := NewRealPlan(n)
 		src := benchReal(n)
 		dst := make([]complex128, n/2+1)
@@ -147,11 +148,21 @@ func BenchmarkR30AB(b *testing.B) {
 			}
 		})
 	}
-	for _, n := range []int{128, 256, 512, 1024, 1000, 4096} {
+	for _, n := range []int{64, 128, 256, 512, 1024, 2048, 4096, 8192, 1000, 1080} {
 		p := NewPlan(n)
 		src := benchComplex(n)
 		dst := make([]complex128, n)
 		b.Run("C"+strconv.Itoa(n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				p.FFT(dst, src)
+			}
+		})
+	}
+	for _, n := range []int{64, 128, 256} {
+		p := NewPlanN(n, n)
+		src := benchComplex(n * n)
+		dst := make([]complex128, n*n)
+		b.Run("D"+strconv.Itoa(n), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				p.FFT(dst, src)
 			}
