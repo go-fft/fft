@@ -2827,6 +2827,189 @@ all four. go-fft time ÷ FFTW time, the two runs of each:
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round28-intel-small-20261007/`](benchmarks/results/round28-intel-small-20261007/).
 
+### Round 29 — Haswell, AVX2 without AVX-512: the split layout from 512 points, AMD's composite rule with radix-16 tails (2026-10-08)
+
+**The question.** Several amd64 rules were set for Intel CPUs with AVX2 and
+without AVX-512 without one being measured: the split layout (Round 23) was
+off on them, because Haswell carried a load of 16–29 that day; the composites
+took Round 24's radix-12 and radix-16 rules, tuned on Cascade Lake with its
+AVX2 kernels, while AMD got Round 26's prime-factor passes; and Round 28 found
+that on Cascade Lake, at equal width, the split layout ran 1.06–1.25× faster
+than the interleaved passes. Host: Haswell (cfarm13, two Xeon E5-2620 v3,
+bare metal, 256 KB of L2 per core), one pinned core (`GOMAXPROCS=1 taskset -c
+10`), cross-compiled test binaries (go1.27.1). Other users kept the host at a
+load of 5–16 for most of both days; every run waited for a 1-minute load below
+2 (`scripts/gate.sh`) and was discarded and rerun if the load reached 3 by its
+end (one chunk was). Kept runs started at 1.71–1.99 and ended at 1.80–2.49,
+the run's own core included. No FFTW is installed on this host, so there is
+no FFTW column: go-fft is compared with itself and, for accuracy, with numpy.
+
+**1. The split layout on Haswell.** Every ordering of radix-4, -8 and -16
+passes from 64 to 65536 points, split and interleaved, three rotated rounds
+(`TestIntelSweep`, `raw/sweep-pow2.txt`), then the finalists against main's
+factorization in one process, seven rotated rounds (`TestIntelAB`,
+`raw/ab-pow2.txt`, `raw/ab-s1.txt`; from 2^17, 100 ms per variant). Main's
+time ÷ each:
+
+| n | main's factorization | split, same factorization | best split | shipped |
+|:--|:--|--:|:--|:--|
+| 32 / 64 | 4·8 / 8·8 | 0.955 / 0.963 | — | interleaved |
+| 128 / 256 | 16·8 / 16·16 | (no split pass) | 4·4·8 0.886 / 4·8·8 0.921 | main's |
+| 512 | 8·8·8 | 0.998–1.006 | **8·4·16 1.024–1.031** | 8·4·16, split |
+| 1024 / 2048 | 8·8·16 / 8·16·16 | **1.029–1.040 / 1.046–1.047** | the same | split |
+| 4096 | 8^4 | **1.139–1.141** | the same | split |
+| 8192 | 4·4·8·8·8 | 1.144–1.147 | **8·8·4·4·8 1.208–1.209** | 8·8·4·4·8, split |
+| 16384 | 4·8^4 | 1.122–1.129 | **8·4·8·8·8 1.140** | 8·4·8·8·8, split |
+| 32768 / 65536 | 8^5 / 4·4·8^4 | **1.122–1.126 / 1.122** | the same (65536: splitPow2Factors 1.128, inside) | split |
+| 2^17 / 2^18 | 4·8^5 / 8^6 | **1.134 / 1.116** | the same | split |
+| 2^19 / 2^20 | 4·4·8^5 / 4·8^6 | 1.046 / 1.037 | **splitPow2Factors 1.072 / 1.064** | splitPow2Factors, split |
+
+Each per-round range was narrower than the gap between the rows chosen
+between (1.022–1.026 at 512, 1.208–1.209 at 8192, 1.020–1.065 at 2^20).
+
+- **The layout pays from 512 points**: 1.02–1.05× up to 2048, 1.12–1.21×
+  from 4096 to 2^18 (Zen 3, Round 23: 1.14–1.43 with its own table). Round
+  23 guessed the gain would be smaller on Intel, whose shuffles have a port
+  to themselves; the counters below show that port is what the interleaved
+  passes queue on.
+- **Below 512 it loses.** 32 and 64 have a single radix-4 or radix-8 pass
+  before the final one, which the layout runs as a run of one: it splits on
+  loading and joins on storing, and that pass alone is 4–5% slower than the
+  interleaved one. A build that kept runs of one interleaved (mode `s1`,
+  `raw/ab-s1.txt`, the knob since removed) recovered 32 and 64 (0.994,
+  1.008) but lost 2048's gain (8·16·16's radix-8 pass is a run of one there:
+  1.000 against 1.047), so the rule is a floor, not a mode.
+- **Zen 3's table (`splitTableAMD64`) is wrong here**: 2048 8·8·8·4 0.958,
+  4096 4·8·4·8·4 1.066, 8192 4·4·4·4·8·4 1.077, 16384 4·8·8·4·4·4 1.011, 32768
+  8·8·8·4·4·4 0.977, 2^18 1.015 — radix 8 keeps winning on Haswell (Round
+  12), split or not. Haswell gets its own table (`hswSplitTable`).
+- **The radix-16 rule (Round 19) holds**, interleaved and split: 128 16·8
+  against 4·4·8, 1.14×; 256 16·16 against 4·8·8, 1.08×; 1024 and 2048 keep
+  8·8·16 and 8·16·16, which beat every radix-4/8 ordering split (8·4·4·8
+  0.991, 8·8·4·8 0.975 of main).
+- **The sweep and the A/B disagreed at 65536**: 8·8·8·8·16 split read 1.152
+  among some 330 plans of that size and 1.068 among six, where main's
+  factorization split read 1.113 and 1.122. With hundreds of 1 MB plans in
+  rotation, the twiddle tables of the next plan are never in cache; the A/B,
+  closer to one plan in use, decided.
+
+**Hardware counters** (`raw/pmu.txt`, `perf stat` on the same binaries, two
+event groups of at most four programmable counters, scaled; per cycle):
+
+| | uops on port 5 (the shuffle port) | ports 0+1 (multiply, add) | stalls on a full store buffer | loads blocked by 4K aliasing |
+|:--|--:|--:|--:|--:|
+| 4096 interleaved / split | 0.371 / **0.179** | 0.797 / 0.909 | 0.204 / 0.143 | 0.083 / 0.058 |
+| 65536 interleaved / split | 0.272 / **0.099** | 0.576 / 0.645 | 0.357 / **0.122** | 0.068 / 0.036 |
+
+Haswell has one shuffle port (5), and the interleaved passes send a third of
+their floating-point uops to it; the layout cuts that by 2–3×, the multiply
+and add ports get busier, and at 65536 stalls on a full store buffer fall to
+a third. At 64 the counters
+disagreed with the timing by too much to read (instructions per cycle 2.90
+interleaved, 1.33 split, for a 4% difference in time): the multiplexed counts
+of a run that is mostly calibration are not usable there.
+
+**2. Composites: Round 24's Intel rule against Round 26's AMD rule.** Every
+factorization `comp2Candidates` lists, for the 145 lengths 2^e·3^a·5^b up to
+16384 with e >= 1 and a+b >= 1, five rotated rounds (`TestR26Sweep`,
+`raw/sweep-comp.txt`, `scripts/an_sweep.py` with `scripts/rule_c2.py` and
+`scripts/rule_hsw.py`):
+
+| rule | time ÷ best candidate's (geo. mean, worst) | Round 24's time ÷ the rule's (geo. mean, worst) |
+|:--|:--|:--|
+| Round 24's Intel rule (main) | 1.086 (1.385) | 1.000 |
+| `comp2Factors` (Round 26, AMD) | 1.013 (1.174, 1536) | 1.072 (0.945, 1536) |
+| `hswComp2Factors` (this round) | **1.009** (1.122, 10240, which no rule changes) | **1.077** (0.984, 288) |
+
+- **AMD's rule wins here too**, 1.07× on average, but it lost to main's at
+  1536 (0.945), 3840 (0.966), 6400 (0.957) and 7680 (0.990). Each is a
+  length where its powers of two left over by the radix-12 and -20 passes end
+  4·4 or 4·4·8: the best candidate there ended 16 or 8·16 (1536 8·16·12,
+  3840 16·12·20, 6400 16·20·20, 7680 5·8·16·12), Round 24's radix-16 tails.
+- **`hswComp2Factors`** is `comp2Factors` with those two tails replaced:
+  4·4 → 16, 4·4·8 → 8·16. In their own A/B (`TestHswComp`, `raw/comp3.txt`,
+  five rotated rounds, all 150 lengths), the 96 lengths whose factorization
+  it changes ran 1.125× as fast as main (geometric mean; 0.990 at 288 to
+  1.358 at 3750); the 54 it leaves alone, identical plans, read 0.964–1.020,
+  which is the spread of this measurement at small sizes.
+- **Counters at 1536 and 3840** (`raw/pmu.txt`): AMD's 4·4 tails are one
+  pass more than 16, and they double or triple the stalls on a full store
+  buffer (1536: 0.112 against 0.066 per cycle; 3840: 0.083 against 0.029).
+  Haswell's 256 KB L2 makes every extra pass over the array a store stream.
+- **The split layout on composites** (`raw/comp3.txt`, same rounds): 0.999 of
+  interleaved by geometric mean, single lengths 0.937–1.039, inside the
+  identical-plan spread; split runs of two passes or more only: 1.001. It is
+  not worth a rule, so on Haswell the layout runs on powers of two only
+  (`hswSplitFloor`).
+
+**What ships** (Intel AVX2 without AVX-512 only: `kernels.IntelCPU` and not
+`kernels.UseStockhamAVX512`; AMD, AVX-512 and arm64 routing unchanged):
+- `splitDefault` turns the 256-bit split layout on for every AVX2 CPU without
+  AVX-512, which adds Intel's to AMD's; `hswSplitFloor` = 512 keeps it to
+  powers of two of at least 512 points on Intel.
+- `hswSplitTable`: 512 → 8·4·16, 8192 → 8·8·4·4·8, 16384 → 8·4·8·8·8,
+  splitPow2Factors from 2^19 (beyond 2^20 not timed); the other sizes keep
+  their factorization, now split. N-D strip axes of those lengths keep
+  main's factorization (`intelStripOrder`), as Round 28 did for its table.
+- `hswComp2Factors` for composites (`compFactorize`), from 2^e·3^a·5^b with
+  e <= 10 up to 16384; other lengths as before.
+
+**Bit identity and accuracy.** The split kernels are Round 23's, which are
+bit-identical to the Go passes (`TestSplitEachPassMatchesScalar`,
+`TestSplitTransformMatchesScalar`); the whole suite of both packages passed on
+Haswell with the new routing (`raw/tests-haswell.txt`). The new
+factorizations change results by rounding. Against numpy 2.5.3 (`numpy.fft`
+on the input bytes the Go test wrote, `TestHswExport`, `scripts/acc.py`,
+`raw/accuracy.txt`), relative RMS error, main's factorization → this round's:
+192 2.99e-16 → 2.79e-16, 1000 3.92 → 3.68, 1536 3.97 → 3.52, 1920 4.61 →
+3.95, 3840 4.89 → 4.04, 6000 4.95 → 4.63, 15000 5.38 → 5.49, 512 2.94 →
+2.93, 8192 4.37 → 4.35, 2^20 6.01 → 5.80 (seventeen lengths; new ÷ old
+0.83–1.02).
+
+**End to end against main** (v0.19.1, `BenchmarkAB`, main and the branch
+alternating every round, untouched rows in the same process after the
+touched ones, each run gated as above; `raw/e2e5.txt` five rounds,
+`raw/e2e15.txt` fifteen, loads 1.75–1.98 at the starts and at most 2.94 at
+the ends). Main time ÷ branch time, fifteen rounds:
+
+| | ratio | rounds above 1 | per-round range, one round dropped at each end |
+|:--|--:|--:|:--|
+| complex 64 / 128 / 256 (unchanged) | 1.002 / 0.999 / 1.000 | 11, 4, 4 of 15 | 0.994–1.006 |
+| complex 512 / 1024 / 2048 | **1.036 / 1.034 / 1.046** | 15 | 1.017–1.084 |
+| complex 4096 / 8192 / 16384 | **1.129 / 1.205 / 1.090** | 15 | 1.083–1.214 |
+| complex 65536 / 2^18 | **1.125 / 1.101** | 15, 14 | 1.011–1.134 |
+| complex 1000 / 1080 / 1920 / 2000 / 6000 | **1.118 / 1.069 / 1.156 / 1.205 / 1.081** | 14–15 | 1.051–1.216 |
+| complex 1296 (same factorization) / 1009 / 10007 (untouched) | 1.000 / 0.998 / 1.001 | 9, 7, 9 | 0.986–1.014 |
+| RFFT 256 / 1024 / 4096 / 1000 | 1.005 / **1.019** / 1.029 / **1.092** | 10, 15, 13, 14 | 4096: 0.985–1.068 |
+| 2-D 32² … 256² | 0.998–1.006 | 2–9 | 0.982–1.013 |
+| 2-D 512² / 1024² | 0.987 / 1.014 | 9, 9 | 0.858–1.031 / 0.987–1.035 |
+
+- **The five-round run** (`raw/e2e5.txt`) agrees within 0.013 on every
+  touched row but 16384 (1.117 there, 1.090 here), RFFT 4096 (1.006, 1.029)
+  and 2-D 512² (1.046, 0.987).
+- **One round of fifteen** caught a burst of another user's load between two
+  load checks (per-round ratios up to 2.07 on the first rows); the medians
+  and the trimmed ranges above set it aside (`scripts/aban2.py`;
+  `scripts/aban.py` prints the untrimmed ranges).
+- **2-D 1024²**, which lost 6% on Cascade Lake with its 512-bit split rows
+  (Round 28), ties here: 1.014, inside.
+- **This A/B ran against v0.19.1**, before the rebase on v0.20.0 (Round 30,
+  whose amd64 untangle kernel and direct RFFT path change the RFFT rows on
+  Haswell too); the branch's routing is unchanged by the rebase, and the
+  whole suite passed again on Haswell after it.
+
+**Not done.**
+- **FFTW parity on Haswell**: no FFTW on cfarm13; the ratios to FFTW are not
+  known for this host.
+- **Lengths above 2^20** take splitPow2Factors split without a measurement,
+  as on Zen 3.
+- **e = 11 composites** (6144, 10240): a radix-16 or radix-10 factorization
+  ran 1.05–1.12× faster in the sweep (10240: 8·8·16·10), but no rule covers
+  them on either vendor; left for a round that sweeps 2^11 and above.
+- **The blocked schedule (Round 20)** stays off on Haswell; not measured.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
+
 ### Round 30 — the smallest sizes: RFFT 256 and complex 256 on Zen 3 and Neoverse-N1 (2026-10-08)
 
 **The question.** Of the parity rows FFTW still won on both hosts, the
