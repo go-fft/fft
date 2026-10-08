@@ -1,0 +1,991 @@
+# round 1 variant main 21:29:34 load 2.26 2.29 2.42
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  713796	       305.8 ns/op
+BenchmarkR30AB/I256         	  735068	       331.4 ns/op
+BenchmarkR30AB/R512         	  433389	       558.0 ns/op
+BenchmarkR30AB/I512         	  411984	       605.1 ns/op
+BenchmarkR30AB/R1024        	  190876	      1215 ns/op
+BenchmarkR30AB/I1024        	  198626	      1206 ns/op
+BenchmarkR30AB/R2048        	   94510	      2613 ns/op
+BenchmarkR30AB/I2048        	   94984	      2519 ns/op
+BenchmarkR30AB/R4096        	   40861	      5902 ns/op
+BenchmarkR30AB/I4096        	   40364	      6006 ns/op
+BenchmarkR30AB/R8192        	   15219	     13243 ns/op
+BenchmarkR30AB/I8192        	   18723	     12881 ns/op
+BenchmarkR30AB/R1000        	  165064	      1436 ns/op
+BenchmarkR30AB/I1000        	  165429	      1748 ns/op
+BenchmarkR30AB/C64          	 2318878	       104.4 ns/op
+BenchmarkR30AB/C128         	 1272252	       189.4 ns/op
+BenchmarkR30AB/C256         	  656311	       355.0 ns/op
+BenchmarkR30AB/C512         	  330736	       726.8 ns/op
+BenchmarkR30AB/C1024        	  141242	      1697 ns/op
+BenchmarkR30AB/C2048        	   54260	      4460 ns/op
+BenchmarkR30AB/C4096        	   24415	      9857 ns/op
+BenchmarkR30AB/C8192        	   10000	     24536 ns/op
+BenchmarkR30AB/C1000        	  108272	      2232 ns/op
+BenchmarkR30AB/C1080        	   93759	      2585 ns/op
+BenchmarkR30AB/D64          	   21453	     11146 ns/op
+BenchmarkR30AB/D128         	    4515	     53237 ns/op
+BenchmarkR30AB/D256         	     856	    288077 ns/op
+PASS
+# round 1 variant br 21:29:42 load 2.38 2.31 2.43
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  769874	       278.1 ns/op
+BenchmarkR30AB/I256         	  843302	       288.9 ns/op
+BenchmarkR30AB/R512         	  471727	       509.0 ns/op
+BenchmarkR30AB/I512         	  442938	       557.1 ns/op
+BenchmarkR30AB/R1024        	  224432	      1039 ns/op
+BenchmarkR30AB/I1024        	  218383	      1104 ns/op
+BenchmarkR30AB/R2048        	  106737	      2286 ns/op
+BenchmarkR30AB/I2048        	   98096	      2487 ns/op
+BenchmarkR30AB/R4096        	   41014	      5895 ns/op
+BenchmarkR30AB/I4096        	   40141	      5947 ns/op
+BenchmarkR30AB/R8192        	   20150	     11796 ns/op
+BenchmarkR30AB/I8192        	   18664	     13115 ns/op
+BenchmarkR30AB/R1000        	  185190	      1292 ns/op
+BenchmarkR30AB/I1000        	  177648	      1349 ns/op
+BenchmarkR30AB/C64          	 2006462	       120.5 ns/op
+BenchmarkR30AB/C128         	 1266649	       191.1 ns/op
+BenchmarkR30AB/C256         	  693078	       350.4 ns/op
+BenchmarkR30AB/C512         	  334650	       718.5 ns/op
+BenchmarkR30AB/C1024        	  142876	      2055 ns/op
+BenchmarkR30AB/C2048        	   53235	      4474 ns/op
+BenchmarkR30AB/C4096        	   24844	      9326 ns/op
+BenchmarkR30AB/C8192        	   10000	     22424 ns/op
+BenchmarkR30AB/C1000        	  102920	      2214 ns/op
+BenchmarkR30AB/C1080        	   88884	      2636 ns/op
+BenchmarkR30AB/D64          	   21186	     11272 ns/op
+BenchmarkR30AB/D128         	    4453	     53691 ns/op
+BenchmarkR30AB/D256         	     871	    276099 ns/op
+PASS
+# round 2 variant br 21:29:50 load 2.51 2.34 2.44
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  742939	       280.8 ns/op
+BenchmarkR30AB/I256         	  798840	       308.1 ns/op
+BenchmarkR30AB/R512         	  351076	       590.0 ns/op
+BenchmarkR30AB/I512         	  443814	       537.7 ns/op
+BenchmarkR30AB/R1024        	  234745	      1021 ns/op
+BenchmarkR30AB/I1024        	  222867	      1084 ns/op
+BenchmarkR30AB/R2048        	  107620	      2278 ns/op
+BenchmarkR30AB/I2048        	  100489	      2472 ns/op
+BenchmarkR30AB/R4096        	   43209	      5679 ns/op
+BenchmarkR30AB/I4096        	   42286	      5901 ns/op
+BenchmarkR30AB/R8192        	   20475	     11480 ns/op
+BenchmarkR30AB/I8192        	   19792	     12074 ns/op
+BenchmarkR30AB/R1000        	  185000	      1297 ns/op
+BenchmarkR30AB/I1000        	  176158	      1402 ns/op
+BenchmarkR30AB/C64          	 2027745	       117.8 ns/op
+BenchmarkR30AB/C128         	 1291794	       185.4 ns/op
+BenchmarkR30AB/C256         	  675397	       353.0 ns/op
+BenchmarkR30AB/C512         	  332053	       719.5 ns/op
+BenchmarkR30AB/C1024        	  140656	      1761 ns/op
+BenchmarkR30AB/C2048        	   53564	      4522 ns/op
+BenchmarkR30AB/C4096        	   25705	      9293 ns/op
+BenchmarkR30AB/C8192        	   10000	     21405 ns/op
+BenchmarkR30AB/C1000        	  112887	      2216 ns/op
+BenchmarkR30AB/C1080        	   93367	      2552 ns/op
+BenchmarkR30AB/D64          	   21243	     11298 ns/op
+BenchmarkR30AB/D128         	    4026	     52824 ns/op
+BenchmarkR30AB/D256         	     856	    334043 ns/op
+PASS
+# round 2 variant main 21:29:57 load 2.66 2.38 2.45
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  689626	       296.0 ns/op
+BenchmarkR30AB/I256         	  737146	       352.9 ns/op
+BenchmarkR30AB/R512         	  436401	       547.9 ns/op
+BenchmarkR30AB/I512         	  424762	       570.8 ns/op
+BenchmarkR30AB/R1024        	  211604	      1130 ns/op
+BenchmarkR30AB/I1024        	  206034	      1157 ns/op
+BenchmarkR30AB/R2048        	   98310	      2465 ns/op
+BenchmarkR30AB/I2048        	   95416	      2498 ns/op
+BenchmarkR30AB/R4096        	   40862	      5876 ns/op
+BenchmarkR30AB/I4096        	   40173	      5944 ns/op
+BenchmarkR30AB/R8192        	   19610	     12250 ns/op
+BenchmarkR30AB/I8192        	   19562	     12586 ns/op
+BenchmarkR30AB/R1000        	  170540	      1410 ns/op
+BenchmarkR30AB/I1000        	  166660	      1438 ns/op
+BenchmarkR30AB/C64          	 2318666	       108.4 ns/op
+BenchmarkR30AB/C128         	 1225047	       187.0 ns/op
+BenchmarkR30AB/C256         	  694204	       398.7 ns/op
+BenchmarkR30AB/C512         	  332760	       720.0 ns/op
+BenchmarkR30AB/C1024        	  136664	      1746 ns/op
+BenchmarkR30AB/C2048        	   54864	      4392 ns/op
+BenchmarkR30AB/C4096        	   25488	      9368 ns/op
+BenchmarkR30AB/C8192        	   10000	     21468 ns/op
+BenchmarkR30AB/C1000        	  112140	      2132 ns/op
+BenchmarkR30AB/C1080        	   93702	      2557 ns/op
+BenchmarkR30AB/D64          	   21727	     11029 ns/op
+BenchmarkR30AB/D128         	    4570	     54078 ns/op
+BenchmarkR30AB/D256         	     876	    273778 ns/op
+PASS
+# round 3 variant main 21:30:05 load 2.94 2.45 2.47
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  784869	       301.1 ns/op
+BenchmarkR30AB/I256         	  720364	       330.4 ns/op
+BenchmarkR30AB/R512         	  431808	       555.5 ns/op
+BenchmarkR30AB/I512         	  425134	       571.1 ns/op
+BenchmarkR30AB/R1024        	  215400	      1142 ns/op
+BenchmarkR30AB/I1024        	  205322	      1169 ns/op
+BenchmarkR30AB/R2048        	   95464	      2645 ns/op
+BenchmarkR30AB/I2048        	   94287	      2616 ns/op
+BenchmarkR30AB/R4096        	   40333	      5869 ns/op
+BenchmarkR30AB/I4096        	   40568	      7112 ns/op
+BenchmarkR30AB/R8192        	   18693	     12441 ns/op
+BenchmarkR30AB/I8192        	   19602	     12234 ns/op
+BenchmarkR30AB/R1000        	  172213	      1396 ns/op
+BenchmarkR30AB/I1000        	  167066	      1433 ns/op
+BenchmarkR30AB/C64          	 2277186	       105.7 ns/op
+BenchmarkR30AB/C128         	 1272756	       190.1 ns/op
+BenchmarkR30AB/C256         	  679645	       352.7 ns/op
+BenchmarkR30AB/C512         	  333777	       724.4 ns/op
+BenchmarkR30AB/C1024        	  140319	      1764 ns/op
+BenchmarkR30AB/C2048        	   51782	      4430 ns/op
+BenchmarkR30AB/C4096        	   25730	      9304 ns/op
+BenchmarkR30AB/C8192        	   10000	     21954 ns/op
+BenchmarkR30AB/C1000        	  111442	      2149 ns/op
+BenchmarkR30AB/C1080        	   93976	      2549 ns/op
+BenchmarkR30AB/D64          	   21709	     10965 ns/op
+BenchmarkR30AB/D128         	    4497	     53198 ns/op
+BenchmarkR30AB/D256         	     838	    277930 ns/op
+PASS
+# round 3 variant br 21:30:13 load 2.95 2.46 2.47
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  796671	       276.3 ns/op
+BenchmarkR30AB/I256         	  824457	       293.2 ns/op
+BenchmarkR30AB/R512         	  472902	       515.9 ns/op
+BenchmarkR30AB/I512         	  439021	       545.5 ns/op
+BenchmarkR30AB/R1024        	  227283	      1036 ns/op
+BenchmarkR30AB/I1024        	  215947	      1109 ns/op
+BenchmarkR30AB/R2048        	  105742	      2270 ns/op
+BenchmarkR30AB/I2048        	   97962	      2449 ns/op
+BenchmarkR30AB/R4096        	   42168	      5572 ns/op
+BenchmarkR30AB/I4096        	   41406	      5786 ns/op
+BenchmarkR30AB/R8192        	   20467	     11891 ns/op
+BenchmarkR30AB/I8192        	   19887	     12253 ns/op
+BenchmarkR30AB/R1000        	  183480	      1292 ns/op
+BenchmarkR30AB/I1000        	  177382	      1358 ns/op
+BenchmarkR30AB/C64          	 2003468	       123.3 ns/op
+BenchmarkR30AB/C128         	 1251559	       187.7 ns/op
+BenchmarkR30AB/C256         	  674696	       354.8 ns/op
+BenchmarkR30AB/C512         	  329223	       723.1 ns/op
+BenchmarkR30AB/C1024        	  142974	      1687 ns/op
+BenchmarkR30AB/C2048        	   51672	      4607 ns/op
+BenchmarkR30AB/C4096        	   25704	      9248 ns/op
+BenchmarkR30AB/C8192        	   10000	     21489 ns/op
+BenchmarkR30AB/C1000        	  110692	      2137 ns/op
+BenchmarkR30AB/C1080        	   93271	      2587 ns/op
+BenchmarkR30AB/D64          	   20731	     11737 ns/op
+BenchmarkR30AB/D128         	    4525	     99828 ns/op
+BenchmarkR30AB/D256         	     843	    298420 ns/op
+PASS
+# round 4 variant br 21:30:21 load 2.96 2.48 2.48
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  840752	       308.8 ns/op
+BenchmarkR30AB/I256         	  814682	       318.1 ns/op
+BenchmarkR30AB/R512         	  473748	       511.6 ns/op
+BenchmarkR30AB/I512         	  436906	       566.8 ns/op
+BenchmarkR30AB/R1024        	  229194	      1080 ns/op
+BenchmarkR30AB/I1024        	  215991	      1305 ns/op
+BenchmarkR30AB/R2048        	  105208	      2345 ns/op
+BenchmarkR30AB/I2048        	   97807	      2572 ns/op
+BenchmarkR30AB/R4096        	   42412	      5827 ns/op
+BenchmarkR30AB/I4096        	   36723	      5904 ns/op
+BenchmarkR30AB/R8192        	   20294	     11887 ns/op
+BenchmarkR30AB/I8192        	   19860	     12342 ns/op
+BenchmarkR30AB/R1000        	  182096	      1427 ns/op
+BenchmarkR30AB/I1000        	  179616	      1364 ns/op
+BenchmarkR30AB/C64          	 2025385	       119.2 ns/op
+BenchmarkR30AB/C128         	 1243719	       192.5 ns/op
+BenchmarkR30AB/C256         	  671792	       370.9 ns/op
+BenchmarkR30AB/C512         	  327933	       742.7 ns/op
+BenchmarkR30AB/C1024        	  134804	      1777 ns/op
+BenchmarkR30AB/C2048        	   53186	      4695 ns/op
+BenchmarkR30AB/C4096        	   24699	      9904 ns/op
+BenchmarkR30AB/C8192        	   10000	     23330 ns/op
+BenchmarkR30AB/C1000        	  102304	      2219 ns/op
+BenchmarkR30AB/C1080        	   93700	      2640 ns/op
+BenchmarkR30AB/D64          	   20863	     12313 ns/op
+BenchmarkR30AB/D128         	    4519	     57537 ns/op
+BenchmarkR30AB/D256         	     847	    281601 ns/op
+PASS
+# round 4 variant main 21:30:29 load 3.04 2.50 2.49
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  707554	       302.0 ns/op
+BenchmarkR30AB/I256         	  736356	       329.5 ns/op
+BenchmarkR30AB/R512         	  429650	       574.5 ns/op
+BenchmarkR30AB/I512         	  419882	       601.6 ns/op
+BenchmarkR30AB/R1024        	  210979	      1133 ns/op
+BenchmarkR30AB/I1024        	  205052	      1169 ns/op
+BenchmarkR30AB/R2048        	   98197	      2446 ns/op
+BenchmarkR30AB/I2048        	   75049	      2880 ns/op
+BenchmarkR30AB/R4096        	   37707	      6071 ns/op
+BenchmarkR30AB/I4096        	   38509	      6153 ns/op
+BenchmarkR30AB/R8192        	   19509	     12422 ns/op
+BenchmarkR30AB/I8192        	   18698	     12673 ns/op
+BenchmarkR30AB/R1000        	  169879	      1477 ns/op
+BenchmarkR30AB/I1000        	  160194	      1478 ns/op
+BenchmarkR30AB/C64          	 2179921	       125.5 ns/op
+BenchmarkR30AB/C128         	 1245751	       194.1 ns/op
+BenchmarkR30AB/C256         	  653196	       358.6 ns/op
+BenchmarkR30AB/C512         	  337233	       716.3 ns/op
+BenchmarkR30AB/C1024        	  142156	      1738 ns/op
+BenchmarkR30AB/C2048        	   54820	      4386 ns/op
+BenchmarkR30AB/C4096        	   25489	      9615 ns/op
+BenchmarkR30AB/C8192        	    9429	     21751 ns/op
+BenchmarkR30AB/C1000        	  111733	      2180 ns/op
+BenchmarkR30AB/C1080        	   91098	      2808 ns/op
+BenchmarkR30AB/D64          	   20452	     11429 ns/op
+BenchmarkR30AB/D128         	    4504	     54570 ns/op
+BenchmarkR30AB/D256         	     868	    313647 ns/op
+PASS
+# round 5 variant main 21:30:37 load 3.03 2.52 2.49
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  732087	       308.9 ns/op
+BenchmarkR30AB/I256         	  728322	       326.4 ns/op
+BenchmarkR30AB/R512         	  431458	       554.1 ns/op
+BenchmarkR30AB/I512         	  419122	       681.4 ns/op
+BenchmarkR30AB/R1024        	  214060	      1132 ns/op
+BenchmarkR30AB/I1024        	  207226	      1153 ns/op
+BenchmarkR30AB/R2048        	   98690	      2462 ns/op
+BenchmarkR30AB/I2048        	   96114	      2499 ns/op
+BenchmarkR30AB/R4096        	   41086	      5913 ns/op
+BenchmarkR30AB/I4096        	   37608	      5955 ns/op
+BenchmarkR30AB/R8192        	   19845	     12425 ns/op
+BenchmarkR30AB/I8192        	   19489	     12301 ns/op
+BenchmarkR30AB/R1000        	  171187	      1393 ns/op
+BenchmarkR30AB/I1000        	  165954	      1444 ns/op
+BenchmarkR30AB/C64          	 2330340	       106.7 ns/op
+BenchmarkR30AB/C128         	 1289061	       193.6 ns/op
+BenchmarkR30AB/C256         	  581706	       362.3 ns/op
+BenchmarkR30AB/C512         	  333171	       718.5 ns/op
+BenchmarkR30AB/C1024        	  142892	      1683 ns/op
+BenchmarkR30AB/C2048        	   54696	      4371 ns/op
+BenchmarkR30AB/C4096        	   25730	      9267 ns/op
+BenchmarkR30AB/C8192        	   10000	     21535 ns/op
+BenchmarkR30AB/C1000        	  111564	      2149 ns/op
+BenchmarkR30AB/C1080        	   93559	      2546 ns/op
+BenchmarkR30AB/D64          	   21709	     11101 ns/op
+BenchmarkR30AB/D128         	    4526	     52477 ns/op
+BenchmarkR30AB/D256         	     876	    274821 ns/op
+PASS
+# round 5 variant br 21:30:45 load 3.03 2.54 2.50
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  801904	       280.3 ns/op
+BenchmarkR30AB/I256         	  829754	       289.8 ns/op
+BenchmarkR30AB/R512         	  475176	       506.6 ns/op
+BenchmarkR30AB/I512         	  442164	       546.4 ns/op
+BenchmarkR30AB/R1024        	  230600	      1024 ns/op
+BenchmarkR30AB/I1024        	  217663	      1095 ns/op
+BenchmarkR30AB/R2048        	  104755	      2391 ns/op
+BenchmarkR30AB/I2048        	   94328	      2517 ns/op
+BenchmarkR30AB/R4096        	   39764	      5911 ns/op
+BenchmarkR30AB/I4096        	   40905	      7028 ns/op
+BenchmarkR30AB/R8192        	   20482	     11724 ns/op
+BenchmarkR30AB/I8192        	   19946	     11956 ns/op
+BenchmarkR30AB/R1000        	  184993	      1308 ns/op
+BenchmarkR30AB/I1000        	  177078	      1357 ns/op
+BenchmarkR30AB/C64          	 1975935	       121.6 ns/op
+BenchmarkR30AB/C128         	 1209987	       188.4 ns/op
+BenchmarkR30AB/C256         	  676879	       356.1 ns/op
+BenchmarkR30AB/C512         	  331014	       715.7 ns/op
+BenchmarkR30AB/C1024        	  141255	      3355 ns/op
+BenchmarkR30AB/C2048        	   53491	      5001 ns/op
+BenchmarkR30AB/C4096        	   22658	     11240 ns/op
+BenchmarkR30AB/C8192        	   10000	     22997 ns/op
+BenchmarkR30AB/C1000        	  109060	      2322 ns/op
+BenchmarkR30AB/C1080        	   80760	      2623 ns/op
+BenchmarkR30AB/D64          	   21112	     11371 ns/op
+BenchmarkR30AB/D128         	    4521	     52651 ns/op
+BenchmarkR30AB/D256         	     864	    277088 ns/op
+PASS
+# round 6 variant br 21:30:53 load 3.03 2.55 2.50
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  849400	       274.2 ns/op
+BenchmarkR30AB/I256         	  844044	       287.1 ns/op
+BenchmarkR30AB/R512         	  479649	       513.0 ns/op
+BenchmarkR30AB/I512         	  445255	       572.3 ns/op
+BenchmarkR30AB/R1024        	  235964	      1013 ns/op
+BenchmarkR30AB/I1024        	  221462	      1089 ns/op
+BenchmarkR30AB/R2048        	  106334	      2284 ns/op
+BenchmarkR30AB/I2048        	  100190	      2419 ns/op
+BenchmarkR30AB/R4096        	   43509	      5558 ns/op
+BenchmarkR30AB/I4096        	   41768	      5717 ns/op
+BenchmarkR30AB/R8192        	   20592	     11590 ns/op
+BenchmarkR30AB/I8192        	   20067	     12192 ns/op
+BenchmarkR30AB/R1000        	  177734	      1406 ns/op
+BenchmarkR30AB/I1000        	  179162	      1470 ns/op
+BenchmarkR30AB/C64          	 1947709	       123.6 ns/op
+BenchmarkR30AB/C128         	 1000000	       200.1 ns/op
+BenchmarkR30AB/C256         	  668733	       393.1 ns/op
+BenchmarkR30AB/C512         	  333706	       717.3 ns/op
+BenchmarkR30AB/C1024        	  137257	      1768 ns/op
+BenchmarkR30AB/C2048        	   54447	      4418 ns/op
+BenchmarkR30AB/C4096        	   26020	      9397 ns/op
+BenchmarkR30AB/C8192        	   10000	     21372 ns/op
+BenchmarkR30AB/C1000        	  109969	      2213 ns/op
+BenchmarkR30AB/C1080        	   93720	      2575 ns/op
+BenchmarkR30AB/D64          	   21280	     11322 ns/op
+BenchmarkR30AB/D128         	    4500	     53214 ns/op
+BenchmarkR30AB/D256         	     860	    277890 ns/op
+PASS
+# round 6 variant main 21:31:01 load 3.02 2.56 2.51
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  714372	       296.1 ns/op
+BenchmarkR30AB/I256         	  734750	       328.3 ns/op
+BenchmarkR30AB/R512         	  432394	       554.8 ns/op
+BenchmarkR30AB/I512         	  418699	       569.1 ns/op
+BenchmarkR30AB/R1024        	  211330	      1134 ns/op
+BenchmarkR30AB/I1024        	  207442	      1163 ns/op
+BenchmarkR30AB/R2048        	   98264	      2465 ns/op
+BenchmarkR30AB/I2048        	   82810	      2732 ns/op
+BenchmarkR30AB/R4096        	   41307	      5884 ns/op
+BenchmarkR30AB/I4096        	   39919	      6025 ns/op
+BenchmarkR30AB/R8192        	   19428	     12473 ns/op
+BenchmarkR30AB/I8192        	   18700	     12390 ns/op
+BenchmarkR30AB/R1000        	  173648	      1376 ns/op
+BenchmarkR30AB/I1000        	  167086	      1456 ns/op
+BenchmarkR30AB/C64          	 2360215	       105.9 ns/op
+BenchmarkR30AB/C128         	 1212682	       196.8 ns/op
+BenchmarkR30AB/C256         	  681248	       392.0 ns/op
+BenchmarkR30AB/C512         	  272167	       741.7 ns/op
+BenchmarkR30AB/C1024        	  140860	      1690 ns/op
+BenchmarkR30AB/C2048        	   54866	      4454 ns/op
+BenchmarkR30AB/C4096        	   25812	      9245 ns/op
+BenchmarkR30AB/C8192        	   10000	     21106 ns/op
+BenchmarkR30AB/C1000        	  107254	      2520 ns/op
+BenchmarkR30AB/C1080        	   93465	      2817 ns/op
+BenchmarkR30AB/D64          	   20500	     11367 ns/op
+BenchmarkR30AB/D128         	    4478	     62685 ns/op
+BenchmarkR30AB/D256         	     854	    278671 ns/op
+PASS
+# round 7 variant main 21:31:09 load 3.02 2.57 2.51
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  746734	       299.5 ns/op
+BenchmarkR30AB/I256         	  732369	       327.8 ns/op
+BenchmarkR30AB/R512         	  432844	       549.3 ns/op
+BenchmarkR30AB/I512         	  421988	       579.2 ns/op
+BenchmarkR30AB/R1024        	  213324	      1124 ns/op
+BenchmarkR30AB/I1024        	  205915	      1164 ns/op
+BenchmarkR30AB/R2048        	   97190	      2466 ns/op
+BenchmarkR30AB/I2048        	   96003	      2618 ns/op
+BenchmarkR30AB/R4096        	   34586	      5835 ns/op
+BenchmarkR30AB/I4096        	   40185	      5967 ns/op
+BenchmarkR30AB/R8192        	   19174	     12339 ns/op
+BenchmarkR30AB/I8192        	   19666	     12399 ns/op
+BenchmarkR30AB/R1000        	  172161	      1412 ns/op
+BenchmarkR30AB/I1000        	  166676	      1436 ns/op
+BenchmarkR30AB/C64          	 2334597	       102.0 ns/op
+BenchmarkR30AB/C128         	 1000000	       207.5 ns/op
+BenchmarkR30AB/C256         	  680602	       348.4 ns/op
+BenchmarkR30AB/C512         	  337052	       711.1 ns/op
+BenchmarkR30AB/C1024        	  141558	      1837 ns/op
+BenchmarkR30AB/C2048        	   53096	      4491 ns/op
+BenchmarkR30AB/C4096        	   25798	      9167 ns/op
+BenchmarkR30AB/C8192        	   10000	     21838 ns/op
+BenchmarkR30AB/C1000        	  108907	      2183 ns/op
+BenchmarkR30AB/C1080        	   90906	      2818 ns/op
+BenchmarkR30AB/D64          	   21727	     12153 ns/op
+BenchmarkR30AB/D128         	    4520	     52900 ns/op
+BenchmarkR30AB/D256         	     864	    277565 ns/op
+PASS
+# round 7 variant br 21:31:16 load 3.09 2.60 2.52
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  731557	       274.4 ns/op
+BenchmarkR30AB/I256         	  824928	       290.8 ns/op
+BenchmarkR30AB/R512         	  484203	       512.0 ns/op
+BenchmarkR30AB/I512         	  440136	       551.5 ns/op
+BenchmarkR30AB/R1024        	  230716	      1099 ns/op
+BenchmarkR30AB/I1024        	  218770	      1335 ns/op
+BenchmarkR30AB/R2048        	  102127	      2438 ns/op
+BenchmarkR30AB/I2048        	   99847	      2564 ns/op
+BenchmarkR30AB/R4096        	   43336	      5541 ns/op
+BenchmarkR30AB/I4096        	   41899	      5687 ns/op
+BenchmarkR30AB/R8192        	   19797	     11670 ns/op
+BenchmarkR30AB/I8192        	   19024	     12026 ns/op
+BenchmarkR30AB/R1000        	  185874	      1292 ns/op
+BenchmarkR30AB/I1000        	  177020	      1356 ns/op
+BenchmarkR30AB/C64          	 2034758	       116.9 ns/op
+BenchmarkR30AB/C128         	 1251082	       191.2 ns/op
+BenchmarkR30AB/C256         	  626852	       412.2 ns/op
+BenchmarkR30AB/C512         	  324592	       747.6 ns/op
+BenchmarkR30AB/C1024        	  137049	      1752 ns/op
+BenchmarkR30AB/C2048        	   54776	      4511 ns/op
+BenchmarkR30AB/C4096        	   25728	      9383 ns/op
+BenchmarkR30AB/C8192        	   10000	     21537 ns/op
+BenchmarkR30AB/C1000        	  106389	      2115 ns/op
+BenchmarkR30AB/C1080        	   91393	      2663 ns/op
+BenchmarkR30AB/D64          	   20569	     11624 ns/op
+BenchmarkR30AB/D128         	    4383	     55687 ns/op
+BenchmarkR30AB/D256         	     867	    272908 ns/op
+PASS
+# round 8 variant br 21:31:24 load 3.16 2.62 2.53
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  860678	       277.6 ns/op
+BenchmarkR30AB/I256         	  815146	       288.9 ns/op
+BenchmarkR30AB/R512         	  468686	       499.1 ns/op
+BenchmarkR30AB/I512         	  443985	       537.6 ns/op
+BenchmarkR30AB/R1024        	  233745	      1029 ns/op
+BenchmarkR30AB/I1024        	  218924	      1083 ns/op
+BenchmarkR30AB/R2048        	  105691	      2267 ns/op
+BenchmarkR30AB/I2048        	  101188	      2456 ns/op
+BenchmarkR30AB/R4096        	   42579	      5634 ns/op
+BenchmarkR30AB/I4096        	   40124	      5805 ns/op
+BenchmarkR30AB/R8192        	   20997	     11753 ns/op
+BenchmarkR30AB/I8192        	   19545	     11968 ns/op
+BenchmarkR30AB/R1000        	  187036	      1298 ns/op
+BenchmarkR30AB/I1000        	  177672	      1361 ns/op
+BenchmarkR30AB/C64          	 2021660	       123.5 ns/op
+BenchmarkR30AB/C128         	 1217239	       187.3 ns/op
+BenchmarkR30AB/C256         	  692146	       354.5 ns/op
+BenchmarkR30AB/C512         	  333464	       731.3 ns/op
+BenchmarkR30AB/C1024        	  141482	      1691 ns/op
+BenchmarkR30AB/C2048        	   55372	      4323 ns/op
+BenchmarkR30AB/C4096        	   26032	      9212 ns/op
+BenchmarkR30AB/C8192        	   10000	     21653 ns/op
+BenchmarkR30AB/C1000        	  109698	      2129 ns/op
+BenchmarkR30AB/C1080        	   93213	      2555 ns/op
+BenchmarkR30AB/D64          	   21079	     11359 ns/op
+BenchmarkR30AB/D128         	    4554	     53520 ns/op
+BenchmarkR30AB/D256         	     868	    279476 ns/op
+PASS
+# round 8 variant main 21:31:32 load 3.14 2.64 2.54
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  747907	       304.1 ns/op
+BenchmarkR30AB/I256         	  586616	       433.4 ns/op
+BenchmarkR30AB/R512         	  345865	       673.2 ns/op
+BenchmarkR30AB/I512         	  420270	       639.1 ns/op
+BenchmarkR30AB/R1024        	  180804	      1126 ns/op
+BenchmarkR30AB/I1024        	  205938	      1180 ns/op
+BenchmarkR30AB/R2048        	   98374	      2434 ns/op
+BenchmarkR30AB/I2048        	   95836	      2511 ns/op
+BenchmarkR30AB/R4096        	   40962	      5842 ns/op
+BenchmarkR30AB/I4096        	   40826	      5886 ns/op
+BenchmarkR30AB/R8192        	   19326	     12942 ns/op
+BenchmarkR30AB/I8192        	   17983	     13056 ns/op
+BenchmarkR30AB/R1000        	  173061	      1384 ns/op
+BenchmarkR30AB/I1000        	  169748	      1424 ns/op
+BenchmarkR30AB/C64          	 2346288	       102.7 ns/op
+BenchmarkR30AB/C128         	 1286647	       205.0 ns/op
+BenchmarkR30AB/C256         	  694515	       345.4 ns/op
+BenchmarkR30AB/C512         	  310910	       828.1 ns/op
+BenchmarkR30AB/C1024        	  111650	      2047 ns/op
+BenchmarkR30AB/C2048        	   54588	      4375 ns/op
+BenchmarkR30AB/C4096        	   25652	      9337 ns/op
+BenchmarkR30AB/C8192        	   10000	     20686 ns/op
+BenchmarkR30AB/C1000        	  111414	      2131 ns/op
+BenchmarkR30AB/C1080        	   94214	      2543 ns/op
+BenchmarkR30AB/D64          	   22093	     10880 ns/op
+BenchmarkR30AB/D128         	    4521	     52537 ns/op
+BenchmarkR30AB/D256         	     870	    282268 ns/op
+PASS
+# round 9 variant main 21:31:41 load 3.20 2.66 2.55
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  789182	       300.9 ns/op
+BenchmarkR30AB/I256         	  734209	       330.7 ns/op
+BenchmarkR30AB/R512         	  429494	       563.8 ns/op
+BenchmarkR30AB/I512         	  419638	       573.9 ns/op
+BenchmarkR30AB/R1024        	  210487	      1211 ns/op
+BenchmarkR30AB/I1024        	  207182	      1316 ns/op
+BenchmarkR30AB/R2048        	   97932	      2439 ns/op
+BenchmarkR30AB/I2048        	   94710	      2551 ns/op
+BenchmarkR30AB/R4096        	   40660	      5942 ns/op
+BenchmarkR30AB/I4096        	   40155	      6095 ns/op
+BenchmarkR30AB/R8192        	   18300	     13585 ns/op
+BenchmarkR30AB/I8192        	   19364	     12438 ns/op
+BenchmarkR30AB/R1000        	  171816	      1425 ns/op
+BenchmarkR30AB/I1000        	  163978	      1461 ns/op
+BenchmarkR30AB/C64          	 2260767	       103.8 ns/op
+BenchmarkR30AB/C128         	 1275628	       188.1 ns/op
+BenchmarkR30AB/C256         	  686277	       362.2 ns/op
+BenchmarkR30AB/C512         	  332743	       718.3 ns/op
+BenchmarkR30AB/C1024        	  145119	      1663 ns/op
+BenchmarkR30AB/C2048        	   54037	      4427 ns/op
+BenchmarkR30AB/C4096        	   26161	      9167 ns/op
+BenchmarkR30AB/C8192        	   10000	     21699 ns/op
+BenchmarkR30AB/C1000        	  111481	      2163 ns/op
+BenchmarkR30AB/C1080        	   92286	      2951 ns/op
+BenchmarkR30AB/D64          	   21720	     10945 ns/op
+BenchmarkR30AB/D128         	    4568	     52971 ns/op
+BenchmarkR30AB/D256         	     739	    288414 ns/op
+PASS
+# round 9 variant br 21:31:49 load 3.18 2.67 2.55
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  857104	       281.8 ns/op
+BenchmarkR30AB/I256         	  806034	       297.0 ns/op
+BenchmarkR30AB/R512         	  468344	       506.9 ns/op
+BenchmarkR30AB/I512         	  433629	       541.8 ns/op
+BenchmarkR30AB/R1024        	  235383	      1036 ns/op
+BenchmarkR30AB/I1024        	  218559	      1185 ns/op
+BenchmarkR30AB/R2048        	  104442	      2294 ns/op
+BenchmarkR30AB/I2048        	  101016	      2467 ns/op
+BenchmarkR30AB/R4096        	   42642	      5611 ns/op
+BenchmarkR30AB/I4096        	   10000	     20177 ns/op
+BenchmarkR30AB/R8192        	   20398	     11727 ns/op
+BenchmarkR30AB/I8192        	   20162	     11886 ns/op
+BenchmarkR30AB/R1000        	  184836	      1291 ns/op
+BenchmarkR30AB/I1000        	  176011	      1586 ns/op
+BenchmarkR30AB/C64          	 2002068	       118.3 ns/op
+BenchmarkR30AB/C128         	 1216094	       206.6 ns/op
+BenchmarkR30AB/C256         	  685186	       351.3 ns/op
+BenchmarkR30AB/C512         	  333510	       711.5 ns/op
+BenchmarkR30AB/C1024        	  144541	      1664 ns/op
+BenchmarkR30AB/C2048        	   53324	      4378 ns/op
+BenchmarkR30AB/C4096        	   26044	      9201 ns/op
+BenchmarkR30AB/C8192        	   10000	     21494 ns/op
+BenchmarkR30AB/C1000        	  110728	      2154 ns/op
+BenchmarkR30AB/C1080        	   90031	      2657 ns/op
+BenchmarkR30AB/D64          	   21097	     11394 ns/op
+BenchmarkR30AB/D128         	    4414	     56144 ns/op
+BenchmarkR30AB/D256         	     866	    276688 ns/op
+PASS
+# round 10 variant br 21:31:57 load 3.38 2.73 2.57
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  878656	       304.3 ns/op
+BenchmarkR30AB/I256         	  840144	       304.8 ns/op
+BenchmarkR30AB/R512         	  419478	       567.4 ns/op
+BenchmarkR30AB/I512         	  377149	       596.7 ns/op
+BenchmarkR30AB/R1024        	  229618	      1038 ns/op
+BenchmarkR30AB/I1024        	  195864	      1102 ns/op
+BenchmarkR30AB/R2048        	  104391	      2500 ns/op
+BenchmarkR30AB/I2048        	   95895	      2475 ns/op
+BenchmarkR30AB/R4096        	   42483	      5557 ns/op
+BenchmarkR30AB/I4096        	   41752	      5740 ns/op
+BenchmarkR30AB/R8192        	   20721	     11567 ns/op
+BenchmarkR30AB/I8192        	   20013	     11979 ns/op
+BenchmarkR30AB/R1000        	  184986	      1292 ns/op
+BenchmarkR30AB/I1000        	  177172	      1355 ns/op
+BenchmarkR30AB/C64          	 2029186	       117.5 ns/op
+BenchmarkR30AB/C128         	 1280964	       187.5 ns/op
+BenchmarkR30AB/C256         	  679441	       355.3 ns/op
+BenchmarkR30AB/C512         	  326013	       740.5 ns/op
+BenchmarkR30AB/C1024        	  138530	      1701 ns/op
+BenchmarkR30AB/C2048        	   54812	      4414 ns/op
+BenchmarkR30AB/C4096        	   24974	      9590 ns/op
+BenchmarkR30AB/C8192        	   10000	     21085 ns/op
+BenchmarkR30AB/C1000        	  111693	      2146 ns/op
+BenchmarkR30AB/C1080        	   91531	      2601 ns/op
+BenchmarkR30AB/D64          	   21043	     11392 ns/op
+BenchmarkR30AB/D128         	    4506	     53962 ns/op
+BenchmarkR30AB/D256         	     867	    275589 ns/op
+PASS
+# round 10 variant main 21:32:05 load 3.43 2.75 2.58
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  671235	       301.4 ns/op
+BenchmarkR30AB/I256         	  735130	       328.8 ns/op
+BenchmarkR30AB/R512         	  423458	       561.5 ns/op
+BenchmarkR30AB/I512         	  417260	       572.8 ns/op
+BenchmarkR30AB/R1024        	  212223	      1131 ns/op
+BenchmarkR30AB/I1024        	  205076	      1173 ns/op
+BenchmarkR30AB/R2048        	   97261	      2465 ns/op
+BenchmarkR30AB/I2048        	   95214	      2555 ns/op
+BenchmarkR30AB/R4096        	   40284	      5896 ns/op
+BenchmarkR30AB/I4096        	   40496	      6027 ns/op
+BenchmarkR30AB/R8192        	   19416	     15138 ns/op
+BenchmarkR30AB/I8192        	   17642	     12878 ns/op
+BenchmarkR30AB/R1000        	  171854	      1392 ns/op
+BenchmarkR30AB/I1000        	  165652	      1674 ns/op
+BenchmarkR30AB/C64          	 2317911	       104.0 ns/op
+BenchmarkR30AB/C128         	 1273809	       188.5 ns/op
+BenchmarkR30AB/C256         	  676676	       352.7 ns/op
+BenchmarkR30AB/C512         	  332302	       723.2 ns/op
+BenchmarkR30AB/C1024        	  139225	      1691 ns/op
+BenchmarkR30AB/C2048        	   52780	      4494 ns/op
+BenchmarkR30AB/C4096        	   25064	      9555 ns/op
+BenchmarkR30AB/C8192        	   10000	     22093 ns/op
+BenchmarkR30AB/C1000        	  111658	      2147 ns/op
+BenchmarkR30AB/C1080        	   93007	      2585 ns/op
+BenchmarkR30AB/D64          	   21301	     11165 ns/op
+BenchmarkR30AB/D128         	    3866	     53184 ns/op
+BenchmarkR30AB/D256         	     846	    279503 ns/op
+PASS
+# round 11 variant main 21:32:12 load 3.36 2.76 2.58
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  763705	       301.2 ns/op
+BenchmarkR30AB/I256         	  736755	       327.6 ns/op
+BenchmarkR30AB/R512         	  430224	       556.3 ns/op
+BenchmarkR30AB/I512         	  419080	       588.3 ns/op
+BenchmarkR30AB/R1024        	  206758	      1139 ns/op
+BenchmarkR30AB/I1024        	  204844	      1173 ns/op
+BenchmarkR30AB/R2048        	   95678	      2484 ns/op
+BenchmarkR30AB/I2048        	   95203	      2525 ns/op
+BenchmarkR30AB/R4096        	   40570	      6155 ns/op
+BenchmarkR30AB/I4096        	   37839	      6074 ns/op
+BenchmarkR30AB/R8192        	   19046	     12484 ns/op
+BenchmarkR30AB/I8192        	   18894	     12784 ns/op
+BenchmarkR30AB/R1000        	  170138	      1403 ns/op
+BenchmarkR30AB/I1000        	  164101	      1466 ns/op
+BenchmarkR30AB/C64          	 2280450	       104.7 ns/op
+BenchmarkR30AB/C128         	 1253007	       206.7 ns/op
+BenchmarkR30AB/C256         	  679518	       357.3 ns/op
+BenchmarkR30AB/C512         	  309691	       858.9 ns/op
+BenchmarkR30AB/C1024        	  141056	      1842 ns/op
+BenchmarkR30AB/C2048        	   49539	      4637 ns/op
+BenchmarkR30AB/C4096        	   24573	      9688 ns/op
+BenchmarkR30AB/C8192        	   10000	     21665 ns/op
+BenchmarkR30AB/C1000        	  107454	      2193 ns/op
+BenchmarkR30AB/C1080        	   85231	      2717 ns/op
+BenchmarkR30AB/D64          	   21673	     11190 ns/op
+BenchmarkR30AB/D128         	    4252	     53981 ns/op
+BenchmarkR30AB/D256         	     860	    284327 ns/op
+PASS
+# round 11 variant br 21:32:20 load 3.39 2.79 2.59
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  870602	       273.7 ns/op
+BenchmarkR30AB/I256         	  842896	       306.7 ns/op
+BenchmarkR30AB/R512         	  463580	       509.4 ns/op
+BenchmarkR30AB/I512         	  437997	       589.6 ns/op
+BenchmarkR30AB/R1024        	  235123	      1022 ns/op
+BenchmarkR30AB/I1024        	  220482	      1092 ns/op
+BenchmarkR30AB/R2048        	  106159	      2257 ns/op
+BenchmarkR30AB/I2048        	   99771	      2403 ns/op
+BenchmarkR30AB/R4096        	   41348	      5751 ns/op
+BenchmarkR30AB/I4096        	   41214	      5849 ns/op
+BenchmarkR30AB/R8192        	   20736	     11578 ns/op
+BenchmarkR30AB/I8192        	   20242	     11826 ns/op
+BenchmarkR30AB/R1000        	  186175	      1291 ns/op
+BenchmarkR30AB/I1000        	  176386	      1345 ns/op
+BenchmarkR30AB/C64          	 2038188	       117.1 ns/op
+BenchmarkR30AB/C128         	 1280130	       187.9 ns/op
+BenchmarkR30AB/C256         	  687367	       350.7 ns/op
+BenchmarkR30AB/C512         	  331954	       725.3 ns/op
+BenchmarkR30AB/C1024        	  141984	      1693 ns/op
+BenchmarkR30AB/C2048        	   54001	      4579 ns/op
+BenchmarkR30AB/C4096        	   25584	      9246 ns/op
+BenchmarkR30AB/C8192        	   10000	     22153 ns/op
+BenchmarkR30AB/C1000        	  112554	      2112 ns/op
+BenchmarkR30AB/C1080        	   92497	      2636 ns/op
+BenchmarkR30AB/D64          	   21056	     14750 ns/op
+BenchmarkR30AB/D128         	    4425	     54226 ns/op
+BenchmarkR30AB/D256         	     861	    289191 ns/op
+PASS
+# round 12 variant br 21:32:28 load 3.36 2.79 2.60
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  699974	       302.5 ns/op
+BenchmarkR30AB/I256         	  827542	       289.4 ns/op
+BenchmarkR30AB/R512         	  478206	       497.0 ns/op
+BenchmarkR30AB/I512         	  451249	       532.8 ns/op
+BenchmarkR30AB/R1024        	  237979	      1009 ns/op
+BenchmarkR30AB/I1024        	  221254	      1079 ns/op
+BenchmarkR30AB/R2048        	  106128	      2366 ns/op
+BenchmarkR30AB/I2048        	  101516	      2370 ns/op
+BenchmarkR30AB/R4096        	   43272	      5555 ns/op
+BenchmarkR30AB/I4096        	   42242	      5681 ns/op
+BenchmarkR30AB/R8192        	   18211	     12425 ns/op
+BenchmarkR30AB/I8192        	   17071	     11884 ns/op
+BenchmarkR30AB/R1000        	  186700	      1276 ns/op
+BenchmarkR30AB/I1000        	  179754	      1333 ns/op
+BenchmarkR30AB/C64          	 2060227	       117.1 ns/op
+BenchmarkR30AB/C128         	 1207592	       189.6 ns/op
+BenchmarkR30AB/C256         	  678937	       351.3 ns/op
+BenchmarkR30AB/C512         	  330776	       738.5 ns/op
+BenchmarkR30AB/C1024        	  134698	      1810 ns/op
+BenchmarkR30AB/C2048        	   55071	      4401 ns/op
+BenchmarkR30AB/C4096        	   26138	      9386 ns/op
+BenchmarkR30AB/C8192        	   10000	     20918 ns/op
+BenchmarkR30AB/C1000        	  107846	      2125 ns/op
+BenchmarkR30AB/C1080        	   92802	      2615 ns/op
+BenchmarkR30AB/D64          	   21201	     11633 ns/op
+BenchmarkR30AB/D128         	    4582	     53201 ns/op
+BenchmarkR30AB/D256         	     865	    276953 ns/op
+PASS
+# round 12 variant main 21:32:36 load 3.30 2.80 2.60
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  671451	       301.1 ns/op
+BenchmarkR30AB/I256         	  710910	       332.3 ns/op
+BenchmarkR30AB/R512         	  433089	       550.6 ns/op
+BenchmarkR30AB/I512         	  423309	       566.2 ns/op
+BenchmarkR30AB/R1024        	  215622	      1160 ns/op
+BenchmarkR30AB/I1024        	  207231	      1156 ns/op
+BenchmarkR30AB/R2048        	   95469	      2990 ns/op
+BenchmarkR30AB/I2048        	   86800	      2520 ns/op
+BenchmarkR30AB/R4096        	   40363	      5870 ns/op
+BenchmarkR30AB/I4096        	   40336	      7261 ns/op
+BenchmarkR30AB/R8192        	   19256	     12445 ns/op
+BenchmarkR30AB/I8192        	   19053	     12475 ns/op
+BenchmarkR30AB/R1000        	  171856	      1380 ns/op
+BenchmarkR30AB/I1000        	  164389	      1453 ns/op
+BenchmarkR30AB/C64          	 2294118	       104.2 ns/op
+BenchmarkR30AB/C128         	 1276123	       188.5 ns/op
+BenchmarkR30AB/C256         	  685344	       346.3 ns/op
+BenchmarkR30AB/C512         	  334345	       719.6 ns/op
+BenchmarkR30AB/C1024        	  143445	      1656 ns/op
+BenchmarkR30AB/C2048        	   53590	      4416 ns/op
+BenchmarkR30AB/C4096        	   25489	      9376 ns/op
+BenchmarkR30AB/C8192        	   10000	     21332 ns/op
+BenchmarkR30AB/C1000        	  112333	      2128 ns/op
+BenchmarkR30AB/C1080        	   92722	      2561 ns/op
+BenchmarkR30AB/D64          	   20774	     11348 ns/op
+BenchmarkR30AB/D128         	    4339	     54673 ns/op
+BenchmarkR30AB/D256         	     862	    285253 ns/op
+PASS
+# round 13 variant main 21:32:44 load 3.28 2.80 2.60
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  644286	       340.3 ns/op
+BenchmarkR30AB/I256         	  729430	       358.0 ns/op
+BenchmarkR30AB/R512         	  356118	       592.3 ns/op
+BenchmarkR30AB/I512         	  415456	       575.8 ns/op
+BenchmarkR30AB/R1024        	  207739	      1190 ns/op
+BenchmarkR30AB/I1024        	  202971	      1265 ns/op
+BenchmarkR30AB/R2048        	   92676	      2558 ns/op
+BenchmarkR30AB/I2048        	   95548	      2508 ns/op
+BenchmarkR30AB/R4096        	   40585	      6012 ns/op
+BenchmarkR30AB/I4096        	   40239	      6207 ns/op
+BenchmarkR30AB/R8192        	   19730	     12222 ns/op
+BenchmarkR30AB/I8192        	   19180	     12441 ns/op
+BenchmarkR30AB/R1000        	  169389	      1540 ns/op
+BenchmarkR30AB/I1000        	  162228	      1472 ns/op
+BenchmarkR30AB/C64          	 2047407	       133.7 ns/op
+BenchmarkR30AB/C128         	 1264515	       194.8 ns/op
+BenchmarkR30AB/C256         	  657456	       372.6 ns/op
+BenchmarkR30AB/C512         	  337990	       709.5 ns/op
+BenchmarkR30AB/C1024        	  141094	      1708 ns/op
+BenchmarkR30AB/C2048        	   55261	      4336 ns/op
+BenchmarkR30AB/C4096        	   25358	      9396 ns/op
+BenchmarkR30AB/C8192        	   10000	     21636 ns/op
+BenchmarkR30AB/C1000        	  110924	      2253 ns/op
+BenchmarkR30AB/C1080        	   89470	      2695 ns/op
+BenchmarkR30AB/D64          	   21289	     11358 ns/op
+BenchmarkR30AB/D128         	    4323	     54813 ns/op
+BenchmarkR30AB/D256         	     829	    570450 ns/op
+PASS
+# round 13 variant br 21:32:52 load 3.31 2.82 2.61
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  746632	       351.4 ns/op
+BenchmarkR30AB/I256         	  711384	       327.6 ns/op
+BenchmarkR30AB/R512         	  427588	       556.2 ns/op
+BenchmarkR30AB/I512         	  407418	       596.3 ns/op
+BenchmarkR30AB/R1024        	  209823	      1158 ns/op
+BenchmarkR30AB/I1024        	  194046	      1164 ns/op
+BenchmarkR30AB/R2048        	  105482	      2303 ns/op
+BenchmarkR30AB/I2048        	  100672	      2451 ns/op
+BenchmarkR30AB/R4096        	   43424	      6067 ns/op
+BenchmarkR30AB/I4096        	   42487	      5650 ns/op
+BenchmarkR30AB/R8192        	   20630	     11610 ns/op
+BenchmarkR30AB/I8192        	   19968	     11991 ns/op
+BenchmarkR30AB/R1000        	  185490	      1292 ns/op
+BenchmarkR30AB/I1000        	  176500	      1346 ns/op
+BenchmarkR30AB/C64          	 2057379	       117.5 ns/op
+BenchmarkR30AB/C128         	 1264921	       186.1 ns/op
+BenchmarkR30AB/C256         	  672872	       357.4 ns/op
+BenchmarkR30AB/C512         	  332628	       758.2 ns/op
+BenchmarkR30AB/C1024        	  141327	      1702 ns/op
+BenchmarkR30AB/C2048        	   54608	      4403 ns/op
+BenchmarkR30AB/C4096        	   25652	     10866 ns/op
+BenchmarkR30AB/C8192        	    9693	     21830 ns/op
+BenchmarkR30AB/C1000        	  112852	      2113 ns/op
+BenchmarkR30AB/C1080        	   93961	      2558 ns/op
+BenchmarkR30AB/D64          	   21127	     11389 ns/op
+BenchmarkR30AB/D128         	    4592	     52674 ns/op
+BenchmarkR30AB/D256         	     868	    276437 ns/op
+PASS
+# round 14 variant br 21:33:00 load 3.36 2.84 2.62
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  719781	       279.2 ns/op
+BenchmarkR30AB/I256         	  827750	       286.9 ns/op
+BenchmarkR30AB/R512         	  475179	       502.3 ns/op
+BenchmarkR30AB/I512         	  443874	       541.3 ns/op
+BenchmarkR30AB/R1024        	  233592	      1027 ns/op
+BenchmarkR30AB/I1024        	  219831	      1087 ns/op
+BenchmarkR30AB/R2048        	  104536	      2280 ns/op
+BenchmarkR30AB/I2048        	  100214	      2413 ns/op
+BenchmarkR30AB/R4096        	   43549	      5529 ns/op
+BenchmarkR30AB/I4096        	   41847	      5733 ns/op
+BenchmarkR30AB/R8192        	   20653	     11612 ns/op
+BenchmarkR30AB/I8192        	   19939	     12008 ns/op
+BenchmarkR30AB/R1000        	  186609	      1284 ns/op
+BenchmarkR30AB/I1000        	  176924	      1406 ns/op
+BenchmarkR30AB/C64          	 2003246	       117.8 ns/op
+BenchmarkR30AB/C128         	 1295379	       186.1 ns/op
+BenchmarkR30AB/C256         	  677505	       359.9 ns/op
+BenchmarkR30AB/C512         	  333841	       718.4 ns/op
+BenchmarkR30AB/C1024        	  140282	      1694 ns/op
+BenchmarkR30AB/C2048        	   54778	      4378 ns/op
+BenchmarkR30AB/C4096        	   26060	      9241 ns/op
+BenchmarkR30AB/C8192        	   10000	     20988 ns/op
+BenchmarkR30AB/C1000        	  111290	      2112 ns/op
+BenchmarkR30AB/C1080        	   94183	      2555 ns/op
+BenchmarkR30AB/D64          	   21237	     11322 ns/op
+BenchmarkR30AB/D128         	    4516	     52765 ns/op
+BenchmarkR30AB/D256         	     874	    275962 ns/op
+PASS
+# round 14 variant main 21:33:07 load 3.31 2.85 2.63
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  756271	       295.9 ns/op
+BenchmarkR30AB/I256         	  628125	       329.2 ns/op
+BenchmarkR30AB/R512         	  434523	       552.9 ns/op
+BenchmarkR30AB/I512         	  420000	       601.8 ns/op
+BenchmarkR30AB/R1024        	  213175	      1129 ns/op
+BenchmarkR30AB/I1024        	  208082	      1316 ns/op
+BenchmarkR30AB/R2048        	   93926	      2553 ns/op
+BenchmarkR30AB/I2048        	   95167	      2518 ns/op
+BenchmarkR30AB/R4096        	   41211	      5829 ns/op
+BenchmarkR30AB/I4096        	   39375	      5887 ns/op
+BenchmarkR30AB/R8192        	   19590	     12329 ns/op
+BenchmarkR30AB/I8192        	   19340	     12777 ns/op
+BenchmarkR30AB/R1000        	  172106	      1392 ns/op
+BenchmarkR30AB/I1000        	  166862	      1423 ns/op
+BenchmarkR30AB/C64          	 2336421	       103.0 ns/op
+BenchmarkR30AB/C128         	 1286968	       186.0 ns/op
+BenchmarkR30AB/C256         	  680533	       349.8 ns/op
+BenchmarkR30AB/C512         	  330622	       723.8 ns/op
+BenchmarkR30AB/C1024        	  144142	      1663 ns/op
+BenchmarkR30AB/C2048        	   54264	      4451 ns/op
+BenchmarkR30AB/C4096        	   26136	      9235 ns/op
+BenchmarkR30AB/C8192        	   10000	     21224 ns/op
+BenchmarkR30AB/C1000        	  111219	      2197 ns/op
+BenchmarkR30AB/C1080        	   93358	      2565 ns/op
+BenchmarkR30AB/D64          	   21849	     10975 ns/op
+BenchmarkR30AB/D128         	    4516	     53087 ns/op
+BenchmarkR30AB/D256         	     870	    276984 ns/op
+PASS
+# round 15 variant main 21:33:15 load 3.28 2.85 2.63
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  804093	       297.0 ns/op
+BenchmarkR30AB/I256         	  726538	       332.0 ns/op
+BenchmarkR30AB/R512         	  431238	       574.7 ns/op
+BenchmarkR30AB/I512         	  348704	       574.6 ns/op
+BenchmarkR30AB/R1024        	  199016	      1158 ns/op
+BenchmarkR30AB/I1024        	  207874	      1155 ns/op
+BenchmarkR30AB/R2048        	   97876	      2450 ns/op
+BenchmarkR30AB/I2048        	   96073	      2549 ns/op
+BenchmarkR30AB/R4096        	   39970	      6095 ns/op
+BenchmarkR30AB/I4096        	   40476	      5934 ns/op
+BenchmarkR30AB/R8192        	   19356	     12390 ns/op
+BenchmarkR30AB/I8192        	   19236	     12451 ns/op
+BenchmarkR30AB/R1000        	  174510	      1394 ns/op
+BenchmarkR30AB/I1000        	  166138	      1423 ns/op
+BenchmarkR30AB/C64          	 2361559	       102.2 ns/op
+BenchmarkR30AB/C128         	 1264382	       186.1 ns/op
+BenchmarkR30AB/C256         	  684602	       350.0 ns/op
+BenchmarkR30AB/C512         	  334386	       716.0 ns/op
+BenchmarkR30AB/C1024        	  142404	      1685 ns/op
+BenchmarkR30AB/C2048        	   54235	      4418 ns/op
+BenchmarkR30AB/C4096        	   26004	      9244 ns/op
+BenchmarkR30AB/C8192        	   10000	     21807 ns/op
+BenchmarkR30AB/C1000        	  111944	      2198 ns/op
+BenchmarkR30AB/C1080        	   93594	      5475 ns/op
+BenchmarkR30AB/D64          	   21376	     11113 ns/op
+BenchmarkR30AB/D128         	    4527	     53356 ns/op
+BenchmarkR30AB/D256         	     865	    276901 ns/op
+PASS
+# round 15 variant br 21:33:23 load 3.24 2.86 2.63
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/R256         	  875490	       273.8 ns/op
+BenchmarkR30AB/I256         	  825048	       286.1 ns/op
+BenchmarkR30AB/R512         	  485044	       514.1 ns/op
+BenchmarkR30AB/I512         	  447628	       582.3 ns/op
+BenchmarkR30AB/R1024        	  213027	      1118 ns/op
+BenchmarkR30AB/I1024        	  198084	      1157 ns/op
+BenchmarkR30AB/R2048        	  106047	      2256 ns/op
+BenchmarkR30AB/I2048        	  100866	      2430 ns/op
+BenchmarkR30AB/R4096        	   42560	      5594 ns/op
+BenchmarkR30AB/I4096        	   41836	      5708 ns/op
+BenchmarkR30AB/R8192        	   20220	     12370 ns/op
+BenchmarkR30AB/I8192        	   19478	     12194 ns/op
+BenchmarkR30AB/R1000        	  187189	      1280 ns/op
+BenchmarkR30AB/I1000        	  177260	      1354 ns/op
+BenchmarkR30AB/C64          	 2029321	       117.0 ns/op
+BenchmarkR30AB/C128         	 1275937	       196.3 ns/op
+BenchmarkR30AB/C256         	  531172	       415.3 ns/op
+BenchmarkR30AB/C512         	  302872	       842.5 ns/op
+BenchmarkR30AB/C1024        	  140157	      1677 ns/op
+BenchmarkR30AB/C2048        	   55022	      4348 ns/op
+BenchmarkR30AB/C4096        	   25969	      9228 ns/op
+BenchmarkR30AB/C8192        	   10000	     20845 ns/op
+BenchmarkR30AB/C1000        	  113340	      2112 ns/op
+BenchmarkR30AB/C1080        	   92200	      3066 ns/op
+BenchmarkR30AB/D64          	   21174	     11455 ns/op
+BenchmarkR30AB/D128         	    4537	     53192 ns/op
+BenchmarkR30AB/D256         	     860	    278371 ns/op
+PASS
+# done 21:33:31 load 3.20 2.86 2.64

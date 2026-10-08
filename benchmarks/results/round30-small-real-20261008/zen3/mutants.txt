@@ -1,0 +1,16 @@
+m0: --- FAIL: TestUntangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:92: m=2048 signal 0 bin 1: AVX2 (2.549113399881704+1.1749891632516452i) vs Go (0.42269265289219327+0.8616213601513918i) FAIL
+m1: --- FAIL: TestUntangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:92: m=2048 signal 0 bin 1: AVX2 (0.5812499790310343-0.20297673482619105i) vs Go (0.42269265289219327+0.8616213601513918i) FA
+m2: --- FAIL: TestUntangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:92: m=2048 signal 0 bin 1: AVX2 (1.3273457002481075-0.04303168720452266i) vs Go (0.42269265289219327+0.8616213601513918i) FA
+m3: --- FAIL: TestUntangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:92: m=2048 signal 0 bin 1026: AVX2 (-1.2298999262388735-1.7090880182939212i) vs Go (1.2298999262388735+1.7090880182939212i) 
+m4: --- FAIL: TestUntangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:92: m=2048 signal 0 bin 1026: AVX2 (1.2298999262388735-1.7090880182939212i) vs Go (1.2298999262388735+1.7090880182939212i) F
+m5: --- FAIL: TestRetangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:122: m=2048 signal 0 h=0.5 bin 7: AVX2 (3.0737222106152733-1.0853193557095713i) vs Go (3.0774214100682284-1.0750323459362172
+m6: --- FAIL: TestRetangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:122: m=2048 signal 0 h=0.5 bin 3: AVX2 (1.6188008940346117-0.7521223151610468i) vs Go (2.4986147273639605-0.9980437091461347
+m7: 
+m8: --- FAIL: TestRetangleMatchesScalar (0.02s)     stockham_simd_amd64_test.go:122: m=9 signal 0 h=0.5 bin 3: AVX2 (0+0i) vs Go (0.14603082845534293+1.4193695048309765i) FAIL 
+m9: --- FAIL: TestRetangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:122: m=2048 signal 0 h=0.5 bin 1: AVX2 (2.549113399881704+1.1782503093231869i) vs Go (2.5486276967758172+1.1782503093231869i
+m10: --- FAIL: TestRetangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:122: m=2048 signal 0 h=0.000244140625 bin 1: AVX2 (2.5486276967758172+1.1782503093231869i) vs Go (0.001244447117566317+0.000
+m11: --- FAIL: TestRetangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:122: m=2048 signal 0 h=0.5 bin 1: AVX2 (0.42317835599807996+0.85836021407985i) vs Go (2.5486276967758172+1.1782503093231869i
+m12: --- FAIL: TestRetangleMatchesScalar (0.00s)     stockham_simd_amd64_test.go:122: m=2048 signal 0 h=0.5 bin 1: AVX2 (0.3904439824513235+0.7587258533555916i) vs Go (2.5486276967758172+1.1782503093231869
+m13: PASS 
+END
+m7 rerun: exit 139 (Segmentation fault)

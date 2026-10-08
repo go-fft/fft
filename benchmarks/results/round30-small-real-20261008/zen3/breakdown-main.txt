@@ -1,0 +1,25 @@
+# start 20:53:51 load 2.56 2.33 2.32
+REAL 256 half(8x16) rfft 293.1 half 184.9 untangle 93.2 realpool 16.6 halfpool 16.7 irfft 324.5 retangle 108.0 halfinv 187.3
+REAL 512 half(4x8x8) rfft 544.8 half 348.9 untangle 177.3 realpool 16.6 halfpool 16.7 irfft 571.4 retangle 194.9 halfinv 349.0
+REAL 1024 half(8x8x8) rfft 1144.9 half 734.4 untangle 350.7 realpool 16.5 halfpool 16.6 irfft 1166.9 retangle 373.3 halfinv 724.8
+REAL 4096 half(8x8x8x4) rfft 5912.6 half 4340.6 untangle 1459.0 realpool 16.3 halfpool 16.3 irfft 6126.4 retangle 1519.1 halfinv 4358.5
+# mid 20:54:01 load 2.62 2.35 2.33
+STEPS 256 s1 untangle 101.1 [1/this 1.000 (1.000-1.000)] retangle 107.8 [1/this 1.000 (1.000-1.000)] rfft 296.8 [1/this 1.000 (1.000-1.000)] irfft 324.4 [1/this 1.000 (1.000-1.000)]
+STEPS 256 s2 untangle 98.4 [1/this 1.031 (0.937-1.042)] retangle 109.1 [1/this 0.996 (0.974-1.032)] rfft 300.3 [1/this 0.986 (0.895-1.126)] irfft 324.0 [1/this 0.997 (0.949-1.036)]
+STEPS 256 s3 untangle 96.0 [1/this 1.051 (0.935-1.064)] retangle 101.2 [1/this 1.071 (0.950-1.117)] rfft 287.4 [1/this 1.032 (1.014-1.164)] irfft 318.5 [1/this 1.019 (0.970-1.057)]
+STEPS 512 s1 untangle 185.7 [1/this 1.000 (1.000-1.000)] retangle 195.0 [1/this 1.000 (1.000-1.000)] rfft 558.2 [1/this 1.000 (1.000-1.000)] irfft 571.4 [1/this 1.000 (1.000-1.000)]
+STEPS 512 s2 untangle 179.1 [1/this 1.047 (0.890-1.085)] retangle 188.0 [1/this 1.039 (1.030-1.096)] rfft 552.1 [1/this 1.013 (0.999-1.442)] irfft 567.8 [1/this 1.015 (0.936-1.120)]
+STEPS 512 s3 untangle 172.6 [1/this 1.069 (0.931-1.121)] retangle 179.8 [1/this 1.085 (0.984-1.131)] rfft 538.3 [1/this 1.038 (0.937-1.492)] irfft 565.2 [1/this 1.019 (0.974-1.083)]
+STEPS 1024 s1 untangle 353.6 [1/this 1.000 (1.000-1.000)] retangle 380.8 [1/this 1.000 (1.000-1.000)] rfft 1157.8 [1/this 1.000 (1.000-1.000)] irfft 1202.5 [1/this 1.000 (1.000-1.000)]
+STEPS 1024 s2 untangle 326.4 [1/this 1.082 (1.034-1.100)] retangle 362.4 [1/this 1.048 (1.000-1.078)] rfft 1117.0 [1/this 1.035 (0.909-1.278)] irfft 1150.8 [1/this 1.043 (0.569-1.136)]
+STEPS 1024 s3 untangle 317.8 [1/this 1.113 (0.892-1.151)] retangle 345.9 [1/this 1.102 (1.079-1.119)] rfft 1103.4 [1/this 1.052 (0.799-1.294)] irfft 1143.0 [1/this 1.052 (0.989-1.143)]
+STEPS 4096 s1 untangle 1479.5 [1/this 1.000 (1.000-1.000)] retangle 1524.9 [1/this 1.000 (1.000-1.000)] rfft 5949.4 [1/this 1.000 (1.000-1.000)] irfft 6073.3 [1/this 1.000 (1.000-1.000)]
+STEPS 4096 s2 untangle 1345.0 [1/this 1.098 (0.465-1.107)] retangle 1467.8 [1/this 1.039 (0.534-1.073)] rfft 5807.3 [1/this 1.029 (0.950-1.048)] irfft 6047.8 [1/this 1.005 (0.703-1.018)]
+STEPS 4096 s3 untangle 1282.3 [1/this 1.154 (1.137-1.165)] retangle 1363.2 [1/this 1.118 (1.110-1.133)] rfft 5751.3 [1/this 1.037 (0.998-1.059)] irfft 5914.4 [1/this 1.026 (1.011-1.043)]
+OVER 64 8x8 FFT 105.0 transform 101.3 passes 89.1 pool 16.1
+OVER 128 8x16 FFT 184.8 transform 181.0 passes 168.0 pool 16.1
+OVER 256 4x8x8 FFT 349.4 transform 346.9 passes 334.2 pool 16.0
+OVER 512 8x8x8 FFT 725.4 transform 725.9 passes 710.1 pool 15.9
+OVER 1024 8x8x16 FFT 1726.1 transform 1739.7 passes 1640.4 pool 16.0
+OVER 1000 5x10x20 FFT 2232.3 transform 2232.1 passes 2169.7 pool 16.1
+# done 20:54:59 load 3.04 2.51 2.38

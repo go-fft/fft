@@ -1,0 +1,54 @@
+# start 20:58:25 load 0.00 0.02 0.00
+--- PASS: TestR30DirectSame (0.01s)
+DIRECT 256 rfft pool 770.2 direct 750.7 [pool/direct 1.027 (1.019-1.548)] irfft pool 771.6 direct 767.2 [pool/direct 1.007 (1.003-1.027)]
+DIRECT 512 rfft pool 1615.3 direct 1596.8 [pool/direct 1.012 (1.011-1.013)] irfft pool 1617.9 direct 1598.7 [pool/direct 1.012 (1.004-1.018)]
+DIRECT 1024 rfft pool 3279.5 direct 3260.7 [pool/direct 1.006 (1.004-1.008)] irfft pool 3306.7 direct 3238.3 [pool/direct 1.021 (1.018-1.041)]
+DIRECT 4096 rfft pool 15512.6 direct 15373.0 [pool/direct 1.009 (1.007-1.011)] irfft pool 15300.7 direct 16046.0 [pool/direct 0.953 (0.952-0.957)]
+ORDER 128 4x4x8        494.5 [ref/this 1.000 (1.000-1.000)]
+ORDER 128   r4/i32/s1 154.5
+ORDER 128   r4/i8/s2 142.2
+ORDER 128   r8/i1/s3 174.5
+ORDER 128 8x4x4        500.8 [ref/this 0.988 (0.983-0.989)]
+ORDER 128   r8/i16/s1 198.1
+ORDER 128   r4/i4/s2 147.3
+ORDER 128   r4/i1/s3 132.4
+ORDER 128 4x8x4        505.8 [ref/this 0.977 (0.975-0.979)]
+ORDER 128   r4/i32/s1 154.9
+ORDER 128   r8/i4/s2 192.9
+ORDER 128   r4/i1/s3 132.4
+ORDER 128 8x8x2        547.2 [ref/this 0.904 (0.899-0.905)]
+ORDER 128   r8/i16/s1 198.2
+ORDER 128   r8/i2/s2 210.7
+ORDER 128   r2/i1/s3 115.0
+ORDER 128 2x8x8        506.7 [ref/this 0.975 (0.973-0.977)]
+ORDER 128   r2/i64/s1 123.7
+ORDER 128   r8/i8/s2 186.5
+ORDER 128   r8/i1/s3 174.3
+ORDER 128 2x4x4x4      567.3 [ref/this 0.872 (0.871-0.873)]
+ORDER 128   r2/i64/s1 123.7
+ORDER 128   r4/i16/s2 137.6
+ORDER 128   r4/i4/s2 146.9
+ORDER 128   r4/i1/s3 132.4
+ORDER 256 4x4x4x4      1106.7 [ref/this 1.000 (1.000-1.000)]
+ORDER 256   r4/i64/s1 293.8
+ORDER 256   r4/i16/s2 259.6
+ORDER 256   r4/i4/s2 278.4
+ORDER 256   r4/i1/s3 251.3
+ORDER 256 8x8x4        1019.0 [ref/this 1.087 (1.083-1.092)]
+ORDER 256   r8/i32/s1 376.0
+ORDER 256   r8/i4/s2 369.6
+ORDER 256   r4/i1/s3 251.7
+ORDER 256 4x8x8        1005.1 [ref/this 1.100 (1.064-1.109)]
+ORDER 256   r4/i64/s1 293.5
+ORDER 256   r8/i8/s2 353.7
+ORDER 256   r8/i1/s3 333.7
+ORDER 256 8x4x8        1003.0 [ref/this 1.103 (1.100-1.110)]
+ORDER 256   r8/i32/s1 376.4
+ORDER 256   r4/i8/s2 265.1
+ORDER 256   r8/i1/s3 333.9
+ORDER 256 2x8x4x4      1126.4 [ref/this 0.983 (0.975-0.985)]
+ORDER 256   r2/i128/s1 231.2
+ORDER 256   r8/i16/s2 342.6
+ORDER 256   r4/i4/s2 278.5
+ORDER 256   r4/i1/s3 251.4
+# done 20:58:47 load 0.29 0.08 0.02

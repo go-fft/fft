@@ -76,7 +76,9 @@ func (p *RealPlan) Len() int { return p.n }
 
 // RFFT writes the non-redundant N/2+1 spectral bins of the real signal src into
 // dst and returns dst. src must have length Len(); dst must have length
-// Len()/2+1. src is not modified.
+// Len()/2+1. src is not modified. dst may share memory with src (which only an
+// unsafe conversion can arrange): the transform then goes through a private
+// buffer instead of building the half-length spectrum in dst.
 func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	n := p.n
 	if len(src) < n || (n > 0 && len(dst) < n/2+1) {
@@ -103,22 +105,45 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 
 	// Even length N = 2m: pack z[j] = src[2j] + i·src[2j+1], one m-point FFT.
 	m := n / 2
-	buf, _, Z := p.getScratch()
 	if p.half.it != nil {
 		// m is a power of two: fuse the real-pair packing into the iterative
 		// kernel's bit-reversal gather (transformRealPacked reads src directly into
 		// the bit-reversed Z), removing the separate pack pass and the z buffer
 		// write/read entirely — one gather instead of pack + gather.
+		buf, _, Z := p.getScratch()
 		p.half.it.transformRealPacked(Z, src)
-	} else {
-		// The packing z[j] = src[2j] + i·src[2j+1] is exactly the memory layout
-		// of a []complex128, so the half-length FFT reads src through a view of
-		// it: no pack pass. The plan only reads its source.
-		p.half.execute(Z, asComplex(src[:2*m]), false)
+		rfftUntangle(dst, Z, p.tw, m)
+		p.putScratch(buf)
+		return dst[:m+1]
 	}
+	// The packing z[j] = src[2j] + i·src[2j+1] is exactly the memory layout of
+	// a []complex128, so the half-length FFT reads src through a view of it:
+	// no pack pass. It writes the packed spectrum Z straight into dst[:m],
+	// which the untangle then turns into the bins in place (each conjugate
+	// pair is read before it is written): no buffer of the RealPlan's own, one
+	// sync.Pool round trip fewer per call (Round 30: 1.04-1.07× at 256 and
+	// 512 points on Zen 3, 1.03× at 256 on Neoverse-N1).
+	if realOverlap(unsafe.Pointer(unsafe.SliceData(dst)), 16*(m+1), unsafe.Pointer(unsafe.SliceData(src)), 8*n) {
+		// dst would hold the half spectrum while src is still being read:
+		// build it in the RealPlan's own buffer instead.
+		buf, _, Zs := p.getScratch()
+		p.half.execute(Zs, asComplex(src[:2*m]), false)
+		rfftUntangle(dst, Zs, p.tw, m)
+		p.putScratch(buf)
+		return dst[:m+1]
+	}
+	Z := dst[:m]
+	p.half.execute(Z, asComplex(src[:2*m]), false)
 	rfftUntangle(dst, Z, p.tw, m)
-	p.putScratch(buf)
 	return dst[:m+1]
+}
+
+// realOverlap reports whether the byte ranges [a, a+an) and [b, b+bn)
+// share memory. Pointers become integers only for this comparison, as in
+// offTheSets; they are never turned back into pointers.
+func realOverlap(a unsafe.Pointer, an int, b unsafe.Pointer, bn int) bool {
+	x, y := uintptr(a), uintptr(b)
+	return x < y+uintptr(bn) && y < x+uintptr(an)
 }
 
 // rfftUntangle splits the m-point packed spectrum Z into the m+1 real-FFT bins
@@ -234,57 +259,21 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 	n := p.n
 	m := n / 2
 
-	// bin returns src[k] (the kept half spectrum), or 0 past its end so a short
-	// or partially-specified spectrum behaves exactly like the zero-filled
-	// conjugate-mirror inverse.
-	bin := func(k int) complex128 {
-		if k < len(src) {
-			return src[k]
-		}
-		return 0
+	if smallIRFFTInPlace(p.half) && !realOverlap(unsafe.Pointer(unsafe.SliceData(dst)), 8*n, unsafe.Pointer(unsafe.SliceData(src)), 16*(m+1)) {
+		// Z built in dst, read as complex128 (the layout the inverse writes
+		// anyway), and the half-length inverse run in place on it: one
+		// sync.Pool round trip fewer (Round 30).
+		Z := asComplex(dst[:2*m])
+		p.packSpectrum(Z, src, 0.5*(1/float64(m)))
+		p.half.execute(Z, Z, true)
+		return dst
 	}
-
-	// Build the packed N/2-point spectrum Z. The forward produced, for each pair
-	// (k, m-k) with k in 1..m-1:
-	//   xe = (Z[k] + conj(Z[m-k]))/2,  xo = (Z[k] - conj(Z[m-k]))·(-i/2)
-	//   X[k]   = xe + W_n^k·xo,        X[m-k] = conj(xe - W_n^k·xo).
-	// Inverting that pair:
-	//   xe = (X[k] + conj(X[m-k]))/2,  W_n^k·xo = (X[k] - conj(X[m-k]))/2,
-	//   xo = conj(W_n^k)·(X[k] - conj(X[m-k]))/2,
-	//   Z[k]   = xe + i·xo,            Z[m-k] = conj(xe - i·xo).
-	// The k=0 / k=m DC and Nyquist bins are purely real for a real signal and map
-	// to Z[0] = (X[0]+X[m]) + i·(X[0]-X[m]) (the inverse of X[0]=Z0.r+Z0.i,
-	// X[m]=Z0.r-Z0.i); only the real parts are used, discarding any imaginary
-	// component just as the full inverse's real() projection does.
-	//
-	// The 1/m normalization of the inverse is folded into this pass (scale), so
-	// the inverse FFT runs unnormalized and no separate scaling pass is needed.
 	buf, z, Z := p.getScratch()
 	scale := 1.0
 	if p.half.it == nil {
 		scale = 1 / float64(m)
 	}
-	h := 0.5 * scale
-	x0 := real(bin(0))
-	xm := real(bin(m))
-	Z[0] = complex((x0+xm)*h, (x0-xm)*h)
-	full := src
-	if len(full) > m+1 {
-		full = full[:m+1]
-	}
-	if len(full) == m+1 {
-		// Complete spectrum (the usual case): no per-bin bounds test.
-		irfftRetangle(Z, full, p.tw, m, h)
-	} else {
-		for k := 1; k <= m-k; k++ {
-			zk, zmk := retangle(bin(k), bin(m-k), p.tw[k], h)
-			Z[k] = zk
-			if k != m-k {
-				Z[m-k] = zmk
-			}
-		}
-	}
-
+	p.packSpectrum(Z, src, 0.5*scale)
 	if p.half.it != nil {
 		// m is a power of two: run the unnormalized inverse on a private scratch
 		// buffer (Z is private here, safe to consume) and normalize on unpack.
@@ -356,4 +345,66 @@ func asComplex(f []float64) []complex128 {
 		return nil
 	}
 	return unsafe.Slice((*complex128)(unsafe.Pointer(&f[0])), len(f)/2)
+}
+
+// smallIRFFTInPlace reports whether the inverse of a RealPlan whose half
+// plan is half rebuilds the packed spectrum in dst and transforms it there
+// (irfftInPlace) rather than in a pooled buffer: wherever the half plan runs
+// the Stockham passes in place at no extra cost. The iterative pow2 kernel
+// normalizes on unpack and keeps the buffer; an odd pass count in place
+// copies the input first where the scratch slides off dst's sets (takesGap:
+// IRFFT 4096 lost 5% that way on Neoverse-N1), and the blocked schedule was
+// not measured in place, so both keep it too.
+func smallIRFFTInPlace(half *Plan) bool {
+	sk := half.sk
+	if sk == nil || sk.cascT > 0 {
+		return false
+	}
+	return len(sk.stages)%2 == 0 || !takesGap(sk.n)
+}
+
+// packSpectrum builds the packed N/2-point spectrum Z from the half spectrum
+// src, scaled by 2h (h = 0.5·scale: the inverse's 1/m normalization is
+// folded in here, so the inverse FFT runs unnormalized and no separate
+// scaling pass is needed). The forward produced, for each pair (k, m-k) with
+// k in 1..m-1:
+//
+//	xe = (Z[k] + conj(Z[m-k]))/2,  xo = (Z[k] - conj(Z[m-k]))·(-i/2)
+//	X[k]   = xe + W_n^k·xo,        X[m-k] = conj(xe - W_n^k·xo).
+//
+// Inverting that pair:
+//
+//	xe = (X[k] + conj(X[m-k]))/2,  W_n^k·xo = (X[k] - conj(X[m-k]))/2,
+//	xo = conj(W_n^k)·(X[k] - conj(X[m-k]))/2,
+//	Z[k]   = xe + i·xo,            Z[m-k] = conj(xe - i·xo).
+//
+// The k=0 / k=m DC and Nyquist bins are purely real for a real signal and map
+// to Z[0] = (X[0]+X[m]) + i·(X[0]-X[m]) (the inverse of X[0]=Z0.r+Z0.i,
+// X[m]=Z0.r-Z0.i); only the real parts are used, discarding any imaginary
+// component just as the full inverse's real() projection does. Missing input
+// bins (len(src) < N/2+1) count as zero, so a short or partially-specified
+// spectrum behaves exactly like the zero-filled conjugate-mirror inverse.
+func (p *RealPlan) packSpectrum(Z, src []complex128, h float64) {
+	m := p.n / 2
+	bin := func(k int) complex128 {
+		if k < len(src) {
+			return src[k]
+		}
+		return 0
+	}
+	x0 := real(bin(0))
+	xm := real(bin(m))
+	Z[0] = complex((x0+xm)*h, (x0-xm)*h)
+	if len(src) >= m+1 {
+		// Complete spectrum (the usual case): no per-bin bounds test.
+		irfftRetangle(Z, src[:m+1], p.tw, m, h)
+		return
+	}
+	for k := 1; k <= m-k; k++ {
+		zk, zmk := retangle(bin(k), bin(m-k), p.tw[k], h)
+		Z[k] = zk
+		if k != m-k {
+			Z[m-k] = zmk
+		}
+	}
 }

@@ -1,0 +1,6 @@
+# start 20:54:18 load 0.07 0.02 0.00
+REAL 256 half(4x4x8) rfft 771.3 half 498.0 untangle 252.1 realpool 17.8 halfpool 18.5 irfft 773.5 retangle 251.5 halfinv 497.4
+REAL 512 half(4x4x4x4) rfft 1620.3 half 1108.6 untangle 488.9 realpool 17.9 halfpool 18.5 irfft 1619.3 retangle 481.1 halfinv 1112.1
+REAL 1024 half(4x4x4x8) rfft 3302.8 half 2258.0 untangle 963.2 realpool 17.6 halfpool 18.5 irfft 3283.8 retangle 941.0 halfinv 2292.4
+REAL 4096 half(4x4x4x4x8) rfft 15421.5 half 11584.4 untangle 3872.0 realpool 17.7 halfpool 18.7 irfft 15404.9 retangle 3754.8 halfinv 11673.6
+# done 20:54:25 load 0.14 0.04 0.01

@@ -1,0 +1,22 @@
+# Zen 3 (cfarm420), core 40, GOMAXPROCS=1, main code (2026-10-07 ~20:56 host time, load 2.2-4.9)
+# TestR26Passes -r26.ab=9,40 -r26.sets="256:rule;128:rule;512:rule"
+PASSES 256 4x8x8              whole 351 sum 330 | r4/i64/s1 95 r8/i8/s3 129 r8/i1/s0 106
+PASSES 128 8x16               whole 181 sum 165 | r8/i16/s4 80 r16/i1/s0 85
+PASSES 512 8x8x8              whole 725 sum 681 | r8/i64/s1 238 r8/i8/s3 239 r8/i1/s0 204
+# TestR26AB -r26.ab=9,40 (load 2.2; spreads up to 3.9: a disturbed round)
+AB 256 4x8x8                   386.0 ns  first/this 1.000  spread 1.000
+AB 256 4x4x16                  380.6 ns  first/this 0.935  spread 3.922
+AB 256 4x16x4                  403.5 ns  first/this 0.932  spread 3.024
+AB 256 16x4x4                  471.0 ns  first/this 0.818  spread 2.986
+AB 256 8x4x8                   362.0 ns  first/this 1.033  spread 3.148
+AB 256 8x8x4                   360.5 ns  first/this 1.071  spread 2.919
+AB 256 16x16                   400.1 ns  first/this 0.966  spread 3.078
+AB 256 4x4x4x4                 374.4 ns  first/this 0.996  spread 3.080
+AB 256 2x8x16                  408.5 ns  first/this 0.954  spread 3.988
+AB 256 16x8x2                  496.0 ns  first/this 0.712  spread 2.671
+# TestR26AB -r26.ab=15,40, the leaders again (load 4.6-4.9)
+AB 256 4x8x8                   346.0 ns  first/this 1.000  spread 1.000
+AB 256 8x8x4                   349.1 ns  first/this 0.991  spread 1.109
+AB 256 8x4x8                   355.8 ns  first/this 0.973  spread 1.376
+AB 256 4x4x4x4                 365.8 ns  first/this 0.945  spread 1.157
+AB 256 4x4x16                  365.9 ns  first/this 0.939  spread 1.159

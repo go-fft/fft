@@ -1,0 +1,961 @@
+# round 1 variant main 21:29:40 load 0.37 0.27 0.19
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  310350	       771.6 ns/op
+BenchmarkR30AB/I256         	  311222	       772.3 ns/op
+BenchmarkR30AB/R512         	  146230	      1644 ns/op
+BenchmarkR30AB/I512         	  146445	      1645 ns/op
+BenchmarkR30AB/R1024        	   71256	      3332 ns/op
+BenchmarkR30AB/I1024        	   71702	      3328 ns/op
+BenchmarkR30AB/R2048        	   32492	      7342 ns/op
+BenchmarkR30AB/I2048        	   32354	      7420 ns/op
+BenchmarkR30AB/R4096        	   15595	     15372 ns/op
+BenchmarkR30AB/I4096        	   15667	     15383 ns/op
+BenchmarkR30AB/R8192        	    6559	     35645 ns/op
+BenchmarkR30AB/I8192        	    6680	     35499 ns/op
+BenchmarkR30AB/R1000        	   61407	      3882 ns/op
+BenchmarkR30AB/I1000        	   62434	      3832 ns/op
+BenchmarkR30AB/C64          	  883942	       267.2 ns/op
+BenchmarkR30AB/C128         	  476409	       496.0 ns/op
+BenchmarkR30AB/C256         	  214330	      1105 ns/op
+BenchmarkR30AB/C512         	  104238	      2283 ns/op
+BenchmarkR30AB/C1024        	   45675	      5239 ns/op
+BenchmarkR30AB/C2048        	   20630	     11620 ns/op
+BenchmarkR30AB/C4096        	    8481	     27697 ns/op
+BenchmarkR30AB/C8192        	    4021	     59082 ns/op
+BenchmarkR30AB/C1000        	   39784	      5997 ns/op
+BenchmarkR30AB/C1080        	   35031	      6826 ns/op
+BenchmarkR30AB/D64          	    8599	     27389 ns/op
+BenchmarkR30AB/D128         	    1903	    125493 ns/op
+BenchmarkR30AB/D256         	     338	    700592 ns/op
+PASS
+# round 1 variant br 21:29:48 load 0.42 0.28 0.20
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  313110	       745.5 ns/op
+BenchmarkR30AB/I256         	  313022	       763.5 ns/op
+BenchmarkR30AB/R512         	  159746	      1493 ns/op
+BenchmarkR30AB/I512         	  159154	      1505 ns/op
+BenchmarkR30AB/R1024        	   77967	      3064 ns/op
+BenchmarkR30AB/I1024        	   76492	      3141 ns/op
+BenchmarkR30AB/R2048        	   34255	      6969 ns/op
+BenchmarkR30AB/I2048        	   35088	      6841 ns/op
+BenchmarkR30AB/R4096        	   15898	     15106 ns/op
+BenchmarkR30AB/I4096        	   16159	     14900 ns/op
+BenchmarkR30AB/R8192        	    7135	     31580 ns/op
+BenchmarkR30AB/I8192        	    7350	     31403 ns/op
+BenchmarkR30AB/R1000        	   62828	      3833 ns/op
+BenchmarkR30AB/I1000        	   62218	      3836 ns/op
+BenchmarkR30AB/C64          	 1000000	       231.0 ns/op
+BenchmarkR30AB/C128         	  465950	       498.1 ns/op
+BenchmarkR30AB/C256         	  238338	      1010 ns/op
+BenchmarkR30AB/C512         	  113620	      2143 ns/op
+BenchmarkR30AB/C1024        	   49154	      4870 ns/op
+BenchmarkR30AB/C2048        	   22404	     10701 ns/op
+BenchmarkR30AB/C4096        	    9963	     23822 ns/op
+BenchmarkR30AB/C8192        	    3976	     59148 ns/op
+BenchmarkR30AB/C1000        	   39771	      6010 ns/op
+BenchmarkR30AB/C1080        	   34981	      6839 ns/op
+BenchmarkR30AB/D64          	    9646	     24184 ns/op
+BenchmarkR30AB/D128         	    1878	    125777 ns/op
+BenchmarkR30AB/D256         	     332	    713038 ns/op
+PASS
+# round 2 variant br 21:29:56 load 0.51 0.30 0.20
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  313218	       746.6 ns/op
+BenchmarkR30AB/I256         	  312585	       763.4 ns/op
+BenchmarkR30AB/R512         	  159693	      1494 ns/op
+BenchmarkR30AB/I512         	  158448	      1506 ns/op
+BenchmarkR30AB/R1024        	   77010	      3109 ns/op
+BenchmarkR30AB/I1024        	   76245	      3131 ns/op
+BenchmarkR30AB/R2048        	   34842	      6869 ns/op
+BenchmarkR30AB/I2048        	   35221	      6832 ns/op
+BenchmarkR30AB/R4096        	   15686	     15105 ns/op
+BenchmarkR30AB/I4096        	   16218	     14816 ns/op
+BenchmarkR30AB/R8192        	    7466	     32000 ns/op
+BenchmarkR30AB/I8192        	    7582	     32109 ns/op
+BenchmarkR30AB/R1000        	   61035	      3895 ns/op
+BenchmarkR30AB/I1000        	   62781	      3845 ns/op
+BenchmarkR30AB/C64          	 1000000	       232.0 ns/op
+BenchmarkR30AB/C128         	  479275	       502.8 ns/op
+BenchmarkR30AB/C256         	  230730	      1021 ns/op
+BenchmarkR30AB/C512         	  110660	      2138 ns/op
+BenchmarkR30AB/C1024        	   48771	      4987 ns/op
+BenchmarkR30AB/C2048        	   21535	     11151 ns/op
+BenchmarkR30AB/C4096        	    9124	     25015 ns/op
+BenchmarkR30AB/C8192        	    3912	     61640 ns/op
+BenchmarkR30AB/C1000        	   39589	      6264 ns/op
+BenchmarkR30AB/C1080        	   35019	      6864 ns/op
+BenchmarkR30AB/D64          	    9643	     24409 ns/op
+BenchmarkR30AB/D128         	    1867	    127042 ns/op
+BenchmarkR30AB/D256         	     333	    718901 ns/op
+PASS
+# round 2 variant main 21:30:03 load 0.55 0.32 0.21
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  302396	       774.8 ns/op
+BenchmarkR30AB/I256         	  309775	       772.0 ns/op
+BenchmarkR30AB/R512         	  145994	      1630 ns/op
+BenchmarkR30AB/I512         	  145855	      1624 ns/op
+BenchmarkR30AB/R1024        	   71989	      3339 ns/op
+BenchmarkR30AB/I1024        	   73180	      3274 ns/op
+BenchmarkR30AB/R2048        	   32689	      7313 ns/op
+BenchmarkR30AB/I2048        	   32838	      7339 ns/op
+BenchmarkR30AB/R4096        	   15363	     15614 ns/op
+BenchmarkR30AB/I4096        	   15573	     15390 ns/op
+BenchmarkR30AB/R8192        	    6651	     52316 ns/op
+BenchmarkR30AB/I8192        	    6669	     35597 ns/op
+BenchmarkR30AB/R1000        	   61242	      3896 ns/op
+BenchmarkR30AB/I1000        	   61626	      3888 ns/op
+BenchmarkR30AB/C64          	  870187	       269.3 ns/op
+BenchmarkR30AB/C128         	  478648	       498.8 ns/op
+BenchmarkR30AB/C256         	  216198	      1113 ns/op
+BenchmarkR30AB/C512         	  103308	      2299 ns/op
+BenchmarkR30AB/C1024        	   45181	      5241 ns/op
+BenchmarkR30AB/C2048        	   20604	     11669 ns/op
+BenchmarkR30AB/C4096        	    8380	     27555 ns/op
+BenchmarkR30AB/C8192        	    4020	     59434 ns/op
+BenchmarkR30AB/C1000        	   39572	      6021 ns/op
+BenchmarkR30AB/C1080        	   34819	      6857 ns/op
+BenchmarkR30AB/D64          	    8565	     27645 ns/op
+BenchmarkR30AB/D128         	    1832	    129314 ns/op
+BenchmarkR30AB/D256         	     330	    717366 ns/op
+PASS
+# round 3 variant main 21:30:11 load 0.93 0.40 0.24
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  301123	       773.3 ns/op
+BenchmarkR30AB/I256         	  309588	       774.3 ns/op
+BenchmarkR30AB/R512         	  147238	      1624 ns/op
+BenchmarkR30AB/I512         	  147048	      1619 ns/op
+BenchmarkR30AB/R1024        	   72309	      3305 ns/op
+BenchmarkR30AB/I1024        	   72279	      3310 ns/op
+BenchmarkR30AB/R2048        	   32906	      7268 ns/op
+BenchmarkR30AB/I2048        	   32773	      7301 ns/op
+BenchmarkR30AB/R4096        	   15416	     15626 ns/op
+BenchmarkR30AB/I4096        	   15578	     15362 ns/op
+BenchmarkR30AB/R8192        	    6603	     35513 ns/op
+BenchmarkR30AB/I8192        	    6597	     35821 ns/op
+BenchmarkR30AB/R1000        	   61850	      3859 ns/op
+BenchmarkR30AB/I1000        	   61632	      3882 ns/op
+BenchmarkR30AB/C64          	  892053	       267.4 ns/op
+BenchmarkR30AB/C128         	  479054	       496.4 ns/op
+BenchmarkR30AB/C256         	  214188	      1109 ns/op
+BenchmarkR30AB/C512         	  105576	      2259 ns/op
+BenchmarkR30AB/C1024        	   45800	      5234 ns/op
+BenchmarkR30AB/C2048        	   20544	     11676 ns/op
+BenchmarkR30AB/C4096        	    8576	     27448 ns/op
+BenchmarkR30AB/C8192        	    4044	     58877 ns/op
+BenchmarkR30AB/C1000        	   39830	      5993 ns/op
+BenchmarkR30AB/C1080        	   34893	      6854 ns/op
+BenchmarkR30AB/D64          	    8499	     27527 ns/op
+BenchmarkR30AB/D128         	    1878	    127184 ns/op
+BenchmarkR30AB/D256         	     336	    705894 ns/op
+PASS
+# round 3 variant br 21:30:19 load 0.93 0.41 0.24
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  304620	       746.4 ns/op
+BenchmarkR30AB/I256         	  313011	       763.7 ns/op
+BenchmarkR30AB/R512         	  159394	      1505 ns/op
+BenchmarkR30AB/I512         	  158108	      1521 ns/op
+BenchmarkR30AB/R1024        	   76093	      3127 ns/op
+BenchmarkR30AB/I1024        	   76294	      3125 ns/op
+BenchmarkR30AB/R2048        	   34712	      6810 ns/op
+BenchmarkR30AB/I2048        	   35430	      6842 ns/op
+BenchmarkR30AB/R4096        	   16170	     14833 ns/op
+BenchmarkR30AB/I4096        	   16441	     14595 ns/op
+BenchmarkR30AB/R8192        	    7430	     31627 ns/op
+BenchmarkR30AB/I8192        	    7542	     31392 ns/op
+BenchmarkR30AB/R1000        	   62334	      3829 ns/op
+BenchmarkR30AB/I1000        	   62854	      3807 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.8 ns/op
+BenchmarkR30AB/C128         	  481627	       500.0 ns/op
+BenchmarkR30AB/C256         	  228744	      1022 ns/op
+BenchmarkR30AB/C512         	  111290	      2118 ns/op
+BenchmarkR30AB/C1024        	   48982	      4903 ns/op
+BenchmarkR30AB/C2048        	   22126	     10893 ns/op
+BenchmarkR30AB/C4096        	    9884	     24146 ns/op
+BenchmarkR30AB/C8192        	    3900	     60189 ns/op
+BenchmarkR30AB/C1000        	   39163	      6062 ns/op
+BenchmarkR30AB/C1080        	   34953	      6918 ns/op
+BenchmarkR30AB/D64          	    9732	     24486 ns/op
+BenchmarkR30AB/D128         	    1840	    125974 ns/op
+BenchmarkR30AB/D256         	     366	    645622 ns/op
+PASS
+# round 4 variant br 21:30:26 load 0.94 0.43 0.25
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  310509	       748.9 ns/op
+BenchmarkR30AB/I256         	  306146	       769.0 ns/op
+BenchmarkR30AB/R512         	  158331	      1518 ns/op
+BenchmarkR30AB/I512         	  156561	      1526 ns/op
+BenchmarkR30AB/R1024        	   77058	      3079 ns/op
+BenchmarkR30AB/I1024        	   74246	      3110 ns/op
+BenchmarkR30AB/R2048        	   34771	      6928 ns/op
+BenchmarkR30AB/I2048        	   35016	      6993 ns/op
+BenchmarkR30AB/R4096        	   16074	     14870 ns/op
+BenchmarkR30AB/I4096        	   16173	     14912 ns/op
+BenchmarkR30AB/R8192        	    7173	     32000 ns/op
+BenchmarkR30AB/I8192        	    7416	     31367 ns/op
+BenchmarkR30AB/R1000        	   62682	      3810 ns/op
+BenchmarkR30AB/I1000        	   62977	      3804 ns/op
+BenchmarkR30AB/C64          	 1000000	       229.1 ns/op
+BenchmarkR30AB/C128         	  474650	       502.8 ns/op
+BenchmarkR30AB/C256         	  234513	      1024 ns/op
+BenchmarkR30AB/C512         	  111957	      2133 ns/op
+BenchmarkR30AB/C1024        	   44756	      4950 ns/op
+BenchmarkR30AB/C2048        	   22405	     10757 ns/op
+BenchmarkR30AB/C4096        	    9799	     23967 ns/op
+BenchmarkR30AB/C8192        	    3920	     59986 ns/op
+BenchmarkR30AB/C1000        	   39828	      5995 ns/op
+BenchmarkR30AB/C1080        	   34976	      6832 ns/op
+BenchmarkR30AB/D64          	    9645	     24360 ns/op
+BenchmarkR30AB/D128         	    1818	    131268 ns/op
+BenchmarkR30AB/D256         	     319	    716253 ns/op
+PASS
+# round 4 variant main 21:30:34 load 0.95 0.44 0.26
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  299456	       781.1 ns/op
+BenchmarkR30AB/I256         	  303141	       778.7 ns/op
+BenchmarkR30AB/R512         	  147573	      1623 ns/op
+BenchmarkR30AB/I512         	  147868	      1635 ns/op
+BenchmarkR30AB/R1024        	   72196	      3313 ns/op
+BenchmarkR30AB/I1024        	   71518	      3309 ns/op
+BenchmarkR30AB/R2048        	   32432	      7326 ns/op
+BenchmarkR30AB/I2048        	   32342	      7436 ns/op
+BenchmarkR30AB/R4096        	   15284	     15684 ns/op
+BenchmarkR30AB/I4096        	   15562	     15652 ns/op
+BenchmarkR30AB/R8192        	    6451	     36099 ns/op
+BenchmarkR30AB/I8192        	    6658	     35569 ns/op
+BenchmarkR30AB/R1000        	   61215	      3892 ns/op
+BenchmarkR30AB/I1000        	   61360	      3886 ns/op
+BenchmarkR30AB/C64          	  888105	       269.8 ns/op
+BenchmarkR30AB/C128         	  471673	       502.3 ns/op
+BenchmarkR30AB/C256         	  212464	      1125 ns/op
+BenchmarkR30AB/C512         	  103467	      2312 ns/op
+BenchmarkR30AB/C1024        	   44859	      5301 ns/op
+BenchmarkR30AB/C2048        	   20389	     11720 ns/op
+BenchmarkR30AB/C4096        	    8535	     27995 ns/op
+BenchmarkR30AB/C8192        	    3872	     60958 ns/op
+BenchmarkR30AB/C1000        	   39060	      6189 ns/op
+BenchmarkR30AB/C1080        	   34572	      6925 ns/op
+BenchmarkR30AB/D64          	    8654	     27926 ns/op
+BenchmarkR30AB/D128         	    1755	    130457 ns/op
+BenchmarkR30AB/D256         	     326	    709534 ns/op
+PASS
+# round 5 variant main 21:30:41 load 1.18 0.51 0.28
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  295635	       779.7 ns/op
+BenchmarkR30AB/I256         	  310394	       775.5 ns/op
+BenchmarkR30AB/R512         	  146114	      1637 ns/op
+BenchmarkR30AB/I512         	  144655	      1632 ns/op
+BenchmarkR30AB/R1024        	   72442	      3312 ns/op
+BenchmarkR30AB/I1024        	   72486	      3289 ns/op
+BenchmarkR30AB/R2048        	   32925	      7358 ns/op
+BenchmarkR30AB/I2048        	   32534	      7588 ns/op
+BenchmarkR30AB/R4096        	   15402	     15823 ns/op
+BenchmarkR30AB/I4096        	   15343	     15480 ns/op
+BenchmarkR30AB/R8192        	    6597	     36148 ns/op
+BenchmarkR30AB/I8192        	    6686	     36254 ns/op
+BenchmarkR30AB/R1000        	   60421	      3909 ns/op
+BenchmarkR30AB/I1000        	   60930	      3917 ns/op
+BenchmarkR30AB/C64          	  897082	       267.4 ns/op
+BenchmarkR30AB/C128         	  482642	       496.8 ns/op
+BenchmarkR30AB/C256         	  215851	      1106 ns/op
+BenchmarkR30AB/C512         	  105609	      2259 ns/op
+BenchmarkR30AB/C1024        	   45673	      5233 ns/op
+BenchmarkR30AB/C2048        	   20574	     11656 ns/op
+BenchmarkR30AB/C4096        	    8487	     27336 ns/op
+BenchmarkR30AB/C8192        	    4008	     59056 ns/op
+BenchmarkR30AB/C1000        	   39892	      6000 ns/op
+BenchmarkR30AB/C1080        	   34957	      6849 ns/op
+BenchmarkR30AB/D64          	    8654	     27555 ns/op
+BenchmarkR30AB/D128         	    1858	    126661 ns/op
+BenchmarkR30AB/D256         	     334	    705116 ns/op
+PASS
+# round 5 variant br 21:30:49 load 1.17 0.52 0.29
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  314146	       746.3 ns/op
+BenchmarkR30AB/I256         	  312007	       764.1 ns/op
+BenchmarkR30AB/R512         	  159667	      1495 ns/op
+BenchmarkR30AB/I512         	  158084	      1506 ns/op
+BenchmarkR30AB/R1024        	   77391	      3092 ns/op
+BenchmarkR30AB/I1024        	   77401	      3178 ns/op
+BenchmarkR30AB/R2048        	   34762	      6869 ns/op
+BenchmarkR30AB/I2048        	   35265	      6790 ns/op
+BenchmarkR30AB/R4096        	   16296	     14763 ns/op
+BenchmarkR30AB/I4096        	   16442	     14582 ns/op
+BenchmarkR30AB/R8192        	    7503	     31595 ns/op
+BenchmarkR30AB/I8192        	    7573	     31257 ns/op
+BenchmarkR30AB/R1000        	   62307	      3830 ns/op
+BenchmarkR30AB/I1000        	   62872	      3813 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.2 ns/op
+BenchmarkR30AB/C128         	  479901	       495.7 ns/op
+BenchmarkR30AB/C256         	  238248	      1004 ns/op
+BenchmarkR30AB/C512         	  114031	      2100 ns/op
+BenchmarkR30AB/C1024        	   49117	      4875 ns/op
+BenchmarkR30AB/C2048        	   22513	     10641 ns/op
+BenchmarkR30AB/C4096        	    9892	     23826 ns/op
+BenchmarkR30AB/C8192        	    3994	     59517 ns/op
+BenchmarkR30AB/C1000        	   39830	      5999 ns/op
+BenchmarkR30AB/C1080        	   35035	      6836 ns/op
+BenchmarkR30AB/D64          	    9862	     24287 ns/op
+BenchmarkR30AB/D128         	    1892	    125269 ns/op
+BenchmarkR30AB/D256         	     374	    626960 ns/op
+PASS
+# round 6 variant br 21:30:56 load 1.14 0.54 0.29
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  309859	       745.9 ns/op
+BenchmarkR30AB/I256         	  309555	       764.0 ns/op
+BenchmarkR30AB/R512         	  159852	      1493 ns/op
+BenchmarkR30AB/I512         	  159144	      1506 ns/op
+BenchmarkR30AB/R1024        	   77868	      3071 ns/op
+BenchmarkR30AB/I1024        	   77983	      3070 ns/op
+BenchmarkR30AB/R2048        	   34920	      6862 ns/op
+BenchmarkR30AB/I2048        	   35191	      6853 ns/op
+BenchmarkR30AB/R4096        	   16167	     14832 ns/op
+BenchmarkR30AB/I4096        	   16438	     14594 ns/op
+BenchmarkR30AB/R8192        	    7506	     31484 ns/op
+BenchmarkR30AB/I8192        	    7543	     31352 ns/op
+BenchmarkR30AB/R1000        	   62690	      3815 ns/op
+BenchmarkR30AB/I1000        	   62964	      3803 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.7 ns/op
+BenchmarkR30AB/C128         	  481519	       496.3 ns/op
+BenchmarkR30AB/C256         	  236941	      1005 ns/op
+BenchmarkR30AB/C512         	  113433	      2100 ns/op
+BenchmarkR30AB/C1024        	   49098	      4865 ns/op
+BenchmarkR30AB/C2048        	   22438	     10678 ns/op
+BenchmarkR30AB/C4096        	    9802	     23820 ns/op
+BenchmarkR30AB/C8192        	    3961	     59668 ns/op
+BenchmarkR30AB/C1000        	   39860	      5994 ns/op
+BenchmarkR30AB/C1080        	   35190	      6810 ns/op
+BenchmarkR30AB/D64          	    9825	     24232 ns/op
+BenchmarkR30AB/D128         	    1886	    126111 ns/op
+BenchmarkR30AB/D256         	     373	    636325 ns/op
+PASS
+# round 6 variant main 21:31:04 load 1.13 0.54 0.30
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  299397	       772.4 ns/op
+BenchmarkR30AB/I256         	  311818	       769.1 ns/op
+BenchmarkR30AB/R512         	  146826	      1622 ns/op
+BenchmarkR30AB/I512         	  148332	      1616 ns/op
+BenchmarkR30AB/R1024        	   72763	      3297 ns/op
+BenchmarkR30AB/I1024        	   73300	      3265 ns/op
+BenchmarkR30AB/R2048        	   33100	      7248 ns/op
+BenchmarkR30AB/I2048        	   32605	      7366 ns/op
+BenchmarkR30AB/R4096        	   15480	     15501 ns/op
+BenchmarkR30AB/I4096        	   15625	     15358 ns/op
+BenchmarkR30AB/R8192        	    6726	     35370 ns/op
+BenchmarkR30AB/I8192        	    6692	     35510 ns/op
+BenchmarkR30AB/R1000        	   61833	      3861 ns/op
+BenchmarkR30AB/I1000        	   61852	      3867 ns/op
+BenchmarkR30AB/C64          	  891684	       266.9 ns/op
+BenchmarkR30AB/C128         	  479587	       496.4 ns/op
+BenchmarkR30AB/C256         	  216324	      1105 ns/op
+BenchmarkR30AB/C512         	  105099	      2277 ns/op
+BenchmarkR30AB/C1024        	   45752	      5229 ns/op
+BenchmarkR30AB/C2048        	   20588	     11637 ns/op
+BenchmarkR30AB/C4096        	    8635	     27424 ns/op
+BenchmarkR30AB/C8192        	    4012	     58971 ns/op
+BenchmarkR30AB/C1000        	   39872	      5993 ns/op
+BenchmarkR30AB/C1080        	   34964	      6851 ns/op
+BenchmarkR30AB/D64          	    8686	     27464 ns/op
+BenchmarkR30AB/D128         	    1888	    125664 ns/op
+BenchmarkR30AB/D256         	     340	    705787 ns/op
+PASS
+# round 7 variant main 21:31:11 load 1.11 0.56 0.31
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  298225	       774.7 ns/op
+BenchmarkR30AB/I256         	  310814	       769.4 ns/op
+BenchmarkR30AB/R512         	  147890	      1620 ns/op
+BenchmarkR30AB/I512         	  147079	      1615 ns/op
+BenchmarkR30AB/R1024        	   72915	      3271 ns/op
+BenchmarkR30AB/I1024        	   72490	      3291 ns/op
+BenchmarkR30AB/R2048        	   32980	      7270 ns/op
+BenchmarkR30AB/I2048        	   32935	      7380 ns/op
+BenchmarkR30AB/R4096        	   15470	     15496 ns/op
+BenchmarkR30AB/I4096        	   15640	     15333 ns/op
+BenchmarkR30AB/R8192        	    6692	     35504 ns/op
+BenchmarkR30AB/I8192        	    6759	     35281 ns/op
+BenchmarkR30AB/R1000        	   62143	      3837 ns/op
+BenchmarkR30AB/I1000        	   61824	      3869 ns/op
+BenchmarkR30AB/C64          	  888949	       267.1 ns/op
+BenchmarkR30AB/C128         	  481600	       496.3 ns/op
+BenchmarkR30AB/C256         	  214878	      1106 ns/op
+BenchmarkR30AB/C512         	  105084	      2277 ns/op
+BenchmarkR30AB/C1024        	   45811	      5227 ns/op
+BenchmarkR30AB/C2048        	   20671	     11600 ns/op
+BenchmarkR30AB/C4096        	    8636	     27318 ns/op
+BenchmarkR30AB/C8192        	    3986	     59371 ns/op
+BenchmarkR30AB/C1000        	   39931	      5978 ns/op
+BenchmarkR30AB/C1080        	   35016	      6837 ns/op
+BenchmarkR30AB/D64          	    8598	     27505 ns/op
+BenchmarkR30AB/D128         	    1884	    126871 ns/op
+BenchmarkR30AB/D256         	     342	    698797 ns/op
+PASS
+# round 7 variant br 21:31:19 load 1.10 0.57 0.31
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  311821	       746.5 ns/op
+BenchmarkR30AB/I256         	  312729	       763.6 ns/op
+BenchmarkR30AB/R512         	  159960	      1495 ns/op
+BenchmarkR30AB/I512         	  159051	      1512 ns/op
+BenchmarkR30AB/R1024        	   75709	      3101 ns/op
+BenchmarkR30AB/I1024        	   77504	      3094 ns/op
+BenchmarkR30AB/R2048        	   34870	      6902 ns/op
+BenchmarkR30AB/I2048        	   35274	      6903 ns/op
+BenchmarkR30AB/R4096        	   15938	     14946 ns/op
+BenchmarkR30AB/I4096        	   16252	     14689 ns/op
+BenchmarkR30AB/R8192        	    7216	     32008 ns/op
+BenchmarkR30AB/I8192        	    7476	     31620 ns/op
+BenchmarkR30AB/R1000        	   62425	      3840 ns/op
+BenchmarkR30AB/I1000        	   62865	      3805 ns/op
+BenchmarkR30AB/C64          	 1000000	       236.4 ns/op
+BenchmarkR30AB/C128         	  480117	       504.0 ns/op
+BenchmarkR30AB/C256         	  234547	      1012 ns/op
+BenchmarkR30AB/C512         	  112934	      2120 ns/op
+BenchmarkR30AB/C1024        	   48950	      4977 ns/op
+BenchmarkR30AB/C2048        	   22302	     10884 ns/op
+BenchmarkR30AB/C4096        	   10000	     23980 ns/op
+BenchmarkR30AB/C8192        	    3960	     60421 ns/op
+BenchmarkR30AB/C1000        	   39891	      5981 ns/op
+BenchmarkR30AB/C1080        	   35083	      6829 ns/op
+BenchmarkR30AB/D64          	    9753	     24573 ns/op
+BenchmarkR30AB/D128         	    1888	    126243 ns/op
+BenchmarkR30AB/D256         	     376	    627549 ns/op
+PASS
+# round 8 variant br 21:31:27 load 1.09 0.58 0.32
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  308186	       746.3 ns/op
+BenchmarkR30AB/I256         	  305580	       769.7 ns/op
+BenchmarkR30AB/R512         	  159963	      1494 ns/op
+BenchmarkR30AB/I512         	  158149	      1505 ns/op
+BenchmarkR30AB/R1024        	   76609	      3110 ns/op
+BenchmarkR30AB/I1024        	   76840	      3099 ns/op
+BenchmarkR30AB/R2048        	   34935	      6864 ns/op
+BenchmarkR30AB/I2048        	   35244	      6893 ns/op
+BenchmarkR30AB/R4096        	   15882	     15070 ns/op
+BenchmarkR30AB/I4096        	   16228	     14703 ns/op
+BenchmarkR30AB/R8192        	    7447	     31483 ns/op
+BenchmarkR30AB/I8192        	    7671	     31481 ns/op
+BenchmarkR30AB/R1000        	   61464	      3863 ns/op
+BenchmarkR30AB/I1000        	   62458	      3831 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.8 ns/op
+BenchmarkR30AB/C128         	  481976	       496.4 ns/op
+BenchmarkR30AB/C256         	  237994	      1010 ns/op
+BenchmarkR30AB/C512         	  113718	      2116 ns/op
+BenchmarkR30AB/C1024        	   48810	      4904 ns/op
+BenchmarkR30AB/C2048        	   22122	     10675 ns/op
+BenchmarkR30AB/C4096        	   10000	     23866 ns/op
+BenchmarkR30AB/C8192        	    3998	     59116 ns/op
+BenchmarkR30AB/C1000        	   39759	      5991 ns/op
+BenchmarkR30AB/C1080        	   35178	      6827 ns/op
+BenchmarkR30AB/D64          	    9708	     24794 ns/op
+BenchmarkR30AB/D128         	    1846	    128790 ns/op
+BenchmarkR30AB/D256         	     331	    733377 ns/op
+PASS
+# round 8 variant main 21:31:34 load 1.08 0.59 0.32
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  289863	       784.5 ns/op
+BenchmarkR30AB/I256         	  299548	       777.5 ns/op
+BenchmarkR30AB/R512         	  144360	      1649 ns/op
+BenchmarkR30AB/I512         	  143078	      1617 ns/op
+BenchmarkR30AB/R1024        	   72726	      3329 ns/op
+BenchmarkR30AB/I1024        	   72228	      3333 ns/op
+BenchmarkR30AB/R2048        	   32865	      7288 ns/op
+BenchmarkR30AB/I2048        	   31701	      7487 ns/op
+BenchmarkR30AB/R4096        	   15099	     15896 ns/op
+BenchmarkR30AB/I4096        	   15013	     15549 ns/op
+BenchmarkR30AB/R8192        	    6602	     35910 ns/op
+BenchmarkR30AB/I8192        	    6645	     36205 ns/op
+BenchmarkR30AB/R1000        	   62095	      3840 ns/op
+BenchmarkR30AB/I1000        	   62137	      3881 ns/op
+BenchmarkR30AB/C64          	  883647	       271.6 ns/op
+BenchmarkR30AB/C128         	  464541	       505.2 ns/op
+BenchmarkR30AB/C256         	  212409	      1113 ns/op
+BenchmarkR30AB/C512         	  102205	      2308 ns/op
+BenchmarkR30AB/C1024        	   45694	      5342 ns/op
+BenchmarkR30AB/C2048        	   20005	     11898 ns/op
+BenchmarkR30AB/C4096        	    8514	     28188 ns/op
+BenchmarkR30AB/C8192        	    3824	     59445 ns/op
+BenchmarkR30AB/C1000        	   39852	      5990 ns/op
+BenchmarkR30AB/C1080        	   35080	      6833 ns/op
+BenchmarkR30AB/D64          	    8613	     27548 ns/op
+BenchmarkR30AB/D128         	    1873	    126339 ns/op
+BenchmarkR30AB/D256         	     343	    702467 ns/op
+PASS
+# round 9 variant main 21:31:42 load 1.07 0.60 0.33
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  300660	       772.0 ns/op
+BenchmarkR30AB/I256         	  311454	       769.6 ns/op
+BenchmarkR30AB/R512         	  147596	      1621 ns/op
+BenchmarkR30AB/I512         	  146516	      1615 ns/op
+BenchmarkR30AB/R1024        	   72444	      3289 ns/op
+BenchmarkR30AB/I1024        	   72676	      3291 ns/op
+BenchmarkR30AB/R2048        	   33066	      7252 ns/op
+BenchmarkR30AB/I2048        	   32872	      7372 ns/op
+BenchmarkR30AB/R4096        	   15514	     15461 ns/op
+BenchmarkR30AB/I4096        	   15658	     15304 ns/op
+BenchmarkR30AB/R8192        	    6693	     35319 ns/op
+BenchmarkR30AB/I8192        	    6638	     35452 ns/op
+BenchmarkR30AB/R1000        	   62278	      3831 ns/op
+BenchmarkR30AB/I1000        	   62619	      3830 ns/op
+BenchmarkR30AB/C64          	  886153	       266.8 ns/op
+BenchmarkR30AB/C128         	  465027	       496.2 ns/op
+BenchmarkR30AB/C256         	  216572	      1105 ns/op
+BenchmarkR30AB/C512         	  106149	      2257 ns/op
+BenchmarkR30AB/C1024        	   45637	      5237 ns/op
+BenchmarkR30AB/C2048        	   20649	     11571 ns/op
+BenchmarkR30AB/C4096        	    8379	     27683 ns/op
+BenchmarkR30AB/C8192        	    4040	     59080 ns/op
+BenchmarkR30AB/C1000        	   39932	      5987 ns/op
+BenchmarkR30AB/C1080        	   34984	      6837 ns/op
+BenchmarkR30AB/D64          	    8551	     27465 ns/op
+BenchmarkR30AB/D128         	    1867	    128124 ns/op
+BenchmarkR30AB/D256         	     334	    703379 ns/op
+PASS
+# round 9 variant br 21:31:49 load 1.06 0.61 0.33
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  307050	       745.9 ns/op
+BenchmarkR30AB/I256         	  311977	       763.8 ns/op
+BenchmarkR30AB/R512         	  159331	      1492 ns/op
+BenchmarkR30AB/I512         	  158647	      1505 ns/op
+BenchmarkR30AB/R1024        	   77815	      3072 ns/op
+BenchmarkR30AB/I1024        	   77738	      3075 ns/op
+BenchmarkR30AB/R2048        	   34917	      6858 ns/op
+BenchmarkR30AB/I2048        	   35104	      6801 ns/op
+BenchmarkR30AB/R4096        	   16231	     14778 ns/op
+BenchmarkR30AB/I4096        	   16440	     14580 ns/op
+BenchmarkR30AB/R8192        	    7477	     31561 ns/op
+BenchmarkR30AB/I8192        	    7563	     31298 ns/op
+BenchmarkR30AB/R1000        	   62713	      3813 ns/op
+BenchmarkR30AB/I1000        	   61039	      3922 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.0 ns/op
+BenchmarkR30AB/C128         	  479918	       496.5 ns/op
+BenchmarkR30AB/C256         	  234529	      1017 ns/op
+BenchmarkR30AB/C512         	  111690	      2124 ns/op
+BenchmarkR30AB/C1024        	   48667	      4897 ns/op
+BenchmarkR30AB/C2048        	   22478	     10671 ns/op
+BenchmarkR30AB/C4096        	    9850	     23864 ns/op
+BenchmarkR30AB/C8192        	    3996	     59131 ns/op
+BenchmarkR30AB/C1000        	   39904	      5979 ns/op
+BenchmarkR30AB/C1080        	   34980	      6893 ns/op
+BenchmarkR30AB/D64          	    9579	     24572 ns/op
+BenchmarkR30AB/D128         	    1878	    126709 ns/op
+BenchmarkR30AB/D256         	     373	    639529 ns/op
+PASS
+# round 10 variant br 21:31:57 load 1.05 0.62 0.34
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  305127	       746.9 ns/op
+BenchmarkR30AB/I256         	  312810	       763.7 ns/op
+BenchmarkR30AB/R512         	  160154	      1493 ns/op
+BenchmarkR30AB/I512         	  158420	      1505 ns/op
+BenchmarkR30AB/R1024        	   76612	      3121 ns/op
+BenchmarkR30AB/I1024        	   76494	      3135 ns/op
+BenchmarkR30AB/R2048        	   35012	      6847 ns/op
+BenchmarkR30AB/I2048        	   35150	      6914 ns/op
+BenchmarkR30AB/R4096        	   16257	     14736 ns/op
+BenchmarkR30AB/I4096        	   16396	     14632 ns/op
+BenchmarkR30AB/R8192        	    7460	     31566 ns/op
+BenchmarkR30AB/I8192        	    7566	     31267 ns/op
+BenchmarkR30AB/R1000        	   62554	      3828 ns/op
+BenchmarkR30AB/I1000        	   63006	      3801 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.6 ns/op
+BenchmarkR30AB/C128         	  483811	       496.0 ns/op
+BenchmarkR30AB/C256         	  237607	      1006 ns/op
+BenchmarkR30AB/C512         	  111216	      2156 ns/op
+BenchmarkR30AB/C1024        	   48990	      4878 ns/op
+BenchmarkR30AB/C2048        	   22485	     10655 ns/op
+BenchmarkR30AB/C4096        	   10000	     23801 ns/op
+BenchmarkR30AB/C8192        	    4011	     59109 ns/op
+BenchmarkR30AB/C1000        	   39691	      5991 ns/op
+BenchmarkR30AB/C1080        	   35004	      6836 ns/op
+BenchmarkR30AB/D64          	    9630	     24621 ns/op
+BenchmarkR30AB/D128         	    1816	    129732 ns/op
+BenchmarkR30AB/D256         	     361	    661294 ns/op
+PASS
+# round 10 variant main 21:32:04 load 1.05 0.63 0.34
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  291924	       787.7 ns/op
+BenchmarkR30AB/I256         	  304424	       784.1 ns/op
+BenchmarkR30AB/R512         	  145086	      1658 ns/op
+BenchmarkR30AB/I512         	  144009	      1649 ns/op
+BenchmarkR30AB/R1024        	   71223	      3344 ns/op
+BenchmarkR30AB/I1024        	   70852	      3373 ns/op
+BenchmarkR30AB/R2048        	   32949	      7274 ns/op
+BenchmarkR30AB/I2048        	   32799	      7386 ns/op
+BenchmarkR30AB/R4096        	   15492	     15487 ns/op
+BenchmarkR30AB/I4096        	   15576	     15376 ns/op
+BenchmarkR30AB/R8192        	    6717	     35293 ns/op
+BenchmarkR30AB/I8192        	    6699	     35475 ns/op
+BenchmarkR30AB/R1000        	   62090	      3835 ns/op
+BenchmarkR30AB/I1000        	   61438	      3888 ns/op
+BenchmarkR30AB/C64          	  901479	       266.8 ns/op
+BenchmarkR30AB/C128         	  483379	       496.5 ns/op
+BenchmarkR30AB/C256         	  216385	      1107 ns/op
+BenchmarkR30AB/C512         	  104404	      2291 ns/op
+BenchmarkR30AB/C1024        	   45598	      5249 ns/op
+BenchmarkR30AB/C2048        	   20584	     11639 ns/op
+BenchmarkR30AB/C4096        	    8644	     27769 ns/op
+BenchmarkR30AB/C8192        	    3997	     59335 ns/op
+BenchmarkR30AB/C1000        	   39934	      5988 ns/op
+BenchmarkR30AB/C1080        	   34904	      6858 ns/op
+BenchmarkR30AB/D64          	    8626	     27496 ns/op
+BenchmarkR30AB/D128         	    1876	    127337 ns/op
+BenchmarkR30AB/D256         	     334	    706087 ns/op
+PASS
+# round 11 variant main 21:32:12 load 1.04 0.64 0.35
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  303033	       772.3 ns/op
+BenchmarkR30AB/I256         	  309001	       778.4 ns/op
+BenchmarkR30AB/R512         	  146912	      1623 ns/op
+BenchmarkR30AB/I512         	  147549	      1615 ns/op
+BenchmarkR30AB/R1024        	   72714	      3291 ns/op
+BenchmarkR30AB/I1024        	   72355	      3291 ns/op
+BenchmarkR30AB/R2048        	   32966	      7264 ns/op
+BenchmarkR30AB/I2048        	   32869	      7268 ns/op
+BenchmarkR30AB/R4096        	   15447	     15503 ns/op
+BenchmarkR30AB/I4096        	   15619	     15367 ns/op
+BenchmarkR30AB/R8192        	    6747	     35415 ns/op
+BenchmarkR30AB/I8192        	    6772	     35235 ns/op
+BenchmarkR30AB/R1000        	   62163	      3842 ns/op
+BenchmarkR30AB/I1000        	   62216	      3850 ns/op
+BenchmarkR30AB/C64          	  884416	       266.8 ns/op
+BenchmarkR30AB/C128         	  474090	       496.5 ns/op
+BenchmarkR30AB/C256         	  216471	      1106 ns/op
+BenchmarkR30AB/C512         	  104379	      2290 ns/op
+BenchmarkR30AB/C1024        	   45866	      5234 ns/op
+BenchmarkR30AB/C2048        	   20570	     11653 ns/op
+BenchmarkR30AB/C4096        	    8608	     27503 ns/op
+BenchmarkR30AB/C8192        	    4023	     59317 ns/op
+BenchmarkR30AB/C1000        	   39961	      5986 ns/op
+BenchmarkR30AB/C1080        	   34924	      6821 ns/op
+BenchmarkR30AB/D64          	    8488	     27536 ns/op
+BenchmarkR30AB/D128         	    1887	    128860 ns/op
+BenchmarkR30AB/D256         	     327	    722140 ns/op
+PASS
+# round 11 variant br 21:32:19 load 1.04 0.65 0.36
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  307334	       751.0 ns/op
+BenchmarkR30AB/I256         	  313578	       763.8 ns/op
+BenchmarkR30AB/R512         	  159775	      1496 ns/op
+BenchmarkR30AB/I512         	  156855	      1530 ns/op
+BenchmarkR30AB/R1024        	   75370	      3142 ns/op
+BenchmarkR30AB/I1024        	   74774	      3174 ns/op
+BenchmarkR30AB/R2048        	   34435	      6906 ns/op
+BenchmarkR30AB/I2048        	   34519	      6849 ns/op
+BenchmarkR30AB/R4096        	   16195	     14815 ns/op
+BenchmarkR30AB/I4096        	   16053	     14634 ns/op
+BenchmarkR30AB/R8192        	    7525	     31963 ns/op
+BenchmarkR30AB/I8192        	    7566	     31938 ns/op
+BenchmarkR30AB/R1000        	   61782	      3816 ns/op
+BenchmarkR30AB/I1000        	   62438	      3862 ns/op
+BenchmarkR30AB/C64          	  995916	       232.7 ns/op
+BenchmarkR30AB/C128         	  468661	       502.5 ns/op
+BenchmarkR30AB/C256         	  233106	      1015 ns/op
+BenchmarkR30AB/C512         	  112821	      2153 ns/op
+BenchmarkR30AB/C1024        	   48222	      4882 ns/op
+BenchmarkR30AB/C2048        	   22064	     10840 ns/op
+BenchmarkR30AB/C4096        	    9459	     24077 ns/op
+BenchmarkR30AB/C8192        	    3958	     59682 ns/op
+BenchmarkR30AB/C1000        	   39672	      6065 ns/op
+BenchmarkR30AB/C1080        	   34905	      6892 ns/op
+BenchmarkR30AB/D64          	    9816	     24446 ns/op
+BenchmarkR30AB/D128         	    1903	    125500 ns/op
+BenchmarkR30AB/D256         	     375	    637329 ns/op
+PASS
+# round 12 variant br 21:32:27 load 1.03 0.66 0.36
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  311893	       746.5 ns/op
+BenchmarkR30AB/I256         	  311191	       764.2 ns/op
+BenchmarkR30AB/R512         	  159679	      1493 ns/op
+BenchmarkR30AB/I512         	  159265	      1505 ns/op
+BenchmarkR30AB/R1024        	   77337	      3093 ns/op
+BenchmarkR30AB/I1024        	   77463	      3088 ns/op
+BenchmarkR30AB/R2048        	   34920	      7239 ns/op
+BenchmarkR30AB/I2048        	   34766	      6933 ns/op
+BenchmarkR30AB/R4096        	   16052	     14815 ns/op
+BenchmarkR30AB/I4096        	   16236	     14725 ns/op
+BenchmarkR30AB/R8192        	    7554	     31934 ns/op
+BenchmarkR30AB/I8192        	    7336	     31586 ns/op
+BenchmarkR30AB/R1000        	   61209	      3853 ns/op
+BenchmarkR30AB/I1000        	   62920	      3815 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.6 ns/op
+BenchmarkR30AB/C128         	  473772	       496.0 ns/op
+BenchmarkR30AB/C256         	  233623	      1005 ns/op
+BenchmarkR30AB/C512         	  113488	      2099 ns/op
+BenchmarkR30AB/C1024        	   49100	      4877 ns/op
+BenchmarkR30AB/C2048        	   22507	     10638 ns/op
+BenchmarkR30AB/C4096        	    9849	     23793 ns/op
+BenchmarkR30AB/C8192        	    4005	     59196 ns/op
+BenchmarkR30AB/C1000        	   39741	      6042 ns/op
+BenchmarkR30AB/C1080        	   34542	      6922 ns/op
+BenchmarkR30AB/D64          	    9315	     24725 ns/op
+BenchmarkR30AB/D128         	    1864	    128168 ns/op
+BenchmarkR30AB/D256         	     362	    654145 ns/op
+PASS
+# round 12 variant main 21:32:34 load 1.02 0.67 0.37
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  293952	       773.8 ns/op
+BenchmarkR30AB/I256         	  305986	       779.8 ns/op
+BenchmarkR30AB/R512         	  147270	      1635 ns/op
+BenchmarkR30AB/I512         	  146076	      1636 ns/op
+BenchmarkR30AB/R1024        	   72633	      3285 ns/op
+BenchmarkR30AB/I1024        	   70634	      3344 ns/op
+BenchmarkR30AB/R2048        	   33001	      7323 ns/op
+BenchmarkR30AB/I2048        	   32215	      7422 ns/op
+BenchmarkR30AB/R4096        	   15464	     15497 ns/op
+BenchmarkR30AB/I4096        	   15602	     15489 ns/op
+BenchmarkR30AB/R8192        	    6616	     35628 ns/op
+BenchmarkR30AB/I8192        	    6468	     35621 ns/op
+BenchmarkR30AB/R1000        	   61778	      3839 ns/op
+BenchmarkR30AB/I1000        	   61370	      3886 ns/op
+BenchmarkR30AB/C64          	  891170	       266.8 ns/op
+BenchmarkR30AB/C128         	  477892	       501.6 ns/op
+BenchmarkR30AB/C256         	  215677	      1106 ns/op
+BenchmarkR30AB/C512         	  104287	      2335 ns/op
+BenchmarkR30AB/C1024        	   45003	      5325 ns/op
+BenchmarkR30AB/C2048        	   20254	     11825 ns/op
+BenchmarkR30AB/C4096        	    8512	     28133 ns/op
+BenchmarkR30AB/C8192        	    3984	     60121 ns/op
+BenchmarkR30AB/C1000        	   39962	      6044 ns/op
+BenchmarkR30AB/C1080        	   34737	      6899 ns/op
+BenchmarkR30AB/D64          	    8301	     27934 ns/op
+BenchmarkR30AB/D128         	    1892	    125336 ns/op
+BenchmarkR30AB/D256         	     340	    716314 ns/op
+PASS
+# round 13 variant main 21:32:42 load 1.10 0.69 0.38
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  300252	       780.6 ns/op
+BenchmarkR30AB/I256         	  310196	       769.7 ns/op
+BenchmarkR30AB/R512         	  147576	      1621 ns/op
+BenchmarkR30AB/I512         	  147016	      1616 ns/op
+BenchmarkR30AB/R1024        	   73429	      3258 ns/op
+BenchmarkR30AB/I1024        	   71554	      3357 ns/op
+BenchmarkR30AB/R2048        	   32778	      7332 ns/op
+BenchmarkR30AB/I2048        	   32948	      7348 ns/op
+BenchmarkR30AB/R4096        	   15164	     15722 ns/op
+BenchmarkR30AB/I4096        	   15541	     15615 ns/op
+BenchmarkR30AB/R8192        	    6656	     35944 ns/op
+BenchmarkR30AB/I8192        	    6564	     35459 ns/op
+BenchmarkR30AB/R1000        	   61386	      3885 ns/op
+BenchmarkR30AB/I1000        	   62202	      3860 ns/op
+BenchmarkR30AB/C64          	  860730	       271.4 ns/op
+BenchmarkR30AB/C128         	  471571	       501.8 ns/op
+BenchmarkR30AB/C256         	  213213	      1115 ns/op
+BenchmarkR30AB/C512         	  105134	      2304 ns/op
+BenchmarkR30AB/C1024        	   45819	      5281 ns/op
+BenchmarkR30AB/C2048        	   20538	     11690 ns/op
+BenchmarkR30AB/C4096        	    8538	     28155 ns/op
+BenchmarkR30AB/C8192        	    4021	     60226 ns/op
+BenchmarkR30AB/C1000        	   39410	      6054 ns/op
+BenchmarkR30AB/C1080        	   34574	      6994 ns/op
+BenchmarkR30AB/D64          	    8095	     28079 ns/op
+BenchmarkR30AB/D128         	    1905	    126477 ns/op
+BenchmarkR30AB/D256         	     330	    722896 ns/op
+PASS
+# round 13 variant br 21:32:50 load 1.09 0.71 0.39
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  308322	       751.0 ns/op
+BenchmarkR30AB/I256         	  308578	       769.6 ns/op
+BenchmarkR30AB/R512         	  160257	      1504 ns/op
+BenchmarkR30AB/I512         	  155235	      1527 ns/op
+BenchmarkR30AB/R1024        	   75446	      3154 ns/op
+BenchmarkR30AB/I1024        	   76150	      3087 ns/op
+BenchmarkR30AB/R2048        	   34580	      6924 ns/op
+BenchmarkR30AB/I2048        	   34970	      6993 ns/op
+BenchmarkR30AB/R4096        	   16250	     14776 ns/op
+BenchmarkR30AB/I4096        	   16219	     14625 ns/op
+BenchmarkR30AB/R8192        	    7520	     31990 ns/op
+BenchmarkR30AB/I8192        	    7594	     31362 ns/op
+BenchmarkR30AB/R1000        	   61455	      3894 ns/op
+BenchmarkR30AB/I1000        	   61905	      3815 ns/op
+BenchmarkR30AB/C64          	 1000000	       228.4 ns/op
+BenchmarkR30AB/C128         	  480919	       495.4 ns/op
+BenchmarkR30AB/C256         	  238197	      1012 ns/op
+BenchmarkR30AB/C512         	  112044	      2115 ns/op
+BenchmarkR30AB/C1024        	   48967	      4892 ns/op
+BenchmarkR30AB/C2048        	   22558	     10623 ns/op
+BenchmarkR30AB/C4096        	    9944	     23885 ns/op
+BenchmarkR30AB/C8192        	    4024	     59043 ns/op
+BenchmarkR30AB/C1000        	   39903	      5988 ns/op
+BenchmarkR30AB/C1080        	   34527	      6936 ns/op
+BenchmarkR30AB/D64          	    9502	     24627 ns/op
+BenchmarkR30AB/D128         	    1858	    126799 ns/op
+BenchmarkR30AB/D256         	     372	    637520 ns/op
+PASS
+# round 14 variant br 21:32:57 load 1.08 0.71 0.39
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  312481	       746.5 ns/op
+BenchmarkR30AB/I256         	  313450	       762.7 ns/op
+BenchmarkR30AB/R512         	  160393	      1493 ns/op
+BenchmarkR30AB/I512         	  158703	      1505 ns/op
+BenchmarkR30AB/R1024        	   77088	      3110 ns/op
+BenchmarkR30AB/I1024        	   76399	      3130 ns/op
+BenchmarkR30AB/R2048        	   34764	      6909 ns/op
+BenchmarkR30AB/I2048        	   35182	      6876 ns/op
+BenchmarkR30AB/R4096        	   16225	     14794 ns/op
+BenchmarkR30AB/I4096        	   16429	     14578 ns/op
+BenchmarkR30AB/R8192        	    7509	     31554 ns/op
+BenchmarkR30AB/I8192        	    7519	     31328 ns/op
+BenchmarkR30AB/R1000        	   62359	      3838 ns/op
+BenchmarkR30AB/I1000        	   62869	      3806 ns/op
+BenchmarkR30AB/C64          	 1000000	       230.0 ns/op
+BenchmarkR30AB/C128         	  479830	       496.6 ns/op
+BenchmarkR30AB/C256         	  238058	      1006 ns/op
+BenchmarkR30AB/C512         	  112378	      2125 ns/op
+BenchmarkR30AB/C1024        	   49112	      4874 ns/op
+BenchmarkR30AB/C2048        	   22386	     10679 ns/op
+BenchmarkR30AB/C4096        	    9903	     23811 ns/op
+BenchmarkR30AB/C8192        	    4041	     58982 ns/op
+BenchmarkR30AB/C1000        	   39654	      5990 ns/op
+BenchmarkR30AB/C1080        	   34578	      6889 ns/op
+BenchmarkR30AB/D64          	    9764	     24577 ns/op
+BenchmarkR30AB/D128         	    1827	    128482 ns/op
+BenchmarkR30AB/D256         	     356	    660024 ns/op
+PASS
+# round 14 variant main 21:33:05 load 1.15 0.74 0.40
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  294382	       776.6 ns/op
+BenchmarkR30AB/I256         	  310928	       777.3 ns/op
+BenchmarkR30AB/R512         	  147002	      1624 ns/op
+BenchmarkR30AB/I512         	  146032	      1627 ns/op
+BenchmarkR30AB/R1024        	   73222	      3295 ns/op
+BenchmarkR30AB/I1024        	   71756	      3337 ns/op
+BenchmarkR30AB/R2048        	   32552	      7338 ns/op
+BenchmarkR30AB/I2048        	   32386	      7349 ns/op
+BenchmarkR30AB/R4096        	   15225	     15668 ns/op
+BenchmarkR30AB/I4096        	   15616	     15497 ns/op
+BenchmarkR30AB/R8192        	    6434	     36128 ns/op
+BenchmarkR30AB/I8192        	    6585	     36056 ns/op
+BenchmarkR30AB/R1000        	   60921	      3858 ns/op
+BenchmarkR30AB/I1000        	   61512	      3881 ns/op
+BenchmarkR30AB/C64          	  883948	       269.7 ns/op
+BenchmarkR30AB/C128         	  469872	       499.5 ns/op
+BenchmarkR30AB/C256         	  215974	      1106 ns/op
+BenchmarkR30AB/C512         	  105824	      2257 ns/op
+BenchmarkR30AB/C1024        	   45625	      5246 ns/op
+BenchmarkR30AB/C2048        	   20674	     11603 ns/op
+BenchmarkR30AB/C4096        	    8534	     27689 ns/op
+BenchmarkR30AB/C8192        	    4022	     58975 ns/op
+BenchmarkR30AB/C1000        	   39712	      5991 ns/op
+BenchmarkR30AB/C1080        	   34959	      6849 ns/op
+BenchmarkR30AB/D64          	    8619	     27419 ns/op
+BenchmarkR30AB/D128         	    1899	    125823 ns/op
+BenchmarkR30AB/D256         	     342	    697471 ns/op
+PASS
+# round 15 variant main 21:33:12 load 1.30 0.77 0.42
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  302313	       771.7 ns/op
+BenchmarkR30AB/I256         	  310180	       769.3 ns/op
+BenchmarkR30AB/R512         	  147726	      1622 ns/op
+BenchmarkR30AB/I512         	  147415	      1615 ns/op
+BenchmarkR30AB/R1024        	   73142	      3277 ns/op
+BenchmarkR30AB/I1024        	   73402	      3260 ns/op
+BenchmarkR30AB/R2048        	   32998	      7252 ns/op
+BenchmarkR30AB/I2048        	   32862	      7401 ns/op
+BenchmarkR30AB/R4096        	   15502	     15485 ns/op
+BenchmarkR30AB/I4096        	   15625	     15342 ns/op
+BenchmarkR30AB/R8192        	    6643	     35421 ns/op
+BenchmarkR30AB/I8192        	    6690	     35479 ns/op
+BenchmarkR30AB/R1000        	   61966	      3859 ns/op
+BenchmarkR30AB/I1000        	   62598	      3828 ns/op
+BenchmarkR30AB/C64          	  886405	       267.7 ns/op
+BenchmarkR30AB/C128         	  479107	       496.6 ns/op
+BenchmarkR30AB/C256         	  215920	      1106 ns/op
+BenchmarkR30AB/C512         	  105945	      2260 ns/op
+BenchmarkR30AB/C1024        	   45808	      5229 ns/op
+BenchmarkR30AB/C2048        	   20576	     11663 ns/op
+BenchmarkR30AB/C4096        	    8594	     27467 ns/op
+BenchmarkR30AB/C8192        	    4033	     59002 ns/op
+BenchmarkR30AB/C1000        	   39930	      5982 ns/op
+BenchmarkR30AB/C1080        	   34936	      6848 ns/op
+BenchmarkR30AB/D64          	    8598	     27554 ns/op
+BenchmarkR30AB/D128         	    1899	    125495 ns/op
+BenchmarkR30AB/D256         	     339	    698904 ns/op
+PASS
+# round 15 variant br 21:33:20 load 1.25 0.78 0.42
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkR30AB/R256         	  312518	       746.3 ns/op
+BenchmarkR30AB/I256         	  311662	       763.6 ns/op
+BenchmarkR30AB/R512         	  158828	      1494 ns/op
+BenchmarkR30AB/I512         	  159013	      1505 ns/op
+BenchmarkR30AB/R1024        	   76400	      3125 ns/op
+BenchmarkR30AB/I1024        	   76087	      3134 ns/op
+BenchmarkR30AB/R2048        	   34842	      6901 ns/op
+BenchmarkR30AB/I2048        	   35170	      6861 ns/op
+BenchmarkR30AB/R4096        	   16141	     14797 ns/op
+BenchmarkR30AB/I4096        	   16468	     14542 ns/op
+BenchmarkR30AB/R8192        	    7500	     31539 ns/op
+BenchmarkR30AB/I8192        	    7520	     31285 ns/op
+BenchmarkR30AB/R1000        	   61782	      3870 ns/op
+BenchmarkR30AB/I1000        	   62052	      3870 ns/op
+BenchmarkR30AB/C64          	 1000000	       231.2 ns/op
+BenchmarkR30AB/C128         	  483640	       496.2 ns/op
+BenchmarkR30AB/C256         	  237921	      1018 ns/op
+BenchmarkR30AB/C512         	  112125	      2151 ns/op
+BenchmarkR30AB/C1024        	   48186	      4944 ns/op
+BenchmarkR30AB/C2048        	   22095	     10780 ns/op
+BenchmarkR30AB/C4096        	    9562	     24025 ns/op
+BenchmarkR30AB/C8192        	    4035	     60310 ns/op
+BenchmarkR30AB/C1000        	   39670	      6038 ns/op
+BenchmarkR30AB/C1080        	   34430	      6914 ns/op
+BenchmarkR30AB/D64          	    9849	     24406 ns/op
+BenchmarkR30AB/D128         	    1864	    130836 ns/op
+BenchmarkR30AB/D256         	     364	    657630 ns/op
+PASS
+# done 21:33:27 load 1.23 0.79 0.43
