@@ -33,6 +33,7 @@ and end (host clock, CEST). The host has no FFTW.
   factorizations' outputs.
 - `raw/e2e5.txt`, `raw/e2e15.txt` (`scripts/e2e.sh`): `BenchmarkAB`, main
   (v0.19.1) and the branch alternating every round, five and fifteen rounds;
-  `scripts/aban.py FILE main.test br.test` summarizes. In `e2e5.txt` the
+  `scripts/aban.py FILE main.test br.test` summarizes, `scripts/aban2.py`
+  the same with one round dropped at each end of the per-round range. In `e2e5.txt` the
   branch's third round ran its first six rows at half speed (a burst of
   another user's load between two load checks); the medians absorb it.
