@@ -1,0 +1,8 @@
+# start 20:58:38 load 2.92 2.84 2.54
+--- PASS: TestR30StepsMatch (0.33s)
+--- PASS: TestR30DirectSame (0.00s)
+DIRECT 256 rfft pool 302.9 direct 286.5 [pool/direct 1.065 (1.014-1.289)] irfft pool 335.1 direct 319.9 [pool/direct 1.055 (0.993-1.822)]
+DIRECT 512 rfft pool 551.0 direct 532.9 [pool/direct 1.040 (1.010-1.061)] irfft pool 573.8 direct 573.3 [pool/direct 0.999 (0.981-1.016)]
+DIRECT 1024 rfft pool 1171.9 direct 1122.8 [pool/direct 1.059 (0.401-1.620)] irfft pool 1210.9 direct 1209.0 [pool/direct 1.000 (0.727-1.189)]
+DIRECT 4096 rfft pool 6046.6 direct 6036.9 [pool/direct 1.009 (0.928-1.149)] irfft pool 6119.9 direct 5949.6 [pool/direct 1.009 (0.880-1.082)]
+# done 20:58:48 load 3.09 2.88 2.56

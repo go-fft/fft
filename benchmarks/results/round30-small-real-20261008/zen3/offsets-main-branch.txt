@@ -1,0 +1,13 @@
+ 07:18:44 up 26 days, 15:43,  8 users,  load average: 3.32, 3.18, 3.18
+offmain mean of 24 offsets 94.0, min 95.2
+off mean of 24 offsets 96.2, min 94.1
+offmain mean of 24 offsets 97.4, min 93.8
+off mean of 24 offsets 96.3, min 97.2
+offmain mean of 24 offsets 94.7, min 94.7
+off mean of 24 offsets 97.6, min 96.1
+offmain mean of 24 offsets 93.7, min 92.8
+off mean of 24 offsets 95.9, min 99.9
+offmain mean of 24 offsets 92.6, min 96.3
+off mean of 24 offsets 98.2, min 95.7
+offmain mean of 24 offsets 96.4, min 101.3
+off mean of 24 offsets 96.5, min 95.2

@@ -1,0 +1,8 @@
+ 07:21:21 up 26 days, 15:46,  7 users,  load average: 3.29, 3.23, 3.20
+REAL 256 half(8x16) rfft 278.1 half 192.4 untangle 78.3 realpool 19.0 halfpool 16.3 irfft 298.3 retangle 96.5 halfinv 194.8
+REAL 512 half(4x8x8) rfft 510.3 half 361.4 untangle 146.6 realpool 16.5 halfpool 16.4 irfft 564.7 retangle 169.6 halfinv 365.7
+REAL 1024 half(8x8x8) rfft 1063.0 half 765.1 untangle 289.5 realpool 16.4 halfpool 16.5 irfft 1159.6 retangle 326.0 halfinv 755.5
+main REAL 256 half(8x16) rfft 302.0 half 185.5 untangle 91.9 realpool 16.7 halfpool 16.6 irfft 314.6 retangle 107.6 halfinv 186.8
+main REAL 512 half(4x8x8) rfft 546.9 half 353.4 untangle 180.4 realpool 16.7 halfpool 16.7 irfft 572.5 retangle 194.9 halfinv 355.2
+main REAL 1024 half(8x8x8) rfft 1129.2 half 719.6 untangle 344.6 realpool 16.6 halfpool 16.7 irfft 1161.3 retangle 371.0 halfinv 719.4
+ 07:21:36 up 26 days, 15:46,  7 users,  load average: 3.09, 3.19, 3.18

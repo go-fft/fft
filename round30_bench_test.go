@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 var (
@@ -303,3 +304,38 @@ func TestR30Pow2Sweep(t *testing.T) {
 		fmt.Printf("SWEEP %d rule %-14s %.1f\n", n, factorName(rule), smallMedian(times[0]))
 	}
 }
+
+// TestR30Offsets times one n-point transform (-r30.n) with src, dst and the
+// scratch buffer placed at chosen offsets modulo 4 KB in one arena: whether
+// an untouched row's time depends on where the heap put its buffers.
+func TestR30Offsets(t *testing.T) {
+	rounds, ms := smallRounds(t)
+	n := *smallOffN
+	p := NewPlan(n)
+	if p.sk == nil {
+		t.Skip("not a Stockham length")
+	}
+	arena := make([]complex128, 4*4096/16+8*n+4096)
+	base := int((4096 - uintptr(unsafe.Pointer(&arena[0]))%4096) % 4096 / 16)
+	at := func(page, off int) []complex128 { // off in bytes, multiple of 16
+		i := base + page*(4096/16)*((n*16+4095)/4096+1) + off/16
+		return arena[i : i+n : i+n]
+	}
+	src := at(0, 0)
+	copy(src, benchComplex(n))
+	var names []string
+	var fns []func()
+	for _, d := range []int{0, 256, 512, 1024, 2048, 3072} {
+		for _, s := range []int{0, 576, 1024, 2048} {
+			dst, scr := at(1, d), at(2, s)
+			names = append(names, fmt.Sprintf("dst+%d scr+%d", d, s))
+			fns = append(fns, func() { p.sk.run(dst, src, scr, false) })
+		}
+	}
+	times := smallRotate(fns, rounds, ms)
+	for i, nm := range names {
+		fmt.Printf("OFF %d %-18s %.1f\n", n, nm, smallMedian(times[i]))
+	}
+}
+
+var smallOffN = flag.Int("r30.n", 64, "TestR30Offsets' length")

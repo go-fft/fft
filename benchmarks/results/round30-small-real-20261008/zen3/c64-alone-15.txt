@@ -1,0 +1,211 @@
+# round 1 variant br 07:10:14 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1961409	       127.6 ns/op
+PASS
+# round 1 variant main 07:10:14 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2333959	       103.3 ns/op
+PASS
+# round 2 variant main 07:10:15 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2260828	       110.8 ns/op
+PASS
+# round 2 variant br 07:10:15 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1974836	       118.3 ns/op
+PASS
+# round 3 variant br 07:10:16 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1963064	       120.1 ns/op
+PASS
+# round 3 variant main 07:10:16 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2314471	       102.9 ns/op
+PASS
+# round 4 variant main 07:10:16 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2309424	       105.6 ns/op
+PASS
+# round 4 variant br 07:10:17 load 3.35 3.54 3.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1971595	       117.5 ns/op
+PASS
+# round 5 variant br 07:10:17 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2070418	       115.2 ns/op
+PASS
+# round 5 variant main 07:10:17 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2306208	       106.1 ns/op
+PASS
+# round 6 variant main 07:10:18 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2196067	       111.8 ns/op
+PASS
+# round 6 variant br 07:10:18 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1968682	       122.6 ns/op
+PASS
+# round 7 variant br 07:10:19 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1855088	       126.2 ns/op
+PASS
+# round 7 variant main 07:10:19 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2235800	       107.0 ns/op
+PASS
+# round 8 variant main 07:10:19 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2254874	       105.8 ns/op
+PASS
+# round 8 variant br 07:10:20 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1947356	       124.6 ns/op
+PASS
+# round 9 variant br 07:10:20 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1983298	       117.6 ns/op
+PASS
+# round 9 variant main 07:10:20 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2277526	       103.5 ns/op
+PASS
+# round 10 variant main 07:10:21 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2281686	       105.9 ns/op
+PASS
+# round 10 variant br 07:10:21 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1971972	       121.0 ns/op
+PASS
+# round 11 variant br 07:10:22 load 3.48 3.57 3.32
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1952829	       122.2 ns/op
+PASS
+# round 11 variant main 07:10:22 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2317825	       102.7 ns/op
+PASS
+# round 12 variant main 07:10:22 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2310060	       104.6 ns/op
+PASS
+# round 12 variant br 07:10:23 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1872691	       127.2 ns/op
+PASS
+# round 13 variant br 07:10:23 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1972725	       122.0 ns/op
+PASS
+# round 13 variant main 07:10:23 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2327536	       102.9 ns/op
+PASS
+# round 14 variant main 07:10:24 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2306340	       102.9 ns/op
+PASS
+# round 14 variant br 07:10:24 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1863266	       134.6 ns/op
+PASS
+# round 15 variant br 07:10:25 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 1996231	       122.2 ns/op
+PASS
+# round 15 variant main 07:10:25 load 3.68 3.61 3.34
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkR30AB/C64         	 2333466	       108.8 ns/op
+PASS
+# done 07:10:25 load 3.68 3.61 3.34

@@ -1,0 +1,5 @@
+# tests 21:29:23 load 0.02 0.20 0.17
+PASS
+br exit 0
+PASS
+kern exit 0
