@@ -117,6 +117,11 @@ func (p *PlanN) initScratch() {
 		if ax < len(p.shape)-1 && p.axes[ax] != nil && (compTakes16(n) || intelStripOrder[n]) {
 			p.axes[ax] = cachedPlanNo16(n)
 		}
+		if ax == len(p.shape)-1 && p.axes[ax] != nil {
+			if rp := clRowPlan(n, p.size); rp != nil {
+				p.axes[ax] = rp
+			}
+		}
 		if ax < len(p.shape)-1 && p.axes[ax] != nil && stripAxes && stripsFit(p.axes[ax]) {
 			sts := p.axes[ax].sk.stages
 			p.strips[ax] = make([][2][]complex128, len(sts))
