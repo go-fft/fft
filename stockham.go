@@ -95,8 +95,10 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 	for k, st := range p.stages {
 		rs[k], idos[k], l1s[k] = st.r, st.ido, st.l1
 	}
-	for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
-		p.stages[k].split = m
+	if hswSplitKept(n) {
+		for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
+			p.stages[k].split = m
+		}
 	}
 	size := n
 	p.cascT, p.cascB = cascadeShape(n, p.stages, cascadeMin)

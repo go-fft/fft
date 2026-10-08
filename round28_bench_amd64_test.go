@@ -32,7 +32,6 @@ var (
 //	s   split runs (Round 23), every interleaved pass AVX2
 //	sw  split runs, the interleaved passes (the final one) AVX-512 where wide512 allows
 //	z   split runs at 512 bits (Round 28), the interleaved passes as w
-//	s1  as s, but a run of one split pass runs interleaved (Round 29)
 //
 // and factors is "cur" (skFactorize on this machine), "r23" (the split table
 // Round 23 chose on Zen 3, else skFactorize) or radices joined by 'x'.
@@ -62,18 +61,16 @@ func intelVariant(n int, name string) (*skPlan, error) {
 	if product(f) != n {
 		return nil, fmt.Errorf("%d: %s multiplies to %d", n, name, product(f))
 	}
-	old, old512, old1 := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.UseStockhamSplitSingle
-	defer func() {
-		kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.UseStockhamSplitSingle = old, old512, old1
-	}()
-	kernels.UseStockhamSplit = mode == "s" || mode == "sw" || mode == "s1"
-	kernels.UseStockhamSplitSingle = mode != "s1"
+	old, old512, oldFloor := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor
+	defer func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor = old, old512, oldFloor }()
+	kernels.UseStockhamSplit = mode == "s" || mode == "sw"
+	hswSplitFloor = 0 // every length its mode says, whatever Round 29's floor
 	kernels.UseStockhamSplit512 = mode == "z"
 	p := newSKPlanFactors(n, f)
 	for k := range p.stages {
 		switch mode {
 		case "w", "sw", "z":
-		case "a", "s", "s1":
+		case "a", "s":
 			p.stages[k].wide = false
 		default:
 			return nil, fmt.Errorf("variant %q: unknown mode", name)

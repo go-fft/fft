@@ -85,3 +85,21 @@ func TestIntelStripOrder(t *testing.T) {
 		}
 	}
 }
+
+// TestHswSplitKept: without a floor every plan keeps its split modes; with
+// Round 29's, only the powers of two from the floor up.
+func TestHswSplitKept(t *testing.T) {
+	defer func(v int) { hswSplitFloor = v }(hswSplitFloor)
+	hswSplitFloor = 0
+	for _, n := range []int{64, 1000, 4096} {
+		if !hswSplitKept(n) {
+			t.Errorf("no floor: %d not kept", n)
+		}
+	}
+	hswSplitFloor = 512
+	for n, want := range map[int]bool{64: false, 256: false, 512: true, 4096: true, 1 << 20: true, 1000: false, 1536: false, 15360: false} {
+		if got := hswSplitKept(n); got != want {
+			t.Errorf("floor 512: hswSplitKept(%d) = %v, want %v", n, got, want)
+		}
+	}
+}

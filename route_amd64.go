@@ -192,7 +192,24 @@ func intelSplitTableAMD64(on, on512, intel bool) map[int][]int {
 }
 
 func init() {
-	intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512, kernels.UseStockhamSplit && kernels.IntelCPU)
+	hsw := kernels.UseStockhamSplit && !kernels.UseStockhamSplit512 && kernels.IntelCPU
+	intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512, hsw)
+	hswSplitFloor = hswSplitFloorAMD64(hsw)
+}
+
+// hswSplitFloorAMD64 is hswSplitFloor: 512 on an Intel CPU with the 256-bit
+// split layout (hsw), none elsewhere. On Haswell (Round 29, one pinned core,
+// seven rotated rounds, interleaved time ÷ split time, same factorization)
+// the layout lost below 512 points (32: 0.955, 64: 0.963; 128 and 256 have
+// no pass it runs), and on the 150 composites 2^e·3^a·5^b up to 16384 it
+// moved the geometric mean by 0.1% with single lengths from 0.937 to 1.039,
+// inside the spread that identical plans show between allocations; from 512
+// it gained on every power of two (hswSplitTable).
+func hswSplitFloorAMD64(hsw bool) int {
+	if hsw {
+		return 512
+	}
+	return 0
 }
 
 // intelStripOrderAMD64 is intelStripOrder: the lengths of intelSplitTable512

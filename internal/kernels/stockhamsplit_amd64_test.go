@@ -35,18 +35,11 @@ func TestSplitModes(t *testing.T) {
 			t.Errorf("splitModes(%v, %v, off) = %v, want all zero", c.r, c.ido, got)
 		}
 	}
-	old, old1 := UseStockhamSplit, UseStockhamSplitSingle
-	defer func() { UseStockhamSplit, UseStockhamSplitSingle = old, old1 }()
-	UseStockhamSplit, UseStockhamSplitSingle = true, true
+	old := UseStockhamSplit
+	defer func() { UseStockhamSplit = old }()
+	UseStockhamSplit = true
 	if got := StockhamSplitModes([]int{4, 4}, []int{4, 1}, []int{1, 4}); got[0] != splitNone {
 		t.Errorf("StockhamSplitModes on: %v", got)
-	}
-	// Runs of one off (Round 29): the run of one goes back to the
-	// interleaved kernel, a run of two stays split.
-	UseStockhamSplitSingle = false
-	got := StockhamSplitModes([]int{4, 3, 4, 4, 8}, []int{384, 128, 32, 8, 1}, []int{1, 4, 12, 48, 192})
-	if !slices.Equal(got, []uint8{0, 0, splitOut, splitIn, 0}) {
-		t.Errorf("StockhamSplitModes, runs of one off: %v", got)
 	}
 	UseStockhamSplit = false
 	if got := StockhamSplitModes([]int{4, 4}, []int{4, 1}, []int{1, 4}); got[0] != 0 {
