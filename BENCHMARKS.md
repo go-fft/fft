@@ -3020,6 +3020,41 @@ the ends). Main time ÷ branch time, fifteen rounds:
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
 
+### Round 33 — N1 parity at v0.21.0 (2026-10-09)
+
+Measurement only. The Neoverse-N1 parity rows were last taken at v0.17.0
+(Round 27); this re-takes them at v0.21.0 with the same harness, rows and
+method: cfarm424 used by this round alone, one pinned core (`GOMAXPROCS=1
+taskset -c 40`), FFTW 3.3.10 with NEON, numpy 2.5.3 / scipy 1.18.1, two full
+runs back to back (load 0.15 at the start), each correct 24/24. go-fft ÷ FFTW,
+mean of the two runs, and go-fft's own time at v0.21.0 ÷ v0.17.0:
+
+| transform | go/FFTW | v0.21.0 ÷ v0.17.0 |
+|:--|--:|--:|
+| complex 256 | 0.87 | 0.91 |
+| complex 1,024 | 0.76 | 0.92 |
+| complex 4,096 | 0.58 | 0.86 |
+| complex 65,536 | 0.57 | 1.01 |
+| complex 1,048,576 | 0.44 | 1.01 |
+| complex 1,000 (2³·5³) | 0.85 | 1.01 |
+| complex 1,296 (2⁴·3⁴) | 0.76 | 1.00 |
+| complex 1,009 (prime, Rader) | 0.45 | 1.00 |
+| complex 10,007 (prime, Bluestein) | 0.67 | 1.01 |
+| RFFT 256 | 1.04 | 0.98 |
+| RFFT 4,096 | 0.74 | 0.95 |
+| RFFT 1,048,576 | 0.53 | 0.97 |
+| 2-D 128×128 | 0.65 | 1.01 |
+| 2-D 1024×1024 | 0.41 | 1.01 |
+
+- **Against FFTW:** at or above it on all 24 rows (23 at v0.17.0; RFFT 256
+  went from 1.06 to 1.04). **Against numpy.fft and scipy.fft:** 24/24 in both runs.
+- **What changed:** the powers of two from 256 to 4096 points (complex 0.86–0.92,
+  RFFT 0.94–0.95, 2-D 64² 0.88, 256² 0.91, 512² 0.92), from Round 30's radix-8
+  passes on arm64 and its RFFT without the RealPlan buffer. Everything else
+  within ±1%.
+
+Every row, both runs and the raw data: [`benchmarks/results/round33-parity-n1-v0.21.0-20261009/`](benchmarks/results/round33-parity-n1-v0.21.0-20261009/).
+
 ### Round 31 — Cascade Lake: the 2-D 1024² regression located, composites on the split layout, a 512-bit untangle (2026-10-09)
 
 **The question.** On Cascade Lake, 2-D 1024² had run 0.94× as fast since
