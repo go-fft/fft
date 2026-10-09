@@ -1,0 +1,15 @@
+# 2026-10-08 20:12 CEST (host 18:12), cfarm420 core 40, GOMAXPROCS=1, load 2.89 2.99 2.74 at start, 2.90 2.99 2.74 at end.
+# Experiment (commit b5e7a44, dropped): the buffer between two passes as a Go array on the stack
+# ([64] or [128]complex128, zeroed by the compiler on every call; its address laundered past escape
+# analysis), against the pool, in one process, eleven rounds of 20 ms, rotated (TestZnStack).
+ZNSTACK C16   pool    59.6 stack    61.0 pool/stack 0.978 (0.972-0.986)
+ZNSTACK C32   pool    78.3 stack    74.1 pool/stack 1.057 (1.045-1.205)
+ZNSTACK C64   pool   131.4 stack   114.6 pool/stack 1.152 (1.125-1.221)
+ZNSTACK C128  pool   197.5 stack   228.2 pool/stack 0.856 (0.741-1.024)
+ZNSTACK C256  pool   357.6 stack   360.9 pool/stack 0.998 (0.894-1.180)
+ZNSTACK R64   pool   141.7 stack   147.6 pool/stack 0.990 (0.737-1.224)
+ZNSTACK R128  pool   180.4 stack   159.9 pool/stack 1.125 (0.911-1.137)
+ZNSTACK R256  pool   273.2 stack   292.8 pool/stack 0.931 (0.930-0.935)
+ZNSTACK R512  pool   511.7 stack   511.8 pool/stack 1.001 (0.955-1.221)
+ZNSTACK I256  pool   312.8 stack   346.0 pool/stack 0.907 (0.826-1.152)
+PASS

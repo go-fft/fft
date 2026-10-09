@@ -1,0 +1,169 @@
+# round 1 variant v0.20.0 18:08:13 load 2.28 2.58 2.51
+OVER 64 8x8 FFT 110.2 transform 104.8 passes 88.1 pool 15.9
+OVER 128 8x16 FFT 188.1 transform 182.1 passes 166.6 pool 16.0
+OVER 256 4x8x8 FFT 348.5 transform 341.0 passes 327.9 pool 16.0
+OVER 512 8x8x8 FFT 828.7 transform 801.5 passes 792.4 pool 16.0
+OVER 1024 8x8x16 FFT 1848.9 transform 1853.7 passes 1787.8 pool 16.3
+OVER 1000 5x10x20 FFT 2325.7 transform 2274.8 passes 2209.6 pool 15.7
+PASS
+# round 1 variant v0.21.0 18:08:18 load 2.34 2.59 2.51
+OVER 64 8x8 FFT 105.4 transform 101.9 passes 89.4 pool 16.3
+OVER 128 8x16 FFT 199.2 transform 190.9 passes 174.1 pool 15.6
+OVER 256 4x8x8 FFT 350.4 transform 348.7 passes 334.2 pool 16.2
+OVER 512 8x8x8 FFT 794.8 transform 769.3 passes 764.1 pool 16.4
+OVER 1024 8x8x16 FFT 1826.9 transform 1861.9 passes 1791.8 pool 16.0
+OVER 1000 5x10x20 FFT 2461.2 transform 2380.8 passes 2290.1 pool 16.0
+PASS
+# round 1 variant v0.19.1 18:08:22 load 2.55 2.63 2.52
+OVER 64 8x8 FFT 126.2 transform 118.0 passes 94.0 pool 15.8
+OVER 128 8x16 FFT 188.0 transform 182.0 passes 169.7 pool 16.2
+OVER 256 4x8x8 FFT 348.9 transform 347.2 passes 336.5 pool 16.3
+OVER 512 8x8x8 FFT 768.3 transform 752.0 passes 724.5 pool 16.3
+OVER 1024 8x8x16 FFT 1730.9 transform 1761.7 passes 1713.2 pool 16.0
+OVER 1000 5x10x20 FFT 2279.5 transform 2228.4 passes 2247.1 pool 16.1
+PASS
+# round 2 variant v0.21.0 18:08:27 load 2.59 2.64 2.53
+OVER 64 8x8 FFT 111.8 transform 106.1 passes 99.0 pool 16.4
+OVER 128 8x16 FFT 227.2 transform 185.5 passes 181.0 pool 16.5
+OVER 256 4x8x8 FFT 357.8 transform 350.4 passes 343.0 pool 16.2
+OVER 512 8x8x8 FFT 780.5 transform 838.3 passes 791.5 pool 16.4
+OVER 1024 8x8x16 FFT 1746.5 transform 1801.9 passes 1696.5 pool 16.0
+OVER 1000 5x10x20 FFT 2531.0 transform 2218.0 passes 2146.7 pool 16.0
+PASS
+# round 2 variant v0.19.1 18:08:32 load 2.70 2.66 2.54
+OVER 64 8x8 FFT 124.0 transform 111.4 passes 87.3 pool 15.3
+OVER 128 8x16 FFT 184.1 transform 180.3 passes 166.7 pool 16.2
+OVER 256 4x8x8 FFT 347.1 transform 342.8 passes 329.0 pool 15.4
+OVER 512 8x8x8 FFT 770.2 transform 789.8 passes 745.0 pool 16.0
+OVER 1024 8x8x16 FFT 1703.5 transform 1724.9 passes 1692.7 pool 16.4
+OVER 1000 5x10x20 FFT 2376.1 transform 2311.7 passes 2231.4 pool 16.0
+PASS
+# round 2 variant v0.20.0 18:08:36 load 2.81 2.68 2.54
+OVER 64 8x8 FFT 110.6 transform 104.0 passes 87.8 pool 16.0
+OVER 128 8x16 FFT 196.1 transform 189.0 passes 174.1 pool 16.5
+OVER 256 4x8x8 FFT 346.6 transform 345.4 passes 326.7 pool 16.0
+OVER 512 8x8x8 FFT 743.1 transform 734.7 passes 721.2 pool 16.1
+OVER 1024 8x8x16 FFT 1837.2 transform 1707.0 passes 1664.5 pool 16.5
+OVER 1000 5x10x20 FFT 2220.2 transform 2197.6 passes 2126.5 pool 15.7
+PASS
+# round 3 variant v0.19.1 18:08:41 load 3.62 2.86 2.60
+OVER 64 8x8 FFT 133.9 transform 111.8 passes 87.6 pool 16.3
+OVER 128 8x16 FFT 184.6 transform 180.6 passes 167.1 pool 16.2
+OVER 256 4x8x8 FFT 350.9 transform 350.1 passes 328.3 pool 16.3
+OVER 512 8x8x8 FFT 722.0 transform 719.8 passes 696.8 pool 16.4
+OVER 1024 8x8x16 FFT 1717.5 transform 1738.8 passes 1682.7 pool 16.5
+OVER 1000 5x10x20 FFT 2224.0 transform 2323.2 passes 2165.6 pool 16.0
+PASS
+# round 3 variant v0.20.0 18:08:45 load 3.97 2.94 2.63
+OVER 64 8x8 FFT 125.0 transform 105.9 passes 89.6 pool 16.3
+OVER 128 8x16 FFT 191.6 transform 187.2 passes 167.8 pool 16.1
+OVER 256 4x8x8 FFT 354.5 transform 348.5 passes 333.2 pool 15.3
+OVER 512 8x8x8 FFT 837.7 transform 737.8 passes 716.6 pool 16.1
+OVER 1024 8x8x16 FFT 1708.1 transform 1733.2 passes 1680.5 pool 16.9
+OVER 1000 5x10x20 FFT 2522.8 transform 2555.4 passes 2591.3 pool 15.7
+PASS
+# round 3 variant v0.21.0 18:08:49 load 3.97 2.94 2.63
+OVER 64 8x8 FFT 105.0 transform 101.8 passes 88.9 pool 16.3
+OVER 128 8x16 FFT 189.9 transform 184.4 passes 167.8 pool 16.3
+OVER 256 4x8x8 FFT 350.4 transform 348.9 passes 333.2 pool 16.5
+OVER 512 8x8x8 FFT 725.5 transform 742.8 passes 727.2 pool 15.4
+OVER 1024 8x8x16 FFT 1973.7 transform 1967.5 passes 1936.0 pool 16.0
+OVER 1000 5x10x20 FFT 2932.3 transform 2951.1 passes 2646.6 pool 15.2
+PASS
+# round 4 variant v0.20.0 18:08:53 load 4.14 2.99 2.65
+OVER 64 8x8 FFT 122.4 transform 114.2 passes 95.0 pool 17.7
+OVER 128 8x16 FFT 205.7 transform 199.9 passes 180.7 pool 16.9
+OVER 256 4x8x8 FFT 384.0 transform 366.1 passes 339.3 pool 16.6
+OVER 512 8x8x8 FFT 800.3 transform 806.6 passes 784.9 pool 17.4
+OVER 1024 8x8x16 FFT 1713.0 transform 1727.1 passes 1682.2 pool 15.7
+OVER 1000 5x10x20 FFT 2210.7 transform 2239.7 passes 2139.2 pool 15.5
+PASS
+# round 4 variant v0.21.0 18:08:58 load 4.20 3.03 2.66
+OVER 64 8x8 FFT 116.0 transform 112.5 passes 97.4 pool 17.3
+OVER 128 8x16 FFT 192.0 transform 186.8 passes 168.4 pool 16.3
+OVER 256 4x8x8 FFT 383.1 transform 375.8 passes 358.5 pool 17.8
+OVER 512 8x8x8 FFT 903.6 transform 860.0 passes 858.3 pool 15.9
+OVER 1024 8x8x16 FFT 1998.3 transform 1983.5 passes 1981.5 pool 17.5
+OVER 1000 5x10x20 FFT 2453.8 transform 2431.6 passes 2333.0 pool 18.6
+PASS
+# round 4 variant v0.19.1 18:09:02 load 4.19 3.04 2.67
+OVER 64 8x8 FFT 124.3 transform 112.0 passes 93.4 pool 15.4
+OVER 128 8x16 FFT 185.2 transform 181.2 passes 167.6 pool 16.4
+OVER 256 4x8x8 FFT 379.9 transform 375.4 passes 357.3 pool 17.3
+OVER 512 8x8x8 FFT 805.6 transform 862.3 passes 779.8 pool 17.3
+OVER 1024 8x8x16 FFT 1840.7 transform 1828.5 passes 1712.4 pool 16.0
+OVER 1000 5x10x20 FFT 2370.7 transform 2328.6 passes 2265.7 pool 16.7
+PASS
+# round 5 variant v0.21.0 18:09:07 load 4.17 3.06 2.68
+OVER 64 8x8 FFT 114.5 transform 105.7 passes 93.9 pool 16.4
+OVER 128 8x16 FFT 189.7 transform 183.7 passes 167.0 pool 16.3
+OVER 256 4x8x8 FFT 349.1 transform 346.2 passes 333.9 pool 16.2
+OVER 512 8x8x8 FFT 745.2 transform 744.0 passes 731.8 pool 16.3
+OVER 1024 8x8x16 FFT 1757.4 transform 1758.4 passes 1737.4 pool 15.7
+OVER 1000 5x10x20 FFT 2333.7 transform 2289.7 passes 2190.2 pool 15.1
+PASS
+# round 5 variant v0.19.1 18:09:12 load 4.00 3.04 2.67
+OVER 64 8x8 FFT 124.2 transform 112.0 passes 91.0 pool 16.3
+OVER 128 8x16 FFT 184.7 transform 181.7 passes 167.0 pool 16.2
+OVER 256 4x8x8 FFT 344.2 transform 340.5 passes 327.0 pool 16.3
+OVER 512 8x8x8 FFT 755.3 transform 803.5 passes 775.3 pool 16.6
+OVER 1024 8x8x16 FFT 1796.7 transform 1833.9 passes 1749.7 pool 16.0
+OVER 1000 5x10x20 FFT 2696.5 transform 2877.3 passes 2439.3 pool 16.4
+PASS
+# round 5 variant v0.20.0 18:09:16 load 4.24 3.11 2.70
+OVER 64 8x8 FFT 110.1 transform 106.2 passes 88.1 pool 16.1
+OVER 128 8x16 FFT 189.0 transform 183.1 passes 167.8 pool 16.0
+OVER 256 4x8x8 FFT 396.3 transform 390.6 passes 361.3 pool 17.0
+OVER 512 8x8x8 FFT 734.9 transform 740.1 passes 726.5 pool 16.6
+OVER 1024 8x8x16 FFT 1718.9 transform 1753.0 passes 1712.2 pool 15.7
+OVER 1000 5x10x20 FFT 2384.1 transform 2431.8 passes 2490.9 pool 15.7
+PASS
+# round 6 variant v0.19.1 18:09:21 load 4.06 3.09 2.69
+OVER 64 8x8 FFT 123.4 transform 111.6 passes 87.6 pool 16.3
+OVER 128 8x16 FFT 184.5 transform 180.8 passes 166.9 pool 16.3
+OVER 256 4x8x8 FFT 351.9 transform 348.0 passes 331.1 pool 15.4
+OVER 512 8x8x8 FFT 757.8 transform 765.1 passes 735.6 pool 16.4
+OVER 1024 8x8x16 FFT 1884.4 transform 1716.9 passes 1725.0 pool 16.0
+OVER 1000 5x10x20 FFT 2421.2 transform 2251.6 passes 2135.6 pool 16.1
+PASS
+# round 6 variant v0.20.0 18:09:25 load 4.05 3.10 2.70
+OVER 64 8x8 FFT 110.5 transform 104.8 passes 89.4 pool 16.1
+OVER 128 8x16 FFT 188.9 transform 183.2 passes 168.1 pool 16.1
+OVER 256 4x8x8 FFT 353.6 transform 352.7 passes 354.3 pool 16.7
+OVER 512 8x8x8 FFT 733.1 transform 754.2 passes 737.2 pool 16.5
+OVER 1024 8x8x16 FFT 1673.7 transform 1694.3 passes 1665.7 pool 15.7
+OVER 1000 5x10x20 FFT 2743.6 transform 2461.9 passes 2422.0 pool 15.7
+PASS
+# round 6 variant v0.21.0 18:09:30 load 4.05 3.10 2.70
+OVER 64 8x8 FFT 122.4 transform 119.6 passes 89.6 pool 16.4
+OVER 128 8x16 FFT 217.5 transform 211.3 passes 170.6 pool 15.9
+OVER 256 4x8x8 FFT 392.2 transform 410.1 passes 332.6 pool 16.2
+OVER 512 8x8x8 FFT 856.7 transform 913.6 passes 866.0 pool 16.4
+OVER 1024 8x8x16 FFT 1989.5 transform 1945.5 passes 1989.2 pool 16.1
+OVER 1000 5x10x20 FFT 2525.6 transform 2616.5 passes 2425.8 pool 16.0
+PASS
+# round 7 variant v0.20.0 18:09:34 load 3.97 3.10 2.70
+OVER 64 8x8 FFT 125.0 transform 121.1 passes 100.9 pool 16.1
+OVER 128 8x16 FFT 193.3 transform 185.8 passes 171.2 pool 16.0
+OVER 256 4x8x8 FFT 421.8 transform 392.4 passes 370.3 pool 16.3
+OVER 512 8x8x8 FFT 735.3 transform 816.6 passes 786.0 pool 15.1
+OVER 1024 8x8x16 FFT 1797.2 transform 1894.2 passes 1784.3 pool 15.7
+OVER 1000 5x10x20 FFT 2602.4 transform 2718.8 passes 2499.6 pool 18.4
+PASS
+# round 7 variant v0.21.0 18:09:38 load 3.89 3.10 2.70
+OVER 64 8x8 FFT 105.2 transform 103.9 passes 90.0 pool 16.5
+OVER 128 8x16 FFT 210.3 transform 217.2 passes 182.8 pool 20.2
+OVER 256 4x8x8 FFT 417.6 transform 421.3 passes 391.9 pool 21.0
+OVER 512 8x8x8 FFT 989.5 transform 1012.5 passes 965.8 pool 21.3
+OVER 1024 8x8x16 FFT 1739.0 transform 1836.9 passes 1919.1 pool 16.0
+OVER 1000 5x10x20 FFT 2555.0 transform 2552.9 passes 2486.0 pool 16.0
+PASS
+# round 7 variant v0.19.1 18:09:42 load 3.90 3.11 2.71
+OVER 64 8x8 FFT 124.4 transform 111.4 passes 87.1 pool 16.4
+OVER 128 8x16 FFT 183.9 transform 180.0 passes 166.1 pool 16.4
+OVER 256 4x8x8 FFT 344.4 transform 340.4 passes 331.5 pool 16.3
+OVER 512 8x8x8 FFT 819.6 transform 787.7 passes 798.1 pool 16.0
+OVER 1024 8x8x16 FFT 1709.0 transform 1792.1 passes 1813.8 pool 16.0
+OVER 1000 5x10x20 FFT 2466.4 transform 2528.1 passes 2510.9 pool 16.6
+PASS
+# done 18:09:47 load 3.83 3.11 2.71

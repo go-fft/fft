@@ -1,0 +1,1981 @@
+# round 1 variant br 06:20:37 load 2.27 2.45 3.11
+PLACE C16   j=0     32.9  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.7  src%4K=512 dst%4K=1024
+PLACE C64   j=0     78.0  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    156.8  src%4K=2048 dst%4K=0
+PLACE R128  j=0    122.2  src%4K=1024 dst%4K=512
+PLACE R256  j=0    235.9  src%4K=0 dst%4K=2304
+PLACE I128  j=0    142.7  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    274.0  src%4K=2816 dst%4K=0
+PLACE C256  j=0    346.4  src%4K=0 dst%4K=0
+PLACE C512  j=0    971.0  src%4K=0 dst%4K=0
+PLACE R512  j=0    578.4  src%4K=0 dst%4K=768
+PLACE I512  j=0    664.2  src%4K=2304 dst%4K=0
+PLACE C16   j=1     34.5  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     45.7  src%4K=512 dst%4K=1024
+PLACE C64   j=1     79.7  src%4K=3072 dst%4K=0
+PLACE C128  j=1    160.3  src%4K=0 dst%4K=2048
+PLACE R128  j=1    124.2  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    238.4  src%4K=0 dst%4K=2816
+PLACE I128  j=1    141.6  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    271.5  src%4K=512 dst%4K=0
+PLACE C256  j=1    354.2  src%4K=0 dst%4K=0
+PLACE C512  j=1    712.1  src%4K=0 dst%4K=0
+PLACE R512  j=1    518.1  src%4K=0 dst%4K=0
+PLACE I512  j=1    545.0  src%4K=1536 dst%4K=0
+PLACE C16   j=2     32.8  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     46.2  src%4K=3072 dst%4K=0
+PLACE C64   j=2     80.1  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    158.4  src%4K=0 dst%4K=2048
+PLACE R128  j=2    126.6  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    234.4  src%4K=0 dst%4K=1024
+PLACE I128  j=2    141.4  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    272.8  src%4K=2304 dst%4K=0
+PLACE C256  j=2    349.5  src%4K=0 dst%4K=0
+PLACE C512  j=2    722.0  src%4K=0 dst%4K=0
+PLACE R512  j=2    520.3  src%4K=0 dst%4K=3072
+PLACE I512  j=2    546.4  src%4K=768 dst%4K=0
+PLACE C16   j=3     33.8  src%4K=3584 dst%4K=512
+PLACE C32   j=3     45.4  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     79.4  src%4K=3072 dst%4K=0
+PLACE C128  j=3    157.8  src%4K=2048 dst%4K=0
+PLACE R128  j=3    124.3  src%4K=3072 dst%4K=512
+PLACE R256  j=3    234.2  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    139.9  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    269.8  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    356.8  src%4K=0 dst%4K=0
+PLACE C512  j=3    755.9  src%4K=0 dst%4K=0
+PLACE R512  j=3    518.9  src%4K=0 dst%4K=2304
+PLACE I512  j=3    692.0  src%4K=0 dst%4K=0
+PLACE C16   j=4     33.1  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     51.5  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     82.5  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    157.9  src%4K=2048 dst%4K=0
+PLACE R128  j=4    124.3  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    234.8  src%4K=2048 dst%4K=0
+PLACE I128  j=4    144.1  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    275.2  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    347.7  src%4K=0 dst%4K=0
+PLACE C512  j=4    776.1  src%4K=0 dst%4K=0
+PLACE R512  j=4    563.6  src%4K=0 dst%4K=1536
+PLACE I512  j=4    547.3  src%4K=3072 dst%4K=0
+PLACE C16   j=5     32.9  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.5  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     79.5  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    158.4  src%4K=2048 dst%4K=0
+PLACE R128  j=5    122.4  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    233.8  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    140.2  src%4K=0 dst%4K=1024
+PLACE I256  j=5    270.2  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    344.6  src%4K=0 dst%4K=0
+PLACE C512  j=5    718.1  src%4K=0 dst%4K=0
+PLACE R512  j=5    510.0  src%4K=0 dst%4K=768
+PLACE I512  j=5    542.3  src%4K=2304 dst%4K=0
+PLACE C16   j=6     32.7  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.5  src%4K=512 dst%4K=1024
+PLACE C64   j=6     77.8  src%4K=0 dst%4K=1024
+PLACE C128  j=6    157.4  src%4K=2048 dst%4K=0
+PLACE R128  j=6    122.0  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    241.8  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    141.0  src%4K=1664 dst%4K=0
+PLACE I256  j=6    280.8  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    343.5  src%4K=0 dst%4K=0
+PLACE C512  j=6    713.3  src%4K=0 dst%4K=0
+PLACE R512  j=6    512.1  src%4K=0 dst%4K=0
+PLACE I512  j=6    545.1  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.0  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.7  src%4K=2560 dst%4K=3072
+PLACE C64   j=7     79.3  src%4K=0 dst%4K=3072
+PLACE C128  j=7    157.9  src%4K=0 dst%4K=2048
+PLACE R128  j=7    125.5  src%4K=2048 dst%4K=1152
+PLACE R256  j=7    242.4  src%4K=0 dst%4K=2304
+PLACE I128  j=7    141.6  src%4K=1664 dst%4K=2048
+PLACE I256  j=7    276.1  src%4K=1536 dst%4K=0
+PLACE C256  j=7    352.3  src%4K=0 dst%4K=0
+PLACE C512  j=7    874.0  src%4K=0 dst%4K=0
+PLACE R512  j=7    517.1  src%4K=0 dst%4K=3072
+PLACE I512  j=7    558.9  src%4K=768 dst%4K=0
+ROW C16   median    33.0  min    32.7  max    34.5  (8 placements)
+ROW C32   median    45.7  min    45.4  max    51.5  (8 placements)
+ROW C64   median    79.4  min    77.8  max    82.5  (8 placements)
+ROW C128  median   157.9  min   156.8  max   160.3  (8 placements)
+ROW R128  median   124.3  min   122.0  max   126.6  (8 placements)
+ROW R256  median   235.4  min   233.8  max   242.4  (8 placements)
+ROW I128  median   141.5  min   139.9  max   144.1  (8 placements)
+ROW I256  median   273.4  min   269.8  max   280.8  (8 placements)
+ROW C256  median   348.6  min   343.5  max   356.8  (8 placements)
+ROW C512  median   739.0  min   712.1  max   971.0  (8 placements)
+ROW R512  median   518.5  min   510.0  max   578.4  (8 placements)
+ROW I512  median   546.9  min   542.3  max   692.0  (8 placements)
+PASS
+# round 1 variant main 06:20:51 load 2.43 2.47 3.11
+PLACE C16   j=0     57.7  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.8  src%4K=512 dst%4K=1024
+PLACE C64   j=0    105.3  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    201.8  src%4K=2048 dst%4K=0
+PLACE R128  j=0    149.7  src%4K=2048 dst%4K=512
+PLACE R256  j=0    277.3  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    166.1  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    290.6  src%4K=2816 dst%4K=0
+PLACE C256  j=0    350.9  src%4K=0 dst%4K=0
+PLACE C512  j=0    730.6  src%4K=0 dst%4K=0
+PLACE R512  j=0    507.1  src%4K=0 dst%4K=768
+PLACE I512  j=0    550.5  src%4K=2304 dst%4K=0
+PLACE C16   j=1     58.0  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.1  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    105.9  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    202.8  src%4K=0 dst%4K=2048
+PLACE R128  j=1    148.7  src%4K=0 dst%4K=2816
+PLACE R256  j=1    271.6  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    164.8  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    293.8  src%4K=512 dst%4K=2048
+PLACE C256  j=1    361.4  src%4K=0 dst%4K=0
+PLACE C512  j=1    742.6  src%4K=0 dst%4K=0
+PLACE R512  j=1    500.4  src%4K=0 dst%4K=0
+PLACE I512  j=1    563.1  src%4K=1536 dst%4K=0
+PLACE C16   j=2     57.8  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     67.8  src%4K=512 dst%4K=1024
+PLACE C64   j=2    103.6  src%4K=0 dst%4K=1024
+PLACE C128  j=2    191.6  src%4K=2048 dst%4K=0
+PLACE R128  j=2    150.2  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    274.8  src%4K=0 dst%4K=1024
+PLACE I128  j=2    165.7  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    289.8  src%4K=2304 dst%4K=0
+PLACE C256  j=2    435.6  src%4K=0 dst%4K=0
+PLACE C512  j=2    721.7  src%4K=0 dst%4K=0
+PLACE R512  j=2    505.1  src%4K=0 dst%4K=3072
+PLACE I512  j=2    580.8  src%4K=768 dst%4K=0
+PLACE C16   j=3     57.9  src%4K=3072 dst%4K=0
+PLACE C32   j=3     67.4  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    105.4  src%4K=3072 dst%4K=0
+PLACE C128  j=3    190.1  src%4K=2048 dst%4K=0
+PLACE R128  j=3    151.1  src%4K=0 dst%4K=512
+PLACE R256  j=3    271.1  src%4K=0 dst%4K=2816
+PLACE I128  j=3    165.1  src%4K=2304 dst%4K=0
+PLACE I256  j=3    288.6  src%4K=1536 dst%4K=0
+PLACE C256  j=3    350.0  src%4K=0 dst%4K=0
+PLACE C512  j=3    725.8  src%4K=0 dst%4K=0
+PLACE R512  j=3    511.0  src%4K=0 dst%4K=2304
+PLACE I512  j=3    538.0  src%4K=0 dst%4K=0
+PLACE C16   j=4     57.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     67.8  src%4K=0 dst%4K=512
+PLACE C64   j=4    113.5  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    193.1  src%4K=0 dst%4K=2048
+PLACE R128  j=4    151.5  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    274.5  src%4K=2048 dst%4K=0
+PLACE I128  j=4    165.5  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    289.0  src%4K=2304 dst%4K=0
+PLACE C256  j=4    352.7  src%4K=0 dst%4K=0
+PLACE C512  j=4    731.2  src%4K=0 dst%4K=0
+PLACE R512  j=4    501.4  src%4K=0 dst%4K=1536
+PLACE I512  j=4    542.3  src%4K=3072 dst%4K=0
+PLACE C16   j=5     57.8  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.2  src%4K=0 dst%4K=512
+PLACE C64   j=5    104.9  src%4K=0 dst%4K=1024
+PLACE C128  j=5    188.6  src%4K=0 dst%4K=2048
+PLACE R128  j=5    151.1  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    274.1  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    165.1  src%4K=0 dst%4K=1024
+PLACE I256  j=5    288.0  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    349.3  src%4K=0 dst%4K=0
+PLACE C512  j=5    730.6  src%4K=0 dst%4K=0
+PLACE R512  j=5    505.9  src%4K=0 dst%4K=768
+PLACE I512  j=5    542.7  src%4K=2304 dst%4K=0
+PLACE C16   j=6     57.9  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.6  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    105.1  src%4K=0 dst%4K=1024
+PLACE C128  j=6    191.4  src%4K=2048 dst%4K=0
+PLACE R128  j=6    150.0  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    278.0  src%4K=0 dst%4K=3328
+PLACE I128  j=6    166.1  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    290.1  src%4K=1536 dst%4K=0
+PLACE C256  j=6    377.6  src%4K=0 dst%4K=0
+PLACE C512  j=6    904.5  src%4K=0 dst%4K=0
+PLACE R512  j=6    614.1  src%4K=0 dst%4K=0
+PLACE I512  j=6    649.2  src%4K=1536 dst%4K=0
+PLACE C16   j=7     58.1  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.5  src%4K=512 dst%4K=1024
+PLACE C64   j=7    131.0  src%4K=2048 dst%4K=1024
+PLACE C128  j=7    190.0  src%4K=0 dst%4K=2048
+PLACE R128  j=7    156.4  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    271.5  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    165.2  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    288.4  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    350.3  src%4K=0 dst%4K=0
+PLACE C512  j=7    828.9  src%4K=0 dst%4K=0
+PLACE R512  j=7    508.7  src%4K=0 dst%4K=3072
+PLACE I512  j=7    662.9  src%4K=768 dst%4K=0
+ROW C16   median    57.9  min    57.7  max    58.1  (8 placements)
+ROW C32   median    67.5  min    67.1  max    67.8  (8 placements)
+ROW C64   median   105.3  min   103.6  max   131.0  (8 placements)
+ROW C128  median   191.5  min   188.6  max   202.8  (8 placements)
+ROW R128  median   150.6  min   148.7  max   156.4  (8 placements)
+ROW R256  median   274.3  min   271.1  max   278.0  (8 placements)
+ROW I128  median   165.3  min   164.8  max   166.1  (8 placements)
+ROW I256  median   289.4  min   288.0  max   293.8  (8 placements)
+ROW C256  median   351.8  min   349.3  max   435.6  (8 placements)
+ROW C512  median   730.9  min   721.7  max   904.5  (8 placements)
+ROW R512  median   506.5  min   500.4  max   614.1  (8 placements)
+ROW I512  median   556.8  min   538.0  max   662.9  (8 placements)
+PASS
+# round 2 variant main 06:21:06 load 2.56 2.50 3.10
+PLACE C16   j=0     57.8  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.1  src%4K=512 dst%4K=1024
+PLACE C64   j=0    104.6  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    191.6  src%4K=2048 dst%4K=0
+PLACE R128  j=0    150.0  src%4K=2048 dst%4K=512
+PLACE R256  j=0    271.2  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    165.2  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    291.0  src%4K=2816 dst%4K=0
+PLACE C256  j=0    344.4  src%4K=0 dst%4K=0
+PLACE C512  j=0    714.7  src%4K=0 dst%4K=0
+PLACE R512  j=0    501.9  src%4K=0 dst%4K=768
+PLACE I512  j=0    565.5  src%4K=2304 dst%4K=0
+PLACE C16   j=1     57.8  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.8  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    106.2  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    190.3  src%4K=0 dst%4K=2048
+PLACE R128  j=1    148.6  src%4K=0 dst%4K=2816
+PLACE R256  j=1    276.9  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    165.3  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    294.9  src%4K=512 dst%4K=2048
+PLACE C256  j=1    346.4  src%4K=0 dst%4K=0
+PLACE C512  j=1    769.2  src%4K=0 dst%4K=0
+PLACE R512  j=1    540.5  src%4K=0 dst%4K=0
+PLACE I512  j=1    548.2  src%4K=1536 dst%4K=0
+PLACE C16   j=2     60.0  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     68.9  src%4K=512 dst%4K=1024
+PLACE C64   j=2    106.7  src%4K=0 dst%4K=1024
+PLACE C128  j=2    195.6  src%4K=2048 dst%4K=0
+PLACE R128  j=2    150.3  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    296.3  src%4K=0 dst%4K=1024
+PLACE I128  j=2    177.0  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    288.1  src%4K=2304 dst%4K=0
+PLACE C256  j=2    354.9  src%4K=0 dst%4K=0
+PLACE C512  j=2    730.6  src%4K=0 dst%4K=0
+PLACE R512  j=2    512.0  src%4K=0 dst%4K=3072
+PLACE I512  j=2    544.9  src%4K=768 dst%4K=0
+PLACE C16   j=3     60.8  src%4K=3072 dst%4K=0
+PLACE C32   j=3     70.6  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    107.5  src%4K=3072 dst%4K=0
+PLACE C128  j=3    188.5  src%4K=2048 dst%4K=0
+PLACE R128  j=3    150.2  src%4K=0 dst%4K=512
+PLACE R256  j=3    271.2  src%4K=0 dst%4K=2816
+PLACE I128  j=3    164.8  src%4K=2304 dst%4K=0
+PLACE I256  j=3    291.1  src%4K=1536 dst%4K=0
+PLACE C256  j=3    350.0  src%4K=0 dst%4K=0
+PLACE C512  j=3    724.1  src%4K=0 dst%4K=0
+PLACE R512  j=3    509.0  src%4K=0 dst%4K=2304
+PLACE I512  j=3    537.2  src%4K=0 dst%4K=0
+PLACE C16   j=4     57.7  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     66.8  src%4K=0 dst%4K=512
+PLACE C64   j=4    104.7  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    188.4  src%4K=0 dst%4K=2048
+PLACE R128  j=4    151.1  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    272.4  src%4K=2048 dst%4K=0
+PLACE I128  j=4    165.4  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    287.9  src%4K=2304 dst%4K=0
+PLACE C256  j=4    352.4  src%4K=0 dst%4K=0
+PLACE C512  j=4    720.0  src%4K=0 dst%4K=0
+PLACE R512  j=4    506.6  src%4K=0 dst%4K=1536
+PLACE I512  j=4    538.6  src%4K=3072 dst%4K=0
+PLACE C16   j=5     57.8  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.2  src%4K=0 dst%4K=512
+PLACE C64   j=5    104.7  src%4K=0 dst%4K=1024
+PLACE C128  j=5    190.4  src%4K=0 dst%4K=2048
+PLACE R128  j=5    151.9  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    271.2  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    165.2  src%4K=0 dst%4K=1024
+PLACE I256  j=5    286.9  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    350.1  src%4K=0 dst%4K=0
+PLACE C512  j=5    735.6  src%4K=0 dst%4K=0
+PLACE R512  j=5    499.0  src%4K=0 dst%4K=768
+PLACE I512  j=5    542.6  src%4K=2304 dst%4K=0
+PLACE C16   j=6     57.9  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.3  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    105.1  src%4K=0 dst%4K=1024
+PLACE C128  j=6    196.6  src%4K=2048 dst%4K=0
+PLACE R128  j=6    149.5  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    277.7  src%4K=0 dst%4K=3328
+PLACE I128  j=6    165.5  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    290.2  src%4K=1536 dst%4K=0
+PLACE C256  j=6    461.2  src%4K=0 dst%4K=0
+PLACE C512  j=6    947.2  src%4K=0 dst%4K=0
+PLACE R512  j=6    534.6  src%4K=0 dst%4K=0
+PLACE I512  j=6    565.5  src%4K=1536 dst%4K=0
+PLACE C16   j=7     57.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.9  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    105.3  src%4K=0 dst%4K=1024
+PLACE C128  j=7    190.9  src%4K=0 dst%4K=2048
+PLACE R128  j=7    203.6  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    277.7  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    165.7  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    288.2  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    349.2  src%4K=0 dst%4K=0
+PLACE C512  j=7    880.0  src%4K=0 dst%4K=0
+PLACE R512  j=7    509.2  src%4K=0 dst%4K=3072
+PLACE I512  j=7    574.1  src%4K=768 dst%4K=0
+ROW C16   median    57.8  min    57.7  max    60.8  (8 placements)
+ROW C32   median    67.6  min    66.8  max    70.6  (8 placements)
+ROW C64   median   105.2  min   104.6  max   107.5  (8 placements)
+ROW C128  median   190.6  min   188.4  max   196.6  (8 placements)
+ROW R128  median   150.2  min   148.6  max   203.6  (8 placements)
+ROW R256  median   274.7  min   271.2  max   296.3  (8 placements)
+ROW I128  median   165.3  min   164.8  max   177.0  (8 placements)
+ROW I256  median   289.2  min   286.9  max   294.9  (8 placements)
+ROW C256  median   350.1  min   344.4  max   461.2  (8 placements)
+ROW C512  median   733.1  min   714.7  max   947.2  (8 placements)
+ROW R512  median   509.1  min   499.0  max   540.5  (8 placements)
+ROW I512  median   546.5  min   537.2  max   574.1  (8 placements)
+PASS
+# round 2 variant br 06:21:22 load 2.66 2.52 3.10
+PLACE C16   j=0     33.1  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.7  src%4K=512 dst%4K=1024
+PLACE C64   j=0     79.3  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    159.2  src%4K=2048 dst%4K=0
+PLACE R128  j=0    125.4  src%4K=1024 dst%4K=512
+PLACE R256  j=0    238.8  src%4K=0 dst%4K=2304
+PLACE I128  j=0    146.5  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    277.3  src%4K=2816 dst%4K=0
+PLACE C256  j=0    347.9  src%4K=0 dst%4K=0
+PLACE C512  j=0    778.6  src%4K=0 dst%4K=0
+PLACE R512  j=0    541.6  src%4K=0 dst%4K=768
+PLACE I512  j=0    590.6  src%4K=2304 dst%4K=0
+PLACE C16   j=1     33.3  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     46.2  src%4K=512 dst%4K=1024
+PLACE C64   j=1     80.2  src%4K=3072 dst%4K=0
+PLACE C128  j=1    160.7  src%4K=0 dst%4K=2048
+PLACE R128  j=1    123.9  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    235.8  src%4K=0 dst%4K=2816
+PLACE I128  j=1    141.2  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    276.0  src%4K=512 dst%4K=0
+PLACE C256  j=1    354.9  src%4K=0 dst%4K=0
+PLACE C512  j=1    730.5  src%4K=0 dst%4K=0
+PLACE R512  j=1    513.2  src%4K=0 dst%4K=0
+PLACE I512  j=1    547.7  src%4K=1536 dst%4K=0
+PLACE C16   j=2     32.9  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.6  src%4K=3072 dst%4K=0
+PLACE C64   j=2     78.7  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    158.3  src%4K=0 dst%4K=2048
+PLACE R128  j=2    122.6  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    234.6  src%4K=0 dst%4K=1024
+PLACE I128  j=2    142.2  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    272.4  src%4K=2304 dst%4K=0
+PLACE C256  j=2    427.5  src%4K=0 dst%4K=0
+PLACE C512  j=2    726.0  src%4K=0 dst%4K=0
+PLACE R512  j=2    522.5  src%4K=0 dst%4K=3072
+PLACE I512  j=2    549.6  src%4K=768 dst%4K=0
+PLACE C16   j=3     33.8  src%4K=3584 dst%4K=512
+PLACE C32   j=3     45.7  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     79.9  src%4K=3072 dst%4K=0
+PLACE C128  j=3    161.5  src%4K=2048 dst%4K=0
+PLACE R128  j=3    124.7  src%4K=3072 dst%4K=512
+PLACE R256  j=3    235.1  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    141.7  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    271.1  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    346.4  src%4K=0 dst%4K=0
+PLACE C512  j=3    830.6  src%4K=0 dst%4K=0
+PLACE R512  j=3    519.8  src%4K=0 dst%4K=2304
+PLACE I512  j=3    551.7  src%4K=0 dst%4K=0
+PLACE C16   j=4     32.8  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     46.0  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     78.7  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    184.3  src%4K=2048 dst%4K=0
+PLACE R128  j=4    126.0  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    235.2  src%4K=2048 dst%4K=0
+PLACE I128  j=4    142.2  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    272.8  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    345.6  src%4K=0 dst%4K=0
+PLACE C512  j=4    785.9  src%4K=0 dst%4K=0
+PLACE R512  j=4    544.5  src%4K=0 dst%4K=1536
+PLACE I512  j=4    551.1  src%4K=3072 dst%4K=0
+PLACE C16   j=5     33.2  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.7  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     79.6  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    158.9  src%4K=2048 dst%4K=0
+PLACE R128  j=5    123.0  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    234.5  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    140.8  src%4K=0 dst%4K=1024
+PLACE I256  j=5    273.0  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    354.8  src%4K=0 dst%4K=0
+PLACE C512  j=5    729.8  src%4K=0 dst%4K=0
+PLACE R512  j=5    569.9  src%4K=0 dst%4K=768
+PLACE I512  j=5    655.5  src%4K=2304 dst%4K=0
+PLACE C16   j=6     33.4  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.8  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.6  src%4K=0 dst%4K=1024
+PLACE C128  j=6    158.5  src%4K=2048 dst%4K=0
+PLACE R128  j=6    126.0  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    245.5  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    141.9  src%4K=1664 dst%4K=0
+PLACE I256  j=6    295.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    352.3  src%4K=0 dst%4K=0
+PLACE C512  j=6    717.8  src%4K=0 dst%4K=0
+PLACE R512  j=6    520.3  src%4K=0 dst%4K=0
+PLACE I512  j=6    551.2  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.1  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.7  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     80.6  src%4K=3072 dst%4K=0
+PLACE C128  j=7    160.7  src%4K=2048 dst%4K=0
+PLACE R128  j=7    126.6  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    237.8  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    140.5  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    270.3  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    348.6  src%4K=0 dst%4K=0
+PLACE C512  j=7    732.5  src%4K=0 dst%4K=0
+PLACE R512  j=7    520.1  src%4K=0 dst%4K=3072
+PLACE I512  j=7    548.8  src%4K=768 dst%4K=0
+ROW C16   median    33.2  min    32.8  max    33.8  (8 placements)
+ROW C32   median    45.7  min    45.6  max    46.2  (8 placements)
+ROW C64   median    79.6  min    78.7  max    80.6  (8 placements)
+ROW C128  median   160.0  min   158.3  max   184.3  (8 placements)
+ROW R128  median   125.0  min   122.6  max   126.6  (8 placements)
+ROW R256  median   235.5  min   234.5  max   245.5  (8 placements)
+ROW I128  median   141.8  min   140.5  max   146.5  (8 placements)
+ROW I256  median   272.9  min   270.3  max   295.7  (8 placements)
+ROW C256  median   350.4  min   345.6  max   427.5  (8 placements)
+ROW C512  median   731.5  min   717.8  max   830.6  (8 placements)
+ROW R512  median   521.4  min   513.2  max   569.9  (8 placements)
+ROW I512  median   551.2  min   547.7  max   655.5  (8 placements)
+PASS
+# round 3 variant br 06:21:33 load 2.89 2.58 3.11
+PLACE C16   j=0     33.2  src%4K=768 dst%4K=1024
+PLACE C32   j=0     47.5  src%4K=512 dst%4K=1024
+PLACE C64   j=0     80.2  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    161.7  src%4K=2048 dst%4K=0
+PLACE R128  j=0    126.7  src%4K=1024 dst%4K=512
+PLACE R256  j=0    240.6  src%4K=0 dst%4K=2304
+PLACE I128  j=0    144.4  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    273.5  src%4K=2816 dst%4K=0
+PLACE C256  j=0    351.8  src%4K=0 dst%4K=0
+PLACE C512  j=0    727.7  src%4K=0 dst%4K=0
+PLACE R512  j=0    517.6  src%4K=0 dst%4K=768
+PLACE I512  j=0    551.7  src%4K=2304 dst%4K=0
+PLACE C16   j=1     33.1  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     46.1  src%4K=512 dst%4K=1024
+PLACE C64   j=1     80.4  src%4K=3072 dst%4K=0
+PLACE C128  j=1    159.8  src%4K=0 dst%4K=2048
+PLACE R128  j=1    123.8  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    237.1  src%4K=0 dst%4K=2816
+PLACE I128  j=1    143.9  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    284.9  src%4K=512 dst%4K=0
+PLACE C256  j=1    352.5  src%4K=0 dst%4K=0
+PLACE C512  j=1    791.4  src%4K=0 dst%4K=0
+PLACE R512  j=1    525.1  src%4K=0 dst%4K=0
+PLACE I512  j=1    563.1  src%4K=1536 dst%4K=0
+PLACE C16   j=2     33.2  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.8  src%4K=3072 dst%4K=0
+PLACE C64   j=2     80.0  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    158.7  src%4K=0 dst%4K=2048
+PLACE R128  j=2    122.8  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    237.4  src%4K=0 dst%4K=1024
+PLACE I128  j=2    141.8  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    271.2  src%4K=2304 dst%4K=0
+PLACE C256  j=2    346.5  src%4K=0 dst%4K=0
+PLACE C512  j=2    715.7  src%4K=0 dst%4K=0
+PLACE R512  j=2    515.7  src%4K=0 dst%4K=3072
+PLACE I512  j=2    547.5  src%4K=768 dst%4K=0
+PLACE C16   j=3     34.0  src%4K=3584 dst%4K=512
+PLACE C32   j=3     52.6  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     80.1  src%4K=3072 dst%4K=0
+PLACE C128  j=3    157.9  src%4K=2048 dst%4K=0
+PLACE R128  j=3    122.8  src%4K=3072 dst%4K=512
+PLACE R256  j=3    234.6  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    141.1  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    271.5  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    350.5  src%4K=0 dst%4K=0
+PLACE C512  j=3    725.8  src%4K=0 dst%4K=0
+PLACE R512  j=3    517.5  src%4K=0 dst%4K=2304
+PLACE I512  j=3    544.9  src%4K=0 dst%4K=0
+PLACE C16   j=4     32.9  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     45.9  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     78.7  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    158.1  src%4K=2048 dst%4K=0
+PLACE R128  j=4    126.4  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    235.5  src%4K=2048 dst%4K=0
+PLACE I128  j=4    141.2  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    270.8  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    346.2  src%4K=0 dst%4K=0
+PLACE C512  j=4    717.8  src%4K=0 dst%4K=0
+PLACE R512  j=4    517.0  src%4K=0 dst%4K=1536
+PLACE I512  j=4    570.5  src%4K=3072 dst%4K=0
+PLACE C16   j=5     33.0  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     46.1  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     81.8  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    161.5  src%4K=2048 dst%4K=0
+PLACE R128  j=5    124.0  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    235.0  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    147.2  src%4K=0 dst%4K=1024
+PLACE I256  j=5    271.1  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    348.9  src%4K=0 dst%4K=0
+PLACE C512  j=5    724.1  src%4K=0 dst%4K=0
+PLACE R512  j=5    516.2  src%4K=0 dst%4K=768
+PLACE I512  j=5    556.0  src%4K=2304 dst%4K=0
+PLACE C16   j=6     32.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.8  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.2  src%4K=0 dst%4K=1024
+PLACE C128  j=6    158.4  src%4K=2048 dst%4K=0
+PLACE R128  j=6    123.8  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    245.6  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    140.7  src%4K=1664 dst%4K=0
+PLACE I256  j=6    270.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    346.8  src%4K=0 dst%4K=0
+PLACE C512  j=6    719.4  src%4K=0 dst%4K=0
+PLACE R512  j=6    519.4  src%4K=0 dst%4K=0
+PLACE I512  j=6    545.5  src%4K=1536 dst%4K=0
+PLACE C16   j=7     34.9  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.8  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     81.5  src%4K=3072 dst%4K=0
+PLACE C128  j=7    158.8  src%4K=2048 dst%4K=0
+PLACE R128  j=7    131.1  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    238.4  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    140.8  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    278.2  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    345.1  src%4K=0 dst%4K=0
+PLACE C512  j=7    727.0  src%4K=0 dst%4K=0
+PLACE R512  j=7    515.4  src%4K=0 dst%4K=3072
+PLACE I512  j=7    544.3  src%4K=768 dst%4K=0
+ROW C16   median    33.1  min    32.8  max    34.9  (8 placements)
+ROW C32   median    46.0  min    45.8  max    52.6  (8 placements)
+ROW C64   median    80.1  min    78.7  max    81.8  (8 placements)
+ROW C128  median   158.8  min   157.9  max   161.7  (8 placements)
+ROW R128  median   123.9  min   122.8  max   131.1  (8 placements)
+ROW R256  median   237.3  min   234.6  max   245.6  (8 placements)
+ROW I128  median   141.5  min   140.7  max   147.2  (8 placements)
+ROW I256  median   271.3  min   270.7  max   284.9  (8 placements)
+ROW C256  median   347.9  min   345.1  max   352.5  (8 placements)
+ROW C512  median   725.0  min   715.7  max   791.4  (8 placements)
+ROW R512  median   517.2  min   515.4  max   525.1  (8 placements)
+ROW I512  median   549.6  min   544.3  max   570.5  (8 placements)
+PASS
+# round 3 variant main 06:21:48 load 2.91 2.60 3.11
+PLACE C16   j=0     58.6  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.9  src%4K=512 dst%4K=1024
+PLACE C64   j=0    105.7  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    197.3  src%4K=2048 dst%4K=0
+PLACE R128  j=0    151.3  src%4K=2048 dst%4K=512
+PLACE R256  j=0    277.4  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    169.0  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    294.3  src%4K=2816 dst%4K=0
+PLACE C256  j=0    353.4  src%4K=0 dst%4K=0
+PLACE C512  j=0    732.5  src%4K=0 dst%4K=0
+PLACE R512  j=0    511.6  src%4K=0 dst%4K=768
+PLACE I512  j=0    567.9  src%4K=2304 dst%4K=0
+PLACE C16   j=1     58.4  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     71.0  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    107.1  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    193.7  src%4K=0 dst%4K=2048
+PLACE R128  j=1    151.2  src%4K=0 dst%4K=2816
+PLACE R256  j=1    276.9  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    168.1  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    292.4  src%4K=512 dst%4K=2048
+PLACE C256  j=1    352.9  src%4K=0 dst%4K=0
+PLACE C512  j=1    732.0  src%4K=0 dst%4K=0
+PLACE R512  j=1    510.9  src%4K=0 dst%4K=0
+PLACE I512  j=1    556.1  src%4K=1536 dst%4K=0
+PLACE C16   j=2     58.5  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     68.3  src%4K=512 dst%4K=1024
+PLACE C64   j=2    106.1  src%4K=0 dst%4K=1024
+PLACE C128  j=2    196.0  src%4K=2048 dst%4K=0
+PLACE R128  j=2    151.3  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    277.6  src%4K=0 dst%4K=1024
+PLACE I128  j=2    167.9  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    292.1  src%4K=2304 dst%4K=0
+PLACE C256  j=2    358.5  src%4K=0 dst%4K=0
+PLACE C512  j=2    730.3  src%4K=0 dst%4K=0
+PLACE R512  j=2    514.1  src%4K=0 dst%4K=3072
+PLACE I512  j=2    553.4  src%4K=768 dst%4K=0
+PLACE C16   j=3     58.5  src%4K=3072 dst%4K=0
+PLACE C32   j=3     68.4  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    105.6  src%4K=3072 dst%4K=0
+PLACE C128  j=3    196.5  src%4K=2048 dst%4K=0
+PLACE R128  j=3    150.9  src%4K=0 dst%4K=512
+PLACE R256  j=3    280.3  src%4K=0 dst%4K=2816
+PLACE I128  j=3    167.5  src%4K=2304 dst%4K=0
+PLACE I256  j=3    292.5  src%4K=1536 dst%4K=0
+PLACE C256  j=3    356.2  src%4K=0 dst%4K=0
+PLACE C512  j=3    734.8  src%4K=0 dst%4K=0
+PLACE R512  j=3    521.5  src%4K=0 dst%4K=2304
+PLACE I512  j=3    555.9  src%4K=0 dst%4K=0
+PLACE C16   j=4     58.5  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     69.0  src%4K=0 dst%4K=512
+PLACE C64   j=4    106.7  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    195.5  src%4K=0 dst%4K=2048
+PLACE R128  j=4    152.3  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    278.7  src%4K=2048 dst%4K=0
+PLACE I128  j=4    168.7  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    292.9  src%4K=2304 dst%4K=0
+PLACE C256  j=4    364.9  src%4K=0 dst%4K=0
+PLACE C512  j=4    741.5  src%4K=0 dst%4K=0
+PLACE R512  j=4    507.0  src%4K=0 dst%4K=1536
+PLACE I512  j=4    555.8  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.7  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     73.9  src%4K=0 dst%4K=512
+PLACE C64   j=5    107.0  src%4K=0 dst%4K=1024
+PLACE C128  j=5    196.2  src%4K=0 dst%4K=2048
+PLACE R128  j=5    154.0  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    285.3  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    169.3  src%4K=0 dst%4K=1024
+PLACE I256  j=5    292.4  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    354.4  src%4K=0 dst%4K=0
+PLACE C512  j=5    756.2  src%4K=0 dst%4K=0
+PLACE R512  j=5    507.9  src%4K=0 dst%4K=768
+PLACE I512  j=5    566.1  src%4K=2304 dst%4K=0
+PLACE C16   j=6     59.4  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     68.1  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    106.1  src%4K=0 dst%4K=1024
+PLACE C128  j=6    194.7  src%4K=2048 dst%4K=0
+PLACE R128  j=6    151.9  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    282.8  src%4K=0 dst%4K=3328
+PLACE I128  j=6    169.5  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    291.9  src%4K=1536 dst%4K=0
+PLACE C256  j=6    355.4  src%4K=0 dst%4K=0
+PLACE C512  j=6    733.1  src%4K=0 dst%4K=0
+PLACE R512  j=6    512.4  src%4K=0 dst%4K=0
+PLACE I512  j=6    569.7  src%4K=1536 dst%4K=0
+PLACE C16   j=7     58.3  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     68.6  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    107.0  src%4K=0 dst%4K=1024
+PLACE C128  j=7    194.0  src%4K=0 dst%4K=2048
+PLACE R128  j=7    154.1  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    278.2  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    179.4  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    291.5  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    356.2  src%4K=0 dst%4K=0
+PLACE C512  j=7    732.7  src%4K=0 dst%4K=0
+PLACE R512  j=7    513.4  src%4K=0 dst%4K=3072
+PLACE I512  j=7    558.1  src%4K=768 dst%4K=0
+ROW C16   median    58.5  min    58.3  max    59.4  (8 placements)
+ROW C32   median    68.5  min    67.9  max    73.9  (8 placements)
+ROW C64   median   106.4  min   105.6  max   107.1  (8 placements)
+ROW C128  median   195.7  min   193.7  max   197.3  (8 placements)
+ROW R128  median   151.6  min   150.9  max   154.1  (8 placements)
+ROW R256  median   278.5  min   276.9  max   285.3  (8 placements)
+ROW I128  median   168.9  min   167.5  max   179.4  (8 placements)
+ROW I256  median   292.4  min   291.5  max   294.3  (8 placements)
+ROW C256  median   355.8  min   352.9  max   364.9  (8 placements)
+ROW C512  median   732.9  min   730.3  max   756.2  (8 placements)
+ROW R512  median   512.0  min   507.0  max   521.5  (8 placements)
+ROW I512  median   557.1  min   553.4  max   569.7  (8 placements)
+PASS
+# round 4 variant main 06:22:03 load 3.47 2.73 3.14
+PLACE C16   j=0     58.2  src%4K=768 dst%4K=1024
+PLACE C32   j=0     68.0  src%4K=512 dst%4K=1024
+PLACE C64   j=0    105.7  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    196.1  src%4K=2048 dst%4K=0
+PLACE R128  j=0    148.9  src%4K=2048 dst%4K=512
+PLACE R256  j=0    277.4  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    167.1  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    297.8  src%4K=2816 dst%4K=0
+PLACE C256  j=0    353.5  src%4K=0 dst%4K=0
+PLACE C512  j=0    726.3  src%4K=0 dst%4K=0
+PLACE R512  j=0    507.4  src%4K=0 dst%4K=768
+PLACE I512  j=0    549.2  src%4K=2304 dst%4K=0
+PLACE C16   j=1     58.3  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.8  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    106.6  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    191.8  src%4K=0 dst%4K=2048
+PLACE R128  j=1    151.3  src%4K=0 dst%4K=2816
+PLACE R256  j=1    272.7  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    166.8  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    290.9  src%4K=512 dst%4K=2048
+PLACE C256  j=1    356.3  src%4K=0 dst%4K=0
+PLACE C512  j=1    729.7  src%4K=0 dst%4K=0
+PLACE R512  j=1    503.6  src%4K=0 dst%4K=0
+PLACE I512  j=1    556.9  src%4K=1536 dst%4K=0
+PLACE C16   j=2     58.3  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     68.4  src%4K=512 dst%4K=1024
+PLACE C64   j=2    104.8  src%4K=0 dst%4K=1024
+PLACE C128  j=2    192.3  src%4K=2048 dst%4K=0
+PLACE R128  j=2    152.6  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    275.5  src%4K=0 dst%4K=1024
+PLACE I128  j=2    166.3  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    290.2  src%4K=2304 dst%4K=0
+PLACE C256  j=2    352.9  src%4K=0 dst%4K=0
+PLACE C512  j=2    728.0  src%4K=0 dst%4K=0
+PLACE R512  j=2    515.1  src%4K=0 dst%4K=3072
+PLACE I512  j=2    549.2  src%4K=768 dst%4K=0
+PLACE C16   j=3     58.4  src%4K=3072 dst%4K=0
+PLACE C32   j=3     67.6  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    105.0  src%4K=3072 dst%4K=0
+PLACE C128  j=3    192.6  src%4K=2048 dst%4K=0
+PLACE R128  j=3    151.2  src%4K=0 dst%4K=512
+PLACE R256  j=3    273.0  src%4K=0 dst%4K=2816
+PLACE I128  j=3    165.7  src%4K=2304 dst%4K=0
+PLACE I256  j=3    294.3  src%4K=1536 dst%4K=0
+PLACE C256  j=3    349.8  src%4K=0 dst%4K=0
+PLACE C512  j=3    724.3  src%4K=0 dst%4K=0
+PLACE R512  j=3    508.5  src%4K=0 dst%4K=2304
+PLACE I512  j=3    543.3  src%4K=0 dst%4K=0
+PLACE C16   j=4     58.2  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     67.9  src%4K=0 dst%4K=512
+PLACE C64   j=4    105.5  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    192.9  src%4K=0 dst%4K=2048
+PLACE R128  j=4    152.0  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    275.9  src%4K=2048 dst%4K=0
+PLACE I128  j=4    165.5  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    291.3  src%4K=2304 dst%4K=0
+PLACE C256  j=4    352.1  src%4K=0 dst%4K=0
+PLACE C512  j=4    719.9  src%4K=0 dst%4K=0
+PLACE R512  j=4    501.7  src%4K=0 dst%4K=1536
+PLACE I512  j=4    549.4  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.0  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.8  src%4K=0 dst%4K=512
+PLACE C64   j=5    105.2  src%4K=0 dst%4K=1024
+PLACE C128  j=5    193.5  src%4K=0 dst%4K=2048
+PLACE R128  j=5    151.6  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    274.5  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    166.8  src%4K=0 dst%4K=1024
+PLACE I256  j=5    300.7  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    359.1  src%4K=0 dst%4K=0
+PLACE C512  j=5    727.3  src%4K=0 dst%4K=0
+PLACE R512  j=5    504.3  src%4K=0 dst%4K=768
+PLACE I512  j=5    546.5  src%4K=2304 dst%4K=0
+PLACE C16   j=6     59.1  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.9  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    105.5  src%4K=0 dst%4K=1024
+PLACE C128  j=6    196.9  src%4K=2048 dst%4K=0
+PLACE R128  j=6    153.0  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    279.7  src%4K=0 dst%4K=3328
+PLACE I128  j=6    170.7  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    291.9  src%4K=1536 dst%4K=0
+PLACE C256  j=6    350.8  src%4K=0 dst%4K=0
+PLACE C512  j=6    725.9  src%4K=0 dst%4K=0
+PLACE R512  j=6    507.2  src%4K=0 dst%4K=0
+PLACE I512  j=6    560.3  src%4K=1536 dst%4K=0
+PLACE C16   j=7     58.3  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.5  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    105.6  src%4K=0 dst%4K=1024
+PLACE C128  j=7    191.5  src%4K=0 dst%4K=2048
+PLACE R128  j=7    152.8  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    282.7  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    166.8  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    290.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    357.3  src%4K=0 dst%4K=0
+PLACE C512  j=7    740.6  src%4K=0 dst%4K=0
+PLACE R512  j=7    510.0  src%4K=0 dst%4K=3072
+PLACE I512  j=7    556.7  src%4K=768 dst%4K=0
+ROW C16   median    58.3  min    58.0  max    59.1  (8 placements)
+ROW C32   median    67.8  min    67.5  max    68.4  (8 placements)
+ROW C64   median   105.5  min   104.8  max   106.6  (8 placements)
+ROW C128  median   192.8  min   191.5  max   196.9  (8 placements)
+ROW R128  median   151.8  min   148.9  max   153.0  (8 placements)
+ROW R256  median   275.7  min   272.7  max   282.7  (8 placements)
+ROW I128  median   166.8  min   165.5  max   170.7  (8 placements)
+ROW I256  median   291.6  min   290.2  max   300.7  (8 placements)
+ROW C256  median   353.2  min   349.8  max   359.1  (8 placements)
+ROW C512  median   726.8  min   719.9  max   740.6  (8 placements)
+ROW R512  median   507.3  min   501.7  max   515.1  (8 placements)
+ROW I512  median   549.3  min   543.3  max   560.3  (8 placements)
+PASS
+# round 4 variant br 06:22:17 load 3.72 2.83 3.17
+PLACE C16   j=0     33.0  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.6  src%4K=512 dst%4K=1024
+PLACE C64   j=0     79.4  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    159.3  src%4K=2048 dst%4K=0
+PLACE R128  j=0    130.4  src%4K=1024 dst%4K=512
+PLACE R256  j=0    246.8  src%4K=0 dst%4K=2304
+PLACE I128  j=0    148.6  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    284.9  src%4K=2816 dst%4K=0
+PLACE C256  j=0    356.3  src%4K=0 dst%4K=0
+PLACE C512  j=0    731.0  src%4K=0 dst%4K=0
+PLACE R512  j=0    521.5  src%4K=0 dst%4K=768
+PLACE I512  j=0    569.1  src%4K=2304 dst%4K=0
+PLACE C16   j=1     33.1  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     46.3  src%4K=512 dst%4K=1024
+PLACE C64   j=1     80.9  src%4K=3072 dst%4K=0
+PLACE C128  j=1    158.6  src%4K=0 dst%4K=2048
+PLACE R128  j=1    125.1  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    237.3  src%4K=0 dst%4K=2816
+PLACE I128  j=1    141.8  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    272.1  src%4K=512 dst%4K=0
+PLACE C256  j=1    348.4  src%4K=0 dst%4K=0
+PLACE C512  j=1    727.4  src%4K=0 dst%4K=0
+PLACE R512  j=1    520.6  src%4K=0 dst%4K=0
+PLACE I512  j=1    553.9  src%4K=1536 dst%4K=0
+PLACE C16   j=2     33.4  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.8  src%4K=3072 dst%4K=0
+PLACE C64   j=2     81.3  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    158.8  src%4K=0 dst%4K=2048
+PLACE R128  j=2    124.3  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    237.2  src%4K=0 dst%4K=1024
+PLACE I128  j=2    141.9  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    271.6  src%4K=2304 dst%4K=0
+PLACE C256  j=2    360.4  src%4K=0 dst%4K=0
+PLACE C512  j=2    726.5  src%4K=0 dst%4K=0
+PLACE R512  j=2    523.6  src%4K=0 dst%4K=3072
+PLACE I512  j=2    558.0  src%4K=768 dst%4K=0
+PLACE C16   j=3     34.2  src%4K=3584 dst%4K=512
+PLACE C32   j=3     46.3  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     80.8  src%4K=3072 dst%4K=0
+PLACE C128  j=3    208.5  src%4K=2048 dst%4K=0
+PLACE R128  j=3    124.3  src%4K=3072 dst%4K=512
+PLACE R256  j=3    236.1  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    140.6  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    271.8  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    349.9  src%4K=0 dst%4K=0
+PLACE C512  j=3    735.9  src%4K=0 dst%4K=0
+PLACE R512  j=3    570.2  src%4K=0 dst%4K=2304
+PLACE I512  j=3    585.0  src%4K=0 dst%4K=0
+PLACE C16   j=4     33.1  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     45.9  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     81.4  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    159.2  src%4K=2048 dst%4K=0
+PLACE R128  j=4    127.5  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    234.8  src%4K=2048 dst%4K=0
+PLACE I128  j=4    142.2  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    274.3  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    352.0  src%4K=0 dst%4K=0
+PLACE C512  j=4    780.0  src%4K=0 dst%4K=0
+PLACE R512  j=4    520.8  src%4K=0 dst%4K=1536
+PLACE I512  j=4    554.4  src%4K=3072 dst%4K=0
+PLACE C16   j=5     32.9  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.7  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     82.3  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    159.4  src%4K=2048 dst%4K=0
+PLACE R128  j=5    127.8  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    236.5  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    142.3  src%4K=0 dst%4K=1024
+PLACE I256  j=5    271.2  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    354.6  src%4K=0 dst%4K=0
+PLACE C512  j=5    735.5  src%4K=0 dst%4K=0
+PLACE R512  j=5    519.7  src%4K=0 dst%4K=768
+PLACE I512  j=5    544.9  src%4K=2304 dst%4K=0
+PLACE C16   j=6     33.0  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.8  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.6  src%4K=0 dst%4K=1024
+PLACE C128  j=6    158.6  src%4K=2048 dst%4K=0
+PLACE R128  j=6    123.9  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    250.3  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    141.0  src%4K=1664 dst%4K=0
+PLACE I256  j=6    271.9  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    350.1  src%4K=0 dst%4K=0
+PLACE C512  j=6    757.9  src%4K=0 dst%4K=0
+PLACE R512  j=6    524.1  src%4K=0 dst%4K=0
+PLACE I512  j=6    553.4  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.4  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.6  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     80.2  src%4K=3072 dst%4K=0
+PLACE C128  j=7    159.0  src%4K=2048 dst%4K=0
+PLACE R128  j=7    126.4  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    238.4  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    141.9  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    276.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    350.4  src%4K=0 dst%4K=0
+PLACE C512  j=7    725.4  src%4K=0 dst%4K=0
+PLACE R512  j=7    532.4  src%4K=0 dst%4K=3072
+PLACE I512  j=7    550.1  src%4K=768 dst%4K=0
+ROW C16   median    33.1  min    32.9  max    34.2  (8 placements)
+ROW C32   median    45.8  min    45.6  max    46.3  (8 placements)
+ROW C64   median    80.8  min    79.4  max    82.3  (8 placements)
+ROW C128  median   159.1  min   158.6  max   208.5  (8 placements)
+ROW R128  median   125.8  min   123.9  max   130.4  (8 placements)
+ROW R256  median   237.3  min   234.8  max   250.3  (8 placements)
+ROW I128  median   141.9  min   140.6  max   148.6  (8 placements)
+ROW I256  median   272.0  min   271.2  max   284.9  (8 placements)
+ROW C256  median   351.2  min   348.4  max   360.4  (8 placements)
+ROW C512  median   733.3  min   725.4  max   780.0  (8 placements)
+ROW R512  median   522.5  min   519.7  max   570.2  (8 placements)
+ROW I512  median   554.1  min   544.9  max   585.0  (8 placements)
+PASS
+# round 5 variant br 06:22:32 load 3.72 2.87 3.18
+PLACE C16   j=0     32.8  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.6  src%4K=512 dst%4K=1024
+PLACE C64   j=0     79.5  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    161.3  src%4K=2048 dst%4K=0
+PLACE R128  j=0    124.2  src%4K=1024 dst%4K=512
+PLACE R256  j=0    235.7  src%4K=0 dst%4K=2304
+PLACE I128  j=0    143.7  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    273.6  src%4K=2816 dst%4K=0
+PLACE C256  j=0    352.8  src%4K=0 dst%4K=0
+PLACE C512  j=0    721.9  src%4K=0 dst%4K=0
+PLACE R512  j=0    514.7  src%4K=0 dst%4K=768
+PLACE I512  j=0    548.4  src%4K=2304 dst%4K=0
+PLACE C16   j=1     33.0  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     45.5  src%4K=512 dst%4K=1024
+PLACE C64   j=1     79.9  src%4K=3072 dst%4K=0
+PLACE C128  j=1    162.8  src%4K=0 dst%4K=2048
+PLACE R128  j=1    124.2  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    243.1  src%4K=0 dst%4K=2816
+PLACE I128  j=1    141.8  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    272.0  src%4K=512 dst%4K=0
+PLACE C256  j=1    351.8  src%4K=0 dst%4K=0
+PLACE C512  j=1    727.6  src%4K=0 dst%4K=0
+PLACE R512  j=1    516.4  src%4K=0 dst%4K=0
+PLACE I512  j=1    559.1  src%4K=1536 dst%4K=0
+PLACE C16   j=2     33.0  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.7  src%4K=3072 dst%4K=0
+PLACE C64   j=2     80.7  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    162.8  src%4K=0 dst%4K=2048
+PLACE R128  j=2    125.6  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    235.6  src%4K=0 dst%4K=1024
+PLACE I128  j=2    141.2  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    271.4  src%4K=2304 dst%4K=0
+PLACE C256  j=2    348.8  src%4K=0 dst%4K=0
+PLACE C512  j=2    726.1  src%4K=0 dst%4K=0
+PLACE R512  j=2    518.2  src%4K=0 dst%4K=3072
+PLACE I512  j=2    552.6  src%4K=768 dst%4K=0
+PLACE C16   j=3     33.8  src%4K=3584 dst%4K=512
+PLACE C32   j=3     45.5  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     78.9  src%4K=3072 dst%4K=0
+PLACE C128  j=3    158.3  src%4K=2048 dst%4K=0
+PLACE R128  j=3    122.4  src%4K=3072 dst%4K=512
+PLACE R256  j=3    235.1  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    141.0  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    271.3  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    349.6  src%4K=0 dst%4K=0
+PLACE C512  j=3    724.8  src%4K=0 dst%4K=0
+PLACE R512  j=3    518.6  src%4K=0 dst%4K=2304
+PLACE I512  j=3    546.2  src%4K=0 dst%4K=0
+PLACE C16   j=4     32.8  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     46.1  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     80.3  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    157.6  src%4K=2048 dst%4K=0
+PLACE R128  j=4    125.6  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    235.4  src%4K=2048 dst%4K=0
+PLACE I128  j=4    141.8  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    272.4  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    350.8  src%4K=0 dst%4K=0
+PLACE C512  j=4    721.3  src%4K=0 dst%4K=0
+PLACE R512  j=4    514.0  src%4K=0 dst%4K=1536
+PLACE I512  j=4    543.6  src%4K=3072 dst%4K=0
+PLACE C16   j=5     33.0  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.9  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     79.7  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    159.3  src%4K=2048 dst%4K=0
+PLACE R128  j=5    122.9  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    234.1  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    141.1  src%4K=0 dst%4K=1024
+PLACE I256  j=5    281.8  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    347.1  src%4K=0 dst%4K=0
+PLACE C512  j=5    731.4  src%4K=0 dst%4K=0
+PLACE R512  j=5    520.1  src%4K=0 dst%4K=768
+PLACE I512  j=5    554.4  src%4K=2304 dst%4K=0
+PLACE C16   j=6     33.1  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.7  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.0  src%4K=0 dst%4K=1024
+PLACE C128  j=6    158.2  src%4K=2048 dst%4K=0
+PLACE R128  j=6    123.8  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    244.9  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    142.8  src%4K=1664 dst%4K=0
+PLACE I256  j=6    270.6  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    351.2  src%4K=0 dst%4K=0
+PLACE C512  j=6    725.3  src%4K=0 dst%4K=0
+PLACE R512  j=6    532.8  src%4K=0 dst%4K=0
+PLACE I512  j=6    551.2  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.2  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.9  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     79.8  src%4K=3072 dst%4K=0
+PLACE C128  j=7    158.5  src%4K=2048 dst%4K=0
+PLACE R128  j=7    126.1  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    237.6  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    141.0  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    270.5  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    349.7  src%4K=0 dst%4K=0
+PLACE C512  j=7    731.0  src%4K=0 dst%4K=0
+PLACE R512  j=7    520.8  src%4K=0 dst%4K=3072
+PLACE I512  j=7    549.0  src%4K=768 dst%4K=0
+ROW C16   median    33.0  min    32.8  max    33.8  (8 placements)
+ROW C32   median    45.7  min    45.5  max    46.1  (8 placements)
+ROW C64   median    79.8  min    78.9  max    80.7  (8 placements)
+ROW C128  median   158.9  min   157.6  max   162.8  (8 placements)
+ROW R128  median   124.2  min   122.4  max   126.1  (8 placements)
+ROW R256  median   235.6  min   234.1  max   244.9  (8 placements)
+ROW I128  median   141.5  min   141.0  max   143.7  (8 placements)
+ROW I256  median   271.7  min   270.5  max   281.8  (8 placements)
+ROW C256  median   350.2  min   347.1  max   352.8  (8 placements)
+ROW C512  median   725.7  min   721.3  max   731.4  (8 placements)
+ROW R512  median   518.4  min   514.0  max   532.8  (8 placements)
+ROW I512  median   550.1  min   543.6  max   559.1  (8 placements)
+PASS
+# round 5 variant main 06:22:47 load 3.56 2.88 3.17
+PLACE C16   j=0     58.1  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.6  src%4K=512 dst%4K=1024
+PLACE C64   j=0    106.6  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    194.8  src%4K=2048 dst%4K=0
+PLACE R128  j=0    150.5  src%4K=2048 dst%4K=512
+PLACE R256  j=0    272.5  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    165.8  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    288.9  src%4K=2816 dst%4K=0
+PLACE C256  j=0    350.7  src%4K=0 dst%4K=0
+PLACE C512  j=0    726.2  src%4K=0 dst%4K=0
+PLACE R512  j=0    496.0  src%4K=0 dst%4K=768
+PLACE I512  j=0    546.9  src%4K=2304 dst%4K=0
+PLACE C16   j=1     57.8  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.3  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    105.2  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    189.7  src%4K=0 dst%4K=2048
+PLACE R128  j=1    149.8  src%4K=0 dst%4K=2816
+PLACE R256  j=1    271.6  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    165.5  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    288.4  src%4K=512 dst%4K=2048
+PLACE C256  j=1    353.3  src%4K=0 dst%4K=0
+PLACE C512  j=1    735.7  src%4K=0 dst%4K=0
+PLACE R512  j=1    499.8  src%4K=0 dst%4K=0
+PLACE I512  j=1    540.2  src%4K=1536 dst%4K=0
+PLACE C16   j=2     58.0  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     67.5  src%4K=512 dst%4K=1024
+PLACE C64   j=2    104.7  src%4K=0 dst%4K=1024
+PLACE C128  j=2    191.8  src%4K=2048 dst%4K=0
+PLACE R128  j=2    149.5  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    272.5  src%4K=0 dst%4K=1024
+PLACE I128  j=2    164.9  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    286.5  src%4K=2304 dst%4K=0
+PLACE C256  j=2    348.8  src%4K=0 dst%4K=0
+PLACE C512  j=2    719.3  src%4K=0 dst%4K=0
+PLACE R512  j=2    505.6  src%4K=0 dst%4K=3072
+PLACE I512  j=2    541.8  src%4K=768 dst%4K=0
+PLACE C16   j=3     58.0  src%4K=3072 dst%4K=0
+PLACE C32   j=3     67.4  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    104.2  src%4K=3072 dst%4K=0
+PLACE C128  j=3    188.8  src%4K=2048 dst%4K=0
+PLACE R128  j=3    148.8  src%4K=0 dst%4K=512
+PLACE R256  j=3    271.0  src%4K=0 dst%4K=2816
+PLACE I128  j=3    164.7  src%4K=2304 dst%4K=0
+PLACE I256  j=3    288.3  src%4K=1536 dst%4K=0
+PLACE C256  j=3    354.3  src%4K=0 dst%4K=0
+PLACE C512  j=3    722.9  src%4K=0 dst%4K=0
+PLACE R512  j=3    508.4  src%4K=0 dst%4K=2304
+PLACE I512  j=3    537.6  src%4K=0 dst%4K=0
+PLACE C16   j=4     57.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     67.9  src%4K=0 dst%4K=512
+PLACE C64   j=4    104.5  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    191.4  src%4K=0 dst%4K=2048
+PLACE R128  j=4    151.3  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    274.7  src%4K=2048 dst%4K=0
+PLACE I128  j=4    174.6  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    289.3  src%4K=2304 dst%4K=0
+PLACE C256  j=4    350.1  src%4K=0 dst%4K=0
+PLACE C512  j=4    720.1  src%4K=0 dst%4K=0
+PLACE R512  j=4    500.6  src%4K=0 dst%4K=1536
+PLACE I512  j=4    538.1  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.3  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.4  src%4K=0 dst%4K=512
+PLACE C64   j=5    105.8  src%4K=0 dst%4K=1024
+PLACE C128  j=5    191.4  src%4K=0 dst%4K=2048
+PLACE R128  j=5    151.3  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    272.6  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    165.1  src%4K=0 dst%4K=1024
+PLACE I256  j=5    287.7  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    350.7  src%4K=0 dst%4K=0
+PLACE C512  j=5    720.5  src%4K=0 dst%4K=0
+PLACE R512  j=5    496.4  src%4K=0 dst%4K=768
+PLACE I512  j=5    541.0  src%4K=2304 dst%4K=0
+PLACE C16   j=6     58.3  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.5  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    103.9  src%4K=0 dst%4K=1024
+PLACE C128  j=6    192.2  src%4K=2048 dst%4K=0
+PLACE R128  j=6    150.0  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    278.0  src%4K=0 dst%4K=3328
+PLACE I128  j=6    165.3  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    288.3  src%4K=1536 dst%4K=0
+PLACE C256  j=6    349.2  src%4K=0 dst%4K=0
+PLACE C512  j=6    723.6  src%4K=0 dst%4K=0
+PLACE R512  j=6    502.7  src%4K=0 dst%4K=0
+PLACE I512  j=6    542.2  src%4K=1536 dst%4K=0
+PLACE C16   j=7     57.9  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.6  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    105.4  src%4K=0 dst%4K=1024
+PLACE C128  j=7    191.6  src%4K=0 dst%4K=2048
+PLACE R128  j=7    153.2  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    272.0  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    165.4  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    287.2  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    349.7  src%4K=0 dst%4K=0
+PLACE C512  j=7    725.9  src%4K=0 dst%4K=0
+PLACE R512  j=7    504.3  src%4K=0 dst%4K=3072
+PLACE I512  j=7    544.2  src%4K=768 dst%4K=0
+ROW C16   median    58.0  min    57.8  max    58.3  (8 placements)
+ROW C32   median    67.5  min    67.3  max    67.9  (8 placements)
+ROW C64   median   104.9  min   103.9  max   106.6  (8 placements)
+ROW C128  median   191.5  min   188.8  max   194.8  (8 placements)
+ROW R128  median   150.3  min   148.8  max   153.2  (8 placements)
+ROW R256  median   272.5  min   271.0  max   278.0  (8 placements)
+ROW I128  median   165.4  min   164.7  max   174.6  (8 placements)
+ROW I256  median   288.3  min   286.5  max   289.3  (8 placements)
+ROW C256  median   350.4  min   348.8  max   354.3  (8 placements)
+ROW C512  median   723.2  min   719.3  max   735.7  (8 placements)
+ROW R512  median   501.6  min   496.0  max   508.4  (8 placements)
+ROW I512  median   541.4  min   537.6  max   546.9  (8 placements)
+PASS
+# round 6 variant main 06:23:02 load 3.28 2.85 3.16
+PLACE C16   j=0     58.1  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.3  src%4K=512 dst%4K=1024
+PLACE C64   j=0    104.9  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    193.3  src%4K=2048 dst%4K=0
+PLACE R128  j=0    149.9  src%4K=2048 dst%4K=512
+PLACE R256  j=0    271.0  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    165.4  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    292.5  src%4K=2816 dst%4K=0
+PLACE C256  j=0    347.3  src%4K=0 dst%4K=0
+PLACE C512  j=0    733.6  src%4K=0 dst%4K=0
+PLACE R512  j=0    501.6  src%4K=0 dst%4K=768
+PLACE I512  j=0    543.1  src%4K=2304 dst%4K=0
+PLACE C16   j=1     57.9  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.7  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    106.0  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    192.3  src%4K=0 dst%4K=2048
+PLACE R128  j=1    149.9  src%4K=0 dst%4K=2816
+PLACE R256  j=1    270.9  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    166.0  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    296.1  src%4K=512 dst%4K=2048
+PLACE C256  j=1    348.1  src%4K=0 dst%4K=0
+PLACE C512  j=1    720.4  src%4K=0 dst%4K=0
+PLACE R512  j=1    497.0  src%4K=0 dst%4K=0
+PLACE I512  j=1    542.5  src%4K=1536 dst%4K=0
+PLACE C16   j=2     57.6  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     67.9  src%4K=512 dst%4K=1024
+PLACE C64   j=2    104.2  src%4K=0 dst%4K=1024
+PLACE C128  j=2    191.2  src%4K=2048 dst%4K=0
+PLACE R128  j=2    149.2  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    280.8  src%4K=0 dst%4K=1024
+PLACE I128  j=2    167.1  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    286.8  src%4K=2304 dst%4K=0
+PLACE C256  j=2    347.3  src%4K=0 dst%4K=0
+PLACE C512  j=2    724.5  src%4K=0 dst%4K=0
+PLACE R512  j=2    505.0  src%4K=0 dst%4K=3072
+PLACE I512  j=2    543.6  src%4K=768 dst%4K=0
+PLACE C16   j=3     57.8  src%4K=3072 dst%4K=0
+PLACE C32   j=3     67.8  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    104.1  src%4K=3072 dst%4K=0
+PLACE C128  j=3    191.2  src%4K=2048 dst%4K=0
+PLACE R128  j=3    148.6  src%4K=0 dst%4K=512
+PLACE R256  j=3    271.3  src%4K=0 dst%4K=2816
+PLACE I128  j=3    164.8  src%4K=2304 dst%4K=0
+PLACE I256  j=3    293.4  src%4K=1536 dst%4K=0
+PLACE C256  j=3    347.2  src%4K=0 dst%4K=0
+PLACE C512  j=3    727.4  src%4K=0 dst%4K=0
+PLACE R512  j=3    515.3  src%4K=0 dst%4K=2304
+PLACE I512  j=3    545.9  src%4K=0 dst%4K=0
+PLACE C16   j=4     58.6  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     68.3  src%4K=0 dst%4K=512
+PLACE C64   j=4    104.8  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    190.4  src%4K=0 dst%4K=2048
+PLACE R128  j=4    150.7  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    272.2  src%4K=2048 dst%4K=0
+PLACE I128  j=4    164.7  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    286.8  src%4K=2304 dst%4K=0
+PLACE C256  j=4    347.7  src%4K=0 dst%4K=0
+PLACE C512  j=4    718.8  src%4K=0 dst%4K=0
+PLACE R512  j=4    504.1  src%4K=0 dst%4K=1536
+PLACE I512  j=4    537.3  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.0  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.5  src%4K=0 dst%4K=512
+PLACE C64   j=5    104.0  src%4K=0 dst%4K=1024
+PLACE C128  j=5    190.6  src%4K=0 dst%4K=2048
+PLACE R128  j=5    151.0  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    273.7  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    165.3  src%4K=0 dst%4K=1024
+PLACE I256  j=5    289.2  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    346.8  src%4K=0 dst%4K=0
+PLACE C512  j=5    720.3  src%4K=0 dst%4K=0
+PLACE R512  j=5    498.8  src%4K=0 dst%4K=768
+PLACE I512  j=5    540.2  src%4K=2304 dst%4K=0
+PLACE C16   j=6     57.7  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.3  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    106.5  src%4K=0 dst%4K=1024
+PLACE C128  j=6    188.9  src%4K=2048 dst%4K=0
+PLACE R128  j=6    149.5  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    283.3  src%4K=0 dst%4K=3328
+PLACE I128  j=6    165.9  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    288.3  src%4K=1536 dst%4K=0
+PLACE C256  j=6    348.9  src%4K=0 dst%4K=0
+PLACE C512  j=6    719.1  src%4K=0 dst%4K=0
+PLACE R512  j=6    499.5  src%4K=0 dst%4K=0
+PLACE I512  j=6    543.9  src%4K=1536 dst%4K=0
+PLACE C16   j=7     57.7  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.8  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    104.9  src%4K=0 dst%4K=1024
+PLACE C128  j=7    189.3  src%4K=0 dst%4K=2048
+PLACE R128  j=7    152.8  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    273.6  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    166.3  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    286.8  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    352.4  src%4K=0 dst%4K=0
+PLACE C512  j=7    725.5  src%4K=0 dst%4K=0
+PLACE R512  j=7    508.7  src%4K=0 dst%4K=3072
+PLACE I512  j=7    548.5  src%4K=768 dst%4K=0
+ROW C16   median    57.9  min    57.6  max    58.6  (8 placements)
+ROW C32   median    67.7  min    67.3  max    68.3  (8 placements)
+ROW C64   median   104.8  min   104.0  max   106.5  (8 placements)
+ROW C128  median   190.9  min   188.9  max   193.3  (8 placements)
+ROW R128  median   149.9  min   148.6  max   152.8  (8 placements)
+ROW R256  median   272.9  min   270.9  max   283.3  (8 placements)
+ROW I128  median   165.7  min   164.7  max   167.1  (8 placements)
+ROW I256  median   288.8  min   286.8  max   296.1  (8 placements)
+ROW C256  median   347.5  min   346.8  max   352.4  (8 placements)
+ROW C512  median   722.4  min   718.8  max   733.6  (8 placements)
+ROW R512  median   502.9  min   497.0  max   515.3  (8 placements)
+ROW I512  median   543.3  min   537.3  max   548.5  (8 placements)
+PASS
+# round 6 variant br 06:23:17 load 3.22 2.86 3.16
+PLACE C16   j=0     33.1  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.8  src%4K=512 dst%4K=1024
+PLACE C64   j=0     80.0  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    157.7  src%4K=2048 dst%4K=0
+PLACE R128  j=0    124.5  src%4K=1024 dst%4K=512
+PLACE R256  j=0    235.7  src%4K=0 dst%4K=2304
+PLACE I128  j=0    142.7  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    272.7  src%4K=2816 dst%4K=0
+PLACE C256  j=0    348.9  src%4K=0 dst%4K=0
+PLACE C512  j=0    747.9  src%4K=0 dst%4K=0
+PLACE R512  j=0    516.6  src%4K=0 dst%4K=768
+PLACE I512  j=0    550.6  src%4K=2304 dst%4K=0
+PLACE C16   j=1     32.8  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     48.0  src%4K=512 dst%4K=1024
+PLACE C64   j=1     79.1  src%4K=3072 dst%4K=0
+PLACE C128  j=1    159.2  src%4K=0 dst%4K=2048
+PLACE R128  j=1    124.4  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    236.7  src%4K=0 dst%4K=2816
+PLACE I128  j=1    143.9  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    271.6  src%4K=512 dst%4K=0
+PLACE C256  j=1    353.3  src%4K=0 dst%4K=0
+PLACE C512  j=1    717.4  src%4K=0 dst%4K=0
+PLACE R512  j=1    534.5  src%4K=0 dst%4K=0
+PLACE I512  j=1    551.9  src%4K=1536 dst%4K=0
+PLACE C16   j=2     39.0  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     46.9  src%4K=3072 dst%4K=0
+PLACE C64   j=2     84.5  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    159.3  src%4K=0 dst%4K=2048
+PLACE R128  j=2    244.9  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    237.4  src%4K=0 dst%4K=1024
+PLACE I128  j=2    141.4  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    270.5  src%4K=2304 dst%4K=0
+PLACE C256  j=2    350.0  src%4K=0 dst%4K=0
+PLACE C512  j=2    744.4  src%4K=0 dst%4K=0
+PLACE R512  j=2    528.2  src%4K=0 dst%4K=3072
+PLACE I512  j=2    552.7  src%4K=768 dst%4K=0
+PLACE C16   j=3     34.0  src%4K=3584 dst%4K=512
+PLACE C32   j=3     55.4  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     80.8  src%4K=3072 dst%4K=0
+PLACE C128  j=3    158.1  src%4K=2048 dst%4K=0
+PLACE R128  j=3    124.0  src%4K=3072 dst%4K=512
+PLACE R256  j=3    234.8  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    143.3  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    273.3  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    347.3  src%4K=0 dst%4K=0
+PLACE C512  j=3    757.4  src%4K=0 dst%4K=0
+PLACE R512  j=3    518.7  src%4K=0 dst%4K=2304
+PLACE I512  j=3    561.8  src%4K=0 dst%4K=0
+PLACE C16   j=4     32.9  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     47.1  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     81.4  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    161.9  src%4K=2048 dst%4K=0
+PLACE R128  j=4    137.3  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    241.7  src%4K=2048 dst%4K=0
+PLACE I128  j=4    142.6  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    271.6  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    350.0  src%4K=0 dst%4K=0
+PLACE C512  j=4    722.5  src%4K=0 dst%4K=0
+PLACE R512  j=4    515.1  src%4K=0 dst%4K=1536
+PLACE I512  j=4    546.7  src%4K=3072 dst%4K=0
+PLACE C16   j=5     32.7  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.6  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     80.7  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    157.9  src%4K=2048 dst%4K=0
+PLACE R128  j=5    124.7  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    233.9  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    140.8  src%4K=0 dst%4K=1024
+PLACE I256  j=5    269.9  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    350.3  src%4K=0 dst%4K=0
+PLACE C512  j=5    719.1  src%4K=0 dst%4K=0
+PLACE R512  j=5    514.9  src%4K=0 dst%4K=768
+PLACE I512  j=5    546.7  src%4K=2304 dst%4K=0
+PLACE C16   j=6     32.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.7  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.3  src%4K=0 dst%4K=1024
+PLACE C128  j=6    157.6  src%4K=2048 dst%4K=0
+PLACE R128  j=6    123.6  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    242.4  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    140.2  src%4K=1664 dst%4K=0
+PLACE I256  j=6    270.4  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    347.1  src%4K=0 dst%4K=0
+PLACE C512  j=6    791.9  src%4K=0 dst%4K=0
+PLACE R512  j=6    536.7  src%4K=0 dst%4K=0
+PLACE I512  j=6    547.0  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.0  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.4  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     81.7  src%4K=3072 dst%4K=0
+PLACE C128  j=7    156.9  src%4K=2048 dst%4K=0
+PLACE R128  j=7    124.5  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    234.0  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    143.5  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    269.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    344.6  src%4K=0 dst%4K=0
+PLACE C512  j=7    723.4  src%4K=0 dst%4K=0
+PLACE R512  j=7    515.1  src%4K=0 dst%4K=3072
+PLACE I512  j=7    544.4  src%4K=768 dst%4K=0
+ROW C16   median    33.0  min    32.7  max    39.0  (8 placements)
+ROW C32   median    46.4  min    45.4  max    55.4  (8 placements)
+ROW C64   median    80.8  min    79.1  max    84.5  (8 placements)
+ROW C128  median   158.0  min   156.9  max   161.9  (8 placements)
+ROW R128  median   124.5  min   123.6  max   244.9  (8 placements)
+ROW R256  median   236.2  min   233.9  max   242.4  (8 placements)
+ROW I128  median   142.6  min   140.2  max   143.9  (8 placements)
+ROW I256  median   271.0  min   269.7  max   273.3  (8 placements)
+ROW C256  median   349.4  min   344.6  max   353.3  (8 placements)
+ROW C512  median   733.9  min   717.4  max   791.9  (8 placements)
+ROW R512  median   517.7  min   514.9  max   536.7  (8 placements)
+ROW I512  median   548.8  min   544.4  max   561.8  (8 placements)
+PASS
+# round 7 variant br 06:23:32 load 3.49 2.93 3.18
+PLACE C16   j=0     32.8  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.4  src%4K=512 dst%4K=1024
+PLACE C64   j=0     79.1  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    157.9  src%4K=2048 dst%4K=0
+PLACE R128  j=0    124.5  src%4K=1024 dst%4K=512
+PLACE R256  j=0    235.9  src%4K=0 dst%4K=2304
+PLACE I128  j=0    143.6  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    272.7  src%4K=2816 dst%4K=0
+PLACE C256  j=0    348.0  src%4K=0 dst%4K=0
+PLACE C512  j=0    719.8  src%4K=0 dst%4K=0
+PLACE R512  j=0    511.0  src%4K=0 dst%4K=768
+PLACE I512  j=0    543.2  src%4K=2304 dst%4K=0
+PLACE C16   j=1     32.9  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     45.5  src%4K=512 dst%4K=1024
+PLACE C64   j=1     80.2  src%4K=3072 dst%4K=0
+PLACE C128  j=1    158.3  src%4K=0 dst%4K=2048
+PLACE R128  j=1    123.3  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    236.2  src%4K=0 dst%4K=2816
+PLACE I128  j=1    140.9  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    270.6  src%4K=512 dst%4K=0
+PLACE C256  j=1    348.3  src%4K=0 dst%4K=0
+PLACE C512  j=1    720.1  src%4K=0 dst%4K=0
+PLACE R512  j=1    515.2  src%4K=0 dst%4K=0
+PLACE I512  j=1    548.0  src%4K=1536 dst%4K=0
+PLACE C16   j=2     33.0  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.7  src%4K=3072 dst%4K=0
+PLACE C64   j=2     80.3  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    163.3  src%4K=0 dst%4K=2048
+PLACE R128  j=2    123.4  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    238.0  src%4K=0 dst%4K=1024
+PLACE I128  j=2    143.6  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    271.4  src%4K=2304 dst%4K=0
+PLACE C256  j=2    350.5  src%4K=0 dst%4K=0
+PLACE C512  j=2    723.7  src%4K=0 dst%4K=0
+PLACE R512  j=2    517.8  src%4K=0 dst%4K=3072
+PLACE I512  j=2    549.1  src%4K=768 dst%4K=0
+PLACE C16   j=3     34.5  src%4K=3584 dst%4K=512
+PLACE C32   j=3     46.4  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     79.7  src%4K=3072 dst%4K=0
+PLACE C128  j=3    157.7  src%4K=2048 dst%4K=0
+PLACE R128  j=3    123.2  src%4K=3072 dst%4K=512
+PLACE R256  j=3    240.0  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    140.3  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    272.0  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    353.2  src%4K=0 dst%4K=0
+PLACE C512  j=3    723.8  src%4K=0 dst%4K=0
+PLACE R512  j=3    515.9  src%4K=0 dst%4K=2304
+PLACE I512  j=3    547.6  src%4K=0 dst%4K=0
+PLACE C16   j=4     33.0  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     45.8  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     85.0  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    160.1  src%4K=2048 dst%4K=0
+PLACE R128  j=4    126.3  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    237.6  src%4K=2048 dst%4K=0
+PLACE I128  j=4    142.0  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    274.8  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    353.2  src%4K=0 dst%4K=0
+PLACE C512  j=4    719.9  src%4K=0 dst%4K=0
+PLACE R512  j=4    512.3  src%4K=0 dst%4K=1536
+PLACE I512  j=4    544.4  src%4K=3072 dst%4K=0
+PLACE C16   j=5     32.8  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.7  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     80.5  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    161.0  src%4K=2048 dst%4K=0
+PLACE R128  j=5    123.8  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    234.8  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    141.0  src%4K=0 dst%4K=1024
+PLACE I256  j=5    270.7  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    348.5  src%4K=0 dst%4K=0
+PLACE C512  j=5    718.8  src%4K=0 dst%4K=0
+PLACE R512  j=5    512.9  src%4K=0 dst%4K=768
+PLACE I512  j=5    549.7  src%4K=2304 dst%4K=0
+PLACE C16   j=6     32.7  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.4  src%4K=512 dst%4K=1024
+PLACE C64   j=6     78.2  src%4K=0 dst%4K=1024
+PLACE C128  j=6    158.1  src%4K=2048 dst%4K=0
+PLACE R128  j=6    122.4  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    243.1  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    141.0  src%4K=1664 dst%4K=0
+PLACE I256  j=6    270.5  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    351.5  src%4K=0 dst%4K=0
+PLACE C512  j=6    720.0  src%4K=0 dst%4K=0
+PLACE R512  j=6    511.1  src%4K=0 dst%4K=0
+PLACE I512  j=6    543.7  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.1  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.5  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     79.6  src%4K=3072 dst%4K=0
+PLACE C128  j=7    157.8  src%4K=2048 dst%4K=0
+PLACE R128  j=7    124.7  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    234.1  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    139.6  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    270.4  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    351.3  src%4K=0 dst%4K=0
+PLACE C512  j=7    726.5  src%4K=0 dst%4K=0
+PLACE R512  j=7    519.0  src%4K=0 dst%4K=3072
+PLACE I512  j=7    547.0  src%4K=768 dst%4K=0
+ROW C16   median    32.9  min    32.7  max    34.5  (8 placements)
+ROW C32   median    45.6  min    45.4  max    46.4  (8 placements)
+ROW C64   median    79.9  min    78.2  max    85.0  (8 placements)
+ROW C128  median   158.2  min   157.7  max   163.3  (8 placements)
+ROW R128  median   123.6  min   122.4  max   126.3  (8 placements)
+ROW R256  median   236.9  min   234.1  max   243.1  (8 placements)
+ROW I128  median   141.0  min   139.6  max   143.6  (8 placements)
+ROW I256  median   271.1  min   270.4  max   274.8  (8 placements)
+ROW C256  median   350.9  min   348.0  max   353.2  (8 placements)
+ROW C512  median   720.0  min   718.8  max   726.5  (8 placements)
+ROW R512  median   514.1  min   511.0  max   519.0  (8 placements)
+ROW I512  median   547.3  min   543.2  max   549.7  (8 placements)
+PASS
+# round 7 variant main 06:23:47 load 3.38 2.94 3.17
+PLACE C16   j=0     58.1  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.4  src%4K=512 dst%4K=1024
+PLACE C64   j=0    104.2  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    190.4  src%4K=2048 dst%4K=0
+PLACE R128  j=0    149.0  src%4K=2048 dst%4K=512
+PLACE R256  j=0    270.9  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    165.1  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    290.2  src%4K=2816 dst%4K=0
+PLACE C256  j=0    347.5  src%4K=0 dst%4K=0
+PLACE C512  j=0    724.0  src%4K=0 dst%4K=0
+PLACE R512  j=0    498.9  src%4K=0 dst%4K=768
+PLACE I512  j=0    547.4  src%4K=2304 dst%4K=0
+PLACE C16   j=1     57.8  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.5  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    106.3  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    189.3  src%4K=0 dst%4K=2048
+PLACE R128  j=1    149.1  src%4K=0 dst%4K=2816
+PLACE R256  j=1    270.9  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    166.9  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    295.8  src%4K=512 dst%4K=2048
+PLACE C256  j=1    350.0  src%4K=0 dst%4K=0
+PLACE C512  j=1    721.8  src%4K=0 dst%4K=0
+PLACE R512  j=1    501.4  src%4K=0 dst%4K=0
+PLACE I512  j=1    545.1  src%4K=1536 dst%4K=0
+PLACE C16   j=2     57.9  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     67.2  src%4K=512 dst%4K=1024
+PLACE C64   j=2    104.7  src%4K=0 dst%4K=1024
+PLACE C128  j=2    193.0  src%4K=2048 dst%4K=0
+PLACE R128  j=2    150.8  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    272.7  src%4K=0 dst%4K=1024
+PLACE I128  j=2    165.5  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    288.6  src%4K=2304 dst%4K=0
+PLACE C256  j=2    350.8  src%4K=0 dst%4K=0
+PLACE C512  j=2    719.6  src%4K=0 dst%4K=0
+PLACE R512  j=2    509.0  src%4K=0 dst%4K=3072
+PLACE I512  j=2    604.1  src%4K=768 dst%4K=0
+PLACE C16   j=3     58.2  src%4K=3072 dst%4K=0
+PLACE C32   j=3     68.0  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    104.0  src%4K=3072 dst%4K=0
+PLACE C128  j=3    193.0  src%4K=2048 dst%4K=0
+PLACE R128  j=3    151.7  src%4K=0 dst%4K=512
+PLACE R256  j=3    273.5  src%4K=0 dst%4K=2816
+PLACE I128  j=3    165.3  src%4K=2304 dst%4K=0
+PLACE I256  j=3    288.9  src%4K=1536 dst%4K=0
+PLACE C256  j=3    350.1  src%4K=0 dst%4K=0
+PLACE C512  j=3    779.0  src%4K=0 dst%4K=0
+PLACE R512  j=3    538.9  src%4K=0 dst%4K=2304
+PLACE I512  j=3    546.1  src%4K=0 dst%4K=0
+PLACE C16   j=4     58.2  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     67.3  src%4K=0 dst%4K=512
+PLACE C64   j=4    104.6  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    199.0  src%4K=0 dst%4K=2048
+PLACE R128  j=4    182.4  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    306.0  src%4K=2048 dst%4K=0
+PLACE I128  j=4    169.2  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    295.9  src%4K=2304 dst%4K=0
+PLACE C256  j=4    350.9  src%4K=0 dst%4K=0
+PLACE C512  j=4    776.8  src%4K=0 dst%4K=0
+PLACE R512  j=4    510.1  src%4K=0 dst%4K=1536
+PLACE I512  j=4    534.6  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.5  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.0  src%4K=0 dst%4K=512
+PLACE C64   j=5    104.9  src%4K=0 dst%4K=1024
+PLACE C128  j=5    192.4  src%4K=0 dst%4K=2048
+PLACE R128  j=5    150.3  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    272.5  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    166.2  src%4K=0 dst%4K=1024
+PLACE I256  j=5    293.1  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    357.7  src%4K=0 dst%4K=0
+PLACE C512  j=5    728.5  src%4K=0 dst%4K=0
+PLACE R512  j=5    505.5  src%4K=0 dst%4K=768
+PLACE I512  j=5    548.5  src%4K=2304 dst%4K=0
+PLACE C16   j=6     58.0  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.8  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    104.5  src%4K=0 dst%4K=1024
+PLACE C128  j=6    189.5  src%4K=2048 dst%4K=0
+PLACE R128  j=6    148.4  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    276.7  src%4K=0 dst%4K=3328
+PLACE I128  j=6    165.3  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    288.8  src%4K=1536 dst%4K=0
+PLACE C256  j=6    345.3  src%4K=0 dst%4K=0
+PLACE C512  j=6    713.3  src%4K=0 dst%4K=0
+PLACE R512  j=6    497.9  src%4K=0 dst%4K=0
+PLACE I512  j=6    537.2  src%4K=1536 dst%4K=0
+PLACE C16   j=7     57.9  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.2  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    104.7  src%4K=0 dst%4K=1024
+PLACE C128  j=7    189.2  src%4K=0 dst%4K=2048
+PLACE R128  j=7    152.1  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    270.8  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    165.4  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    287.9  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    345.3  src%4K=0 dst%4K=0
+PLACE C512  j=7    716.8  src%4K=0 dst%4K=0
+PLACE R512  j=7    502.6  src%4K=0 dst%4K=3072
+PLACE I512  j=7    544.7  src%4K=768 dst%4K=0
+ROW C16   median    58.1  min    57.8  max    58.5  (8 placements)
+ROW C32   median    67.4  min    67.0  max    68.0  (8 placements)
+ROW C64   median   104.6  min   104.0  max   106.3  (8 placements)
+ROW C128  median   191.4  min   189.2  max   199.0  (8 placements)
+ROW R128  median   150.5  min   148.4  max   182.4  (8 placements)
+ROW R256  median   272.6  min   270.8  max   306.0  (8 placements)
+ROW I128  median   165.5  min   165.1  max   169.2  (8 placements)
+ROW I256  median   289.5  min   287.9  max   295.9  (8 placements)
+ROW C256  median   350.0  min   345.3  max   357.7  (8 placements)
+ROW C512  median   722.9  min   713.3  max   779.0  (8 placements)
+ROW R512  median   504.1  min   497.9  max   538.9  (8 placements)
+ROW I512  median   545.6  min   534.6  max   604.1  (8 placements)
+PASS
+# round 8 variant main 06:24:02 load 4.01 3.10 3.23
+PLACE C16   j=0     57.8  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.4  src%4K=512 dst%4K=1024
+PLACE C64   j=0    104.4  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    190.9  src%4K=2048 dst%4K=0
+PLACE R128  j=0    147.7  src%4K=2048 dst%4K=512
+PLACE R256  j=0    270.5  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    178.3  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    290.1  src%4K=2816 dst%4K=0
+PLACE C256  j=0    344.6  src%4K=0 dst%4K=0
+PLACE C512  j=0    730.4  src%4K=0 dst%4K=0
+PLACE R512  j=0    500.4  src%4K=0 dst%4K=768
+PLACE I512  j=0    550.7  src%4K=2304 dst%4K=0
+PLACE C16   j=1     57.7  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.6  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    106.0  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    189.9  src%4K=0 dst%4K=2048
+PLACE R128  j=1    150.0  src%4K=0 dst%4K=2816
+PLACE R256  j=1    272.2  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    166.2  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    289.2  src%4K=512 dst%4K=2048
+PLACE C256  j=1    348.6  src%4K=0 dst%4K=0
+PLACE C512  j=1    739.1  src%4K=0 dst%4K=0
+PLACE R512  j=1    502.4  src%4K=0 dst%4K=0
+PLACE I512  j=1    544.0  src%4K=1536 dst%4K=0
+PLACE C16   j=2     57.8  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     67.6  src%4K=512 dst%4K=1024
+PLACE C64   j=2    105.2  src%4K=0 dst%4K=1024
+PLACE C128  j=2    216.9  src%4K=2048 dst%4K=0
+PLACE R128  j=2    149.4  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    271.8  src%4K=0 dst%4K=1024
+PLACE I128  j=2    164.6  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    288.3  src%4K=2304 dst%4K=0
+PLACE C256  j=2    349.3  src%4K=0 dst%4K=0
+PLACE C512  j=2    731.5  src%4K=0 dst%4K=0
+PLACE R512  j=2    504.0  src%4K=0 dst%4K=3072
+PLACE I512  j=2    542.9  src%4K=768 dst%4K=0
+PLACE C16   j=3     57.8  src%4K=3072 dst%4K=0
+PLACE C32   j=3     67.3  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    104.4  src%4K=3072 dst%4K=0
+PLACE C128  j=3    189.0  src%4K=2048 dst%4K=0
+PLACE R128  j=3    149.1  src%4K=0 dst%4K=512
+PLACE R256  j=3    272.8  src%4K=0 dst%4K=2816
+PLACE I128  j=3    165.1  src%4K=2304 dst%4K=0
+PLACE I256  j=3    289.3  src%4K=1536 dst%4K=0
+PLACE C256  j=3    348.4  src%4K=0 dst%4K=0
+PLACE C512  j=3    728.9  src%4K=0 dst%4K=0
+PLACE R512  j=3    508.2  src%4K=0 dst%4K=2304
+PLACE I512  j=3    539.9  src%4K=0 dst%4K=0
+PLACE C16   j=4     58.0  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     68.1  src%4K=0 dst%4K=512
+PLACE C64   j=4    104.6  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    192.8  src%4K=0 dst%4K=2048
+PLACE R128  j=4    150.8  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    272.5  src%4K=2048 dst%4K=0
+PLACE I128  j=4    164.3  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    289.1  src%4K=2304 dst%4K=0
+PLACE C256  j=4    349.7  src%4K=0 dst%4K=0
+PLACE C512  j=4    720.8  src%4K=0 dst%4K=0
+PLACE R512  j=4    499.8  src%4K=0 dst%4K=1536
+PLACE I512  j=4    538.4  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.4  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     67.0  src%4K=0 dst%4K=512
+PLACE C64   j=5    108.4  src%4K=0 dst%4K=1024
+PLACE C128  j=5    191.3  src%4K=0 dst%4K=2048
+PLACE R128  j=5    150.5  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    272.3  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    169.1  src%4K=0 dst%4K=1024
+PLACE I256  j=5    287.7  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    346.2  src%4K=0 dst%4K=0
+PLACE C512  j=5    718.7  src%4K=0 dst%4K=0
+PLACE R512  j=5    526.0  src%4K=0 dst%4K=768
+PLACE I512  j=5    542.9  src%4K=2304 dst%4K=0
+PLACE C16   j=6     58.1  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     67.7  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    103.7  src%4K=0 dst%4K=1024
+PLACE C128  j=6    195.0  src%4K=2048 dst%4K=0
+PLACE R128  j=6    149.4  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    279.6  src%4K=0 dst%4K=3328
+PLACE I128  j=6    166.7  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    289.9  src%4K=1536 dst%4K=0
+PLACE C256  j=6    348.6  src%4K=0 dst%4K=0
+PLACE C512  j=6    722.2  src%4K=0 dst%4K=0
+PLACE R512  j=6    506.1  src%4K=0 dst%4K=0
+PLACE I512  j=6    543.3  src%4K=1536 dst%4K=0
+PLACE C16   j=7     57.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.3  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    104.1  src%4K=0 dst%4K=1024
+PLACE C128  j=7    188.7  src%4K=0 dst%4K=2048
+PLACE R128  j=7    151.0  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    276.5  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    165.5  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    286.8  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    343.9  src%4K=0 dst%4K=0
+PLACE C512  j=7    721.5  src%4K=0 dst%4K=0
+PLACE R512  j=7    503.2  src%4K=0 dst%4K=3072
+PLACE I512  j=7    538.1  src%4K=768 dst%4K=0
+ROW C16   median    57.8  min    57.7  max    58.4  (8 placements)
+ROW C32   median    67.5  min    67.0  max    68.1  (8 placements)
+ROW C64   median   104.5  min   103.7  max   108.4  (8 placements)
+ROW C128  median   191.1  min   188.7  max   216.9  (8 placements)
+ROW R128  median   149.7  min   147.7  max   151.0  (8 placements)
+ROW R256  median   272.4  min   270.5  max   279.6  (8 placements)
+ROW I128  median   165.8  min   164.3  max   178.3  (8 placements)
+ROW I256  median   289.2  min   286.8  max   290.1  (8 placements)
+ROW C256  median   348.5  min   343.9  max   349.7  (8 placements)
+ROW C512  median   725.6  min   718.7  max   739.1  (8 placements)
+ROW R512  median   503.6  min   499.8  max   526.0  (8 placements)
+ROW I512  median   542.9  min   538.1  max   550.7  (8 placements)
+PASS
+# round 8 variant br 06:24:15 load 4.02 3.15 3.24
+PLACE C16   j=0     32.7  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.5  src%4K=512 dst%4K=1024
+PLACE C64   j=0     79.5  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    158.3  src%4K=2048 dst%4K=0
+PLACE R128  j=0    124.4  src%4K=1024 dst%4K=512
+PLACE R256  j=0    237.0  src%4K=0 dst%4K=2304
+PLACE I128  j=0    145.5  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    272.9  src%4K=2816 dst%4K=0
+PLACE C256  j=0    374.7  src%4K=0 dst%4K=0
+PLACE C512  j=0    721.9  src%4K=0 dst%4K=0
+PLACE R512  j=0    516.3  src%4K=0 dst%4K=768
+PLACE I512  j=0    547.8  src%4K=2304 dst%4K=0
+PLACE C16   j=1     33.1  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     45.8  src%4K=512 dst%4K=1024
+PLACE C64   j=1     79.8  src%4K=3072 dst%4K=0
+PLACE C128  j=1    157.9  src%4K=0 dst%4K=2048
+PLACE R128  j=1    124.1  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    235.8  src%4K=0 dst%4K=2816
+PLACE I128  j=1    141.1  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    281.5  src%4K=512 dst%4K=0
+PLACE C256  j=1    348.4  src%4K=0 dst%4K=0
+PLACE C512  j=1    804.1  src%4K=0 dst%4K=0
+PLACE R512  j=1    517.5  src%4K=0 dst%4K=0
+PLACE I512  j=1    549.8  src%4K=1536 dst%4K=0
+PLACE C16   j=2     32.8  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.8  src%4K=3072 dst%4K=0
+PLACE C64   j=2     82.3  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    158.2  src%4K=0 dst%4K=2048
+PLACE R128  j=2    123.6  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    235.3  src%4K=0 dst%4K=1024
+PLACE I128  j=2    141.6  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    273.1  src%4K=2304 dst%4K=0
+PLACE C256  j=2    348.3  src%4K=0 dst%4K=0
+PLACE C512  j=2    722.0  src%4K=0 dst%4K=0
+PLACE R512  j=2    519.2  src%4K=0 dst%4K=3072
+PLACE I512  j=2    546.8  src%4K=768 dst%4K=0
+PLACE C16   j=3     33.7  src%4K=3584 dst%4K=512
+PLACE C32   j=3     45.5  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     79.8  src%4K=3072 dst%4K=0
+PLACE C128  j=3    211.1  src%4K=2048 dst%4K=0
+PLACE R128  j=3    126.9  src%4K=3072 dst%4K=512
+PLACE R256  j=3    236.3  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    140.7  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    278.4  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    348.7  src%4K=0 dst%4K=0
+PLACE C512  j=3    727.7  src%4K=0 dst%4K=0
+PLACE R512  j=3    526.6  src%4K=0 dst%4K=2304
+PLACE I512  j=3    546.8  src%4K=0 dst%4K=0
+PLACE C16   j=4     32.8  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     46.0  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     80.1  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    158.5  src%4K=2048 dst%4K=0
+PLACE R128  j=4    126.2  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    235.2  src%4K=2048 dst%4K=0
+PLACE I128  j=4    142.3  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    271.4  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    351.7  src%4K=0 dst%4K=0
+PLACE C512  j=4    725.0  src%4K=0 dst%4K=0
+PLACE R512  j=4    514.9  src%4K=0 dst%4K=1536
+PLACE I512  j=4    547.7  src%4K=3072 dst%4K=0
+PLACE C16   j=5     32.9  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.6  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     81.0  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    161.0  src%4K=2048 dst%4K=0
+PLACE R128  j=5    124.3  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    234.7  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    141.6  src%4K=0 dst%4K=1024
+PLACE I256  j=5    272.0  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    348.6  src%4K=0 dst%4K=0
+PLACE C512  j=5    726.2  src%4K=0 dst%4K=0
+PLACE R512  j=5    516.2  src%4K=0 dst%4K=768
+PLACE I512  j=5    544.9  src%4K=2304 dst%4K=0
+PLACE C16   j=6     32.8  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.6  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.4  src%4K=0 dst%4K=1024
+PLACE C128  j=6    160.8  src%4K=2048 dst%4K=0
+PLACE R128  j=6    123.9  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    243.1  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    140.6  src%4K=1664 dst%4K=0
+PLACE I256  j=6    270.5  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    372.8  src%4K=0 dst%4K=0
+PLACE C512  j=6    780.5  src%4K=0 dst%4K=0
+PLACE R512  j=6    544.7  src%4K=0 dst%4K=0
+PLACE I512  j=6    557.1  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.2  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.5  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     80.5  src%4K=3072 dst%4K=0
+PLACE C128  j=7    158.4  src%4K=2048 dst%4K=0
+PLACE R128  j=7    125.8  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    235.0  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    142.8  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    270.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    350.1  src%4K=0 dst%4K=0
+PLACE C512  j=7    729.1  src%4K=0 dst%4K=0
+PLACE R512  j=7    521.4  src%4K=0 dst%4K=3072
+PLACE I512  j=7    546.8  src%4K=768 dst%4K=0
+ROW C16   median    32.9  min    32.7  max    33.7  (8 placements)
+ROW C32   median    45.6  min    45.5  max    46.0  (8 placements)
+ROW C64   median    79.9  min    79.4  max    82.3  (8 placements)
+ROW C128  median   158.4  min   157.9  max   211.1  (8 placements)
+ROW R128  median   124.4  min   123.6  max   126.9  (8 placements)
+ROW R256  median   235.5  min   234.7  max   243.1  (8 placements)
+ROW I128  median   141.6  min   140.6  max   145.5  (8 placements)
+ROW I256  median   272.4  min   270.5  max   281.5  (8 placements)
+ROW C256  median   349.4  min   348.3  max   374.7  (8 placements)
+ROW C512  median   726.9  min   721.9  max   804.1  (8 placements)
+ROW R512  median   518.4  min   514.9  max   544.7  (8 placements)
+ROW I512  median   547.2  min   544.9  max   557.1  (8 placements)
+PASS
+# round 9 variant br 06:24:29 load 3.65 3.11 3.22
+PLACE C16   j=0     32.7  src%4K=768 dst%4K=1024
+PLACE C32   j=0     45.5  src%4K=512 dst%4K=1024
+PLACE C64   j=0     79.4  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    158.4  src%4K=2048 dst%4K=0
+PLACE R128  j=0    124.8  src%4K=1024 dst%4K=512
+PLACE R256  j=0    238.1  src%4K=0 dst%4K=2304
+PLACE I128  j=0    145.0  src%4K=2816 dst%4K=3072
+PLACE I256  j=0    292.2  src%4K=2816 dst%4K=0
+PLACE C256  j=0    351.9  src%4K=0 dst%4K=0
+PLACE C512  j=0    729.8  src%4K=0 dst%4K=0
+PLACE R512  j=0    517.2  src%4K=0 dst%4K=768
+PLACE I512  j=0    548.9  src%4K=2304 dst%4K=0
+PLACE C16   j=1     32.9  src%4K=2816 dst%4K=3072
+PLACE C32   j=1     45.7  src%4K=512 dst%4K=1024
+PLACE C64   j=1     79.9  src%4K=3072 dst%4K=0
+PLACE C128  j=1    159.0  src%4K=0 dst%4K=2048
+PLACE R128  j=1    124.2  src%4K=1024 dst%4K=2816
+PLACE R256  j=1    239.8  src%4K=0 dst%4K=2816
+PLACE I128  j=1    141.4  src%4K=3456 dst%4K=3072
+PLACE I256  j=1    272.9  src%4K=512 dst%4K=0
+PLACE C256  j=1    350.9  src%4K=0 dst%4K=0
+PLACE C512  j=1    733.6  src%4K=0 dst%4K=0
+PLACE R512  j=1    516.9  src%4K=0 dst%4K=0
+PLACE I512  j=1    549.4  src%4K=1536 dst%4K=0
+PLACE C16   j=2     32.8  src%4K=2816 dst%4K=3072
+PLACE C32   j=2     45.9  src%4K=3072 dst%4K=0
+PLACE C64   j=2     82.6  src%4K=1024 dst%4K=2048
+PLACE C128  j=2    158.6  src%4K=0 dst%4K=2048
+PLACE R128  j=2    124.7  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    235.6  src%4K=0 dst%4K=1024
+PLACE I128  j=2    144.1  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    273.2  src%4K=2304 dst%4K=0
+PLACE C256  j=2    352.1  src%4K=0 dst%4K=0
+PLACE C512  j=2    724.9  src%4K=0 dst%4K=0
+PLACE R512  j=2    519.8  src%4K=0 dst%4K=3072
+PLACE I512  j=2    547.5  src%4K=768 dst%4K=0
+PLACE C16   j=3     33.8  src%4K=3584 dst%4K=512
+PLACE C32   j=3     45.5  src%4K=1024 dst%4K=1536
+PLACE C64   j=3     79.8  src%4K=3072 dst%4K=0
+PLACE C128  j=3    161.7  src%4K=2048 dst%4K=0
+PLACE R128  j=3    124.1  src%4K=3072 dst%4K=512
+PLACE R256  j=3    235.0  src%4K=2048 dst%4K=2816
+PLACE I128  j=3    140.6  src%4K=2304 dst%4K=3072
+PLACE I256  j=3    270.9  src%4K=1536 dst%4K=2048
+PLACE C256  j=3    351.0  src%4K=0 dst%4K=0
+PLACE C512  j=3    732.9  src%4K=0 dst%4K=0
+PLACE R512  j=3    519.6  src%4K=0 dst%4K=2304
+PLACE I512  j=3    545.6  src%4K=0 dst%4K=0
+PLACE C16   j=4     32.7  src%4K=1536 dst%4K=1792
+PLACE C32   j=4     45.8  src%4K=2048 dst%4K=2560
+PLACE C64   j=4     80.2  src%4K=1024 dst%4K=2048
+PLACE C128  j=4    157.9  src%4K=2048 dst%4K=0
+PLACE R128  j=4    126.0  src%4K=1024 dst%4K=1152
+PLACE R256  j=4    236.2  src%4K=2048 dst%4K=0
+PLACE I128  j=4    141.7  src%4K=3456 dst%4K=2048
+PLACE I256  j=4    271.9  src%4K=2304 dst%4K=2048
+PLACE C256  j=4    348.9  src%4K=0 dst%4K=0
+PLACE C512  j=4    731.6  src%4K=0 dst%4K=0
+PLACE R512  j=4    515.0  src%4K=0 dst%4K=1536
+PLACE I512  j=4    543.7  src%4K=3072 dst%4K=0
+PLACE C16   j=5     33.4  src%4K=1280 dst%4K=1536
+PLACE C32   j=5     45.5  src%4K=2560 dst%4K=3072
+PLACE C64   j=5     80.9  src%4K=1024 dst%4K=2048
+PLACE C128  j=5    158.0  src%4K=2048 dst%4K=0
+PLACE R128  j=5    124.0  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    234.0  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    141.2  src%4K=0 dst%4K=1024
+PLACE I256  j=5    270.9  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    349.1  src%4K=0 dst%4K=0
+PLACE C512  j=5    721.7  src%4K=0 dst%4K=0
+PLACE R512  j=5    514.0  src%4K=0 dst%4K=768
+PLACE I512  j=5    554.9  src%4K=2304 dst%4K=0
+PLACE C16   j=6     32.9  src%4K=2560 dst%4K=2816
+PLACE C32   j=6     45.6  src%4K=512 dst%4K=1024
+PLACE C64   j=6     79.2  src%4K=0 dst%4K=1024
+PLACE C128  j=6    157.9  src%4K=2048 dst%4K=0
+PLACE R128  j=6    124.1  src%4K=2048 dst%4K=2816
+PLACE R256  j=6    243.8  src%4K=2048 dst%4K=3328
+PLACE I128  j=6    141.0  src%4K=1664 dst%4K=0
+PLACE I256  j=6    279.7  src%4K=1536 dst%4K=2048
+PLACE C256  j=6    351.6  src%4K=0 dst%4K=0
+PLACE C512  j=6    718.5  src%4K=0 dst%4K=0
+PLACE R512  j=6    516.8  src%4K=0 dst%4K=0
+PLACE I512  j=6    548.1  src%4K=1536 dst%4K=0
+PLACE C16   j=7     33.2  src%4K=1536 dst%4K=1792
+PLACE C32   j=7     45.5  src%4K=3072 dst%4K=3584
+PLACE C64   j=7     82.8  src%4K=3072 dst%4K=0
+PLACE C128  j=7    161.5  src%4K=2048 dst%4K=0
+PLACE R128  j=7    126.2  src%4K=3072 dst%4K=1152
+PLACE R256  j=7    234.9  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    140.3  src%4K=1664 dst%4K=3072
+PLACE I256  j=7    271.4  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    352.1  src%4K=0 dst%4K=0
+PLACE C512  j=7    728.1  src%4K=0 dst%4K=0
+PLACE R512  j=7    520.3  src%4K=0 dst%4K=3072
+PLACE I512  j=7    547.4  src%4K=768 dst%4K=0
+ROW C16   median    32.9  min    32.7  max    33.8  (8 placements)
+ROW C32   median    45.6  min    45.5  max    45.9  (8 placements)
+ROW C64   median    80.0  min    79.2  max    82.8  (8 placements)
+ROW C128  median   158.5  min   157.9  max   161.7  (8 placements)
+ROW R128  median   124.4  min   124.0  max   126.2  (8 placements)
+ROW R256  median   235.9  min   234.0  max   243.8  (8 placements)
+ROW I128  median   141.3  min   140.3  max   145.0  (8 placements)
+ROW I256  median   272.4  min   270.9  max   292.2  (8 placements)
+ROW C256  median   351.3  min   348.9  max   352.1  (8 placements)
+ROW C512  median   729.0  min   718.5  max   733.6  (8 placements)
+ROW R512  median   517.1  min   514.0  max   520.3  (8 placements)
+ROW I512  median   547.8  min   543.7  max   554.9  (8 placements)
+PASS
+# round 9 variant main 06:24:44 load 3.51 3.10 3.22
+PLACE C16   j=0     58.6  src%4K=768 dst%4K=1024
+PLACE C32   j=0     67.3  src%4K=512 dst%4K=1024
+PLACE C64   j=0    105.0  src%4K=2048 dst%4K=3072
+PLACE C128  j=0    191.3  src%4K=2048 dst%4K=0
+PLACE R128  j=0    150.0  src%4K=2048 dst%4K=512
+PLACE R256  j=0    272.0  src%4K=2048 dst%4K=2304
+PLACE I128  j=0    166.3  src%4K=2816 dst%4K=1024
+PLACE I256  j=0    295.6  src%4K=2816 dst%4K=0
+PLACE C256  j=0    351.1  src%4K=0 dst%4K=0
+PLACE C512  j=0    728.1  src%4K=0 dst%4K=0
+PLACE R512  j=0    501.6  src%4K=0 dst%4K=768
+PLACE I512  j=0    560.6  src%4K=2304 dst%4K=0
+PLACE C16   j=1     57.9  src%4K=3072 dst%4K=3328
+PLACE C32   j=1     67.6  src%4K=1024 dst%4K=1536
+PLACE C64   j=1    107.5  src%4K=1024 dst%4K=2048
+PLACE C128  j=1    190.6  src%4K=0 dst%4K=2048
+PLACE R128  j=1    150.3  src%4K=0 dst%4K=2816
+PLACE R256  j=1    274.1  src%4K=2048 dst%4K=2816
+PLACE I128  j=1    166.0  src%4K=3456 dst%4K=2048
+PLACE I256  j=1    294.9  src%4K=512 dst%4K=2048
+PLACE C256  j=1    353.4  src%4K=0 dst%4K=0
+PLACE C512  j=1    755.6  src%4K=0 dst%4K=0
+PLACE R512  j=1    509.2  src%4K=0 dst%4K=0
+PLACE I512  j=1    548.9  src%4K=1536 dst%4K=0
+PLACE C16   j=2     58.5  src%4K=3328 dst%4K=3584
+PLACE C32   j=2     69.3  src%4K=512 dst%4K=1024
+PLACE C64   j=2    105.8  src%4K=0 dst%4K=1024
+PLACE C128  j=2    193.8  src%4K=2048 dst%4K=0
+PLACE R128  j=2    154.3  src%4K=3072 dst%4K=1664
+PLACE R256  j=2    300.4  src%4K=0 dst%4K=1024
+PLACE I128  j=2    178.1  src%4K=1664 dst%4K=1024
+PLACE I256  j=2    296.6  src%4K=2304 dst%4K=0
+PLACE C256  j=2    388.8  src%4K=0 dst%4K=0
+PLACE C512  j=2    783.3  src%4K=0 dst%4K=0
+PLACE R512  j=2    519.4  src%4K=0 dst%4K=3072
+PLACE I512  j=2    674.2  src%4K=768 dst%4K=0
+PLACE C16   j=3     58.2  src%4K=3072 dst%4K=0
+PLACE C32   j=3     68.1  src%4K=2560 dst%4K=3072
+PLACE C64   j=3    105.6  src%4K=3072 dst%4K=0
+PLACE C128  j=3    193.2  src%4K=2048 dst%4K=0
+PLACE R128  j=3    150.1  src%4K=0 dst%4K=512
+PLACE R256  j=3    271.8  src%4K=0 dst%4K=2816
+PLACE I128  j=3    165.8  src%4K=2304 dst%4K=0
+PLACE I256  j=3    293.0  src%4K=1536 dst%4K=0
+PLACE C256  j=3    357.4  src%4K=0 dst%4K=0
+PLACE C512  j=3    766.3  src%4K=0 dst%4K=0
+PLACE R512  j=3    527.5  src%4K=0 dst%4K=2304
+PLACE I512  j=3    551.2  src%4K=0 dst%4K=0
+PLACE C16   j=4     58.3  src%4K=2560 dst%4K=2816
+PLACE C32   j=4     67.4  src%4K=0 dst%4K=512
+PLACE C64   j=4    104.7  src%4K=2048 dst%4K=3072
+PLACE C128  j=4    191.0  src%4K=0 dst%4K=2048
+PLACE R128  j=4    151.1  src%4K=3072 dst%4K=1152
+PLACE R256  j=4    274.2  src%4K=2048 dst%4K=0
+PLACE I128  j=4    165.5  src%4K=3456 dst%4K=3072
+PLACE I256  j=4    293.6  src%4K=2304 dst%4K=0
+PLACE C256  j=4    353.8  src%4K=0 dst%4K=0
+PLACE C512  j=4    722.3  src%4K=0 dst%4K=0
+PLACE R512  j=4    507.3  src%4K=0 dst%4K=1536
+PLACE I512  j=4    541.4  src%4K=3072 dst%4K=0
+PLACE C16   j=5     58.0  src%4K=1792 dst%4K=2048
+PLACE C32   j=5     68.1  src%4K=0 dst%4K=512
+PLACE C64   j=5    104.3  src%4K=0 dst%4K=1024
+PLACE C128  j=5    189.3  src%4K=0 dst%4K=2048
+PLACE R128  j=5    151.5  src%4K=1024 dst%4K=2816
+PLACE R256  j=5    273.1  src%4K=2048 dst%4K=1536
+PLACE I128  j=5    165.7  src%4K=0 dst%4K=1024
+PLACE I256  j=5    293.4  src%4K=3328 dst%4K=2048
+PLACE C256  j=5    348.3  src%4K=0 dst%4K=0
+PLACE C512  j=5    717.2  src%4K=0 dst%4K=0
+PLACE R512  j=5    501.0  src%4K=0 dst%4K=768
+PLACE I512  j=5    568.0  src%4K=2304 dst%4K=0
+PLACE C16   j=6     59.2  src%4K=3328 dst%4K=3584
+PLACE C32   j=6     68.1  src%4K=2048 dst%4K=2560
+PLACE C64   j=6    105.4  src%4K=0 dst%4K=1024
+PLACE C128  j=6    189.2  src%4K=2048 dst%4K=0
+PLACE R128  j=6    149.8  src%4K=3072 dst%4K=2816
+PLACE R256  j=6    277.6  src%4K=0 dst%4K=3328
+PLACE I128  j=6    164.9  src%4K=1664 dst%4K=1024
+PLACE I256  j=6    292.0  src%4K=1536 dst%4K=0
+PLACE C256  j=6    347.4  src%4K=0 dst%4K=0
+PLACE C512  j=6    715.8  src%4K=0 dst%4K=0
+PLACE R512  j=6    588.7  src%4K=0 dst%4K=0
+PLACE I512  j=6    674.8  src%4K=1536 dst%4K=0
+PLACE C16   j=7     58.7  src%4K=2560 dst%4K=2816
+PLACE C32   j=7     67.6  src%4K=1024 dst%4K=1536
+PLACE C64   j=7    105.1  src%4K=0 dst%4K=1024
+PLACE C128  j=7    190.2  src%4K=0 dst%4K=2048
+PLACE R128  j=7    150.7  src%4K=1024 dst%4K=1152
+PLACE R256  j=7    276.9  src%4K=2048 dst%4K=2304
+PLACE I128  j=7    164.3  src%4K=1664 dst%4K=1024
+PLACE I256  j=7    290.9  src%4K=1536 dst%4K=2048
+PLACE C256  j=7    346.7  src%4K=0 dst%4K=0
+PLACE C512  j=7    720.6  src%4K=0 dst%4K=0
+PLACE R512  j=7    508.4  src%4K=0 dst%4K=3072
+PLACE I512  j=7    547.5  src%4K=768 dst%4K=0
+ROW C16   median    58.4  min    57.9  max    59.2  (8 placements)
+ROW C32   median    67.8  min    67.3  max    69.3  (8 placements)
+ROW C64   median   105.2  min   104.3  max   107.5  (8 placements)
+ROW C128  median   190.8  min   189.2  max   193.8  (8 placements)
+ROW R128  median   150.5  min   149.8  max   154.3  (8 placements)
+ROW R256  median   274.1  min   271.8  max   300.4  (8 placements)
+ROW I128  median   165.8  min   164.3  max   178.1  (8 placements)
+ROW I256  median   293.5  min   290.9  max   296.6  (8 placements)
+ROW C256  median   352.3  min   346.7  max   388.8  (8 placements)
+ROW C512  median   725.2  min   715.8  max   783.3  (8 placements)
+ROW R512  median   508.8  min   501.0  max   588.7  (8 placements)
+ROW I512  median   555.9  min   541.4  max   674.8  (8 placements)
+PASS
+# done 06:24:59 load 3.46 3.11 3.22

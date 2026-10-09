@@ -1,0 +1,22 @@
+PASS
+taken: 46 of 122 lengths
+122 lengths (complex n, real 2n), numpy 2.5.3
+  fft    worst relative error 8.866e-16 at n=338
+  ifft   worst relative error 9.453e-16 at n=169
+  irfft  worst relative error 8.776e-16 at n=242
+  rfft   worst relative error 7.549e-16 at n=65
+PASS
+exit 0
+## byte 14 of c64.fft set to 0x01:
+FAIL n=64 (kernel true) fft: 1.681e-02
+FAIL: 1
+## byte 22 of c256.fft set to 0x01:
+FAIL n=256 (kernel true) fft: 3.562e-01
+FAIL: 1
+## byte 30 of r512.rfft set to 0x01:
+FAIL n=256 (kernel true) rfft: 2.980e-01
+FAIL n=256 (kernel true) irfft: 1.952e-02
+FAIL: 2
+## byte 6 of r1024.irfft set to 0x01:
+FAIL n=512 (kernel true) irfft: 1.565e-01
+FAIL: 1

@@ -1,0 +1,62 @@
+3.00 3.03 3.19 3/1316 140643
+ZN FFTW-C32 36.7
+(dft-direct-32 "n2fv_32_avx2_128")
+ZN FFTW-C64 69.2
+(dft-ct-dit/8
+  (dftw-direct-8/56 "t2fv_8_avx2")
+  (dft-direct-8-x8 "n2fv_8_avx2"))
+ZN FFTW-C128 177.1
+(dft-ct-dit/2
+  (dftw-direct-2/8 "t2fv_2_avx2")
+  (dft-direct-64-x2 "n2fv_64_avx2"))
+ZN FFTW-C256 271.0
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t2fv_32_avx2")
+  (dft-direct-8-x32 "n2fv_8_avx"))
+ZN FFTW-C512 640.6
+(dft-ct-dit/64
+  (dftw-direct-64/504 "t2fv_64_avx2")
+  (dft-direct-8-x64 "n2fv_8_avx"))
+ZN FFTW-C1024 1643.2
+(dft-ct-dit/32
+  (dftw-direct-32/124 "t1fv_32_avx2")
+  (dft-direct-32-x32 "n2fv_32_avx"))
+ZN FFTW-R128 119.5
+(rdft2-ct-dit/4
+  (hc2c-direct-4/12/1 "hc2cfdftv_4_avx2"
+    (rdft2-r2hc-direct-4 "r2cf_4")
+    (rdft2-r2hc01-direct-4 "r2cfII_4"))
+  (dft-direct-32-x2 "n2fv_32_avx"))
+ZN FFTW-R256 220.3
+(rdft2-ct-dit/2
+  (hc2c-direct-2/4/1 "hc2cfdftv_2_avx2"
+    (rdft2-r2hc-direct-2 "r2cf_2")
+    (rdft2-r2hc01-direct-2 "r2cfII_2"))
+  (dft-ct-dit/2
+    (dftw-direct-2/8 "t2fv_2_avx2")
+    (dft-direct-64-x2 "n2fv_64_avx2")))
+ZN FFTW-R512 458.6
+(rdft2-ct-dit/2
+  (hc2c-direct-2/4/1 "hc2cfdftv_2_avx2"
+    (rdft2-r2hc-direct-2 "r2cf_2")
+    (rdft2-r2hc01-direct-2 "r2cfII_2"))
+  (dft-ct-dit/32
+    (dftw-direct-32/248 "t2fv_32_avx2")
+    (dft-direct-8-x32 "n2fv_8_avx")))
+ZN FFTW-R1024 953.1
+(rdft2-ct-dit/16
+  (hc2c-direct-16/60/1 "hc2cfdftv_16_avx2"
+    (rdft2-r2hc-direct-16 "r2cf_16")
+    (rdft2-r2hc01-direct-16 "r2cfII_16"))
+  (dft-direct-64-x8 "n2fv_64_avx2"))
+ZN FFTW-C32 36.5
+ZN FFTW-C64 66.2
+ZN FFTW-C128 130.4
+ZN FFTW-C256 272.6
+ZN FFTW-C512 649.0
+ZN FFTW-C1024 1492.5
+ZN FFTW-R128 132.6
+ZN FFTW-R256 224.4
+ZN FFTW-R512 436.1
+ZN FFTW-R1024 995.7
+3.00 3.03 3.18 3/1315 141207

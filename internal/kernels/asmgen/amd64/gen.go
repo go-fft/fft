@@ -32,6 +32,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-asmgen/asmgen/amd64"
 	"github.com/go-asmgen/asmgen/emit"
@@ -337,6 +338,7 @@ func main() {
 	genComp2File()
 	genIntelSplit512File()
 	genSmallUntangleFile()
+	genZnTwoPassFile()
 }
 
 func writeFile(name, content string) {
@@ -3678,5 +3680,171 @@ func genClUntangle512(f *emit.File, inverse bool) {
 		Raw("VZEROUPPER").
 		Ret()
 	b.Raw("none:").Ret()
+	f.Add(b.Func())
+}
+
+// ---------------------------------------------------------------------------
+// Two-pass transforms on the kernel's own stack frame (Round 32), into
+// zntwopass_amd64.s.
+//
+// A Stockham transform of two passes needs one n-point buffer between them.
+// The fft package borrowed it from a sync.Pool, a round trip of about 16 ns,
+// as long as a whole 64-point pass on Zen 3; a Go array on the stack would be
+// zeroed on every call (1 KB at 64 points). znTwoPassAVX2(cc, ch, tw *complex128,
+// k0, k1 *float64, ido, l1 int, pass, last uintptr) keeps the buffer in its
+// own frame, uninitialised: it calls the first pass's kernel, at entry point
+// pass, as (cc, buf, tw, k0, ido, 1), then the final pass's kernel, at entry
+// point last, as (buf, ch, k1, l1). The buffer starts on a 64-byte boundary
+// and holds up to znTwoPassMax points. Both kernels are the ones StockhamPass
+// and StockhamPassLayout run, with the same arguments, so the result is the
+// same bits.
+//
+// The entry points are the kernels' ABI0 addresses, which Go code cannot take
+// (a func value of an assembly function is its ABIInternal wrapper):
+// znKernelAddrs(t *[znAddrSlots]uintptr) stores them, the interleaved pass
+// kernels of radix r at t[r], the final-pass kernels at t[21+r], the split
+// kernels of radix r, mode m and direction d (0 forward) at
+// t[42+(9d+r)·5+m].
+
+// znTwoPassMax is the largest transform znTwoPassAVX2's frame holds, in
+// complex128 points; it must match the kernels package's ZnTwoPassMax.
+const znTwoPassMax = 256
+
+// znRadices are the radices with AVX2 pass and final-pass kernels.
+var znRadices = []int{2, 3, 4, 5, 8, 10, 12, 15, 16, 20}
+
+// znSplitModes names the split kernels' layouts by mode (1..4).
+var znSplitModes = []string{1: "IS", 2: "SS", 3: "SI", 4: "II"}
+
+func genZnTwoPassFile() {
+	f := emit.NewFile("amd64")
+	genZnTwoPass(f)
+	genZnThreePass(f)
+	genZnKernelAddrs(f)
+	// NO_LOCAL_POINTERS (the frame holds the buffer and the callees'
+	// arguments, which are copies of znTwoPassAVX2's own) is in funcdata.h.
+	s := strings.Replace(f.String(), "#include \"textflag.h\"\n", "#include \"textflag.h\"\n#include \"funcdata.h\"\n", 1)
+	writeFile("zntwopass_amd64.s", s)
+}
+
+func genZnTwoPass(f *emit.File) {
+	names := []string{"cc", "ch", "tw", "k0", "k1", "ido", "l1", "pass", "last"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Uint64, amd64.Uint64}
+	// The frame: the callees' arguments at 0..47(SP), then the buffer from
+	// the first 64-byte boundary at or above 48(SP).
+	frame := (48 + 63 + 16*znTwoPassMax + 7) &^ 7
+	// No NOSPLIT: the assembler inserts the stack check for the frame.
+	b := amd64.NewFuncFlags("znTwoPassAVX2", amd64.Layout(names, types, nil, nil), frame, "")
+	b.Raw("NO_LOCAL_POINTERS")
+	buf := func(reg string) {
+		b.Raw("LEAQ 111(SP), %s", reg).Raw("ANDQ $-64, %s", reg)
+	}
+	// The first pass: (cc, buf, tw, k0, ido, 1).
+	b.LoadArg("cc", "AX").Raw("MOVQ AX, 0(SP)")
+	buf("AX")
+	b.Raw("MOVQ AX, 8(SP)")
+	b.LoadArg("tw", "AX").Raw("MOVQ AX, 16(SP)")
+	b.LoadArg("k0", "AX").Raw("MOVQ AX, 24(SP)")
+	b.LoadArg("ido", "AX").Raw("MOVQ AX, 32(SP)")
+	b.Raw("MOVQ $1, 40(SP)")
+	b.LoadArg("pass", "AX").Raw("CALL AX")
+	// The final pass: (buf, ch, k1, l1). The callee may have clobbered
+	// every register.
+	buf("AX")
+	b.Raw("MOVQ AX, 0(SP)")
+	b.LoadArg("ch", "AX").Raw("MOVQ AX, 8(SP)")
+	b.LoadArg("k1", "AX").Raw("MOVQ AX, 16(SP)")
+	b.LoadArg("l1", "AX").Raw("MOVQ AX, 24(SP)")
+	b.LoadArg("last", "AX").Raw("CALL AX")
+	b.Ret()
+	f.Add(b.Func())
+}
+
+func genZnKernelAddrs(f *emit.File) {
+	b := amd64.NewFunc("znKernelAddrs", amd64.Layout([]string{"t"}, []amd64.Type{amd64.Ptr}, nil, nil), 0)
+	b.LoadArg("t", "DI")
+	put := func(sym string, slot int) {
+		b.Raw("LEAQ ·%s(SB), AX", sym).Raw("MOVQ AX, %d(DI)", 8*slot)
+	}
+	for _, r := range znRadices {
+		put(fmt.Sprintf("skPass%dAVX2", r), r)
+		put(fmt.Sprintf("skLast%dAVX2", r), 21+r)
+	}
+	for d, dir := range []string{"Fwd", "Inv"} {
+		for _, r := range []int{4, 8} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("skSplit%d%s%s", r, znSplitModes[m], dir), 42+(9*d+r)*5+m)
+			}
+		}
+	}
+	b.Ret()
+	f.Add(b.Func())
+}
+
+// znThreePassMax is the largest transform znThreePassAVX2's frame holds, in
+// complex128 points; it must match the kernels package's ZnThreePassMax.
+const znThreePassMax = 512
+
+// genZnThreePass writes znThreePassAVX2(cc, ch, x, tw0, tw1 *complex128, k0,
+// k1, k2 *float64, ido0, ido1, l1b, l1c int, p0, p1, p2 uintptr), the
+// three-pass counterpart of znTwoPassAVX2: pass 0 (entry point p0) reads cc
+// and writes x, pass 1 (p1) reads x and writes a buffer B in the frame, the
+// final pass (p2) reads B and writes ch, with the arguments StockhamPass
+// would give each:
+//
+//	p0(cc, x, tw0, k0, ido0, 1)
+//	p1(x, B, tw1, k1, ido1, l1b)
+//	p2(B, ch, k2, l1c)
+//
+// x is ch when it does not alias cc (the fft package's out-of-place
+// schedule for an odd pass count) or nil, which selects a second frame
+// buffer B2 (in place, where pass 0 must not write over the input it is
+// still reading). B and B2 start on 64-byte boundaries.
+func genZnThreePass(f *emit.File) {
+	names := []string{"cc", "ch", "x", "tw0", "tw1", "k0", "k1", "k2", "ido0", "ido1", "l1b", "l1c", "p0", "p1", "p2"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr,
+		amd64.Int64, amd64.Int64, amd64.Int64, amd64.Int64, amd64.Uint64, amd64.Uint64, amd64.Uint64}
+	// The callees' arguments at 0..47(SP), x at 48(SP), then B from the
+	// first 64-byte boundary at or above 56(SP), then B2.
+	b2 := 16 * znThreePassMax
+	frame := (56 + 63 + 2*b2 + 7) &^ 7
+	b := amd64.NewFuncFlags("znThreePassAVX2", amd64.Layout(names, types, nil, nil), frame, "")
+	b.Raw("NO_LOCAL_POINTERS")
+	buf := func(reg string) {
+		b.Raw("LEAQ 119(SP), %s", reg).Raw("ANDQ $-64, %s", reg)
+	}
+	// x, or B2 when x is nil, kept at 48(SP).
+	b.LoadArg("x", "AX").
+		Raw("TESTQ AX, AX").
+		Raw("JNZ havex")
+	buf("AX")
+	b.Raw("ADDQ $%d, AX", b2).
+		Label("havex")
+	b.Raw("MOVQ AX, 48(SP)")
+	// Pass 0: (cc, x, tw0, k0, ido0, 1).
+	b.LoadArg("cc", "BX").Raw("MOVQ BX, 0(SP)").
+		Raw("MOVQ AX, 8(SP)")
+	b.LoadArg("tw0", "BX").Raw("MOVQ BX, 16(SP)")
+	b.LoadArg("k0", "BX").Raw("MOVQ BX, 24(SP)")
+	b.LoadArg("ido0", "BX").Raw("MOVQ BX, 32(SP)")
+	b.Raw("MOVQ $1, 40(SP)")
+	b.LoadArg("p0", "AX").Raw("CALL AX")
+	// Pass 1: (x, B, tw1, k1, ido1, l1b).
+	b.Raw("MOVQ 48(SP), AX").Raw("MOVQ AX, 0(SP)")
+	buf("AX")
+	b.Raw("MOVQ AX, 8(SP)")
+	b.LoadArg("tw1", "AX").Raw("MOVQ AX, 16(SP)")
+	b.LoadArg("k1", "AX").Raw("MOVQ AX, 24(SP)")
+	b.LoadArg("ido1", "AX").Raw("MOVQ AX, 32(SP)")
+	b.LoadArg("l1b", "AX").Raw("MOVQ AX, 40(SP)")
+	b.LoadArg("p1", "AX").Raw("CALL AX")
+	// The final pass: (B, ch, k2, l1c).
+	buf("AX")
+	b.Raw("MOVQ AX, 0(SP)")
+	b.LoadArg("ch", "AX").Raw("MOVQ AX, 8(SP)")
+	b.LoadArg("k2", "AX").Raw("MOVQ AX, 16(SP)")
+	b.LoadArg("l1c", "AX").Raw("MOVQ AX, 24(SP)")
+	b.LoadArg("p2", "AX").Raw("CALL AX")
+	b.Ret()
 	f.Add(b.Func())
 }

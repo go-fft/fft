@@ -4,6 +4,8 @@ import (
 	"math"
 	"slices"
 	"testing"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
 
 func TestPow2StockhamMaxAMD64(t *testing.T) {
@@ -152,5 +154,19 @@ func TestClRowOrderAMD64(t *testing.T) {
 	m := clRowOrderAMD64(true)
 	if len(m) != 1 || !slices.Equal(m[1024], []int{4, 8, 4, 8}) {
 		t.Errorf("row orders %v", m)
+	}
+}
+
+// TestZnFrameMaxAMD64: the frame kernels run on AMD only, up to the kernels
+// package's limits.
+func TestZnFrameMaxAMD64(t *testing.T) {
+	if got := znFrameMaxAMD64(false, 77); got != 77 {
+		t.Errorf("AMD: %d", got)
+	}
+	if got := znFrameMaxAMD64(true, 77); got != 0 {
+		t.Errorf("Intel: %d", got)
+	}
+	if kernels.ZnTwoPassMax < 128 || kernels.ZnThreePassMax < 256 {
+		t.Errorf("limits %d, %d", kernels.ZnTwoPassMax, kernels.ZnThreePassMax)
 	}
 }

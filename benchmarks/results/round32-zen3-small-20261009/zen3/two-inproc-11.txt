@@ -1,0 +1,15 @@
+# start 06:19:33 load 2.24 2.45 3.16
+ZNTWO C16   pool    62.4 frame    34.3 pool/frame 1.827 (1.750-1.838)
+ZNTWO C32   pool    68.2 frame    47.4 pool/frame 1.436 (1.429-1.675)
+ZNTWO C64   pool   106.3 frame    81.6 pool/frame 1.304 (1.287-1.586)
+ZNTWO C128  pool   204.8 frame   162.2 pool/frame 1.267 (1.253-1.909)
+ZNTWO C256  pool   367.8 frame   362.1 pool/frame 1.002 (0.926-1.080)
+ZNTWO R64   pool   112.6 frame    77.3 pool/frame 1.435 (1.397-1.782)
+ZNTWO R128  pool   155.8 frame   127.2 pool/frame 1.228 (1.157-1.307)
+ZNTWO R256  pool   353.6 frame   242.4 pool/frame 1.453 (1.240-1.713)
+ZNTWO R512  pool   615.5 frame   636.7 pool/frame 0.996 (0.876-1.106)
+ZNTWO I128  pool   175.3 frame   143.2 pool/frame 1.219 (1.016-1.272)
+ZNTWO I256  pool   314.1 frame   282.4 pool/frame 1.143 (1.068-1.159)
+ZNTWO I512  pool   543.1 frame   544.1 pool/frame 1.001 (0.995-1.321)
+PASS
+# end 06:19:39 load 2.51 2.50 3.17

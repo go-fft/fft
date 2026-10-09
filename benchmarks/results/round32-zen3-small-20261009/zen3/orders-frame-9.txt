@@ -1,0 +1,46 @@
+# start 06:26:59 load 2.99 3.06 3.18
+ORDER 16 4x4          30.9 [ref/this 1.000 (1.000-1.000)]
+ORDER 16   r4/i4/s4 21.0
+ORDER 16   r4/i1/s0 17.3
+ORDER 16 2x8          31.5 [ref/this 0.980 (0.850-1.167)]
+ORDER 16   r2/i8/s0 20.1
+ORDER 16   r8/i1/s0 17.9
+ORDER 16 8x2          31.9 [ref/this 0.974 (0.933-1.103)]
+ORDER 16   r8/i2/s0 21.4
+ORDER 16   r2/i1/s0 17.5
+ORDER 32 4x8          43.3 [ref/this 1.000 (1.000-1.000)]
+ORDER 32   r4/i8/s4 25.4
+ORDER 32   r8/i1/s0 22.1
+ORDER 32 8x4          45.3 [ref/this 0.962 (0.908-1.148)]
+ORDER 32   r8/i4/s4 33.2
+ORDER 32   r4/i1/s0 20.7
+ORDER 32 2x16         45.4 [ref/this 0.959 (0.852-1.186)]
+ORDER 32   r2/i16/s0 23.9
+ORDER 32   r16/i1/s0 32.2
+ORDER 32 16x2         51.2 [ref/this 0.847 (0.773-1.072)]
+ORDER 32   r16/i2/s0 40.0
+ORDER 32   r2/i1/s0 21.4
+ORDER 64 8x8          77.6 [ref/this 1.000 (1.000-1.000)]
+ORDER 64   r8/i8/s4 46.8
+ORDER 64   r8/i1/s0 36.2
+ORDER 64 4x16         80.3 [ref/this 0.959 (0.811-1.073)]
+ORDER 64   r4/i16/s4 39.2
+ORDER 64   r16/i1/s0 50.2
+ORDER 64 16x4         81.6 [ref/this 0.948 (0.886-1.043)]
+ORDER 64   r16/i4/s0 61.4
+ORDER 64   r4/i1/s0 27.3
+ORDER 128 8x16         155.2 [ref/this 1.000 (1.000-1.000)]
+ORDER 128   r8/i16/s4 80.8
+ORDER 128   r16/i1/s0 83.8
+ORDER 128 16x8         181.4 [ref/this 0.857 (0.784-0.913)]
+ORDER 128   r16/i8/s0 104.7
+ORDER 128   r8/i1/s0 59.5
+ORDER 256 4x8x8        340.6 [ref/this 1.000 (1.000-1.000)]
+ORDER 256   r4/i64/s1 93.1
+ORDER 256   r8/i8/s3 127.8
+ORDER 256   r8/i1/s0 102.9
+ORDER 256 16x16        338.1 [ref/this 1.009 (0.943-1.156)]
+ORDER 256   r16/i16/s0 188.4
+ORDER 256   r16/i1/s0 153.4
+PASS
+# end 06:27:05 load 2.99 3.06 3.18
