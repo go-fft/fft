@@ -3020,6 +3020,198 @@ the ends). Main time ÷ branch time, fifteen rounds:
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
 
+### Round 31 — Cascade Lake: the 2-D 1024² regression located, composites on the split layout, a 512-bit untangle (2026-10-09)
+
+**The question.** On Cascade Lake, 2-D 1024² had run 0.94× as fast since
+v0.19.0's 512-bit split layout (Round 28), cause not established; and the
+mid-size real transforms and composites still took 1.17–1.23× FFTW's time.
+Host: cfarm151 (Cascade Lake, 8-vCPU KVM guest, AVX-512, real L2 1 MB),
+used by this round alone, one pinned core (`GOMAXPROCS=1 taskset -c 3`).
+Every timed run waited for a 1-minute load below 1.5 (`scripts/g.sh`,
+`scripts/ab.sh`), and none ended above 1.64 (the run's own core included;
+the rerun threshold was 2.5); each file gives the load at its head and end.
+The work ran on 2026-10-08 and 2026-10-09. In-process A/Bs rotate the variant
+order every round; between binaries, `ab.sh` rotates the binaries.
+
+**1. 2-D 1024²: the rows, not the columns.** Located axis by axis
+(`TestR31Rows2D`: the column step, src to dst, then the row step in place on
+dst with a row plan as the variant, so the rows meet the cache the columns
+leave, as inside `PlanN.FFT`; nine and fifteen rounds, `raw/rows2.txt`,
+`raw/rows1024b.txt`):
+
+| row plan | columns | rows | rows, main ÷ variant |
+|:--|--:|--:|--:|
+| main: 8·4·4·8, 512-bit split (`intelSplitTable512`) | 13.0 ms | 4.46 ms (4.26 ns/pt) | 1.000 |
+| 4·4·8·8 split / 4·8·4·8 split / 4·8·8·4 split | 13.1 ms | 3.74–3.77 ms | 1.183–1.198 |
+| 8·4·8·4 / 8·8·4·4 split | 13.2 ms | 4.44–4.48 ms | 0.993–0.999 |
+| 4·4·8·8 interleaved (v0.18.0's rows) | 13.3 ms | 3.87 ms | 1.141 |
+
+- **The columns did not move**; they are three quarters of the time and
+  unchanged since v0.18.0 (`intelStripOrder` kept their order).
+- **Every order whose first pass is radix 8 loses on these rows, every
+  radix-4-first order wins**, by 0.7 ns per point. Rows in cache (the same
+  eight rows over and over, `raw/rows2s.txt`) reverse it: 8·4·4·8 is within
+  0.3% of 4·8·4·8 and 1.7% ahead of 4·4·8·8, and as a 1-D transform out of
+  place it stays 1.5–2.5% ahead (`raw/ab1024.txt`, fifteen rounds). So Round
+  28's table is right for 1-D 1024 and wrong for rows coming from beyond the
+  cache.
+- **Why, as far as this VM shows** (it has no PMU): a radix-8 first pass over
+  a 1024-point row reads eight streams 2 KB apart, two per 4 KB page; radix 4
+  reads four streams 4 KB apart. Intel documents its L2 streamer as following
+  one forward stream per 4 KB page. That fits the other lengths
+  (`raw/rows2048.txt`, `rows4096.txt`, `rows8192.txt`, `rows512.txt`): at
+  2048 (radix-8 first, streams 4 KB apart), 4096 and 8192 the 1-D table's
+  orders kept their lead on cold rows; at 512 the orders were within the
+  noise of each other.
+- **Where it starts** (m×1024, the row step alone, eleven rounds,
+  `raw/rowsm*.txt`): 4·8·4·8 ÷ 8·4·4·8 rows ran 0.94–0.99 up to 128 rows
+  (2 MB), 0.999 at 256 rows (4 MB), 1.176 at 512 rows (8 MB) and 1.198 at
+  1024.
+
+**The change (kept):** the contiguous last axis of an N-D plan of at least
+2^19 elements takes `clRowOrder`'s factorization, 1024 → 4·8·4·8, where the
+512-bit split layout runs (`clRowOrderAMD64`, `clRowPlan`, a cached plan of
+its own); every 1-D plan and every smaller N-D plan keeps its own. Whole
+transform, the two plans sharing one src and one dst in one process, fifteen
+rounds (`raw/whole1.txt`): 1024² **1.054** (every round 1.023–1.076),
+512×1024 1.051, 4×256×1024 1.022; untouched 256×1024 0.988 and 2048×512
+1.006, inside their spreads. Against v0.18.0, three binaries rotated, eleven
+rounds at 2 s (`raw/ab-v018-11.txt`): v0.18.0 ÷ main 0.981, v0.18.0 ÷ this
+branch 1.030, main ÷ branch 1.053 — between binaries that row's per-round
+range is 0.93–1.20, so only the in-process ratio is claimed.
+
+**2. Composites: Round 29's Intel rule and the 256-bit split layout
+(kept).** A composite never runs the AVX-512 kernels (`wide512`), and with
+the 512-bit layout on, composites ran every pass interleaved and kept Round
+24's rule while Haswell (Round 29) and AMD (Round 26) moved on.
+`TestR31Comp` timed, for all 150 lengths 2^e·3^a·5^b up to 16384 (e ≥ 1,
+a+b ≥ 1), Round 24's rule (r24, what Cascade Lake ran), `hswComp2Factors`
+(hsw) interleaved and with the 256-bit split layout on its radix-4/8 runs
+(s256), and `comp2Factors` where it differs, five rotated rounds
+(`raw/comp1.txt`, summary by `scripts/cctool.go.txt`):
+
+| r24 time ÷ | geometric mean | min | max | lengths below 0.98 |
+|:--|--:|--:|--:|--:|
+| hsw, interleaved | 1.086 | 0.927 (54) | 1.378 | 6 (24, 48, 54, 72, 144, 288) |
+| **hsw, split 256** | **1.093** | 0.984 | 1.368 | 0 |
+| comp2Factors (7 lengths where it differs) | 1.019 | 0.995 | 1.080 | 0 |
+
+The parity lengths: 1000 (5·5·5·8 → 5·10·20) 1.089, 1080 1.090, 1920
+(5·4·8·12 → 8·12·20) 1.174, 2000 1.170, 6000 1.127; 1296 keeps 3·3·12·12
+(0.997). Above 16384 (fifteen lengths to 10^6, seven rounds,
+`raw/comp2.txt`) no rule changes and the layout alone did not pay
+(0.916–1.011), so it stops there (`clCompSplitMax`).
+
+So `hswCompOn` now holds on every Intel CPU with AVX2, and
+`StockhamSplitModes` gives a composite of at most 16384 points the 256-bit
+modes where the 512-bit layout serves the powers of two
+(`kernels.ClCompSplit256`). A plan's passes are one width or the other,
+never both; a split pass's twiddles now follow its mode's width
+(`StockhamSplitTwiddlesFor`), since the machine no longer says which.
+
+**3. A 512-bit untangle and retangle (kept, powers of two from 512 to
+32768 points).** RFFT 4096 spent 1.85 of its 8.69 µs in the untangle
+(`raw/real1.txt`). `genClUntangle512` is Round 30's AVX2 kernel at 512 bits,
+four bins and their mirrors per step, three steps interleaved, Z0..Z15 only:
+`VBLENDPD` becomes `VBLENDMPD` under K1/K2, the mirror reversal
+`VSHUFF64X2 $0x1b`, and `VADDSUBPD`, which has no 512-bit form, a sign flip
+of the subtrahend's even lanes and an add (x − y and x + (−y) are the same
+IEEE operation), so the bits are the AVX2 kernel's and the Go loop's.
+A pair left over goes to the AVX2 kernel on the slices that start 4q bins
+in. 512 ÷ AVX2, one process, eleven and fifteen rounds (`raw/unt1.txt`,
+`unt2.txt`, `unt3.txt`):
+
+| RFFT n (m = n/2) | untangle alone | retangle alone | RFFT | IRFFT |
+|:--|--:|--:|--:|--:|
+| 256 (half on AVX2 kernels) | 1.091 | 1.025 | **0.889** | **0.887** |
+| 512 / 1024 / 2048 | 1.18 / 1.27 / 1.06 | 1.10 / 1.19 / 1.10 | 1.12 / 1.13 / 1.11 | 1.11 / 1.12 / 1.11 |
+| 4096 / 8192 / 16384 | 1.09 / 1.11 / 1.15 | 1.11 / 1.15 / 1.15 | 1.09 / 1.10 / 1.10 | 1.08 / 1.09 / 1.08 |
+| 32768 | 1.16 | 1.17 | 1.08 | 1.00 |
+| 65536 / 131072 | **0.88 / 0.89** | 0.89 / 0.89 | 1.05 / 1.03 | 0.99 / 0.99 |
+| 1000, 1920 (half on AVX2 kernels) | 1.28, 1.14 | 1.20, 1.17 | **0.905, 0.899** | 0.897, 0.901 |
+
+- **After AVX2 passes, the faster untangle made the whole RFFT 10% slower**;
+  after AVX-512 passes the whole RFFT gained more than the untangle's own
+  saving (4096: 160 ns saved in the untangle, 740 in the whole). Mixing the
+  two widths costs more than either kernel, as in Round 6, so the 512-bit
+  untangle runs only where the half transform runs the AVX-512 passes: a
+  power of two m ≥ 256 (`clUntangleWide`).
+- **From m = 65536 the untangle alone loses** (its 2 MB of data are beyond
+  L2) and IRFFT does not gain at m = 32768, so it stops at m = 16384.
+
+Tests: `TestUntangleMatchesScalar` and `TestRetangleMatchesScalar` run every
+m to 700 and 2048, 4097, 32768 at both widths where the CPU has AVX-512,
+bit for bit against the Go loop on Round 30's signals; `TestUntangleInPlace`
+runs whatever the defaults pick. Six generator mutations (`raw/mutants.txt`:
+the odd-lane mask, either direction's addsub sign flip, the wi load, the
+mirror cursor, the loop advance) each fail them.
+
+**End to end against main** (v0.21.0, `bb351ec`), `BenchmarkR31AB`, the two
+binaries rotated, eleven rounds at 0.5 s, the touched rows first
+(`raw/ab-r31-e2e.txt`, load at most 1.02). Main time ÷ branch time, median
+(per-round range):
+
+| | ratio |
+|:--|:--|
+| 2-D 1024² / 512×1024 | 1.035 (0.98–1.19) / 1.162 (0.98–1.53) |
+| complex 1000 / 1080 / 1920 / 2000 / 6000 / 10000 | 1.117 / 1.110 / 1.173 / 1.169 / 1.114 / 1.135, every round above 1.07 |
+| complex 1296 | 1.000 (same factorization) |
+| RFFT 512 / 1024 / 4096 / 8192 / 32768 / 1000 | 1.111 / 1.134 / 1.081 / 1.101 / 1.082 / 1.117, every round above 1.04 |
+| IRFFT 512 / 1024 / 4096 / 8192 / 32768 / 1000 | 1.098 / 1.126 / 1.072 / 1.088 / 1.015 / 1.091 |
+| untouched: complex 256 / 1024 / 4096 / 65536 / 1009 / 10007 | 0.985 / 0.985 / 0.998 / 0.994 / 1.004 / 0.995 |
+| untouched: RFFT / IRFFT 256, 65536; 2-D 128², 256×1024 | 0.984–1.004; 0.996, 0.959 (0.45–1.17) |
+
+Complex 256 read 0.985 with every round 0.970–0.994: code this round does not
+touch, inside the −3.6..+2% that identical code shows between binaries.
+
+**Accuracy** (`scripts/acc31.py`, numpy 2.5.3 on the bytes the Go test wrote,
+`TestR31Export`, `raw/accuracy.txt`): relative L2 error of the new outputs
+3.8–6.0·10⁻¹⁶ (complex 1000–10000, 2-D 1024² and 512×1024), the old ones
+4.0–6.0·10⁻¹⁶; the RFFT and IRFFT outputs are identical old and new
+(3.6–4.9·10⁻¹⁶), as the bit-identity tests require.
+
+**Against FFTW.** The parity harness (`benchmarks/remote/`, with Round 28's
+`run-remote-pinned.sh`), pinned to core 3, main, branch, branch, main back to
+back (`parity/`, load 0.83–1.31 at the starts; correct 24/24 every time).
+go-fft's time (mean of its two runs, each the median of three) ÷ the median
+of FFTW's four (`parity/ratios.txt`, by `scripts/partool.go.txt`):
+
+| | main | branch | FFTW's own spread |
+|:--|--:|--:|:--|
+| complex 1,000 / 1,080 / 1,920 | 1.23 / 1.41 / 1.31 | **1.11 / 1.26 / 1.11** | within 1–6% |
+| complex 1,296 | 1.21 | 1.20 | 1% |
+| RFFT 1,000 / 1,080 / 1,920 | 1.10 / 0.99 / 1.07 | **0.99 / 0.93 / 0.99** | 2–12% |
+| RFFT 1,024 / 4,096 | 0.96 / 1.15 | **0.85 / 1.05** | 4% |
+| IRFFT 1,024 / 4,096 / 1,000 | 0.87 / 1.05 / 0.93 | **0.77 / 0.95 / 0.85** | 3–4% |
+| 2-D 1024² | 0.82 | **0.75** | 13.7–27.3 ms (2×) |
+| untouched: complex 256 / 1,024 / 4,096 / 65,536 | 1.27 / 1.21 / 0.96 / 1.15 | 1.27 / 1.18 / 0.94 / 1.16 | ≤ 7% |
+| untouched: RFFT 256 / 65,536 / 2^20 | 1.08 / 1.14 / 1.14 | 1.08 / 1.14 / 1.13 | |
+| untouched: 2-D 128² / 512² | 1.04 / 1.08 | 1.06 / 1.17 | 18% / 13% |
+
+- **go-fft's own times** moved as the A/B says: complex 1000 3,356 → 3,026
+  ns, 1920 6,510 → 5,490; RFFT 4096 8,684 → 7,962; IRFFT 4096 8,910 → 8,000;
+  2-D 1024² 17.6 → 16.1 ms (per-run medians 17.0–18.1 main, 15.5–16.6
+  branch).
+- **2-D 512²**, which no change reaches (its rows are 512 points and the
+  plan 2^18 elements), read 3.12–3.17 ms in the first branch run and
+  2.30–2.51 in the second, same binary: allocation placement, the noise the
+  in-process A/B avoids. FFTW's 2-D times varied twofold over the four runs.
+
+**Not done.**
+- **Complex 1296** (1.22× FFTW in Round 28) keeps 3·3·12·12; no rule timed
+  here beats it, and the split layout has no radix-3 or radix-12 kernel on
+  amd64.
+- **Complex 256 and 1024, RFFT 256**: no lever found; RFFT 256's half
+  transform runs AVX2 passes, so the 512-bit untangle is a loss there.
+- **The columns of 2-D 1024²** (three quarters of its time) were not
+  attacked.
+- **Haswell** may have the same cold-row effect: its 1024 = 8·8·16 also opens
+  with radix 8 (streams 2 KB apart). Not measured; no change there.
+- **The L2-streamer explanation** is consistent with every length timed but
+  not shown with counters (no PMU in this VM).
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round31-cascade-20261009/`](benchmarks/results/round31-cascade-20261009/).
+
 ### Round 30 — the smallest sizes: RFFT 256 and complex 256 on Zen 3 and Neoverse-N1 (2026-10-08)
 
 **The question.** Of the parity rows FFTW still won on both hosts, the

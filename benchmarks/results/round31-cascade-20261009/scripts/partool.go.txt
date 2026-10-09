@@ -1,0 +1,90 @@
+// partool MAIN1 MAIN2 BR1 BR2: go-fft (mean of the two runs of each build, each the
+// median of its -count runs) ÷ the median of FFTW's four times, per row.
+package main
+
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+)
+
+type fe struct {
+	N     int     `json:"n"`
+	Shape string  `json:"shape"`
+	NS    float64 `json:"fftw_ns"`
+}
+
+func med(x []float64) float64 {
+	sort.Float64s(x)
+	n := len(x)
+	if n%2 == 1 {
+		return x[n/2]
+	}
+	return (x[n/2-1] + x[n/2]) / 2
+}
+
+func load(dir string) (gof map[string]float64, fw map[string]float64) {
+	gof, fw = map[string]float64{}, map[string]float64{}
+	f, _ := os.Open(filepath.Join(dir, "go_bench.txt"))
+	runs := map[string][]float64{}
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		fs := strings.Fields(sc.Text())
+		if len(fs) < 4 || !strings.Contains(fs[0], "_GoFFT/") {
+			continue
+		}
+		name := strings.TrimSuffix(fs[0], "-1")
+		v, _ := strconv.ParseFloat(fs[2], 64)
+		runs[name] = append(runs[name], v)
+	}
+	for k, v := range runs {
+		gof[k] = med(v)
+	}
+	b, _ := os.ReadFile(filepath.Join(dir, "fftw.json"))
+	var j map[string]json.RawMessage
+	json.Unmarshal(b, &j)
+	for kind, bench := range map[string]string{"complex": "Complex", "real": "Real", "creal": "CReal", "fft2": "FFT2Plan"} {
+		var es []fe
+		json.Unmarshal(j[kind], &es)
+		for _, e := range es {
+			key := strconv.Itoa(e.N)
+			if e.Shape != "" {
+				key = e.Shape
+			}
+			fw["Benchmark"+bench+"_GoFFT/"+key] = e.NS
+		}
+	}
+	return
+}
+
+func main() {
+	var g [4]map[string]float64
+	var w [4]map[string]float64
+	for i := range 4 {
+		g[i], w[i] = load(os.Args[1+i])
+	}
+	var keys []string
+	for k := range w[0] {
+		if _, ok := g[0][k]; ok {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	fmt.Printf("%-36s %10s %10s %10s %8s %8s  fftw range\n", "row", "fftw med", "main", "branch", "main/F", "br/F")
+	for _, k := range keys {
+		fws := []float64{w[0][k], w[1][k], w[2][k], w[3][k]}
+		lo, hi := fws[0], fws[0]
+		for _, x := range fws {
+			lo, hi = min(lo, x), max(hi, x)
+		}
+		fm := med(fws)
+		m := (g[0][k] + g[1][k]) / 2
+		br := (g[2][k] + g[3][k]) / 2
+		fmt.Printf("%-36s %10.0f %10.0f %10.0f %8.2f %8.2f  %.0f-%.0f\n", strings.TrimPrefix(k, "Benchmark"), fm, m, br, m/fm, br/fm, lo, hi)
+	}
+}

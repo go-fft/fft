@@ -1,0 +1,27 @@
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkComplexPlan_GoFFT/256-1         	   15988	     22366 ns/op
+BenchmarkComplexPlan_GoFFT/1024-1        	    3930	     79632 ns/op
+BenchmarkComplexPlan_GoFFT/4096-1        	    1117	    308549 ns/op
+BenchmarkComplexPlan_GoFFT/65536-1       	      82	   4065764 ns/op
+BenchmarkComplexPlan_GoFFT/1048576-1     	       5	  75279413 ns/op
+BenchmarkComplexPlan_GoFFT/1000-1        	    5371	     62709 ns/op
+BenchmarkComplexPlan_GoFFT/1080-1        	    4504	     70519 ns/op
+BenchmarkComplexPlan_GoFFT/1920-1        	    2506	    139876 ns/op
+BenchmarkComplexPlan_GoFFT/1009-1        	    1921	    179774 ns/op
+BenchmarkComplexPlan_GoFFT/1296-1        	    3738	     83051 ns/op
+BenchmarkComplexPlan_GoFFT/10007-1       	     164	   2194645 ns/op
+BenchmarkComplexPlan_Gonum/256-1         	   35517	     10057 ns/op
+BenchmarkComplexPlan_Gonum/1024-1        	    9020	     36403 ns/op
+BenchmarkComplexPlan_Gonum/4096-1        	    2408	    139086 ns/op
+BenchmarkComplexPlan_Gonum/65536-1       	     159	   2233336 ns/op
+BenchmarkComplexPlan_Gonum/1048576-1     	       9	  35748674 ns/op
+BenchmarkComplexPlan_Gonum/1000-1        	    8353	     35939 ns/op
+BenchmarkComplexPlan_Gonum/1080-1        	    9142	     38983 ns/op
+BenchmarkComplexPlan_Gonum/1920-1        	    5121	     67860 ns/op
+BenchmarkComplexPlan_Gonum/1009-1        	    7904	     44087 ns/op
+BenchmarkComplexPlan_Gonum/1296-1        	    6894	     46398 ns/op
+BenchmarkComplexPlan_Gonum/10007-1       	     831	    425666 ns/op
+PASS
