@@ -3399,6 +3399,8 @@ func genSmallUntangleFile() {
 	f := emit.NewFile("amd64")
 	genSmallUntangle(f, false)
 	genSmallUntangle(f, true)
+	genClUntangle512(f, false)
+	genClUntangle512(f, true)
 	writeFile("untangle_amd64.s", f.String())
 }
 
@@ -3529,6 +3531,143 @@ func genSmallUntangle(f *emit.File, inverse bool) {
 		b.Raw("%s", ins)
 	}
 	smallAdvance(b, 1)
+	b.Raw("DECQ R8").
+		Raw("JMP tail").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// clUntangleStep512 is smallUntangleStep at 512 bits (Round 31, Cascade
+// Lake): four bins k .. k+3 and their mirrors m-k-3 .. m-k per step, at
+// offset 64·j, in Z(4j) .. Z(4j+3). The operations are the AVX2 step's, lane
+// for lane, with three substitutions AVX-512 needs: VBLENDPD becomes
+// VBLENDMPD under K1 (odd lanes, 0xAA) or K2 (even lanes, 0x55); the mirror's
+// four bins are reversed by VSHUFF64X2 $0x1B instead of VPERM2F128 swapping
+// two; and VADDSUBPD, which has no 512-bit form, becomes a sign flip of the
+// even lanes of the subtrahend (Z13, the real-lane mask) and an add: x − y
+// and x + (−y) are the same IEEE operation, so the bits are the AVX2
+// kernel's and the Go loop's. Z15, Z13, Z12 and Z14 hold the AVX2 kernel's
+// Y15, Y13, Y12 and Y14 broadcast to eight lanes; VPXORQ flips signs
+// (VXORPD on ZMM needs AVX512DQ). Only Z0..Z15 are written (Round 28: a
+// dirty Z16..Z31 slowed code that never ran AVX-512).
+func clUntangleStep512(j int, inverse bool) []string {
+	z := func(i int) string { return fmt.Sprintf("Z%d", 4*j+i) }
+	a, b, c, d := z(0), z(1), z(2), z(3)
+	o := 64 * j
+	in := []string{
+		fmt.Sprintf("VMOVUPD %d(AX), %s", o, a),
+		fmt.Sprintf("VMOVUPD %d(BX), %s", -o, b),
+		fmt.Sprintf("VSHUFF64X2 $0x1b, %s, %s, %s", b, b, b),
+		fmt.Sprintf("VADDPD %s, %s, %s", b, a, c), // s
+		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, d), // d
+		fmt.Sprintf("VBLENDMPD %s, %s, K1, %s", d, c, a),
+		fmt.Sprintf("VMULPD Z14, %s, %s", a, a), // xe
+		fmt.Sprintf("VBLENDMPD %s, %s, K2, %s", d, c, b),
+	}
+	if !inverse {
+		return append(in,
+			fmt.Sprintf("VPXORQ Z13, %s, %s", b, b),
+			fmt.Sprintf("VMULPD Z14, %s, %s", b, b),    // [xo.im, xo.re]
+			fmt.Sprintf("VMOVDDUP %d(CX), %s", o, c),   // [wr, wr]
+			fmt.Sprintf("VMOVDDUP %d(CX), %s", o+8, d), // [wi, wi]
+			fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
+			fmt.Sprintf("VPERMILPD $0x55, %s, %s", b, b), // xo
+			fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
+			fmt.Sprintf("VPXORQ Z13, %s, %s", d, d),
+			fmt.Sprintf("VADDPD %s, %s, %s", d, c, c), // t
+			fmt.Sprintf("VADDPD %s, %s, %s", c, a, b),
+			fmt.Sprintf("VSUBPD %s, %s, %s", c, a, d),
+			fmt.Sprintf("VPXORQ Z15, %s, %s", d, d),
+			fmt.Sprintf("VSHUFF64X2 $0x1b, %s, %s, %s", d, d, d),
+			fmt.Sprintf("VMOVUPD %s, %d(R9)", b, o),
+			fmt.Sprintf("VMOVUPD %s, %d(R10)", d, -o),
+		)
+	}
+	return append(in,
+		fmt.Sprintf("VMULPD Z14, %s, %s", b, b),    // dd
+		fmt.Sprintf("VMOVDDUP %d(CX), %s", o, d),   // [wr, wr]
+		fmt.Sprintf("VMOVDDUP %d(CX), %s", o+8, c), // [wi, wi]
+		fmt.Sprintf("VPXORQ Z12, %s, %s", c, c),    // [-wi, -wi]
+		fmt.Sprintf("VMULPD %s, %s, %s", b, d, d),
+		fmt.Sprintf("VPERMILPD $0x55, %s, %s", b, b),
+		fmt.Sprintf("VMULPD %s, %s, %s", b, c, c),
+		fmt.Sprintf("VPXORQ Z13, %s, %s", c, c),
+		fmt.Sprintf("VADDPD %s, %s, %s", c, d, d), // xo
+		fmt.Sprintf("VPERMILPD $0x55, %s, %s", d, b),
+		fmt.Sprintf("VPXORQ Z15, %s, %s", b, b), // [xoi, -xor]
+		fmt.Sprintf("VSUBPD %s, %s, %s", b, a, c),
+		fmt.Sprintf("VADDPD %s, %s, %s", b, a, d),
+		fmt.Sprintf("VPXORQ Z15, %s, %s", d, d),
+		fmt.Sprintf("VSHUFF64X2 $0x1b, %s, %s, %s", d, d, d),
+		fmt.Sprintf("VMOVUPD %s, %d(R9)", c, o),
+		fmt.Sprintf("VMOVUPD %s, %d(R10)", d, -o),
+	)
+}
+
+// genClUntangle512 emits clUntangleAVX512 or, when inverse,
+// clRetangleAVX512: genSmallUntangle's kernels at 512 bits, smallUntangleSteps
+// steps of four bins per iteration while that many quads are left, then one
+// at a time. The last step reads tw[4·quads+1].re (the VMOVDDUP at tw+8),
+// which the Go wrappers bound-check.
+func genClUntangle512(f *emit.File, inverse bool) {
+	name := "clUntangleAVX512"
+	names := []string{"dst", "z", "tw", "k", "m", "quads"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	if inverse {
+		name = "clRetangleAVX512"
+		names = []string{"z", "x", "tw", "k", "h", "m", "quads"}
+		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	}
+	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
+	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
+		LoadArg("m", "DX").LoadArg("quads", "R8")
+	b.Raw("SHLQ $4, DX").
+		Raw("LEAQ 16(SI), AX").         // &in[1]
+		Raw("LEAQ -64(SI)(DX*1), BX").  // &in[m-4]
+		Raw("LEAQ 16(DI), R9").         // &out[1]
+		Raw("LEAQ -64(DI)(DX*1), R10"). // &out[m-4]
+		Raw("ADDQ $16, CX").            // &tw[1]
+		Raw("MOVQ $0xaa, R11").Raw("KMOVB R11, K1").
+		Raw("MOVQ $0x55, R11").Raw("KMOVB R11, K2").
+		Raw("VBROADCASTF64X4 0(R14), Z15"). // imaginary-lane sign mask [0, -0]
+		Raw("VPERMILPD $0x55, Z15, Z13").   // real-lane sign mask [-0, 0]
+		Raw("VPORQ Z15, Z13, Z12")          // both lanes
+	if inverse {
+		b.LoadArg("h", "R15").Raw("VBROADCASTF64X4 (R15), Z14")
+	} else {
+		b.Raw("VBROADCASTF64X4 32(R14), Z14") // 0.5
+	}
+	adv := func(n int) {
+		b.Raw("ADDQ $%d, AX", 64*n).
+			Raw("SUBQ $%d, BX", 64*n).
+			Raw("ADDQ $%d, R9", 64*n).
+			Raw("SUBQ $%d, R10", 64*n).
+			Raw("ADDQ $%d, CX", 64*n)
+	}
+	b.Raw("loop:").
+		Raw("CMPQ R8, $%d", smallUntangleSteps).
+		Raw("JLT tail")
+	seqs := make([][]string, smallUntangleSteps)
+	for j := range seqs {
+		seqs[j] = clUntangleStep512(j, inverse)
+	}
+	for i := range seqs[0] {
+		for j := range seqs {
+			b.Raw("%s", seqs[j][i])
+		}
+	}
+	adv(smallUntangleSteps)
+	b.Raw("SUBQ $%d, R8", smallUntangleSteps).
+		Raw("JMP loop").
+		Raw("tail:").
+		Raw("TESTQ R8, R8").
+		Raw("JZ done")
+	for _, ins := range clUntangleStep512(0, inverse) {
+		b.Raw("%s", ins)
+	}
+	adv(1)
 	b.Raw("DECQ R8").
 		Raw("JMP tail").
 		Raw("done:").

@@ -236,3 +236,62 @@ func factorsOf(p *Plan) []int {
 	}
 	return f
 }
+
+var (
+	r31Untangle = flag.String("r31.untangle", "", "TestR31Untangle: rounds,ms")
+	r31Reals    = flag.String("r31.reals", "256,512,1024,2048,4096,8192,65536,1048576,1000,1920", "TestR31Untangle: RFFT lengths")
+)
+
+// TestR31Untangle times, per RFFT length, the untangle and retangle alone and
+// the whole RFFT and IRFFT, with the 512-bit untangle off (Round 30's AVX2
+// kernel, the reference) and on, in rotated rounds in one process.
+func TestR31Untangle(t *testing.T) {
+	if *r31Untangle == "" {
+		t.Skip("set -r31.untangle=rounds,ms")
+	}
+	var rounds, ms int
+	if _, err := fmt.Sscanf(*r31Untangle, "%d,%d", &rounds, &ms); err != nil {
+		t.Fatal(err)
+	}
+	defer func(v bool) { kernels.UseUntangleAVX512 = v }(kernels.UseUntangleAVX512)
+	for _, s := range strings.Split(*r31Reals, ",") {
+		var n int
+		if _, err := fmt.Sscanf(s, "%d", &n); err != nil {
+			t.Fatal(err)
+		}
+		p := NewRealPlan(n)
+		m := n / 2
+		src := benchReal(n)
+		dst := make([]complex128, m+1)
+		back := make([]float64, n)
+		Z := make([]complex128, m)
+		zin := asComplex(src[:2*m])
+		p.half.execute(Z, zin, false)
+		p.RFFT(dst, src)
+		zb := make([]complex128, m)
+		ops := []struct {
+			name string
+			fn   func()
+		}{
+			{"untangle", func() { rfftUntangle(dst, Z, p.tw, m) }},
+			{"retangle", func() { irfftRetangle(zb, dst, p.tw, m, 0.5/float64(m)) }},
+			{"rfft", func() { p.RFFT(dst, src) }},
+			{"irfft", func() { p.IRFFT(back, dst) }},
+		}
+		var b strings.Builder
+		for _, op := range ops {
+			fns := []func(){
+				func() { kernels.UseUntangleAVX512 = false; op.fn() },
+				func() { kernels.UseUntangleAVX512 = true; op.fn() },
+			}
+			times := comp2Rotate(fns, rounds, ms)
+			ratios := make([]float64, rounds)
+			for i := range ratios {
+				ratios[i] = times[0][i] / times[1][i]
+			}
+			fmt.Fprintf(&b, " %s %.0f->%.0f %.3f(%.3f-%.3f)", op.name, median(times[0]), median(times[1]),
+				median(ratios), slices.Min(ratios), slices.Max(ratios))
+		}
+		fmt.Printf("U512 %d%s\n", n, b.String())
+	}
+}

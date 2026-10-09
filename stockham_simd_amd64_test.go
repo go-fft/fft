@@ -73,23 +73,26 @@ func TestUntangleMatchesScalar(t *testing.T) {
 	if !kernels.UseUntangleAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
 	}
-	defer func(v bool) { kernels.UseUntangleAVX2 = v }(kernels.UseUntangleAVX2)
+	defer func(v, w bool) { kernels.UseUntangleAVX2, kernels.UseUntangleAVX512 = v, w }(kernels.UseUntangleAVX2, kernels.UseUntangleAVX512)
 	sizes := []int{2048, 4097, 32768}
 	for m := 2; m <= 700; m++ {
 		sizes = append(sizes, m)
 	}
-	for _, m := range sizes {
-		tw := NewRealPlan(2 * m).tw
-		for s, z := range smallSignals(m) {
-			kernels.UseUntangleAVX2 = true
-			simd := make([]complex128, m+1)
-			rfftUntangle(simd, z, tw, m)
-			kernels.UseUntangleAVX2 = false
-			scalar := make([]complex128, m+1)
-			rfftUntangle(scalar, z, tw, m)
-			for k := range scalar {
-				if !sameBits(simd[k], scalar[k]) {
-					t.Fatalf("m=%d signal %d bin %d: AVX2 %v vs Go %v", m, s, k, simd[k], scalar[k])
+	for _, wide := range clUntangleWidths() {
+		kernels.UseUntangleAVX512 = wide
+		for _, m := range sizes {
+			tw := NewRealPlan(2 * m).tw
+			for s, z := range smallSignals(m) {
+				kernels.UseUntangleAVX2 = true
+				simd := make([]complex128, m+1)
+				rfftUntangle(simd, z, tw, m)
+				kernels.UseUntangleAVX2 = false
+				scalar := make([]complex128, m+1)
+				rfftUntangle(scalar, z, tw, m)
+				for k := range scalar {
+					if !sameBits(simd[k], scalar[k]) {
+						t.Fatalf("m=%d signal %d bin %d wide=%v: SIMD %v vs Go %v", m, s, k, wide, simd[k], scalar[k])
+					}
 				}
 			}
 		}
@@ -102,24 +105,27 @@ func TestRetangleMatchesScalar(t *testing.T) {
 	if !kernels.UseUntangleAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
 	}
-	defer func(v bool) { kernels.UseUntangleAVX2 = v }(kernels.UseUntangleAVX2)
+	defer func(v, w bool) { kernels.UseUntangleAVX2, kernels.UseUntangleAVX512 = v, w }(kernels.UseUntangleAVX2, kernels.UseUntangleAVX512)
 	sizes := []int{2048, 4097, 32768}
 	for m := 2; m <= 700; m++ {
 		sizes = append(sizes, m)
 	}
-	for _, m := range sizes {
-		tw := NewRealPlan(2 * m).tw
-		for s, x := range smallSignals(m + 1) {
-			for _, h := range []float64{0.5, 0.5 / float64(m), 1 / math.Sqrt(float64(2*m)), 0x1p-1030} {
-				kernels.UseUntangleAVX2 = true
-				simd := make([]complex128, m)
-				irfftRetangle(simd, x, tw, m, h)
-				kernels.UseUntangleAVX2 = false
-				scalar := make([]complex128, m)
-				irfftRetangle(scalar, x, tw, m, h)
-				for k := range scalar {
-					if !sameBits(simd[k], scalar[k]) {
-						t.Fatalf("m=%d signal %d h=%v bin %d: AVX2 %v vs Go %v", m, s, h, k, simd[k], scalar[k])
+	for _, wide := range clUntangleWidths() {
+		kernels.UseUntangleAVX512 = wide
+		for _, m := range sizes {
+			tw := NewRealPlan(2 * m).tw
+			for s, x := range smallSignals(m + 1) {
+				for _, h := range []float64{0.5, 0.5 / float64(m), 1 / math.Sqrt(float64(2*m)), 0x1p-1030} {
+					kernels.UseUntangleAVX2 = true
+					simd := make([]complex128, m)
+					irfftRetangle(simd, x, tw, m, h)
+					kernels.UseUntangleAVX2 = false
+					scalar := make([]complex128, m)
+					irfftRetangle(scalar, x, tw, m, h)
+					for k := range scalar {
+						if !sameBits(simd[k], scalar[k]) {
+							t.Fatalf("m=%d signal %d h=%v bin %d wide=%v: SIMD %v vs Go %v", m, s, h, k, wide, simd[k], scalar[k])
+						}
 					}
 				}
 			}
@@ -198,4 +204,13 @@ func TestStockhamBatchMatchesScalar(t *testing.T) {
 	if kernels.StockhamBatchPass(16, 1, 1, make([]complex128, 16), make([]complex128, 16), nil, 1, 1, 1, false) {
 		t.Fatal("radix 16 has no batched kernel")
 	}
+}
+
+// clUntangleWidths lists the untangle widths this CPU runs: the AVX2 kernel,
+// and the 512-bit one where it is on (Round 31).
+func clUntangleWidths() []bool {
+	if kernels.UseUntangleAVX512 {
+		return []bool{false, true}
+	}
+	return []bool{false}
 }
