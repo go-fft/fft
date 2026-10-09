@@ -67,12 +67,42 @@ func splitPass(r, ido int) bool {
 
 // StockhamSplitModes returns, for the passes of one transform (pass k of
 // radix r[k], ido[k], l1[k]), the layout mode of each: splitModes when
-// UseStockhamSplit is on, all zeros (interleaved throughout) otherwise.
+// UseStockhamSplit is on, all zeros (interleaved throughout) otherwise. Where
+// the 512-bit layout runs, a power of two takes it (intelSplitModes512) and a
+// composite of at most clCompSplitMax points the 256-bit one when
+// ClCompSplit256 is on.
 func StockhamSplitModes(r, ido, l1 []int) []uint8 {
 	if intelSplit512On() {
+		if n := clLen(r, ido); n&(n-1) != 0 {
+			return splitModes(r, ido, ClCompSplit256 && n <= clCompSplitMax)
+		}
 		return intelSplitModes512(r, ido)
 	}
 	return splitModes(r, ido, UseStockhamSplit)
+}
+
+// ClCompSplit256 lets the composites take the 256-bit split layout on a CPU
+// where the 512-bit one serves the powers of two (Round 31, Cascade Lake).
+// The 512-bit kernels run powers of two only, so the composites ran their
+// radix-4 and radix-8 passes interleaved there. With Round 29's composite
+// rule, every n = 2^e·3^a·5^b up to 16384 (e >= 1, a+b >= 1), five rotated
+// rounds: the rule interleaved ran 1.086× as fast as Round 24's (geometric
+// mean) with six lengths below 0.98, and split 1.093× with none below 0.984.
+// Above 16384 (fifteen lengths to 10^6, seven rounds) the layout did not pay
+// (0.916–1.011), so clCompSplitMax bounds it. A variable so the tests can
+// turn it off.
+var ClCompSplit256 = true
+
+// clCompSplitMax is the longest composite ClCompSplit256 splits.
+const clCompSplitMax = 1 << 14
+
+// clLen is the length of the transform whose passes have radices r and ido
+// (the first pass has l1 = 1), 0 for none.
+func clLen(r, ido []int) int {
+	if len(r) == 0 {
+		return 0
+	}
+	return r[0] * ido[0]
 }
 
 // splitModes gives every maximal run of consecutive passes that splitPass
@@ -118,6 +148,23 @@ func StockhamSplitTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []compl
 		// The 512-bit layout, which StockhamSplitModes gave the passes.
 		return intelSplitTwiddles512(r, ido, l1, root)
 	}
+	return clSplitTwiddles256(r, ido, l1, root)
+}
+
+// StockhamSplitTwiddlesFor is StockhamSplitTwiddles for a pass of the given
+// split mode: the 512-bit layout's twiddles for its modes, the 256-bit
+// layout's for the others. Where the 512-bit layout runs, the composites
+// take the 256-bit one (ClCompSplit256), so the mode, not the machine,
+// says which.
+func StockhamSplitTwiddlesFor(mode uint8, r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
+	if mode > splitNone {
+		return intelSplitTwiddles512(r, ido, l1, root)
+	}
+	return clSplitTwiddles256(r, ido, l1, root)
+}
+
+// clSplitTwiddles256 is the 256-bit layout's StockhamSplitTwiddles.
+func clSplitTwiddles256(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
 	n := len(root)
 	fwd = make([]complex128, (r-1)*ido)
 	conj = make([]complex128, len(fwd))

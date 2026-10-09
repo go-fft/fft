@@ -132,6 +132,9 @@ func TestClRowPlan(t *testing.T) {
 	if got := factors(small); slices.Equal(got, want) || small.axes[1] != cachedPlan(n) {
 		t.Errorf("a plan below clRowMinSize: row factors %v, want the 1-D plan's", got)
 	}
+	if other := NewPlanN(2*m, n/2); other.axes[1] != cachedPlan(n/2) {
+		t.Error("a large plan's rows of a length not in clRowOrder: not the 1-D plan")
+	}
 	big := NewPlanN(m, n)
 	if got := factors(big); !slices.Equal(got, want) {
 		t.Errorf("row factors %v, want %v", got, want)

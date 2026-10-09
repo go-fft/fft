@@ -48,3 +48,9 @@ func StockhamStrided(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout, bo
 func StockhamSplitTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
 	return nil, nil
 }
+
+// StockhamSplitTwiddlesFor is StockhamSplitTwiddles: here one layout serves
+// every split mode.
+func StockhamSplitTwiddlesFor(mode uint8, r, ido, l1 int, root []complex128) (fwd, conj []complex128) {
+	return StockhamSplitTwiddles(r, ido, l1, root)
+}

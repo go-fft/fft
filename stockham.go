@@ -119,7 +119,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 	// A split pass reads its twiddles in the split layout's order.
 	for k := range p.stages {
 		if st := &p.stages[k]; st.split != 0 {
-			st.twX, st.twXc = kernels.StockhamSplitTwiddles(st.r, st.ido, st.l1, root)
+			st.twX, st.twXc = kernels.StockhamSplitTwiddlesFor(st.split, st.r, st.ido, st.l1, root)
 		}
 	}
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
