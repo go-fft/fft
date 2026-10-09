@@ -3268,6 +3268,17 @@ go-fft's median in `ab-place4-9.txt` (a different harness, so indicative):
   and the gate compares that printed number. A test case covers it now; the
   gate itself still compares a rounded percentage.
 
+**Which main.** Every measurement above ran against v0.21.0. The branch was then
+rebased onto v0.22.0 (Round 31, Intel paths and a 512-bit untangle; on AMD it
+changes only how split twiddles are built, `StockhamSplitTwiddlesFor`, which
+gives the 256-bit tables unchanged). Both packages' suites passed again on Zen 3,
+every statement covered, every `.s` regenerated unchanged, and a seven-round A/B
+against v0.22.0 (`zen3/ab-v022-7.txt`, v0.22.0 ÷ branch) read complex 32 / 64 /
+128 / 256 / 512 1.57 / 1.36 / 1.20 / 1.15 / 1.05, RFFT 256 / 512 1.12 / 1.10,
+IRFFT 256 1.14, untouched complex 1000 / 1024 and RFFT 4096 0.99–1.00. Under
+`GOAMD64=v3` seven tests fail on Zen 3, the same seven on v0.22.0 (Go oracles
+the compiler then fuses; `zen3/suites-rebased.txt`).
+
 Raw data, scripts and per-row ratios: [`benchmarks/results/round32-zen3-small-20261009/`](benchmarks/results/round32-zen3-small-20261009/).
 
 ### Round 31 — Cascade Lake: the 2-D 1024² regression located, composites on the split layout, a 512-bit untangle (2026-10-09)

@@ -1,0 +1,11 @@
+# rebased on v0.22.0: suites start 12:58:11 load 2.08 2.49 2.58
+fft exit 0
+kern exit 0
+GOAMD64=v3 exit 1
+# suites end 12:58:28 load 2.29 2.52 2.59
+0 uncovered blocks (union of both suites)
+--- FAIL: TestCascadeKernelModes (0.60s)
+--- FAIL: TestIRFFTIgnoresBinsPastHalf (0.00s)
+--- FAIL: TestStockham32PassMatchesScalar (0.00s)
+main v3 failures: 7, branch: 7
+same set
