@@ -1,0 +1,8 @@
+# start 06:20:27 load 0.52 0.41 0.25 : ./br4.test -test.run TestR30Real -r30.ab 9,40 -r30.real 256,1024,4096,8192,1000
+REAL 256 half(16x8) rfft 391.8 half 260.6 untangle 123.0 realpool 16.6 halfpool 17.3 irfft 411.6 retangle 139.1 halfinv 260.0
+REAL 1024 half(8x8x8) rfft 1472.1 half 910.5 untangle 436.2 realpool 18.4 halfpool 16.7 irfft 1669.8 retangle 468.0 halfinv 918.9
+REAL 4096 half(4x8x8x8) rfft 8687.9 half 6475.6 untangle 1848.8 realpool 18.0 halfpool 18.3 irfft 8927.4 retangle 1978.2 halfinv 6472.4
+REAL 8192 half(8x8x8x8) rfft 16618.9 half 12192.7 untangle 3701.8 realpool 18.3 halfpool 18.3 irfft 17350.9 retangle 3926.9 halfinv 12158.7
+REAL 1000 half(5x5x20) rfft 1861.7 half 1407.8 untangle 411.6 realpool 18.0 halfpool 16.8 irfft 1969.7 retangle 440.1 halfinv 1450.9
+PASS
+# end 06:20:38 load 0.60 0.43 0.26

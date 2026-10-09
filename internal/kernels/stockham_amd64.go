@@ -414,7 +414,8 @@ func skLast8AVX2(cc, ch *complex128, k *float64, l1 int)
 var UseUntangleAVX2 = useAVX2
 
 // Untangle runs the real-FFT untangle for bins k = 1 .. 2·⌊half/2⌋ (half =
-// (m-1)/2) on the AVX2 kernel and returns the last bin it produced, or 0 when
+// (m-1)/2) on the AVX2 kernel (four bins per step on the 512-bit one where
+// UseUntangleAVX512 says) and returns the last bin it produced, or 0 when
 // it did nothing; the caller finishes the remaining bins, and the DC, Nyquist
 // and middle bins, in Go. dst has m+1 entries, z at least m and tw 2·pairs+2
 // (the kernel reads the twiddles' imaginary parts at tw+8). dst may be z: each
@@ -425,12 +426,22 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		return 0
 	}
 	_, _, _ = dst[m], z[m-1], tw[2*pairs+1] // the kernel trusts these lengths
-	smallUntangleAVX2(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, pairs)
+	// Four bins per step on the 512-bit kernel; a pair left over goes to the
+	// AVX2 kernel, on the slices that start 4·q bins in (its mirror is then
+	// m-4q-1). The kernel is called with q = 0 too: it returns before its first AVX-512
+	// instruction, so no statement here runs only on an AVX-512 CPU (the
+	// coverage gate runs on CPUs without it).
+	q := clQuads(UseUntangleAVX512, pairs, m)
+	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
+	if rest := pairs - 2*q; rest > 0 {
+		smallUntangleAVX2(&dst[4*q], &z[4*q], &tw[4*q], &skFwd[0][0], m-8*q, rest)
+	}
 	return 2 * pairs
 }
 
 // Retangle runs the real-FFT inverse untangle for k = 1 .. 2·⌊half/2⌋ (half =
-// (m-1)/2) on the AVX2 kernel, writing z from the complete half spectrum x
+// (m-1)/2) on the AVX2 kernel (or the 512-bit one, as Untangle), writing z
+// from the complete half spectrum x
 // scaled by h = 0.5·scale, and returns the last k it produced, or 0 when it did
 // nothing (UseUntangleAVX2 gates it too). z holds at least m entries, x m+1
 // and tw 2·pairs+2.
@@ -441,9 +452,24 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	}
 	_, _, _ = z[m-1], x[m], tw[2*pairs+1]
 	hv := [4]float64{h, h, h, h}
-	smallRetangleAVX2(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, pairs)
+	q := clQuads(UseUntangleAVX512, pairs, m) // as in Untangle
+	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
+	if rest := pairs - 2*q; rest > 0 {
+		smallRetangleAVX2(&z[4*q], &x[4*q], &tw[4*q], &skFwd[0][0], &hv, m-8*q, rest)
+	}
 	return 2 * pairs
 }
+
+// UseUntangleAVX512 reports whether Untangle and Retangle run four bins per
+// step on the 512-bit kernels (Round 31), the AVX2 kernel taking a pair left
+// over; untangle512Default decides. A variable so the tests can compare the
+// two widths on an AVX-512 machine.
+var UseUntangleAVX512 = untangle512Default(useAVX2, supportsAVX512F(), IntelCPU)
+
+// untangle512Default turns the 512-bit untangle on where it was measured:
+// AVX-512 on an Intel CPU (Cascade Lake, Round 31). A pure function, tested
+// on any machine.
+func untangle512Default(avx2, avx512, intel bool) bool { return avx2 && avx512 && intel }
 
 //go:noescape
 func skPass2AVX512(cc, ch, tw *complex128, k *float64, ido, l1 int)
@@ -571,4 +597,27 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 		i0 += g
 	}
 	return fwd, conj
+}
+
+// clUntangleWide reports whether an untangle of half-length m takes the
+// 512-bit kernel when UseUntangleAVX512 is on: a power of two from 256 to
+// 16384 points. From 256 the half transforms run the AVX-512 pass kernels
+// (the fft package's wide512). On Cascade Lake (Round 31, eleven to fifteen
+// rotated rounds) the 512-bit untangle alone ran 1.06–1.28× as fast as the
+// AVX2 one from m = 256 to 32768, and the whole RFFT 1.08–1.13×, IRFFT
+// 1.08–1.12× to m = 16384 (m = 32768: RFFT 1.078, IRFFT 1.004). From m =
+// 65536 the untangle alone lost (0.877–0.893, its data beyond L2). After a half
+// transform on the AVX2 kernels it made the whole RFFT slower, not faster:
+// RFFT 256 (m = 128) 0.889, RFFT 1000 0.905, RFFT 1920 0.899 — the cost of
+// mixing widths Round 6 met, larger than the untangle's own gain.
+func clUntangleWide(m int) bool { return m >= 256 && m <= 1<<14 && m&(m-1) == 0 }
+
+// clQuads is how many four-bin steps the 512-bit untangle takes of pairs
+// two-bin steps at half-length m: half of them (rounded down) when on and
+// clUntangleWide(m), else none.
+func clQuads(on bool, pairs, m int) int {
+	if on && clUntangleWide(m) {
+		return pairs / 2
+	}
+	return 0
 }

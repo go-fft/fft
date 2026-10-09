@@ -195,6 +195,28 @@ func init() {
 	hsw := kernels.UseStockhamSplit && !kernels.UseStockhamSplit512 && kernels.IntelCPU
 	intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512, hsw)
 	hswSplitFloor = hswSplitFloorAMD64(hsw)
+	clRowOrder = clRowOrderAMD64(kernels.UseStockhamSplit512)
+}
+
+// clRowOrderAMD64 is clRowOrder: with the 512-bit split layout, the rows of
+// 1024 points of a large N-D plan take 4·8·4·8 instead of
+// intelSplitTable512's 8·4·4·8 (Round 31, Cascade Lake). 2-D 1024² had run
+// 0.94× as fast since that table (Round 28). Located axis by axis: the
+// columns did not move, and the row step alone, rows in place on the array
+// the columns leave, took 4.4 ns per point with 8·4·4·8 and 3.7 with any
+// order whose first pass is radix 4 (4·4·8·8, 4·8·4·8, 4·8·8·4; fifteen
+// rotated rounds, 4·8·4·8 1.198, every round above 1.14), while in cache
+// 8·4·4·8 stays 1.5–2.5% ahead of them. A radix-8 first pass over a
+// 1024-point row reads eight streams 2 KB apart, two in every 4 KB page,
+// where radix 4 reads four streams 4 KB apart; Intel documents its L2
+// streamer as following one forward stream per page, which fits, though
+// this VM has no PMU to show it. At 2048 (radix 8 first, streams 4 KB
+// apart) and 8192 the table's orders kept their lead on cold rows.
+func clRowOrderAMD64(on512 bool) map[int][]int {
+	if !on512 {
+		return nil
+	}
+	return map[int][]int{1024: {4, 8, 4, 8}}
 }
 
 // hswSplitFloorAMD64 is hswSplitFloor: 512 on an Intel CPU with the 256-bit

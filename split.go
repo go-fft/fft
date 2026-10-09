@@ -39,6 +39,41 @@ func splitPow2Factors(e int) []int {
 // table); nil elsewhere.
 var intelStripOrder map[int]bool
 
+// clRowOrder gives, per length, the factorization the contiguous last axis of
+// a large N-D plan (at least clRowMinSize elements) takes instead of its 1-D
+// plan's: the rows of such an array come from beyond the cache, where a first
+// pass that the hardware prefetchers follow badly costs more than the 1-D
+// table's order gains in cache. Set per architecture (route_amd64.go: Round
+// 31's table on Cascade Lake); nil elsewhere.
+var clRowOrder map[int][]int
+
+// clRowMinSize is the smallest N-D plan, in elements (8 MB of complex128),
+// whose last axis takes clRowOrder. On Cascade Lake (Round 31, m×1024 arrays,
+// the row step alone, eleven rotated rounds) 4·8·4·8 rows ran 0.94–0.99× as
+// fast as the 1-D table's 8·4·4·8 up to 128 rows (2 MB), tied at 256 rows
+// (0.999) and gained 1.18 from 512 rows.
+const clRowMinSize = 1 << 19
+
+// clRowPlan returns the plan the last axis of an N-D plan of size elements
+// takes for lines of length n: clRowOrder's when the plan is large enough
+// and the length is in the table, else nil.
+func clRowPlan(n, size int) *Plan {
+	f := clRowOrder[n]
+	if f == nil || size < clRowMinSize {
+		return nil
+	}
+	planMu.Lock()
+	defer planMu.Unlock()
+	p, ok := clRowCache[n]
+	if !ok {
+		p = &Plan{n: n, sk: newSKPlanFactors(n, f)}
+		clRowCache[n] = p
+	}
+	return p
+}
+
+var clRowCache = map[int]*Plan{}
+
 // hswSplitFloor, when positive, keeps the split layout to the powers of two
 // of at least that many points: every other plan runs its passes
 // interleaved. Set per architecture (route_amd64.go: 512 on an Intel CPU

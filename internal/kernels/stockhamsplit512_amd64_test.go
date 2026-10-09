@@ -191,3 +191,58 @@ func TestIntelSplit512PassLayoutRefuses(t *testing.T) {
 	intelHasAVX512 = false
 	expect("no AVX-512", refuse, func() { StockhamPassLayout(b+splitBoth, 4, 8, 1, buf, buf, buf, false, true) })
 }
+
+// TestClCompSplit256: where the 512-bit layout is on, a power of two takes
+// its modes, a composite of at most clCompSplitMax points the 256-bit ones,
+// and a longer composite, or any composite with ClCompSplit256 off, none; a
+// mode's twiddles are its width's.
+func TestClCompSplit256(t *testing.T) {
+	defer func(a, h, c bool) { UseStockhamSplit512, intelHasAVX512, ClCompSplit256 = a, h, c }(UseStockhamSplit512, intelHasAVX512, ClCompSplit256)
+	UseStockhamSplit512, intelHasAVX512, ClCompSplit256 = true, true, true
+	plan := func(n int, f ...int) (r, ido, l1 []int) {
+		l := 1
+		for _, x := range f {
+			r, ido, l1 = append(r, x), append(ido, n/(l*x)), append(l1, l)
+			l *= x
+		}
+		return
+	}
+	none := func(m []uint8) bool { return !slices.ContainsFunc(m, func(x uint8) bool { return x != 0 }) }
+	// 1920 = 3·5·4·8·4: a run of radix-4/8 passes after the odd ones.
+	r, ido, l1 := plan(1920, 3, 5, 4, 8, 4)
+	want := []uint8{0, 0, splitOut, splitIn, 0}
+	if got := StockhamSplitModes(r, ido, l1); !slices.Equal(got, want) {
+		t.Errorf("1920: modes %v, want %v", got, want)
+	}
+	r, ido, l1 = plan(1024, 4, 4, 8, 8)
+	if got, want := StockhamSplitModes(r, ido, l1), intelSplitModes512(r, ido); !slices.Equal(got, want) || got[0] <= splitNone {
+		t.Errorf("1024: modes %v, want the 512-bit %v", got, want)
+	}
+	r, ido, l1 = plan(clCompSplitMax*3/2, 3, 4, 4, 8, 8, 8, 4)
+	if got := StockhamSplitModes(r, ido, l1); !none(got) {
+		t.Errorf("%d: modes %v, want none", clCompSplitMax*3/2, got)
+	}
+	ClCompSplit256 = false
+	r, ido, l1 = plan(1920, 3, 5, 4, 8, 4)
+	if got := StockhamSplitModes(r, ido, l1); !none(got) {
+		t.Errorf("1920 with ClCompSplit256 off: modes %v, want none", got)
+	}
+	if got := StockhamSplitModes(nil, nil, nil); len(got) != 0 {
+		t.Errorf("no passes: %v", got)
+	}
+	const n = 96
+	root := make([]complex128, n)
+	for k := range root {
+		root[k] = complex(float64(k), -float64(k)-0.5)
+	}
+	for _, mode := range []uint8{splitOut, splitBoth, splitIn, splitNone} {
+		fwd, _ := StockhamSplitTwiddlesFor(mode, 4, 8, 3, root)
+		if w, _ := clSplitTwiddles256(4, 8, 3, root); !slices.Equal(fwd, w) {
+			t.Errorf("mode %d: twiddles not the 256-bit layout's", mode)
+		}
+		fwd, _ = StockhamSplitTwiddlesFor(mode+intelSplit512Base, 4, 8, 3, root)
+		if w, _ := intelSplitTwiddles512(4, 8, 3, root); !slices.Equal(fwd, w) {
+			t.Errorf("mode %d: twiddles not the 512-bit layout's", mode+intelSplit512Base)
+		}
+	}
+}

@@ -1,0 +1,18 @@
+# Generator mutations of genClUntangle512 (asmgen/amd64/gen.go), each regenerated,
+# cross-compiled and run on cfarm151 against TestUntangleMatchesScalar,
+# TestRetangleMatchesScalar and TestUntangleInPlace (2026-10-09).
+M1 odd-lane blend mask 0xaa -> 0x2a          FAIL TestUntangleMatchesScalar m=2048 bin 4 wide=true; FAIL TestRetangleMatchesScalar
+M2 forward addsub sign flip dropped          FAIL TestUntangleMatchesScalar m=2048 bin 1 wide=true
+M3 inverse addsub sign flip dropped          FAIL TestRetangleMatchesScalar m=2048 bin 1 wide=true
+M4 wi loaded from tw+0 (also hits AVX2 step) FAIL TestUntangleMatchesScalar m=2048 bin 1
+M5 mirror cursor &in[m-3] instead of m-4     FAIL TestUntangleInPlace m=1024 bin 1; FAIL TestUntangleMatchesScalar
+M6 loop advances two steps instead of three  FAIL TestUntangleInPlace m=1024 bin 9; FAIL TestUntangleMatchesScalar
+# Guards (fft and kernels packages, local and amd64 under the same tests):
+clRowPlan without the size floor             FAIL TestClRowPlan
+clRowPlan without the table lookup           FAIL TestClRowPlan (after adding the 'length not in the table' case; it survived before)
+row plan not installed in initScratch        FAIL TestClRowPlan
+row plan not cached                          FAIL TestClRowPlan
+StockhamSplitModes without clCompSplitMax    FAIL TestClCompSplit256
+StockhamSplitModes ignoring ClCompSplit256   FAIL TestClCompSplit256
+StockhamSplitTwiddlesFor ignoring the mode   FAIL TestClCompSplit256
+composites routed to the 512-bit modes       FAIL TestClCompSplit256

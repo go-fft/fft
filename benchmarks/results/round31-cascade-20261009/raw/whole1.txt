@@ -1,0 +1,8 @@
+# start 18:10:58 load 0.48 0.69 0.44 : ./r31b.test -test.run TestR31Whole -r31.whole 15,10 -r31.shapes 1024x1024,512x1024,4x256x1024,256x1024,2048x512
+WHOLE 1024x1024    main   18466618 ns  rows [4 8 4 8]   17553720 ns  main/this 1.054  range 1.023-1.076
+WHOLE 512x1024     main    9805572 ns  rows [4 8 4 8]    9385244 ns  main/this 1.051  range 1.002-1.070
+WHOLE 4x256x1024   main   31504393 ns  rows [4 8 4 8]   30808453 ns  main/this 1.022  range 0.987-1.101
+WHOLE 256x1024     main    2108712 ns  rows [8 4 4 8]    2114655 ns  main/this 0.988  range 0.918-1.180
+WHOLE 2048x512     main   19259685 ns  rows [8 8 8]   19194452 ns  main/this 1.006  range 0.957-1.030
+PASS
+# end 18:11:22 load 0.66 0.72 0.46

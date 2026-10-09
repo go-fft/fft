@@ -62,3 +62,42 @@ func TestUntangleBoundsAVX2(t *testing.T) {
 		t.Error("a kernel ran with UseUntangleAVX2 off")
 	}
 }
+
+// TestUntangle512Default: the 512-bit untangle runs with AVX2 and AVX-512 on
+// an Intel CPU only.
+func TestUntangle512Default(t *testing.T) {
+	for _, c := range []struct{ avx2, avx512, intel, want bool }{
+		{true, true, true, true},
+		{true, true, false, false},
+		{true, false, true, false},
+		{false, true, true, false},
+	} {
+		if got := untangle512Default(c.avx2, c.avx512, c.intel); got != c.want {
+			t.Errorf("untangle512Default(%v, %v, %v) = %v", c.avx2, c.avx512, c.intel, got)
+		}
+	}
+}
+
+// TestClUntangleWide: the 512-bit untangle takes the powers of two from 256.
+func TestClUntangleWide(t *testing.T) {
+	for m, want := range map[int]bool{128: false, 255: false, 256: true, 500: false, 1024: true, 1 << 14: true, 1 << 15: false, 3 << 8: false} {
+		if got := clUntangleWide(m); got != want {
+			t.Errorf("clUntangleWide(%d) = %v, want %v", m, got, want)
+		}
+	}
+}
+
+// TestClQuads: half the pairs, rounded down, go to the 512-bit kernel when it
+// is on and the length takes it; none otherwise.
+func TestClQuads(t *testing.T) {
+	for _, c := range []struct {
+		on          bool
+		pairs, m, q int
+	}{
+		{true, 63, 256, 31}, {true, 64, 512, 32}, {false, 63, 256, 0}, {true, 31, 128, 0}, {true, 249, 1000, 0},
+	} {
+		if got := clQuads(c.on, c.pairs, c.m); got != c.q {
+			t.Errorf("clQuads(%v, %d, %d) = %d, want %d", c.on, c.pairs, c.m, got, c.q)
+		}
+	}
+}

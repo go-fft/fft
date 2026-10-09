@@ -103,3 +103,59 @@ func TestHswSplitKept(t *testing.T) {
 		}
 	}
 }
+
+// TestClRowPlan: the last axis of an N-D plan of at least clRowMinSize
+// elements takes clRowOrder's factorization, a smaller one its 1-D plan's;
+// the large plan reuses one cached row plan and stays correct.
+func TestClRowPlan(t *testing.T) {
+	defer func(m map[int][]int) { clRowOrder = m }(clRowOrder)
+	const n = 64
+	want := []int{2, 4, 8}
+	clRowOrder = map[int][]int{n: want}
+	planMu.Lock()
+	delete(clRowCache, n)
+	planMu.Unlock()
+	defer func() {
+		planMu.Lock()
+		delete(clRowCache, n)
+		planMu.Unlock()
+	}()
+	factors := func(p *PlanN) []int {
+		var f []int
+		sk := p.axes[len(p.axes)-1].sk
+		if sk == nil {
+			return nil // a 1-D plan on another engine (s390x, loong64: the pow2 kernel)
+		}
+		for _, st := range sk.stages {
+			f = append(f, st.r)
+		}
+		return f
+	}
+	m := clRowMinSize / n
+	small := NewPlanN(m/2, n)
+	if got := factors(small); slices.Equal(got, want) || small.axes[1] != cachedPlan(n) {
+		t.Errorf("a plan below clRowMinSize: row factors %v, want the 1-D plan's", got)
+	}
+	if other := NewPlanN(2*m, n/2); other.axes[1] != cachedPlan(n/2) {
+		t.Error("a large plan's rows of a length not in clRowOrder: not the 1-D plan")
+	}
+	big := NewPlanN(m, n)
+	if got := factors(big); !slices.Equal(got, want) {
+		t.Errorf("row factors %v, want %v", got, want)
+	}
+	if again := NewPlanN(2, m/2, n); again.axes[2] != big.axes[1] {
+		t.Error("the row plan was built twice")
+	}
+	x := make([]complex128, m*n)
+	for i := range x {
+		x[i] = complex(float64(i%7), -float64(i%5))
+	}
+	got := big.FFT(make([]complex128, m*n), x)
+	clRowOrder = nil
+	ref := NewPlanN(m, n).FFT(make([]complex128, m*n), x)
+	for i := range got {
+		if cmplx.Abs(got[i]-ref[i]) > 1e-9*float64(m*n) {
+			t.Fatalf("index %d: %v, want %v", i, got[i], ref[i])
+		}
+	}
+}

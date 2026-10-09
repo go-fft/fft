@@ -23,13 +23,17 @@ func compRadix16(n int) []int { return compRadix16For(n, compRadix16On) }
 // routes on any machine.
 var comp2On = kernels.UseStockhamAVX2 && !kernels.IntelCPU
 
-// hswCompOn enables hswComp2Factors: the AVX2 kernels on an Intel CPU
-// without the AVX-512 ones (Haswell, Round 29). A variable so the tests can
-// take the route on any machine.
-var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU && !kernels.UseStockhamAVX512
+// hswCompOn enables hswComp2Factors: the AVX2 kernels on an Intel CPU,
+// with or without the AVX-512 ones (Haswell, Round 29; Cascade Lake, Round
+// 31, where a composite never runs the AVX-512 kernels: over the 150 lengths
+// 2^e·3^a·5^b up to 16384, five rotated rounds, it ran 1.086× as fast as
+// Round 24's Intel rule interleaved, 1.093× with the 256-bit split layout,
+// kernels.ClCompSplit256). A variable so the tests can take the route on any
+// machine.
+var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU
 
 // compFactorize is skFactorize past radix16Table: on AMD comp2Factors, on
-// Intel without AVX-512 hswComp2Factors, on Intel with it a composite's
+// Intel hswComp2Factors; where those give none, on Intel a composite's
 // radix-12 passes, else its radix-16 tail; else skFactorizeOrder's
 // factorization.
 func compFactorize(n int) []int {

@@ -142,3 +142,15 @@ func TestSplitTableAMD64(t *testing.T) {
 		}
 	}
 }
+
+// TestClRowOrderAMD64: with the 512-bit layout, rows of 1024 points of a
+// large N-D plan take 4·8·4·8; without it, nothing changes.
+func TestClRowOrderAMD64(t *testing.T) {
+	if clRowOrderAMD64(false) != nil {
+		t.Error("row orders without the 512-bit layout")
+	}
+	m := clRowOrderAMD64(true)
+	if len(m) != 1 || !slices.Equal(m[1024], []int{4, 8, 4, 8}) {
+		t.Errorf("row orders %v", m)
+	}
+}

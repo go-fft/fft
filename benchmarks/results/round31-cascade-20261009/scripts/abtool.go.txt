@@ -1,0 +1,86 @@
+// abtool FILE BASE: per benchmark, median of per-round BASE/variant time ratios and range.
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+)
+
+func main() {
+	f, _ := os.Open(os.Args[1])
+	base := os.Args[2]
+	t := map[string]map[string]map[int]float64{} // bench -> variant -> round -> ns
+	var order []string
+	var round int
+	var v string
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		l := sc.Text()
+		if strings.HasPrefix(l, "# round ") {
+			fs := strings.Fields(l)
+			round, _ = strconv.Atoi(fs[2])
+			v = fs[4]
+			continue
+		}
+		if !strings.HasPrefix(l, "Benchmark") {
+			continue
+		}
+		fs := strings.Fields(l)
+		name := fs[0]
+		if i := strings.LastIndex(name, "-"); i > 0 {
+			name = name[:i]
+		}
+		for i := range fs {
+			if fs[i] == "ns/op" {
+				x, _ := strconv.ParseFloat(fs[i-1], 64)
+				if t[name] == nil {
+					t[name] = map[string]map[int]float64{}
+					order = append(order, name)
+				}
+				if t[name][v] == nil {
+					t[name][v] = map[int]float64{}
+				}
+				t[name][v][round] = x
+			}
+		}
+	}
+	for _, b := range order {
+		var vs []string
+		for k := range t[b] {
+			vs = append(vs, k)
+		}
+		sort.Strings(vs)
+		for _, w := range vs {
+			if w == base {
+				continue
+			}
+			var r, bt, wt []float64
+			for rd, x := range t[b][w] {
+				if y, ok := t[b][base][rd]; ok {
+					r = append(r, y/x)
+					bt = append(bt, y)
+					wt = append(wt, x)
+				}
+			}
+			sort.Float64s(r)
+			sort.Float64s(bt)
+			sort.Float64s(wt)
+			if len(r) == 0 {
+				continue
+			}
+			fmt.Printf("%-28s %-12s base %12.1f  this %12.1f  base/this %.3f  range %.3f-%.3f  n=%d\n", b, w, med(bt), med(wt), med(r), r[0], r[len(r)-1], len(r))
+		}
+	}
+}
+
+func med(x []float64) float64 {
+	n := len(x)
+	if n%2 == 1 {
+		return x[n/2]
+	}
+	return (x[n/2-1] + x[n/2]) / 2
+}
