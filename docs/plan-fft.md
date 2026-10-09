@@ -335,14 +335,17 @@ what was tried and dropped:
 
 ### Remaining
 
-- **Small sizes on amd64** (256: 1.24× FFTW on Zen 3 and Cascade Lake; RFFT
-  256: 1.21×). On Neoverse-N1 RFFT 256 is the last row behind (1.06×): its
-  128-point half transform alone takes ~73% of FFTW's whole r2c.
-- **Cascade Lake:** mid-size real transforms and composites (1.17–1.23×), and
-  the 2-D 1024² regression of v0.19.0 (0.94×), cause not established.
-- **Intel AVX2-only (Haswell)** and **Apple M4** were never idle enough to
-  measure; their routing is unchanged since the kernels they run were tuned
-  elsewhere.
+- **Small sizes on amd64** (v0.23.0, BENCHMARKS.md "Current numbers": complex
+  256 1.09× FFTW on Zen 3 and 1.27× on Cascade Lake; RFFT 256 1.07× and
+  1.08×). On Neoverse-N1 RFFT 256 is still slower than FFTW (1.046×, inside
+  the 5% parity margin), as is RFFT 1,080 (1.04×).
+- **Cascade Lake:** complex 1,296 (1.20×; the split layout has no radix-3 or
+  radix-12 kernel), the other composites (1.11–1.26×) and the large real
+  transforms (1.13–1.14×). The 2-D 1024² regression of v0.19.0 is fixed in
+  v0.22.0 (Round 31).
+- **Haswell** (Intel AVX2-only) was measured in Round 29 (v0.21.0), but it has
+  no FFTW, so its ratio to FFTW is unknown. **Apple M4** has not been measured
+  with the current engines.
 - **float32:** AVX-512 kernels, and a comparison with FFTW's single-precision
   library (not built on the hosts).
 - **loong64.** Never measured: its only host stayed at load 150 or unreachable.
