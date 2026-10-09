@@ -2,47 +2,91 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-## Current numbers (2026-10-07, v0.19.0)
+## Current numbers (v0.23.0)
 
 Measured on three GCC Compile Farm hosts against FFTW 3.3.10 (built from source
 with the host's SIMD; AVX-512 codelets on Cascade Lake), numpy.fft 2.5.3 and
 scipy.fft 1.18.1 (pocketfft), and gonum, with go1.27.1, every row on one pinned
 core. Every transform first passed the correctness gate (24/24 against
-`numpy.fft`, `rtol=1e-9`). FFTW's own times move by up to 22% between runs on
-one host (Round 26), so each ratio below is the mean of the two "branch" runs
-of the newest round on that host:
-- Zen 3: Round 26 ([`round26-amd64-comp2-20261007/zen3/`](benchmarks/results/round26-amd64-comp2-20261007/zen3/) `parity-br`, `parity-br2`), v0.18.0;
-- Neoverse-N1: Round 27 ([`round27-arm64-real-20261007/neoverse-n1/`](benchmarks/results/round27-arm64-real-20261007/neoverse-n1/) `parity-br`, `parity-br2`), v0.17.0;
-- Cascade Lake: Round 28 ([`round28-intel-small-20261007/`](benchmarks/results/round28-intel-small-20261007/) `parity-br1`, `parity-br2`), v0.19.0.
+`numpy.fft`, `rtol=1e-9`). Each host's newest parity round runs code that is
+v0.23.0's on that host: v0.22.x changed only Intel paths, v0.23.0 only AMD
+paths, and nothing has changed arm64 since v0.21.0.
 
-No later release changes the float64 path on those machines. go-fft time ÷ FFTW
-time, below 1 means go-fft is faster (bold: at or above FFTW, within 5%):
+- **Zen 3** (AMD EPYC 7773X, cfarm420): Round 32, 2026-10-09, the branch that
+  became v0.23.0 ([`round32-zen3-small-20261009/zen3/parity/`](benchmarks/results/round32-zen3-small-20261009/zen3/parity/) `par2-br`, `par3-br`);
+- **Neoverse-N1** (cfarm424): Round 33, 2026-10-09, v0.21.0
+  ([`round33-parity-n1-v0.21.0-20261009/neoverse-n1/`](benchmarks/results/round33-parity-n1-v0.21.0-20261009/neoverse-n1/) `parity-a`, `parity-b`);
+- **Cascade Lake** (cfarm151): Round 31, 2026-10-09, the branch that became
+  v0.22.0 ([`round31-cascade-20261009/parity/rp-br/`](benchmarks/results/round31-cascade-20261009/parity/rp-br/) `out-br1`, `out-br2`).
+
+**Method.** go-fft: the median of the three repetitions in each run's
+`go_bench.txt`, then the mean of the two runs. FFTW: the median of its
+`fftw.json` time over every run of the round (four on Zen 3 and Cascade Lake,
+whose rounds ran main, branch, branch, main; two on Neoverse-N1), because
+FFTW's own times move by up to 22% between runs on one host (Round 26).
+numpy.fft and scipy.fft: each run's `ref.json` against that run's go-fft time.
+The tables are computed from those raw files by
+[`current-numbers-v0.23.0/partab.go.txt`](benchmarks/results/current-numbers-v0.23.0/),
+whose output for each host, every row with both runs, is beside it.
+
+go-fft time ÷ FFTW time, below 1 means go-fft is faster. Bold: at or above
+FFTW, which by this file's convention includes rows up to 1.05, slower than
+FFTW by at most 5%; three decimals where two would hide which side of 1.05 a
+row is on:
 
 | transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64, NEON) | Xeon Cascade Lake (AVX-512) |
 |:--|--:|--:|--:|
-| complex 256 | 1.24 | **0.96** | 1.24 |
-| complex 1,024 | 1.13 | **0.83** | 1.17 |
-| complex 4,096 | **0.84** | **0.68** | **0.95** |
-| complex 65,536 | **0.88** | **0.57** | 1.15 |
-| complex 1,048,576 | **0.52** | **0.46** | **0.83** |
-| complex 1,000 (2³·5³) | 1.06 | **0.83** | 1.23 |
-| complex 1,296 (2⁴·3⁴) | **1.02** | **0.76** | 1.22 |
+| complex 256 | 1.09 | **0.88** | 1.27 |
+| complex 1,024 | 1.13 | **0.77** | 1.18 |
+| complex 4,096 | 1.50 ¹ | **0.58** | **0.94** |
+| complex 65,536 | **0.91** | **0.58** | 1.16 |
+| complex 1,048,576 | **0.55** | **0.45** | **0.79** |
+| complex 1,000 (2³·5³) | 1.06 | **0.85** | 1.11 |
+| complex 1,296 (2⁴·3⁴) | 1.054 | **0.76** | 1.20 |
 | complex 1,009 (prime, Rader) | **0.66** | **0.45** | **0.61** |
-| complex 10,007 (prime, Bluestein) | **1.02** | **0.69** | **0.94** |
-| RFFT 256 | 1.21 | 1.06 | 1.21 |
-| RFFT 4,096 | 1.14 | **0.78** | 1.23 |
-| RFFT 1,048,576 | **0.79** | **0.56** | 1.09 |
-| 2-D 128×128 | **0.83** | **0.65** | 1.06 |
-| 2-D 1024×1024 | **0.96** | **0.40** | **0.82** |
+| complex 10,007 (prime, Bluestein) | **1.02** | **0.68** | **0.92** |
+| RFFT 256 | 1.07 | **1.046** | 1.08 |
+| RFFT 4,096 | 1.12 | **0.74** | 1.051 |
+| RFFT 1,048,576 | **0.78** | **0.53** | 1.13 |
+| 2-D 128×128 | **0.92** | **0.66** | 1.06 |
+| 2-D 1024×1024 | **0.89** | **0.41** | **0.75** |
 
-- **Against FFTW:** at or above it on 15 of the 24 rows on Zen 3, 23 on Neoverse-N1 and 7 on Cascade Lake (means of two runs).
-- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows in every one of the six runs.
-- **FFTW's variance:** Zen 3's RFFT 4096 reads 1.14 here and 1.02 in Round 23 with the same go-fft code; Cascade Lake beyond 2^19 is noisier still (Round 20).
-- **Round 32 (Zen 3, not yet in the table):** with the buffers between the passes in the kernel's frame, complex 256 reads 1.09× FFTW and RFFT 256 1.05× (means of two runs against the median of FFTW's four), complex 64 1.36× faster than v0.21.0.
-- **Known regression:** 2-D 1024² on Cascade Lake runs at 0.94× v0.18.0's speed since v0.19.0 (Round 28), cause not established.
-- **Single precision** (Rounds 22, 25, 27): float32 takes 0.46–0.83× the float64 time on Zen 3 and 0.58–0.73× on Neoverse-N1. FFTW's single-precision library is not built on the hosts.
+¹ Host load, not the code: the first branch run (`par2-br`) read complex 4096
+at 19.7–20.4 µs on all three repetitions, the second at 10.1–10.9 µs and the
+two main runs at 9.2–9.6 µs, while the load went from 3.3 to 4.2 (Round 32).
+The second run alone gives 1.03. The row is kept as the method computes it.
+
+- **Against FFTW** (all 24 rows of the sweep: 11 complex, 8 RFFT, 5 2-D):
+  - **Neoverse-N1: 24 of 24** at or above it; faster on 22. The two rows
+    within 5% but still slower than FFTW: RFFT 256 (1.046; 1.04 and 1.05 in the
+    two runs) and RFFT 1,080 (1.04).
+  - **Zen 3: 12 of 24**; faster on 9. Within 5% but slower: complex 10,007
+    (1.02), RFFT 1,000 (1.02), 2-D 256² (1.01). Slower by more: complex 256,
+    1,024, 4,096 (¹), 1,000, 1,080 (1.09), 1,296 (1.054); RFFT 256, 1,024 (1.08),
+    4,096, 1,080 (1.14), 1,920 (1.08); 2-D 64² (1.13).
+  - **Cascade Lake: 11 of 24**; faster on 10. Within 5% but slower: 2-D 64²
+    (1.045). Slower by more: complex 256, 1,024, 65,536, 1,000, 1,080 (1.26),
+    1,920 (1.11), 1,296; RFFT 256, 4,096 (1.051), 65,536 (1.14), 2^20; 2-D
+    128², 512² (1.17).
+- **Against numpy.fft and scipy.fft:** at or above both on all 24 rows in both
+  runs on every host (go-fft takes 0.04–0.70 of numpy's time and 0.04–0.92 of
+  scipy's).
+- **Against gonum:** faster on all 19 1-D rows in both runs on every host.
+- **Haswell** (Xeon E5-2620 v3, no FFTW on the host, so no ratio): v0.21.0
+  (Round 29) runs complex 512–2^18 1.03–1.21× faster than v0.19.1, the
+  composites 1000–6000 1.07–1.21× faster and RFFT 1000 1.09× faster.
+- **Not measured:** Apple M4 has never been measured against FFTW with the
+  current engines (the June 2026 M4 tables below describe the previous ones),
+  and no loong64 host could be reached.
+- **Open on Cascade Lake:** complex 256 (1.27) and complex 1,296 (1.20; no
+  rule timed in Round 31 beats 3·3·12·12, and the split layout has no radix-3
+  or radix-12 kernel). 2-D 1024², which v0.19.0 had slowed to 0.94× v0.18.0's
+  speed, is fixed in v0.22.0 (1.03× v0.18.0, Round 31).
+- **FFTW's variance:** FFTW's 2-D times varied twofold over Cascade Lake's four
+  runs (1024²: 13.7–27.3 ms), and go-fft's 2-D 512² read 3.1 ms in one branch
+  run and 2.4 ms in the other (allocation placement, Round 31).
+- **Single precision** (Rounds 22, 25, 27): float32 takes 0.46–0.83× the float64 time on Zen 3 and 0.58–0.73× on Neoverse-N1. FFTW's single-precision library is not built on the hosts, so there is no float32 comparison with it.
 - **Earlier tables** are in the git history of this file and in the dated rounds below.
-
 The dated rounds below (from "Stockham round" on) record how the code got
 there, with every measurement behind each kept or dropped change.
 

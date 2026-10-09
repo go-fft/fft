@@ -1,0 +1,232 @@
+// partab -go DIR,DIR -fftw DIR,DIR[,DIR,DIR]: the 24 parity rows (complex 1-D,
+// real 1-D, 2-D PlanN). go-fft = median of each run's -count reps, then the
+// mean of the runs; FFTW = median of fftw_ns over the -fftw runs; numpy/scipy
+// compared per run (go-fft run median ÷ that run's ref.json time).
+package main
+
+import (
+	"bufio"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"slices"
+	"strconv"
+	"strings"
+)
+
+type ent struct {
+	N     int     `json:"n"`
+	Shape string  `json:"shape"`
+	FFTW  float64 `json:"fftw_ns"`
+	Numpy float64 `json:"numpy_ns"`
+	Scipy float64 `json:"scipy_ns"`
+}
+
+func med(x []float64) float64 {
+	x = slices.Clone(x)
+	slices.Sort(x)
+	n := len(x)
+	if n%2 == 1 {
+		return x[n/2]
+	}
+	return (x[n/2-1] + x[n/2]) / 2
+}
+
+var kinds = [][2]string{{"complex", "Complex"}, {"real", "Real"}, {"fft2", "FFT2Plan"}}
+
+func readJSON(p string) map[string]ent {
+	b, err := os.ReadFile(p)
+	if err != nil {
+		panic(err)
+	}
+	var j map[string]json.RawMessage
+	if err := json.Unmarshal(b, &j); err != nil {
+		panic(err)
+	}
+	out := map[string]ent{}
+	for _, k := range kinds {
+		var es []ent
+		json.Unmarshal(j[k[0]], &es)
+		for _, e := range es {
+			key := strconv.Itoa(e.N)
+			if e.Shape != "" {
+				key = e.Shape
+			}
+			out[k[1]+"/"+key] = e
+		}
+	}
+	return out
+}
+
+func readGo(p string) map[string]float64 {
+	f, err := os.Open(p)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	runs := map[string][]float64{}
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		fs := strings.Fields(sc.Text())
+		if len(fs) < 4 || !strings.HasPrefix(fs[0], "Benchmark") || !strings.Contains(fs[0], "_GoFFT/") {
+			continue
+		}
+		name := strings.TrimPrefix(fs[0], "Benchmark")
+		name = name[:strings.LastIndex(name, "-")]
+		name = strings.Replace(name, "_GoFFT", "", 1)
+		v, _ := strconv.ParseFloat(fs[2], 64)
+		runs[name] = append(runs[name], v)
+	}
+	out := map[string]float64{}
+	for k, v := range runs {
+		out[k] = med(v)
+	}
+	return out
+}
+
+func main() {
+	gd := flag.String("go", "", "go-fft run dirs")
+	fd := flag.String("fftw", "", "FFTW run dirs")
+	flag.Parse()
+	var gos []map[string]float64
+	var refs []map[string]ent
+	for _, d := range strings.Split(*gd, ",") {
+		gos = append(gos, readGo(filepath.Join(d, "go_bench.txt")))
+		refs = append(refs, readJSON(filepath.Join(d, "ref.json")))
+	}
+	var gns []map[string]float64
+	for _, d := range strings.Split(*gd, ",") {
+		gns = append(gns, readGo2(filepath.Join(d, "go_bench.txt"), "_Gonum/"))
+	}
+	gnOK, gnRows := 0, 0
+	var md []string
+	var fws []map[string]ent
+	for _, d := range strings.Split(*fd, ",") {
+		fws = append(fws, readJSON(filepath.Join(d, "fftw.json")))
+	}
+	// row order from the first FFTW file
+	var order []string
+	b, _ := os.ReadFile(filepath.Join(strings.Split(*fd, ",")[0], "fftw.json"))
+	var j map[string]json.RawMessage
+	json.Unmarshal(b, &j)
+	for _, k := range kinds {
+		var es []ent
+		json.Unmarshal(j[k[0]], &es)
+		for _, e := range es {
+			key := strconv.Itoa(e.N)
+			if e.Shape != "" {
+				key = e.Shape
+			}
+			order = append(order, k[1]+"/"+key)
+		}
+	}
+	rows, par, faster, np, sp := 0, 0, 0, 0, 0
+	fmt.Printf("%-18s %12s %12s %12s %6s  %-11s %-11s %-11s %s\n", "row", "go run1", "go run2", "go mean", "", "FFTW med", "go/FFTW", "numpy r1/r2", "scipy r1/r2")
+	for _, k := range order {
+		var gm []float64
+		for _, g := range gos {
+			v, ok := g[k]
+			if !ok {
+				panic("missing go row " + k)
+			}
+			gm = append(gm, v)
+		}
+		mean := 0.0
+		for _, v := range gm {
+			mean += v
+		}
+		mean /= float64(len(gm))
+		var fv []float64
+		for _, f := range fws {
+			fv = append(fv, f[k].FFTW)
+		}
+		fm := med(fv)
+		r := mean / fm
+		rows++
+		if r <= 1.05 {
+			par++
+		}
+		if r < 1 {
+			faster++
+		}
+		npOK, spOK := true, true
+		var nps, sps []string
+		for i := range gos {
+			rn := gm[i] / refs[i][k].Numpy
+			rs := gm[i] / refs[i][k].Scipy
+			nps = append(nps, fmt.Sprintf("%.2f", rn))
+			sps = append(sps, fmt.Sprintf("%.2f", rs))
+			npOK = npOK && rn <= 1.05
+			spOK = spOK && rs <= 1.05
+		}
+		if !strings.HasPrefix(k, "FFT2") {
+			gnRows++
+			ok := true
+			for i := range gos {
+				ok = ok && gm[i] < gns[i][k]
+			}
+			if ok {
+				gnOK++
+			}
+		}
+		npm := (refs[0][k].Numpy + refs[1][k].Numpy) / 2
+		spm := (refs[0][k].Scipy + refs[1][k].Scipy) / 2
+		md = append(md, fmt.Sprintf("| %s | %s | %s | %.3f | %s | %s |", k, comma(mean), comma(fm), r, comma(npm), comma(spm)))
+		if npOK {
+			np++
+		}
+		if spOK {
+			sp++
+		}
+		fmt.Printf("%-18s %12.0f %12.0f %12.0f %6s  %-11.0f %-11.3f %-11s %s   fftw[%s]\n", k, gm[0], gm[1], mean, "", fm, r,
+			strings.Join(nps, "/"), strings.Join(sps, "/"), fmtf(fv))
+	}
+	fmt.Println(strings.Join(md, "\n"))
+	fmt.Printf("gonum: go-fft faster in every run on %d of %d rows\n", gnOK, gnRows)
+	fmt.Printf("rows %d; go/FFTW <= 1.05: %d; < 1: %d; numpy in every run: %d; scipy in every run: %d\n", rows, par, faster, np, sp)
+}
+
+func readGo2(p, fam string) map[string]float64 {
+	f, _ := os.Open(p)
+	defer f.Close()
+	runs := map[string][]float64{}
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		fs := strings.Fields(sc.Text())
+		if len(fs) < 4 || !strings.Contains(fs[0], fam) {
+			continue
+		}
+		name := strings.TrimPrefix(fs[0], "Benchmark")
+		name = name[:strings.LastIndex(name, "-")]
+		name = strings.Replace(name, fam, "/", 1)
+		v, _ := strconv.ParseFloat(fs[2], 64)
+		runs[name] = append(runs[name], v)
+	}
+	out := map[string]float64{}
+	for k, v := range runs {
+		out[k] = med(v)
+	}
+	return out
+}
+
+func comma(x float64) string {
+	s := strconv.FormatFloat(x, 'f', 0, 64)
+	var b []byte
+	for i := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			b = append(b, ',')
+		}
+		b = append(b, s[i])
+	}
+	return string(b)
+}
+
+func fmtf(v []float64) string {
+	var s []string
+	for _, x := range v {
+		s = append(s, strconv.FormatFloat(x, 'f', 0, 64))
+	}
+	return strings.Join(s, " ")
+}
