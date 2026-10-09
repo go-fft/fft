@@ -7,12 +7,18 @@ package fft
 // variant.
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"math"
+	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
@@ -293,5 +299,90 @@ func TestR31Untangle(t *testing.T) {
 				median(ratios), slices.Min(ratios), slices.Max(ratios))
 		}
 		fmt.Printf("U512 %d%s\n", n, b.String())
+	}
+}
+
+var r31Export = flag.String("r31.export", "", "TestR31Export: directory the inputs and outputs go to")
+
+// TestR31Export writes random inputs and this round's outputs, with Round
+// 31's changes on ("new") and off ("old": main's row order, composite rule
+// and AVX2 untangle), as little-endian float64, so numpy can judge both on
+// the bytes this code received: 2-D 1024² and 512×1024, complex 1000, 1920,
+// 2000, 6000, 10000, and RFFT and IRFFT 1024, 4096, 32768.
+func TestR31Export(t *testing.T) {
+	if *r31Export == "" {
+		t.Skip("set -r31.export=dir")
+	}
+	r := rand.New(rand.NewPCG(31, 2026))
+	write := func(name string, x []float64) {
+		b := make([]byte, 0, 8*len(x))
+		for _, v := range x {
+			b = binary.LittleEndian.AppendUint64(b, math.Float64bits(v))
+		}
+		if err := os.WriteFile(filepath.Join(*r31Export, name), b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cplx := func(x []complex128) []float64 { return unsafe.Slice((*float64)(unsafe.Pointer(&x[0])), 2*len(x)) }
+	randC := func(n int) []complex128 {
+		x := make([]complex128, n)
+		for i := range x {
+			x[i] = complex(r.NormFloat64(), r.NormFloat64())
+		}
+		return x
+	}
+	saved := [3]any{clRowOrder, hswCompOn, kernels.UseUntangleAVX512}
+	defer func() {
+		clRowOrder, hswCompOn, kernels.UseUntangleAVX512 = saved[0].(map[int][]int), saved[1].(bool), saved[2].(bool)
+	}()
+	set := func(on bool) {
+		clRowOrder, hswCompOn, kernels.UseUntangleAVX512 = nil, false, false
+		if on {
+			clRowOrder, hswCompOn, kernels.UseUntangleAVX512 = saved[0].(map[int][]int), saved[1].(bool), saved[2].(bool)
+		}
+	}
+	for _, shape := range [][]int{{1024, 1024}, {512, 1024}} {
+		x := randC(shape[0] * shape[1])
+		name := fmt.Sprintf("nd_%dx%d", shape[0], shape[1])
+		write("in_"+name+".bin", cplx(x))
+		for _, on := range []bool{false, true} {
+			set(on)
+			p := NewPlanN(shape...)
+			got := p.FFT(make([]complex128, len(x)), x)
+			write(fmt.Sprintf("%s_%s.bin", map[bool]string{false: "old", true: "new"}[on], name), cplx(got))
+			fmt.Printf("EXPORT %s on=%v rows %v\n", name, on, factorsOf(p.axes[1]))
+		}
+	}
+	for _, n := range []int{1000, 1920, 2000, 6000, 10000} {
+		x := randC(n)
+		name := fmt.Sprintf("c_%d", n)
+		write("in_"+name+".bin", cplx(x))
+		for _, on := range []bool{false, true} {
+			set(on)
+			p := newSKPlanFactors(n, compFactorize(n))
+			got := make([]complex128, n)
+			p.transform(got, x, false)
+			write(fmt.Sprintf("%s_%s.bin", map[bool]string{false: "old", true: "new"}[on], name), cplx(got))
+			fmt.Printf("EXPORT %s on=%v factors %v\n", name, on, factorsOf(&Plan{sk: p}))
+		}
+	}
+	for _, n := range []int{1024, 4096, 32768} {
+		x := make([]float64, n)
+		for i := range x {
+			x[i] = r.NormFloat64()
+		}
+		name := fmt.Sprintf("r_%d", n)
+		write("in_"+name+".bin", x)
+		spec := randC(n/2 + 1)
+		spec[0], spec[n/2] = complex(real(spec[0]), 0), complex(real(spec[n/2]), 0)
+		write("in_i"+name+".bin", cplx(spec))
+		for _, on := range []bool{false, true} {
+			set(on)
+			p := NewRealPlan(n)
+			tag := map[bool]string{false: "old", true: "new"}[on]
+			write(fmt.Sprintf("%s_%s.bin", tag, name), cplx(p.RFFT(make([]complex128, n/2+1), x)))
+			write(fmt.Sprintf("%s_i%s.bin", tag, name), p.IRFFT(make([]float64, n), spec))
+			fmt.Printf("EXPORT %s on=%v\n", name, on)
+		}
 	}
 }
