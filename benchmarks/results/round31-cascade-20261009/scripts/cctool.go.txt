@@ -1,0 +1,52 @@
+// cctool FILE: geometric mean of r24/variant ratios per variant tag over CC lines.
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"math"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+)
+
+func main() {
+	f, _ := os.Open(os.Args[1])
+	sum := map[string]float64{}
+	cnt := map[string]int{}
+	lose := map[string]int{}
+	min, max := map[string]float64{}, map[string]float64{}
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		fs := strings.Fields(sc.Text())
+		if len(fs) < 3 || fs[0] != "CC" {
+			continue
+		}
+		for _, v := range fs[2:] {
+			name, rest, _ := strings.Cut(v, "=")
+			tag := name[:strings.Index(name, ":")] + name[strings.LastIndex(name, "/"):]
+			parts := strings.Split(rest, "/")
+			r, _ := strconv.ParseFloat(parts[1], 64)
+			sum[tag] += math.Log(r)
+			cnt[tag]++
+			if r < 0.98 {
+				lose[tag]++
+			}
+			if min[tag] == 0 || r < min[tag] {
+				min[tag] = r
+			}
+			if r > max[tag] {
+				max[tag] = r
+			}
+		}
+	}
+	var tags []string
+	for k := range sum {
+		tags = append(tags, k)
+	}
+	sort.Strings(tags)
+	for _, k := range tags {
+		fmt.Printf("%-10s n=%d geomean r24/this %.3f  min %.3f max %.3f  below 0.98: %d\n", k, cnt[k], math.Exp(sum[k]/float64(cnt[k])), min[k], max[k], lose[k])
+	}
+}

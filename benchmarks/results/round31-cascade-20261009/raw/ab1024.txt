@@ -1,0 +1,6 @@
+# start 18:02:43 load 0.64 0.56 0.25 : ./r31a.test -test.run TestIntelAB -intel.ab 15,40 -intel.set 1024=z:cur,z:4x8x4x8,z:4x4x8x8
+AB 1024 z:cur                    2463.0 ns  first/this 1.000  range 1.000-1.000
+AB 1024 z:4x8x4x8                2520.9 ns  first/this 0.976  range 0.961-1.122
+AB 1024 z:4x4x8x8                2495.6 ns  first/this 0.985  range 0.948-1.020
+PASS
+# end 18:02:45 load 0.67 0.56 0.25

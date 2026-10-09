@@ -1,0 +1,27 @@
+c_1000         old  rel-l2 4.003e-16  max-rel 4.219e-16
+c_1000         new  rel-l2 3.770e-16  max-rel 4.509e-16
+c_10000        old  rel-l2 5.135e-16  max-rel 5.514e-16
+c_10000        new  rel-l2 4.839e-16  max-rel 4.837e-16
+c_1920         old  rel-l2 4.707e-16  max-rel 5.551e-16
+c_1920         new  rel-l2 3.921e-16  max-rel 4.824e-16
+c_2000         old  rel-l2 4.188e-16  max-rel 4.461e-16
+c_2000         new  rel-l2 4.026e-16  max-rel 4.824e-16
+c_6000         old  rel-l2 5.274e-16  max-rel 5.726e-16
+c_6000         new  rel-l2 4.943e-16  max-rel 6.039e-16
+ir_1024        old  rel-l2 3.688e-16  max-rel 4.249e-16
+ir_1024        new  rel-l2 3.688e-16  max-rel 4.249e-16
+ir_32768       old  rel-l2 4.932e-16  max-rel 4.541e-16
+ir_32768       new  rel-l2 4.932e-16  max-rel 4.541e-16
+ir_4096        old  rel-l2 4.122e-16  max-rel 4.688e-16
+ir_4096        new  rel-l2 4.122e-16  max-rel 4.688e-16
+nd_1024x1024   old  rel-l2 5.997e-16  max-rel 7.383e-16
+nd_1024x1024   new  rel-l2 5.993e-16  max-rel 6.719e-16
+nd_512x1024    old  rel-l2 5.580e-16  max-rel 6.563e-16
+nd_512x1024    new  rel-l2 5.572e-16  max-rel 6.088e-16
+r_1024         old  rel-l2 3.610e-16  max-rel 4.311e-16
+r_1024         new  rel-l2 3.610e-16  max-rel 4.311e-16
+r_32768        old  rel-l2 4.858e-16  max-rel 6.554e-16
+r_32768        new  rel-l2 4.858e-16  max-rel 6.554e-16
+r_4096         old  rel-l2 4.061e-16  max-rel 4.869e-16
+r_4096         new  rel-l2 4.061e-16  max-rel 4.869e-16
+numpy 2.5.3

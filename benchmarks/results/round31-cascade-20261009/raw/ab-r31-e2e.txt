@@ -1,0 +1,859 @@
+# round 1 variant main2.test 06:28:34 load 0.17 0.29 0.25
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      28	  20803563 ns/op
+BenchmarkR31AB/N/512x1024          	      51	  11642155 ns/op
+BenchmarkR31AB/C/1000              	  175591	      3400 ns/op
+BenchmarkR31AB/C/1080              	  142483	      4181 ns/op
+BenchmarkR31AB/C/1296              	  132307	      4493 ns/op
+BenchmarkR31AB/C/1920              	   93494	      6519 ns/op
+BenchmarkR31AB/C/2000              	   79948	      7317 ns/op
+BenchmarkR31AB/C/6000              	   23800	     25330 ns/op
+BenchmarkR31AB/C/10000             	   12872	     46008 ns/op
+BenchmarkR31AB/R/512               	  818505	       758.6 ns/op
+BenchmarkR31AB/IR/512              	  750303	       804.9 ns/op
+BenchmarkR31AB/R/1024              	  361538	      1471 ns/op
+BenchmarkR31AB/IR/1024             	  359994	      1649 ns/op
+BenchmarkR31AB/R/4096              	   67387	      8908 ns/op
+BenchmarkR31AB/IR/4096             	   68031	      8829 ns/op
+BenchmarkR31AB/R/8192              	   35690	     16713 ns/op
+BenchmarkR31AB/IR/8192             	   35406	     16953 ns/op
+BenchmarkR31AB/R/32768             	    7153	     85362 ns/op
+BenchmarkR31AB/IR/32768            	    6472	     91264 ns/op
+BenchmarkR31AB/R/1000              	  288828	      2065 ns/op
+BenchmarkR31AB/IR/1000             	  280118	      2124 ns/op
+BenchmarkR31AB/N/256x1024          	     285	   2114824 ns/op
+BenchmarkR31AB/N/128x128           	    7674	     77921 ns/op
+BenchmarkR31AB/C/256               	 1299856	       462.4 ns/op
+BenchmarkR31AB/C/1024              	  239824	      2536 ns/op
+BenchmarkR31AB/C/4096              	   47762	     12884 ns/op
+BenchmarkR31AB/C/65536             	    1244	    482169 ns/op
+BenchmarkR31AB/C/1009              	   31474	     18999 ns/op
+BenchmarkR31AB/C/10007             	    1724	    348056 ns/op
+BenchmarkR31AB/R/256               	 1560374	       384.0 ns/op
+BenchmarkR31AB/IR/256              	 1471693	       405.4 ns/op
+BenchmarkR31AB/R/65536             	    2656	    226619 ns/op
+BenchmarkR31AB/IR/65536            	    2373	    251449 ns/op
+PASS
+# round 1 variant br7.test 06:28:59 load 0.45 0.35 0.27
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      33	  17439236 ns/op
+BenchmarkR31AB/N/512x1024          	      52	   9747004 ns/op
+BenchmarkR31AB/C/1000              	  198553	      3020 ns/op
+BenchmarkR31AB/C/1080              	  160720	      3744 ns/op
+BenchmarkR31AB/C/1296              	  136231	      4415 ns/op
+BenchmarkR31AB/C/1920              	  108848	      5756 ns/op
+BenchmarkR31AB/C/2000              	   95366	      6359 ns/op
+BenchmarkR31AB/C/6000              	   26444	     22695 ns/op
+BenchmarkR31AB/C/10000             	   14710	     40533 ns/op
+BenchmarkR31AB/R/512               	  894780	       670.0 ns/op
+BenchmarkR31AB/IR/512              	  786570	       732.6 ns/op
+BenchmarkR31AB/R/1024              	  461025	      1297 ns/op
+BenchmarkR31AB/IR/1024             	  412413	      1469 ns/op
+BenchmarkR31AB/R/4096              	   75154	      8000 ns/op
+BenchmarkR31AB/IR/4096             	   74090	      8098 ns/op
+BenchmarkR31AB/R/8192              	   39666	     15150 ns/op
+BenchmarkR31AB/IR/8192             	   38492	     15585 ns/op
+BenchmarkR31AB/R/32768             	    7470	     77539 ns/op
+BenchmarkR31AB/IR/32768            	    6501	     93687 ns/op
+BenchmarkR31AB/R/1000              	  322588	      1868 ns/op
+BenchmarkR31AB/IR/1000             	  298863	      1967 ns/op
+BenchmarkR31AB/N/256x1024          	     294	   2109228 ns/op
+BenchmarkR31AB/N/128x128           	    7639	     77984 ns/op
+BenchmarkR31AB/C/256               	 1291146	       465.1 ns/op
+BenchmarkR31AB/C/1024              	  235742	      2575 ns/op
+BenchmarkR31AB/C/4096              	   47774	     12598 ns/op
+BenchmarkR31AB/C/65536             	    1269	    458710 ns/op
+BenchmarkR31AB/C/1009              	   31915	     18809 ns/op
+BenchmarkR31AB/C/10007             	    1812	    331349 ns/op
+BenchmarkR31AB/R/256               	 1585269	       393.4 ns/op
+BenchmarkR31AB/IR/256              	 1450490	       405.1 ns/op
+BenchmarkR31AB/R/65536             	    2709	    219671 ns/op
+BenchmarkR31AB/IR/65536            	    2464	    240535 ns/op
+PASS
+# round 2 variant br7.test 06:29:23 load 0.64 0.41 0.29
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      32	  17881812 ns/op
+BenchmarkR31AB/N/512x1024          	      69	   8362613 ns/op
+BenchmarkR31AB/C/1000              	  200342	      2990 ns/op
+BenchmarkR31AB/C/1080              	  161742	      3707 ns/op
+BenchmarkR31AB/C/1296              	  137958	      4358 ns/op
+BenchmarkR31AB/C/1920              	  109521	      5473 ns/op
+BenchmarkR31AB/C/2000              	   96078	      6204 ns/op
+BenchmarkR31AB/C/6000              	   26965	     22304 ns/op
+BenchmarkR31AB/C/10000             	   15079	     39877 ns/op
+BenchmarkR31AB/R/512               	  887306	       660.5 ns/op
+BenchmarkR31AB/IR/512              	  835188	       723.6 ns/op
+BenchmarkR31AB/R/1024              	  454441	      1314 ns/op
+BenchmarkR31AB/IR/1024             	  412777	      1445 ns/op
+BenchmarkR31AB/R/4096              	   76282	      7786 ns/op
+BenchmarkR31AB/IR/4096             	   75405	      7963 ns/op
+BenchmarkR31AB/R/8192              	   39979	     15840 ns/op
+BenchmarkR31AB/IR/8192             	   35911	     15694 ns/op
+BenchmarkR31AB/R/32768             	    7724	     77161 ns/op
+BenchmarkR31AB/IR/32768            	    6631	     89635 ns/op
+BenchmarkR31AB/R/1000              	  326806	      1854 ns/op
+BenchmarkR31AB/IR/1000             	  306346	      2180 ns/op
+BenchmarkR31AB/N/256x1024          	     252	   2608647 ns/op
+BenchmarkR31AB/N/128x128           	    7658	     77634 ns/op
+BenchmarkR31AB/C/256               	 1293172	       468.4 ns/op
+BenchmarkR31AB/C/1024              	  237228	      2536 ns/op
+BenchmarkR31AB/C/4096              	   49030	     12203 ns/op
+BenchmarkR31AB/C/65536             	    1244	    483422 ns/op
+BenchmarkR31AB/C/1009              	   32289	     18766 ns/op
+BenchmarkR31AB/C/10007             	    1780	    343170 ns/op
+BenchmarkR31AB/R/256               	 1537441	       391.9 ns/op
+BenchmarkR31AB/IR/256              	 1479462	       405.3 ns/op
+BenchmarkR31AB/R/65536             	    2649	    227832 ns/op
+BenchmarkR31AB/IR/65536            	    2379	    250770 ns/op
+PASS
+# round 2 variant main2.test 06:29:47 load 0.76 0.45 0.31
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      32	  18476698 ns/op
+BenchmarkR31AB/N/512x1024          	      54	   9651581 ns/op
+BenchmarkR31AB/C/1000              	  177118	      3353 ns/op
+BenchmarkR31AB/C/1080              	  146644	      4128 ns/op
+BenchmarkR31AB/C/1296              	  136605	      4406 ns/op
+BenchmarkR31AB/C/1920              	   94627	      6446 ns/op
+BenchmarkR31AB/C/2000              	   82690	      7223 ns/op
+BenchmarkR31AB/C/6000              	   24116	     25195 ns/op
+BenchmarkR31AB/C/10000             	   13329	     45082 ns/op
+BenchmarkR31AB/R/512               	  829326	       743.0 ns/op
+BenchmarkR31AB/IR/512              	  758193	       795.7 ns/op
+BenchmarkR31AB/R/1024              	  412604	      1463 ns/op
+BenchmarkR31AB/IR/1024             	  363546	      1638 ns/op
+BenchmarkR31AB/R/4096              	   67490	      8926 ns/op
+BenchmarkR31AB/IR/4096             	   68958	      8727 ns/op
+BenchmarkR31AB/R/8192              	   35892	     16639 ns/op
+BenchmarkR31AB/IR/8192             	   35354	     17014 ns/op
+BenchmarkR31AB/R/32768             	    7126	     84731 ns/op
+BenchmarkR31AB/IR/32768            	    6612	     91723 ns/op
+BenchmarkR31AB/R/1000              	  293782	      2070 ns/op
+BenchmarkR31AB/IR/1000             	  280098	      2095 ns/op
+BenchmarkR31AB/N/256x1024          	     265	   2099702 ns/op
+BenchmarkR31AB/N/128x128           	    7724	     77429 ns/op
+BenchmarkR31AB/C/256               	 1316840	       456.4 ns/op
+BenchmarkR31AB/C/1024              	  240967	      2687 ns/op
+BenchmarkR31AB/C/4096              	   47011	     12659 ns/op
+BenchmarkR31AB/C/65536             	    1266	    474791 ns/op
+BenchmarkR31AB/C/1009              	   31038	     19462 ns/op
+BenchmarkR31AB/C/10007             	    1798	    330311 ns/op
+BenchmarkR31AB/R/256               	 1575303	       381.4 ns/op
+BenchmarkR31AB/IR/256              	 1485764	       404.1 ns/op
+BenchmarkR31AB/R/65536             	    2679	    224108 ns/op
+BenchmarkR31AB/IR/65536            	    2389	    252742 ns/op
+PASS
+# round 3 variant main2.test 06:30:11 load 0.85 0.50 0.33
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      33	  17328890 ns/op
+BenchmarkR31AB/N/512x1024          	      67	   8908726 ns/op
+BenchmarkR31AB/C/1000              	  179272	      3370 ns/op
+BenchmarkR31AB/C/1080              	  144949	      4187 ns/op
+BenchmarkR31AB/C/1296              	  136946	      4466 ns/op
+BenchmarkR31AB/C/1920              	   90620	      6519 ns/op
+BenchmarkR31AB/C/2000              	   81506	      7330 ns/op
+BenchmarkR31AB/C/6000              	   23785	     25335 ns/op
+BenchmarkR31AB/C/10000             	   13041	     46028 ns/op
+BenchmarkR31AB/R/512               	  819565	       738.9 ns/op
+BenchmarkR31AB/IR/512              	  756278	       796.9 ns/op
+BenchmarkR31AB/R/1024              	  412012	      1469 ns/op
+BenchmarkR31AB/IR/1024             	  349861	      1645 ns/op
+BenchmarkR31AB/R/4096              	   69614	      8609 ns/op
+BenchmarkR31AB/IR/4096             	   69801	      8678 ns/op
+BenchmarkR31AB/R/8192              	   35667	     17379 ns/op
+BenchmarkR31AB/IR/8192             	   34389	     17398 ns/op
+BenchmarkR31AB/R/32768             	    7044	     85915 ns/op
+BenchmarkR31AB/IR/32768            	    6423	     92615 ns/op
+BenchmarkR31AB/R/1000              	  282642	      2063 ns/op
+BenchmarkR31AB/IR/1000             	  282355	      2124 ns/op
+BenchmarkR31AB/N/256x1024          	     290	   2003794 ns/op
+BenchmarkR31AB/N/128x128           	    7743	     77813 ns/op
+BenchmarkR31AB/C/256               	 1296271	       461.7 ns/op
+BenchmarkR31AB/C/1024              	  231728	      2523 ns/op
+BenchmarkR31AB/C/4096              	   48081	     12401 ns/op
+BenchmarkR31AB/C/65536             	    1315	    456871 ns/op
+BenchmarkR31AB/C/1009              	   31417	     19073 ns/op
+BenchmarkR31AB/C/10007             	    1764	    346809 ns/op
+BenchmarkR31AB/R/256               	 1580972	       383.8 ns/op
+BenchmarkR31AB/IR/256              	 1478256	       404.7 ns/op
+BenchmarkR31AB/R/65536             	    2592	    223354 ns/op
+BenchmarkR31AB/IR/65536            	    2379	    246112 ns/op
+PASS
+# round 3 variant br7.test 06:30:35 load 1.02 0.57 0.36
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      36	  16590854 ns/op
+BenchmarkR31AB/N/512x1024          	      76	   7699182 ns/op
+BenchmarkR31AB/C/1000              	  199909	      3011 ns/op
+BenchmarkR31AB/C/1080              	  161332	      3740 ns/op
+BenchmarkR31AB/C/1296              	  134526	      4406 ns/op
+BenchmarkR31AB/C/1920              	  107041	      5543 ns/op
+BenchmarkR31AB/C/2000              	   95012	      6288 ns/op
+BenchmarkR31AB/C/6000              	   26683	     22461 ns/op
+BenchmarkR31AB/C/10000             	   14776	     40665 ns/op
+BenchmarkR31AB/R/512               	  901096	       668.2 ns/op
+BenchmarkR31AB/IR/512              	  829341	       727.1 ns/op
+BenchmarkR31AB/R/1024              	  440673	      1290 ns/op
+BenchmarkR31AB/IR/1024             	  414512	      1461 ns/op
+BenchmarkR31AB/R/4096              	   75242	      7964 ns/op
+BenchmarkR31AB/IR/4096             	   72254	      8288 ns/op
+BenchmarkR31AB/R/8192              	   39696	     15131 ns/op
+BenchmarkR31AB/IR/8192             	   38247	     15627 ns/op
+BenchmarkR31AB/R/32768             	    7719	     77761 ns/op
+BenchmarkR31AB/IR/32768            	    6643	     90268 ns/op
+BenchmarkR31AB/R/1000              	  321948	      1862 ns/op
+BenchmarkR31AB/IR/1000             	  308553	      1947 ns/op
+BenchmarkR31AB/N/256x1024          	     276	   2116978 ns/op
+BenchmarkR31AB/N/128x128           	    7484	     80188 ns/op
+BenchmarkR31AB/C/256               	 1267790	       473.5 ns/op
+BenchmarkR31AB/C/1024              	  235815	      2566 ns/op
+BenchmarkR31AB/C/4096              	   48303	     12460 ns/op
+BenchmarkR31AB/C/65536             	    1287	    459405 ns/op
+BenchmarkR31AB/C/1009              	   31789	     18808 ns/op
+BenchmarkR31AB/C/10007             	    1736	    337940 ns/op
+BenchmarkR31AB/R/256               	 1572255	       382.5 ns/op
+BenchmarkR31AB/IR/256              	 1469246	       408.7 ns/op
+BenchmarkR31AB/R/65536             	    2600	    226770 ns/op
+BenchmarkR31AB/IR/65536            	    2449	    248716 ns/op
+PASS
+# round 4 variant br7.test 06:31:00 load 1.02 0.60 0.37
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      34	  17406152 ns/op
+BenchmarkR31AB/N/512x1024          	      88	   7318603 ns/op
+BenchmarkR31AB/C/1000              	  199344	      3020 ns/op
+BenchmarkR31AB/C/1080              	  161214	      3745 ns/op
+BenchmarkR31AB/C/1296              	  137325	      4407 ns/op
+BenchmarkR31AB/C/1920              	  109639	      5525 ns/op
+BenchmarkR31AB/C/2000              	   96436	      6269 ns/op
+BenchmarkR31AB/C/6000              	   26414	     22795 ns/op
+BenchmarkR31AB/C/10000             	   14890	     39875 ns/op
+BenchmarkR31AB/R/512               	  914353	       663.9 ns/op
+BenchmarkR31AB/IR/512              	  831652	       727.1 ns/op
+BenchmarkR31AB/R/1024              	  448000	      1288 ns/op
+BenchmarkR31AB/IR/1024             	  412190	      1454 ns/op
+BenchmarkR31AB/R/4096              	   75722	      8011 ns/op
+BenchmarkR31AB/IR/4096             	   74144	      8100 ns/op
+BenchmarkR31AB/R/8192              	   39656	     15271 ns/op
+BenchmarkR31AB/IR/8192             	   37743	     15931 ns/op
+BenchmarkR31AB/R/32768             	    7648	     78365 ns/op
+BenchmarkR31AB/IR/32768            	    6663	     90924 ns/op
+BenchmarkR31AB/R/1000              	  325819	      1852 ns/op
+BenchmarkR31AB/IR/1000             	  311734	      1944 ns/op
+BenchmarkR31AB/N/256x1024          	     229	   2231121 ns/op
+BenchmarkR31AB/N/128x128           	    7587	     79661 ns/op
+BenchmarkR31AB/C/256               	 1284486	       465.7 ns/op
+BenchmarkR31AB/C/1024              	  235264	      2473 ns/op
+BenchmarkR31AB/C/4096              	   49966	     12135 ns/op
+BenchmarkR31AB/C/65536             	    1312	    455810 ns/op
+BenchmarkR31AB/C/1009              	   32013	     18790 ns/op
+BenchmarkR31AB/C/10007             	    1770	    337759 ns/op
+BenchmarkR31AB/R/256               	 1583038	       378.6 ns/op
+BenchmarkR31AB/IR/256              	 1477268	       405.5 ns/op
+BenchmarkR31AB/R/65536             	    2739	    218754 ns/op
+BenchmarkR31AB/IR/65536            	    2487	    243991 ns/op
+PASS
+# round 4 variant main2.test 06:31:24 load 1.01 0.63 0.39
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      34	  17444182 ns/op
+BenchmarkR31AB/N/512x1024          	      50	  11157782 ns/op
+BenchmarkR31AB/C/1000              	  178663	      3369 ns/op
+BenchmarkR31AB/C/1080              	  145837	      4130 ns/op
+BenchmarkR31AB/C/1296              	  137217	      4401 ns/op
+BenchmarkR31AB/C/1920              	   92124	      6479 ns/op
+BenchmarkR31AB/C/2000              	   80852	      7330 ns/op
+BenchmarkR31AB/C/6000              	   23932	     24998 ns/op
+BenchmarkR31AB/C/10000             	   13255	     45274 ns/op
+BenchmarkR31AB/R/512               	  818832	       737.8 ns/op
+BenchmarkR31AB/IR/512              	  751660	       798.2 ns/op
+BenchmarkR31AB/R/1024              	  419514	      1460 ns/op
+BenchmarkR31AB/IR/1024             	  370590	      1638 ns/op
+BenchmarkR31AB/R/4096              	   70765	      8520 ns/op
+BenchmarkR31AB/IR/4096             	   68812	      8682 ns/op
+BenchmarkR31AB/R/8192              	   36153	     16614 ns/op
+BenchmarkR31AB/IR/8192             	   34766	     17171 ns/op
+BenchmarkR31AB/R/32768             	    7162	     84647 ns/op
+BenchmarkR31AB/IR/32768            	    6676	     90296 ns/op
+BenchmarkR31AB/R/1000              	  290718	      2060 ns/op
+BenchmarkR31AB/IR/1000             	  284895	      2122 ns/op
+BenchmarkR31AB/N/256x1024          	     296	   2063465 ns/op
+BenchmarkR31AB/N/128x128           	    7521	     79312 ns/op
+BenchmarkR31AB/C/256               	 1300012	       463.0 ns/op
+BenchmarkR31AB/C/1024              	  241029	      2534 ns/op
+BenchmarkR31AB/C/4096              	   49256	     12338 ns/op
+BenchmarkR31AB/C/65536             	    1286	    462465 ns/op
+BenchmarkR31AB/C/1009              	   31854	     18864 ns/op
+BenchmarkR31AB/C/10007             	    1677	    350078 ns/op
+BenchmarkR31AB/R/256               	 1569111	       382.0 ns/op
+BenchmarkR31AB/IR/256              	 1484392	       404.3 ns/op
+BenchmarkR31AB/R/65536             	    2844	    212469 ns/op
+BenchmarkR31AB/IR/65536            	    2505	    240490 ns/op
+PASS
+# round 5 variant main2.test 06:31:48 load 1.00 0.66 0.41
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      30	  17701389 ns/op
+BenchmarkR31AB/N/512x1024          	      84	   6806127 ns/op
+BenchmarkR31AB/C/1000              	  174997	      3367 ns/op
+BenchmarkR31AB/C/1080              	  141678	      4140 ns/op
+BenchmarkR31AB/C/1296              	  135159	      4413 ns/op
+BenchmarkR31AB/C/1920              	   93166	      6501 ns/op
+BenchmarkR31AB/C/2000              	   82528	      7325 ns/op
+BenchmarkR31AB/C/6000              	   23893	     25006 ns/op
+BenchmarkR31AB/C/10000             	   13176	     47366 ns/op
+BenchmarkR31AB/R/512               	  809850	       750.6 ns/op
+BenchmarkR31AB/IR/512              	  739584	       794.0 ns/op
+BenchmarkR31AB/R/1024              	  413780	      1459 ns/op
+BenchmarkR31AB/IR/1024             	  369164	      1631 ns/op
+BenchmarkR31AB/R/4096              	   70546	      8518 ns/op
+BenchmarkR31AB/IR/4096             	   70203	      8572 ns/op
+BenchmarkR31AB/R/8192              	   35906	     16760 ns/op
+BenchmarkR31AB/IR/8192             	   35311	     17093 ns/op
+BenchmarkR31AB/R/32768             	    7093	     84162 ns/op
+BenchmarkR31AB/IR/32768            	    6328	     92091 ns/op
+BenchmarkR31AB/R/1000              	  287443	      2054 ns/op
+BenchmarkR31AB/IR/1000             	  283136	      2115 ns/op
+BenchmarkR31AB/N/256x1024          	     280	   2080420 ns/op
+BenchmarkR31AB/N/128x128           	    7516	     78647 ns/op
+BenchmarkR31AB/C/256               	 1302571	       457.6 ns/op
+BenchmarkR31AB/C/1024              	  230581	      2548 ns/op
+BenchmarkR31AB/C/4096              	   48950	     12270 ns/op
+BenchmarkR31AB/C/65536             	    1281	    482676 ns/op
+BenchmarkR31AB/C/1009              	   32574	     18620 ns/op
+BenchmarkR31AB/C/10007             	    1705	    350844 ns/op
+BenchmarkR31AB/R/256               	 1580144	       380.9 ns/op
+BenchmarkR31AB/IR/256              	 1490818	       403.6 ns/op
+BenchmarkR31AB/R/65536             	    2758	    215500 ns/op
+BenchmarkR31AB/IR/65536            	    2452	    254526 ns/op
+PASS
+# round 5 variant br7.test 06:32:12 load 1.00 0.69 0.42
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      33	  17468420 ns/op
+BenchmarkR31AB/N/512x1024          	      90	   6734174 ns/op
+BenchmarkR31AB/C/1000              	  199176	      3014 ns/op
+BenchmarkR31AB/C/1080              	  161332	      3730 ns/op
+BenchmarkR31AB/C/1296              	  135229	      4412 ns/op
+BenchmarkR31AB/C/1920              	  108694	      5519 ns/op
+BenchmarkR31AB/C/2000              	   96043	      6249 ns/op
+BenchmarkR31AB/C/6000              	   26671	     22284 ns/op
+BenchmarkR31AB/C/10000             	   14971	     40031 ns/op
+BenchmarkR31AB/R/512               	  886274	       661.4 ns/op
+BenchmarkR31AB/IR/512              	  828424	       723.8 ns/op
+BenchmarkR31AB/R/1024              	  463154	      1290 ns/op
+BenchmarkR31AB/IR/1024             	  411718	      1456 ns/op
+BenchmarkR31AB/R/4096              	   75177	      7989 ns/op
+BenchmarkR31AB/IR/4096             	   74592	      8058 ns/op
+BenchmarkR31AB/R/8192              	   39534	     15177 ns/op
+BenchmarkR31AB/IR/8192             	   37914	     15864 ns/op
+BenchmarkR31AB/R/32768             	    7629	     79007 ns/op
+BenchmarkR31AB/IR/32768            	    6643	     90103 ns/op
+BenchmarkR31AB/R/1000              	  325390	      1838 ns/op
+BenchmarkR31AB/IR/1000             	  310496	      1927 ns/op
+BenchmarkR31AB/N/256x1024          	     294	   2024585 ns/op
+BenchmarkR31AB/N/128x128           	    7495	     80151 ns/op
+BenchmarkR31AB/C/256               	 1292173	       464.8 ns/op
+BenchmarkR31AB/C/1024              	  207007	      2560 ns/op
+BenchmarkR31AB/C/4096              	   47946	     12511 ns/op
+BenchmarkR31AB/C/65536             	    1292	    463800 ns/op
+BenchmarkR31AB/C/1009              	   31744	     18780 ns/op
+BenchmarkR31AB/C/10007             	    1731	    338022 ns/op
+BenchmarkR31AB/R/256               	 1585686	       380.1 ns/op
+BenchmarkR31AB/IR/256              	 1480798	       406.2 ns/op
+BenchmarkR31AB/R/65536             	    2589	    229957 ns/op
+BenchmarkR31AB/IR/65536            	    2390	    249353 ns/op
+PASS
+# round 6 variant br7.test 06:32:36 load 1.00 0.72 0.44
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      36	  16710537 ns/op
+BenchmarkR31AB/N/512x1024          	      86	   6867979 ns/op
+BenchmarkR31AB/C/1000              	  199816	      3006 ns/op
+BenchmarkR31AB/C/1080              	  160681	      3740 ns/op
+BenchmarkR31AB/C/1296              	  133874	      4395 ns/op
+BenchmarkR31AB/C/1920              	  108878	      5479 ns/op
+BenchmarkR31AB/C/2000              	   97071	      6218 ns/op
+BenchmarkR31AB/C/6000              	   26745	     22351 ns/op
+BenchmarkR31AB/C/10000             	   15085	     39900 ns/op
+BenchmarkR31AB/R/512               	  904377	       661.0 ns/op
+BenchmarkR31AB/IR/512              	  835735	       719.5 ns/op
+BenchmarkR31AB/R/1024              	  467917	      1281 ns/op
+BenchmarkR31AB/IR/1024             	  413085	      1455 ns/op
+BenchmarkR31AB/R/4096              	   75637	      7923 ns/op
+BenchmarkR31AB/IR/4096             	   72380	      8294 ns/op
+BenchmarkR31AB/R/8192              	   39506	     15214 ns/op
+BenchmarkR31AB/IR/8192             	   38228	     15680 ns/op
+BenchmarkR31AB/R/32768             	    7576	     77735 ns/op
+BenchmarkR31AB/IR/32768            	    6576	     91199 ns/op
+BenchmarkR31AB/R/1000              	  324502	      1846 ns/op
+BenchmarkR31AB/IR/1000             	  311259	      1928 ns/op
+BenchmarkR31AB/N/256x1024          	     277	   2153443 ns/op
+BenchmarkR31AB/N/128x128           	    7410	     80935 ns/op
+BenchmarkR31AB/C/256               	 1287918	       466.6 ns/op
+BenchmarkR31AB/C/1024              	  235614	      2530 ns/op
+BenchmarkR31AB/C/4096              	   48031	     12520 ns/op
+BenchmarkR31AB/C/65536             	    1233	    485014 ns/op
+BenchmarkR31AB/C/1009              	   31814	     18799 ns/op
+BenchmarkR31AB/C/10007             	    1776	    336646 ns/op
+BenchmarkR31AB/R/256               	 1580300	       379.4 ns/op
+BenchmarkR31AB/IR/256              	 1485512	       405.9 ns/op
+BenchmarkR31AB/R/65536             	    2632	    225469 ns/op
+BenchmarkR31AB/IR/65536            	    2426	    247520 ns/op
+PASS
+# round 6 variant main2.test 06:33:00 load 1.00 0.74 0.46
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      31	  18595532 ns/op
+BenchmarkR31AB/N/512x1024          	      72	   8924600 ns/op
+BenchmarkR31AB/C/1000              	  177040	      3352 ns/op
+BenchmarkR31AB/C/1080              	  144326	      4140 ns/op
+BenchmarkR31AB/C/1296              	  134791	      4441 ns/op
+BenchmarkR31AB/C/1920              	   93002	      6446 ns/op
+BenchmarkR31AB/C/2000              	   82262	      7290 ns/op
+BenchmarkR31AB/C/6000              	   24121	     24793 ns/op
+BenchmarkR31AB/C/10000             	   12996	     46311 ns/op
+BenchmarkR31AB/R/512               	  819502	       734.4 ns/op
+BenchmarkR31AB/IR/512              	  724706	       792.6 ns/op
+BenchmarkR31AB/R/1024              	  408462	      1462 ns/op
+BenchmarkR31AB/IR/1024             	  359869	      1644 ns/op
+BenchmarkR31AB/R/4096              	   70717	      8473 ns/op
+BenchmarkR31AB/IR/4096             	   70040	      8580 ns/op
+BenchmarkR31AB/R/8192              	   35643	     16772 ns/op
+BenchmarkR31AB/IR/8192             	   35308	     17052 ns/op
+BenchmarkR31AB/R/32768             	    7220	     83214 ns/op
+BenchmarkR31AB/IR/32768            	    6433	     93052 ns/op
+BenchmarkR31AB/R/1000              	  288344	      2063 ns/op
+BenchmarkR31AB/IR/1000             	  284310	      2111 ns/op
+BenchmarkR31AB/N/256x1024          	     220	   2529084 ns/op
+BenchmarkR31AB/N/128x128           	    7509	     80676 ns/op
+BenchmarkR31AB/C/256               	 1304246	       461.0 ns/op
+BenchmarkR31AB/C/1024              	  236991	      2551 ns/op
+BenchmarkR31AB/C/4096              	   47881	     12494 ns/op
+BenchmarkR31AB/C/65536             	    1269	    470970 ns/op
+BenchmarkR31AB/C/1009              	   31914	     18866 ns/op
+BenchmarkR31AB/C/10007             	    1794	    335079 ns/op
+BenchmarkR31AB/R/256               	 1568670	       380.5 ns/op
+BenchmarkR31AB/IR/256              	 1483945	       402.9 ns/op
+BenchmarkR31AB/R/65536             	    2623	    228051 ns/op
+BenchmarkR31AB/IR/65536            	    2280	    258485 ns/op
+PASS
+# round 7 variant main2.test 06:33:24 load 1.00 0.76 0.47
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      32	  18263738 ns/op
+BenchmarkR31AB/N/512x1024          	      69	   7974189 ns/op
+BenchmarkR31AB/C/1000              	  176739	      3372 ns/op
+BenchmarkR31AB/C/1080              	  139166	      4191 ns/op
+BenchmarkR31AB/C/1296              	  135549	      4398 ns/op
+BenchmarkR31AB/C/1920              	   93778	      6399 ns/op
+BenchmarkR31AB/C/2000              	   82342	      7293 ns/op
+BenchmarkR31AB/C/6000              	   24154	     24881 ns/op
+BenchmarkR31AB/C/10000             	   13314	     45073 ns/op
+BenchmarkR31AB/R/512               	  819342	       734.8 ns/op
+BenchmarkR31AB/IR/512              	  756736	       791.3 ns/op
+BenchmarkR31AB/R/1024              	  414656	      1448 ns/op
+BenchmarkR31AB/IR/1024             	  364846	      1679 ns/op
+BenchmarkR31AB/R/4096              	   69728	      8622 ns/op
+BenchmarkR31AB/IR/4096             	   68198	      8855 ns/op
+BenchmarkR31AB/R/8192              	   35682	     16819 ns/op
+BenchmarkR31AB/IR/8192             	   34746	     17273 ns/op
+BenchmarkR31AB/R/32768             	    7161	     83379 ns/op
+BenchmarkR31AB/IR/32768            	    6594	     89957 ns/op
+BenchmarkR31AB/R/1000              	  291708	      2044 ns/op
+BenchmarkR31AB/IR/1000             	  285302	      2102 ns/op
+BenchmarkR31AB/N/256x1024          	     285	   2066051 ns/op
+BenchmarkR31AB/N/128x128           	    7423	     80020 ns/op
+BenchmarkR31AB/C/256               	 1309656	       459.6 ns/op
+BenchmarkR31AB/C/1024              	  241526	      2500 ns/op
+BenchmarkR31AB/C/4096              	   48118	     12527 ns/op
+BenchmarkR31AB/C/65536             	    1243	    468746 ns/op
+BenchmarkR31AB/C/1009              	   31970	     18715 ns/op
+BenchmarkR31AB/C/10007             	    1748	    340959 ns/op
+BenchmarkR31AB/R/256               	 1573375	       383.6 ns/op
+BenchmarkR31AB/IR/256              	 1493118	       401.6 ns/op
+BenchmarkR31AB/R/65536             	    2692	    221295 ns/op
+BenchmarkR31AB/IR/65536            	    2442	    245429 ns/op
+PASS
+# round 7 variant br7.test 06:33:49 load 1.00 0.78 0.48
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      34	  16526881 ns/op
+BenchmarkR31AB/N/512x1024          	      73	   8113767 ns/op
+BenchmarkR31AB/C/1000              	  199987	      2997 ns/op
+BenchmarkR31AB/C/1080              	  159834	      3757 ns/op
+BenchmarkR31AB/C/1296              	  135386	      4408 ns/op
+BenchmarkR31AB/C/1920              	  108548	      5565 ns/op
+BenchmarkR31AB/C/2000              	   96258	      6225 ns/op
+BenchmarkR31AB/C/6000              	   27145	     22328 ns/op
+BenchmarkR31AB/C/10000             	   15075	     39775 ns/op
+BenchmarkR31AB/R/512               	  908220	       662.8 ns/op
+BenchmarkR31AB/IR/512              	  832389	       723.7 ns/op
+BenchmarkR31AB/R/1024              	  470058	      1285 ns/op
+BenchmarkR31AB/IR/1024             	  412675	      1488 ns/op
+BenchmarkR31AB/R/4096              	   72058	      8270 ns/op
+BenchmarkR31AB/IR/4096             	   73885	      8233 ns/op
+BenchmarkR31AB/R/8192              	   38666	     15434 ns/op
+BenchmarkR31AB/IR/8192             	   37092	     15879 ns/op
+BenchmarkR31AB/R/32768             	    7784	     77545 ns/op
+BenchmarkR31AB/IR/32768            	    6536	     91241 ns/op
+BenchmarkR31AB/R/1000              	  324880	      1850 ns/op
+BenchmarkR31AB/IR/1000             	  310648	      1938 ns/op
+BenchmarkR31AB/N/256x1024          	     274	   2055476 ns/op
+BenchmarkR31AB/N/128x128           	    7519	     79199 ns/op
+BenchmarkR31AB/C/256               	 1293075	       464.6 ns/op
+BenchmarkR31AB/C/1024              	  237392	      2538 ns/op
+BenchmarkR31AB/C/4096              	   48298	     12393 ns/op
+BenchmarkR31AB/C/65536             	    1240	    480976 ns/op
+BenchmarkR31AB/C/1009              	   32011	     18723 ns/op
+BenchmarkR31AB/C/10007             	    1708	    348835 ns/op
+BenchmarkR31AB/R/256               	 1576683	       381.6 ns/op
+BenchmarkR31AB/IR/256              	 1480567	       408.1 ns/op
+BenchmarkR31AB/R/65536             	    2682	    221709 ns/op
+BenchmarkR31AB/IR/65536            	    2421	    248758 ns/op
+PASS
+# round 8 variant br7.test 06:34:13 load 1.00 0.80 0.50
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      30	  16714906 ns/op
+BenchmarkR31AB/N/512x1024          	      76	   6941188 ns/op
+BenchmarkR31AB/C/1000              	  199036	      2992 ns/op
+BenchmarkR31AB/C/1080              	  160310	      3727 ns/op
+BenchmarkR31AB/C/1296              	  136692	      4396 ns/op
+BenchmarkR31AB/C/1920              	  109558	      5480 ns/op
+BenchmarkR31AB/C/2000              	   96447	      6230 ns/op
+BenchmarkR31AB/C/6000              	   26733	     22352 ns/op
+BenchmarkR31AB/C/10000             	   14923	     40456 ns/op
+BenchmarkR31AB/R/512               	  907306	       675.1 ns/op
+BenchmarkR31AB/IR/512              	  826101	       726.8 ns/op
+BenchmarkR31AB/R/1024              	  469630	      1276 ns/op
+BenchmarkR31AB/IR/1024             	  411532	      1453 ns/op
+BenchmarkR31AB/R/4096              	   77054	      7793 ns/op
+BenchmarkR31AB/IR/4096             	   74671	      7968 ns/op
+BenchmarkR31AB/R/8192              	   39956	     15013 ns/op
+BenchmarkR31AB/IR/8192             	   38730	     15483 ns/op
+BenchmarkR31AB/R/32768             	    7668	     77198 ns/op
+BenchmarkR31AB/IR/32768            	    6519	     91407 ns/op
+BenchmarkR31AB/R/1000              	  315904	      1837 ns/op
+BenchmarkR31AB/IR/1000             	  311976	      1923 ns/op
+BenchmarkR31AB/N/256x1024          	     284	   2103890 ns/op
+BenchmarkR31AB/N/128x128           	    7455	     79905 ns/op
+BenchmarkR31AB/C/256               	 1292821	       467.4 ns/op
+BenchmarkR31AB/C/1024              	  237663	      2552 ns/op
+BenchmarkR31AB/C/4096              	   47319	     12646 ns/op
+BenchmarkR31AB/C/65536             	    1282	    467240 ns/op
+BenchmarkR31AB/C/1009              	   32092	     18373 ns/op
+BenchmarkR31AB/C/10007             	    1786	    332631 ns/op
+BenchmarkR31AB/R/256               	 1600525	       374.6 ns/op
+BenchmarkR31AB/IR/256              	 1494222	       400.2 ns/op
+BenchmarkR31AB/R/65536             	    2635	    225347 ns/op
+BenchmarkR31AB/IR/65536            	    2344	    254159 ns/op
+PASS
+# round 8 variant main2.test 06:34:37 load 1.00 0.82 0.51
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      31	  18764079 ns/op
+BenchmarkR31AB/N/512x1024          	      67	   8121076 ns/op
+BenchmarkR31AB/C/1000              	  182245	      3289 ns/op
+BenchmarkR31AB/C/1080              	  151172	      3996 ns/op
+BenchmarkR31AB/C/1296              	  141601	      4272 ns/op
+BenchmarkR31AB/C/1920              	   95091	      6295 ns/op
+BenchmarkR31AB/C/2000              	   83800	      7144 ns/op
+BenchmarkR31AB/C/6000              	   24537	     24609 ns/op
+BenchmarkR31AB/C/10000             	   13306	     44751 ns/op
+BenchmarkR31AB/R/512               	  817202	       732.7 ns/op
+BenchmarkR31AB/IR/512              	  753472	       791.0 ns/op
+BenchmarkR31AB/R/1024              	  413558	      1444 ns/op
+BenchmarkR31AB/IR/1024             	  367329	      1619 ns/op
+BenchmarkR31AB/R/4096              	   70761	      8590 ns/op
+BenchmarkR31AB/IR/4096             	   70388	      8550 ns/op
+BenchmarkR31AB/R/8192              	   36308	     16530 ns/op
+BenchmarkR31AB/IR/8192             	   35353	     16850 ns/op
+BenchmarkR31AB/R/32768             	    7075	     83545 ns/op
+BenchmarkR31AB/IR/32768            	    6530	     90632 ns/op
+BenchmarkR31AB/R/1000              	  290898	      2052 ns/op
+BenchmarkR31AB/IR/1000             	  286158	      2097 ns/op
+BenchmarkR31AB/N/256x1024          	     283	   2072539 ns/op
+BenchmarkR31AB/N/128x128           	    7524	     79416 ns/op
+BenchmarkR31AB/C/256               	 1303462	       460.4 ns/op
+BenchmarkR31AB/C/1024              	  242709	      2490 ns/op
+BenchmarkR31AB/C/4096              	   48933	     12237 ns/op
+BenchmarkR31AB/C/65536             	    1292	    468126 ns/op
+BenchmarkR31AB/C/1009              	   31926	     18771 ns/op
+BenchmarkR31AB/C/10007             	    1815	    327624 ns/op
+BenchmarkR31AB/R/256               	 1577594	       379.1 ns/op
+BenchmarkR31AB/IR/256              	 1490632	       401.7 ns/op
+BenchmarkR31AB/R/65536             	    2798	    210663 ns/op
+BenchmarkR31AB/IR/65536            	    2444	    245490 ns/op
+PASS
+# round 9 variant main2.test 06:35:01 load 1.00 0.83 0.53
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      33	  17711613 ns/op
+BenchmarkR31AB/N/512x1024          	      70	   7752322 ns/op
+BenchmarkR31AB/C/1000              	  179246	      3346 ns/op
+BenchmarkR31AB/C/1080              	  147100	      4113 ns/op
+BenchmarkR31AB/C/1296              	  136597	      4364 ns/op
+BenchmarkR31AB/C/1920              	   93128	      6457 ns/op
+BenchmarkR31AB/C/2000              	   82681	      7269 ns/op
+BenchmarkR31AB/C/6000              	   24168	     24811 ns/op
+BenchmarkR31AB/C/10000             	   13036	     46365 ns/op
+BenchmarkR31AB/R/512               	  805026	       734.1 ns/op
+BenchmarkR31AB/IR/512              	  756931	       794.5 ns/op
+BenchmarkR31AB/R/1024              	  406808	      1466 ns/op
+BenchmarkR31AB/IR/1024             	  368256	      1630 ns/op
+BenchmarkR31AB/R/4096              	   69774	      8579 ns/op
+BenchmarkR31AB/IR/4096             	   69499	      8608 ns/op
+BenchmarkR31AB/R/8192              	   36183	     16511 ns/op
+BenchmarkR31AB/IR/8192             	   35419	     16943 ns/op
+BenchmarkR31AB/R/32768             	    7160	     83203 ns/op
+BenchmarkR31AB/IR/32768            	    6422	     91611 ns/op
+BenchmarkR31AB/R/1000              	  291584	      2048 ns/op
+BenchmarkR31AB/IR/1000             	  285055	      2111 ns/op
+BenchmarkR31AB/N/256x1024          	     273	   2132571 ns/op
+BenchmarkR31AB/N/128x128           	    7472	     79831 ns/op
+BenchmarkR31AB/C/256               	 1308730	       461.5 ns/op
+BenchmarkR31AB/C/1024              	  240746	      2506 ns/op
+BenchmarkR31AB/C/4096              	   49190	     12190 ns/op
+BenchmarkR31AB/C/65536             	    1280	    459052 ns/op
+BenchmarkR31AB/C/1009              	   31408	     19090 ns/op
+BenchmarkR31AB/C/10007             	    1758	    337921 ns/op
+BenchmarkR31AB/R/256               	 1541673	       389.3 ns/op
+BenchmarkR31AB/IR/256              	 1466131	       403.4 ns/op
+BenchmarkR31AB/R/65536             	    2690	    219472 ns/op
+BenchmarkR31AB/IR/65536            	    2409	    252354 ns/op
+PASS
+# round 9 variant br7.test 06:35:25 load 1.00 0.85 0.54
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      32	  17110310 ns/op
+BenchmarkR31AB/N/512x1024          	      75	   7648870 ns/op
+BenchmarkR31AB/C/1000              	  196586	      3038 ns/op
+BenchmarkR31AB/C/1080              	  159867	      3721 ns/op
+BenchmarkR31AB/C/1296              	  127401	      4433 ns/op
+BenchmarkR31AB/C/1920              	  106724	      5577 ns/op
+BenchmarkR31AB/C/2000              	   96283	      6271 ns/op
+BenchmarkR31AB/C/6000              	   26774	     22529 ns/op
+BenchmarkR31AB/C/10000             	   14695	     40788 ns/op
+BenchmarkR31AB/R/512               	  895533	       668.0 ns/op
+BenchmarkR31AB/IR/512              	  817051	       730.4 ns/op
+BenchmarkR31AB/R/1024              	  464703	      1284 ns/op
+BenchmarkR31AB/IR/1024             	  412752	      1476 ns/op
+BenchmarkR31AB/R/4096              	   76368	      7893 ns/op
+BenchmarkR31AB/IR/4096             	   74638	      8044 ns/op
+BenchmarkR31AB/R/8192              	   39562	     15084 ns/op
+BenchmarkR31AB/IR/8192             	   38955	     15454 ns/op
+BenchmarkR31AB/R/32768             	    7795	     76596 ns/op
+BenchmarkR31AB/IR/32768            	    6618	     90254 ns/op
+BenchmarkR31AB/R/1000              	  319312	      1860 ns/op
+BenchmarkR31AB/IR/1000             	  310462	      1961 ns/op
+BenchmarkR31AB/N/256x1024          	     240	   2399428 ns/op
+BenchmarkR31AB/N/128x128           	    7472	     79577 ns/op
+BenchmarkR31AB/C/256               	 1294890	       475.7 ns/op
+BenchmarkR31AB/C/1024              	  236620	      2552 ns/op
+BenchmarkR31AB/C/4096              	   48694	     12718 ns/op
+BenchmarkR31AB/C/65536             	    1285	    474393 ns/op
+BenchmarkR31AB/C/1009              	   30952	     19133 ns/op
+BenchmarkR31AB/C/10007             	    1747	    336689 ns/op
+BenchmarkR31AB/R/256               	 1584645	       379.1 ns/op
+BenchmarkR31AB/IR/256              	 1483132	       403.9 ns/op
+BenchmarkR31AB/R/65536             	    2584	    227888 ns/op
+BenchmarkR31AB/IR/65536            	    2318	    259398 ns/op
+PASS
+# round 10 variant br7.test 06:35:49 load 1.00 0.86 0.55
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      28	  20756327 ns/op
+BenchmarkR31AB/N/512x1024          	      45	  11191882 ns/op
+BenchmarkR31AB/C/1000              	  196477	      3083 ns/op
+BenchmarkR31AB/C/1080              	  158347	      3826 ns/op
+BenchmarkR31AB/C/1296              	  127017	      4570 ns/op
+BenchmarkR31AB/C/1920              	  106749	      5615 ns/op
+BenchmarkR31AB/C/2000              	   94168	      6302 ns/op
+BenchmarkR31AB/C/6000              	   26361	     22683 ns/op
+BenchmarkR31AB/C/10000             	   14745	     41052 ns/op
+BenchmarkR31AB/R/512               	  907498	       669.0 ns/op
+BenchmarkR31AB/IR/512              	  823339	       731.6 ns/op
+BenchmarkR31AB/R/1024              	  417951	      1297 ns/op
+BenchmarkR31AB/IR/1024             	  399070	      1499 ns/op
+BenchmarkR31AB/R/4096              	   71534	      8274 ns/op
+BenchmarkR31AB/IR/4096             	   70519	      8419 ns/op
+BenchmarkR31AB/R/8192              	   38516	     15686 ns/op
+BenchmarkR31AB/IR/8192             	   37290	     16103 ns/op
+BenchmarkR31AB/R/32768             	    7509	     80841 ns/op
+BenchmarkR31AB/IR/32768            	    6352	     94863 ns/op
+BenchmarkR31AB/R/1000              	  322123	      1870 ns/op
+BenchmarkR31AB/IR/1000             	  308762	      1958 ns/op
+BenchmarkR31AB/N/256x1024          	     117	   5084122 ns/op
+BenchmarkR31AB/N/128x128           	    7184	     83256 ns/op
+BenchmarkR31AB/C/256               	 1274330	       471.7 ns/op
+BenchmarkR31AB/C/1024              	  230008	      2628 ns/op
+BenchmarkR31AB/C/4096              	   46885	     12713 ns/op
+BenchmarkR31AB/C/65536             	    1162	    516385 ns/op
+BenchmarkR31AB/C/1009              	   31398	     19060 ns/op
+BenchmarkR31AB/C/10007             	    1734	    345793 ns/op
+BenchmarkR31AB/R/256               	 1561758	       383.4 ns/op
+BenchmarkR31AB/IR/256              	 1468465	       409.1 ns/op
+BenchmarkR31AB/R/65536             	    2577	    216967 ns/op
+BenchmarkR31AB/IR/65536            	    2439	    246358 ns/op
+PASS
+# round 10 variant main2.test 06:36:13 load 1.00 0.87 0.57
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      27	  20810253 ns/op
+BenchmarkR31AB/N/512x1024          	      45	  13006961 ns/op
+BenchmarkR31AB/C/1000              	  176805	      3402 ns/op
+BenchmarkR31AB/C/1080              	  143071	      4213 ns/op
+BenchmarkR31AB/C/1296              	  133856	      4494 ns/op
+BenchmarkR31AB/C/1920              	   92004	      6554 ns/op
+BenchmarkR31AB/C/2000              	   80097	      7369 ns/op
+BenchmarkR31AB/C/6000              	   23565	     25292 ns/op
+BenchmarkR31AB/C/10000             	   13071	     46155 ns/op
+BenchmarkR31AB/R/512               	  804817	       755.2 ns/op
+BenchmarkR31AB/IR/512              	  754437	       816.8 ns/op
+BenchmarkR31AB/R/1024              	  413902	      1509 ns/op
+BenchmarkR31AB/IR/1024             	  363626	      1657 ns/op
+BenchmarkR31AB/R/4096              	   69739	      8629 ns/op
+BenchmarkR31AB/IR/4096             	   67694	      8875 ns/op
+BenchmarkR31AB/R/8192              	   35731	     17006 ns/op
+BenchmarkR31AB/IR/8192             	   34776	     17287 ns/op
+BenchmarkR31AB/R/32768             	    6962	     87811 ns/op
+BenchmarkR31AB/IR/32768            	    6465	     92386 ns/op
+BenchmarkR31AB/R/1000              	  277632	      2139 ns/op
+BenchmarkR31AB/IR/1000             	  275769	      2168 ns/op
+BenchmarkR31AB/N/256x1024          	     249	   2289240 ns/op
+BenchmarkR31AB/N/128x128           	    7467	     80394 ns/op
+BenchmarkR31AB/C/256               	 1300642	       460.5 ns/op
+BenchmarkR31AB/C/1024              	  241090	      2503 ns/op
+BenchmarkR31AB/C/4096              	   48537	     12236 ns/op
+BenchmarkR31AB/C/65536             	    1298	    467275 ns/op
+BenchmarkR31AB/C/1009              	   31538	     18808 ns/op
+BenchmarkR31AB/C/10007             	    1779	    335669 ns/op
+BenchmarkR31AB/R/256               	 1581004	       380.9 ns/op
+BenchmarkR31AB/IR/256              	 1485177	       403.9 ns/op
+BenchmarkR31AB/R/65536             	    2799	    213571 ns/op
+BenchmarkR31AB/IR/65536            	    2440	    247384 ns/op
+PASS
+# round 11 variant main2.test 06:36:38 load 1.00 0.88 0.58
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      33	  17786866 ns/op
+BenchmarkR31AB/N/512x1024          	      66	   9234150 ns/op
+BenchmarkR31AB/C/1000              	  178690	      3358 ns/op
+BenchmarkR31AB/C/1080              	  143793	      4179 ns/op
+BenchmarkR31AB/C/1296              	  136052	      4435 ns/op
+BenchmarkR31AB/C/1920              	   92654	      6451 ns/op
+BenchmarkR31AB/C/2000              	   81981	      7332 ns/op
+BenchmarkR31AB/C/6000              	   24265	     24870 ns/op
+BenchmarkR31AB/C/10000             	   13048	     45994 ns/op
+BenchmarkR31AB/R/512               	  818116	       744.0 ns/op
+BenchmarkR31AB/IR/512              	  757393	       816.9 ns/op
+BenchmarkR31AB/R/1024              	  407515	      1471 ns/op
+BenchmarkR31AB/IR/1024             	  363422	      1651 ns/op
+BenchmarkR31AB/R/4096              	   69349	      8669 ns/op
+BenchmarkR31AB/IR/4096             	   68805	      8718 ns/op
+BenchmarkR31AB/R/8192              	   35790	     16810 ns/op
+BenchmarkR31AB/IR/8192             	   34921	     17173 ns/op
+BenchmarkR31AB/R/32768             	    7113	     83886 ns/op
+BenchmarkR31AB/IR/32768            	    6494	     91851 ns/op
+BenchmarkR31AB/R/1000              	  291028	      2055 ns/op
+BenchmarkR31AB/IR/1000             	  284961	      2105 ns/op
+BenchmarkR31AB/N/256x1024          	     300	   1994612 ns/op
+BenchmarkR31AB/N/128x128           	    7669	     77875 ns/op
+BenchmarkR31AB/C/256               	 1304800	       461.0 ns/op
+BenchmarkR31AB/C/1024              	  235488	      2544 ns/op
+BenchmarkR31AB/C/4096              	   47635	     12564 ns/op
+BenchmarkR31AB/C/65536             	    1228	    486702 ns/op
+BenchmarkR31AB/C/1009              	   31891	     18814 ns/op
+BenchmarkR31AB/C/10007             	    1777	    339149 ns/op
+BenchmarkR31AB/R/256               	 1576794	       380.6 ns/op
+BenchmarkR31AB/IR/256              	 1491422	       405.3 ns/op
+BenchmarkR31AB/R/65536             	    2738	    217633 ns/op
+BenchmarkR31AB/IR/65536            	    2446	    244739 ns/op
+PASS
+# round 11 variant br7.test 06:37:02 load 1.00 0.89 0.59
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkR31AB/N/1024x1024         	      32	  18090263 ns/op
+BenchmarkR31AB/N/512x1024          	      70	   7923239 ns/op
+BenchmarkR31AB/C/1000              	  200673	      2981 ns/op
+BenchmarkR31AB/C/1080              	  160491	      3700 ns/op
+BenchmarkR31AB/C/1296              	  136338	      4399 ns/op
+BenchmarkR31AB/C/1920              	  110185	      5417 ns/op
+BenchmarkR31AB/C/2000              	   97713	      6169 ns/op
+BenchmarkR31AB/C/6000              	   26691	     22487 ns/op
+BenchmarkR31AB/C/10000             	   15043	     39596 ns/op
+BenchmarkR31AB/R/512               	  908646	       658.3 ns/op
+BenchmarkR31AB/IR/512              	  821420	       724.8 ns/op
+BenchmarkR31AB/R/1024              	  472281	      1285 ns/op
+BenchmarkR31AB/IR/1024             	  409440	      1466 ns/op
+BenchmarkR31AB/R/4096              	   76375	      7868 ns/op
+BenchmarkR31AB/IR/4096             	   74931	      8038 ns/op
+BenchmarkR31AB/R/8192              	   39652	     15125 ns/op
+BenchmarkR31AB/IR/8192             	   38368	     15702 ns/op
+BenchmarkR31AB/R/32768             	    7377	     77846 ns/op
+BenchmarkR31AB/IR/32768            	    6651	     90328 ns/op
+BenchmarkR31AB/R/1000              	  326545	      1834 ns/op
+BenchmarkR31AB/IR/1000             	  314790	      1924 ns/op
+BenchmarkR31AB/N/256x1024          	     283	   2080737 ns/op
+BenchmarkR31AB/N/128x128           	    7434	     79459 ns/op
+BenchmarkR31AB/C/256               	 1285845	       463.7 ns/op
+BenchmarkR31AB/C/1024              	  235303	      2547 ns/op
+BenchmarkR31AB/C/4096              	   48040	     12491 ns/op
+BenchmarkR31AB/C/65536             	    1316	    454725 ns/op
+BenchmarkR31AB/C/1009              	   31935	     18771 ns/op
+BenchmarkR31AB/C/10007             	    1672	    356734 ns/op
+BenchmarkR31AB/R/256               	 1583115	       380.3 ns/op
+BenchmarkR31AB/IR/256              	 1485296	       404.6 ns/op
+BenchmarkR31AB/R/65536             	    2773	    215697 ns/op
+BenchmarkR31AB/IR/65536            	    2506	    238890 ns/op
+PASS
+# done 06:37:27 load 1.00 0.90 0.60

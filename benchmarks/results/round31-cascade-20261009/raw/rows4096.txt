@@ -1,0 +1,8 @@
+# start 18:01:22 load 1.45 0.62 0.24 : ./r31a.test -test.run TestR31Rows2D -r31.rows 7,3,4096 -r31.m 1024 -r31.rowvars z:cur,z:8x8x8x8,z:4x8x8x4x4,z:4x4x8x8x4,z:4x8x4x8x4
+R31 1024x4096 span 1024 z:cur            cols  64480643 ns  rows  16994298 ns (4.05 ns/pt)  first/this 1.000  range 1.000-1.000
+R31 1024x4096 span 1024 z:8x8x8x8        cols  64772502 ns  rows  17141644 ns (4.09 ns/pt)  first/this 0.997  range 0.973-1.028
+R31 1024x4096 span 1024 z:4x8x8x4x4      cols  64256170 ns  rows  22694915 ns (5.41 ns/pt)  first/this 0.754  range 0.735-0.808
+R31 1024x4096 span 1024 z:4x4x8x8x4      cols  64768853 ns  rows  23023600 ns (5.49 ns/pt)  first/this 0.734  range 0.729-0.798
+R31 1024x4096 span 1024 z:4x8x4x8x4      cols  64455427 ns  rows  22788365 ns (5.43 ns/pt)  first/this 0.744  range 0.730-0.809
+PASS
+# end 18:01:31 load 1.38 0.63 0.25
