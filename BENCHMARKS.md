@@ -38,6 +38,7 @@ time, below 1 means go-fft is faster (bold: at or above FFTW, within 5%):
 - **Against FFTW:** at or above it on 15 of the 24 rows on Zen 3, 23 on Neoverse-N1 and 7 on Cascade Lake (means of two runs).
 - **Against numpy.fft and scipy.fft:** at or above both on all 24 rows in every one of the six runs.
 - **FFTW's variance:** Zen 3's RFFT 4096 reads 1.14 here and 1.02 in Round 23 with the same go-fft code; Cascade Lake beyond 2^19 is noisier still (Round 20).
+- **Round 32 (Zen 3, not yet in the table):** with the buffers between the passes in the kernel's frame, complex 256 reads 1.09× FFTW and RFFT 256 1.05× (means of two runs against the median of FFTW's four), complex 64 1.36× faster than v0.21.0.
 - **Known regression:** 2-D 1024² on Cascade Lake runs at 0.94× v0.18.0's speed since v0.19.0 (Round 28), cause not established.
 - **Single precision** (Rounds 22, 25, 27): float32 takes 0.46–0.83× the float64 time on Zen 3 and 0.58–0.73× on Neoverse-N1. FFTW's single-precision library is not built on the hosts.
 - **Earlier tables** are in the git history of this file and in the dated rounds below.
@@ -3054,6 +3055,231 @@ mean of the two runs, and go-fft's own time at v0.21.0 ÷ v0.17.0:
   within ±1%.
 
 Every row, both runs and the raw data: [`benchmarks/results/round33-parity-n1-v0.21.0-20261009/`](benchmarks/results/round33-parity-n1-v0.21.0-20261009/).
+
+### Round 32 — Zen 3, the smallest sizes: complex 64 located, and the buffers between the passes moved into the kernel's frame (2026-10-09)
+
+**The question.** Round 30 left complex 64 on Zen 3 at 0.85–0.90× main's
+speed after v0.20.0, cause not established, and complex 256 and RFFT 256
+still behind FFTW (1.24 and 1.21 in "Current numbers"). Host: Zen 3
+(cfarm420), used by this round alone, one pinned core (`GOMAXPROCS=1
+taskset -c 40`), load 1.9–3.9 from other users (each file gives it per
+round). "Main" is v0.21.0 (bb351ec) throughout. Every comparison between
+binaries ran nine rounds, the order rotated every round, the rows this round
+does not touch timed after the ones it does in the same process.
+
+**1. Complex 64: not v0.20.0's code, the binary's layout.** A harness that
+uses the exported API only (`round32_place_test.go`, `TestZnPlace`) builds
+unchanged against any release, and times each row on several heap
+placements of its plan (each size class shifted by 0–7 objects before the
+plan is built), so that a difference between binaries can be told from one
+between allocations. v0.19.1, v0.20.0 and v0.21.0 with that same harness,
+twelve placements each (`zen3/place-tags-9.txt`), time ÷ v0.19.1's, median
+over rounds (range):
+
+| | v0.20.0 | v0.21.0 | v0.19.1, ns |
+|:--|:--|:--|--:|
+| complex 32 | 0.93 (0.91–0.95) | 0.93 (0.90–1.02) | 73.3 |
+| complex 64 | **0.89** (0.84–0.90) | **0.84** (0.80–0.92) | 124.9 |
+| complex 128 / 256 | 1.01 / 1.00 | 1.01 / 1.01 | 186.7 / 353.1 |
+| RFFT 256 | 0.90 (0.85–0.92) | 0.90 (0.86–0.99) | 302.1 |
+
+In these binaries v0.19.1 is the *slow* one at 64 points, by the margin
+Round 30 measured the other way, and it is slow at every one of the twelve
+placements (best placement 124.0 ns against 110.7 and 103.7). RFFT 256's
+1.11× is Round 30's real gain and agrees with it. So the 64-point row moves
+with the binary, not with the release. Where the time goes, the same three
+binaries (`TestR26Overhead`, seven rounds, medians, `zen3/over-tags-7.txt`),
+ns:
+
+| 64 points | `Plan.FFT` | `skPlan.transform` | the two passes alone | a pool round trip alone |
+|:--|--:|--:|--:|--:|
+| v0.19.1 | 124.3 | 111.8 | 87.6 | 16.3 |
+| v0.20.0 | 110.6 | 105.9 | 89.4 | 16.1 |
+| v0.21.0 | 111.8 | 105.7 | 90.0 | 16.4 |
+
+The passes cost the same in all three; what differs is the 20–37 ns around
+them, the pool round trip and three levels of calls, which in the fastest
+binary cost little more than the pool alone. The hot functions sit at
+different offsets modulo 64 bytes in each binary (`skPlan.transform` 0, 32,
+32; `skStage.pass` 32, 0, 0; `kernels.StockhamPass` 0, 0, 32; the radix-8
+kernels' `.abi0` bodies swap between 0 and 32), the kind of placement Zen 3's
+op cache and branch predictors see; no single one of them orders the three
+binaries, so this round did not chase one alignment. It removed the code
+around the passes instead.
+
+**2. The buffers between the passes in the kernel's own frame (kept, AMD).**
+A Stockham pass is out of place, so a transform of s passes needs a buffer
+besides dst; the plan borrowed it from a `sync.Pool`, 16 ns a round trip,
+as long as one 64-point pass. Two ways round it:
+- **A Go array on the stack (dropped).** The compiler zeroes it on every
+  call (1 KB at 64 points, 2 KB at 128) and, the kernels being reached
+  through function values, escape analysis moves it to the heap unless its
+  address is laundered. Measured in one process with the address laundered
+  (`zen3/stack-zeroed-inproc-11.txt`), pool ÷ stack: 1.15 at 64 points but
+  0.86 at 128, 0.93 for RFFT 256, 0.91 for IRFFT 256: the zeroing costs
+  what the pool saved.
+- **A frame the kernel owns (kept).** `znTwoPassAVX2` and `znThreePassAVX2`
+  (`genZnTwoPassFile` in `asmgen/amd64/gen.go`, go-asmgen v0.16.0, no
+  go-asmgen change; `zntwopass_amd64.s`) are trampolines whose frame holds
+  the buffers, uninitialised, 64-byte aligned (4 KB for two passes up to 256
+  points, 16 KB for three up to 512): they call the first pass's kernel
+  into the frame and the final pass's out of it (three passes: pass 0 into
+  dst, or into a second frame buffer when dst is src, pass 1 into the frame,
+  the final pass into dst, the schedule `transform` runs for an odd pass
+  count). Not NOSPLIT, so the assembler inserts the stack check; the frame
+  holds no pointer the collector must see (`NO_LOCAL_POINTERS`), and the
+  callees are NOSPLIT leaf kernels, so no stack scan or move can happen
+  inside it. The kernels are reached at their ABI0 entry points, which
+  `znKernelAddrs` stores in a table (a Go func value of an assembly
+  function is its ABIInternal wrapper).
+
+`kernels.ZnPlanFor` binds, when the fft plan is built, the entry points,
+constants tables and twiddle tables of both directions, or returns nil (no
+AVX2, too long, a radix without a kernel, a table too short, split layouts
+that do not chain); `ZnPlan.Run` checks two lengths and calls the
+trampoline. A first version selected the kernels on every call: the
+binaries' A/B read complex 64 at 86 ns against 77 once the selection moved
+to plan build (`ab-place3-9.txt`, `ab-place4-9.txt`). Every call runs the
+kernels `StockhamPassLayout` and `StockhamPass` would run, with the same
+arguments, so the result is the same bits. `transform` wraps its pool path
+in one condition rather than returning early, so that no statement is
+unreachable on the architectures without the kernel and no call is added in
+front of the pool's path. It runs where `kernels.IntelCPU` is false
+(`znFrameMaxAMD64`); Intel was not measured.
+
+Which plans: on Zen 3, 46 of the lengths up to 512 with two or three
+passes, among them every power of two from 16 to 512, the halves of RFFT
+32 … 1024, and composites such as 192 (4·4·12), 200 (10·20), 288, 320, 500;
+lengths with a pass of radix 7, 11 or 13 keep the pool (`TestZnFrameLengths`).
+The radix orders were timed again with the frame (`zen3/orders-frame-9.txt`):
+the current two-pass orders stay the best (64: 8·8, 4·16 0.96, 16·4 0.95;
+128: 8·16, 16·8 0.86), and 256 as 16·16 on the frame ties 4·8·8 on the pool
+(1.01), so 256 keeps 4·8·8 and takes the three-pass frame.
+
+**Bit identity and tests.** `TestZnPlanMatchesPasses` runs every pair and
+triple of the ten AVX2 radices up to 256 and 512 points, every chain of
+layouts the kernels accept (interleaved, a run of one split pass, split out
+then in), both directions, in place and not, on Round 19's seven signals,
+against the passes run one by one into buffers, bit for bit;
+`TestZnPlanRefuses` holds `ZnPlanFor` to nil on 29 shapes it must not run
+and on each table one entry short, and `Run` to a panic on short slices and
+to false once the AVX2 kernels are off. `TestZnFrameMatchesPool` builds
+every two- and three-pass plan up to 256 and 512 points with the frame on
+and off and holds the transforms, in place and not, and the RFFT and IRFFT
+of twice those lengths (their half plans taken out of the plan cache so
+each RealPlan gets its own) to the same bits. Fourteen mutations, each built
+and run on Zen 3 (`zen3/mutants.txt`), all fail: the twiddle-length check
+dropped, the length limit dropped (a frame overflow: the runtime aborts),
+any split mode accepted, a missing final kernel not refused, the inverse
+split kernels not selected, the final pass's l1, the split constants, the
+final pass reading another buffer, the final pass given the first pass's
+constants, the first pass's l1, the plan flag ignoring the kernels' answer
+or the limit, the inverse given the forward twiddles, Intel enabled. Both
+packages' suites pass on Zen 3, every statement of both covered there and on
+arm64 (`zen3/suites.txt`).
+
+**Accuracy against numpy on the exact bytes.** `TestZnExport` writes, for
+the 122 lengths up to 512 with two or three passes (46 of them on the frame), a random input and go-fft's FFT and IFFT, and for the real
+transforms of twice those lengths an input, its RFFT and the IRFFT of that
+RFFT, as raw float64; `scripts/zn_accuracy.py` runs numpy 2.5.3 on the same
+bytes (`zen3/accuracy.txt`): worst error relative to the largest output
+8.9e-16 (FFT), 9.5e-16 (IFFT), 7.5e-16 (RFFT), 8.8e-16 (IRFFT), against a
+1e-14 bound; a byte planted in the high mantissa bits of a 64- or
+256-point FFT output, a 512-point RFFT bin or a 1024-point IRFFT sample
+fails it (four of four).
+
+**3. End to end against main.** Main and the branch with the harness of
+§1 (four placements, `zen3/ab-place4-9.txt`) and with Round 30's
+`BenchmarkR30AB` (`zen3/ab-r30-9.txt`), main's time ÷ the branch's, median
+(per-round range):
+
+| | `TestZnPlace` | `BenchmarkR30AB` |
+|:--|:--|:--|
+| complex 16 / 32 / 64 | 1.82 (1.75–1.87) / 1.55 (1.48–1.57) / **1.36** (1.33–1.42) | – / – / **1.37** (1.26–1.47) |
+| complex 128 / 256 / 512 | 1.21 (1.16–1.24) / **1.14** (1.14–1.16) / 1.07 (1.01–1.08) | 1.22 / **1.14** / 1.07 |
+| complex 192 / 288 / 320 / 500 | 1.23 / 1.12 / 1.16 / 1.05 | – |
+| RFFT 128 / 256 / 512 / 1024 | 1.20 / **1.14** (1.12–1.18) / 1.11 / 1.03 | – / **1.20** / 1.12 / 1.05 |
+| IRFFT 256 / 512 / 1024 | 1.14 / 1.12 / 1.06 | 1.15 / 1.09 / 1.04 |
+| RFFT 1000 / IRFFT 1000 | – | 1.06 / 1.04 |
+| untouched: complex 56 (8·7), 1000, 1024, 4096; RFFT 4096 | 0.99 / 1.00 / 1.00 / 1.01; 0.99 | – / 0.99 / 0.94 (0.87–1.00) / 0.99; 0.98 |
+| untouched: complex 1080, 2048, 8192; RFFT/IRFFT 2048 … 8192; 2-D 64² … 256² | – | 1.04 / 1.02 / 1.00; 0.97–1.01; 1.00 |
+
+Complex 1024 (four passes, untouched) read 0.94 in `BenchmarkR30AB` and 1.00
+in both `TestZnPlace` runs; the run below times it again.
+
+A separate run on rows the round does not touch, eight placements each, after
+the parity runs (`zen3/ab-untouched-9.txt`), branch ÷ main: complex 1024
+1.005, 1080 1.000, 2048 0.996, 1000 0.995; RFFT 2048 1.009, IRFFT 2048 1.000,
+RFFT 4096 1.000 (per-round ranges within 0.98–1.05); complex 64 and 256 read
+0.73 and 0.88 again in the same processes.
+
+
+**Against FFTW**, `benchmarks/remote/run.sh` pinned to core 40, main,
+branch, branch, main back to back (`zen3/parity/`; correct 24/24 every
+time). go-fft's time (mean of its two runs) ÷ the median of FFTW's four:
+
+| | main | branch |
+|:--|--:|--:|
+| complex 256 | 1.31 | **1.09** |
+| RFFT 256 | 1.28 | **1.05** |
+| IRFFT 256 | 0.88 | **0.78** |
+| complex 1,024 / RFFT 1,024 / IRFFT 1,024 | 1.06 / 1.06 / 0.92 | 1.08 / 1.04 / 0.86 |
+| complex 1,000 / 1,080 / 1,296 | 1.05 / 1.09 / 1.02 | 1.04 / 1.08 / 1.04 |
+| 2-D 64×64 / 128×128 | 0.68 / 0.76 | 0.72 / 0.78 |
+
+FFTW's medians: complex 256 280 ns (278–281), RFFT 256 228 (221–232).
+go-fft's complex 256 went 365–375 → 304–316 ns, RFFT 256 284–306 → 233–263.
+Untouched rows moved with the host: the first branch run read complex 4096
+at 20.4 µs on all three counts (main 9.3–9.6, the second branch run
+10.1–10.9; the load went from 3.3 to 4.2 during the branch runs), so the
+whole-table ratios of rows this round does not change (4096 1.44, 65536
+0.87, 2^20 0.54) are the host's; the interleaved runs above, the same
+binaries, read them 0.99–1.01.
+
+FFTW's best-of-nine time on the sizes the parity harness does not cover
+(`scripts/fftwplan.c`, after each parity run, median of four) against
+go-fft's median in `ab-place4-9.txt` (a different harness, so indicative):
+
+| | FFTW, ns | main | branch |
+|:--|--:|--:|--:|
+| complex 32 / 64 / 128 | 37.1 / 66.3 / 131.8 | 1.84 / 1.59 / 1.46 | 1.18 / 1.16 / 1.20 |
+| complex 512 | 652 | 1.12 | 1.06 |
+| RFFT 128 / 512 | 120.6 / 458 | 1.25 / 1.12 | 1.04 / 1.01 |
+
+
+**Tried and dropped, or not done:**
+- **The Go stack array** (§2): its zeroing costs what the pool saves from 128
+  points on.
+- **256 in two passes** (16·16) on the frame: a tie with 4·8·8 on the pool;
+  4·8·8 on the frame is 1.05× faster in one process (`zen3/frame-inproc-11.txt`).
+  FFTW plans 256 as 32·8 (`t2fv_32` then `n2fv_8`, `zen3/fftw-plans-1.txt`):
+  a radix-32 AVX2 pass was not built.
+- **The code layout at 64 points** was not pinned down to one function's
+  alignment; the frame kernels took most of the code it acted on out of the
+  path (§1, §2). Whether the remaining transform still moves with layout was
+  not measured across more binaries.
+- **Intel, arm64 and the other architectures** keep the pool: the frame
+  kernels are amd64 assembly, enabled on AMD only, unmeasured on Intel.
+- **Lengths beyond three passes or 512 points**: the pool round trip is
+  under 2% of the transform there; not enabled, not measured.
+- **The coverage gate's rounding.** On arm64 one statement of
+  `StockhamSplitModes` (a final radix without a split kernel) was never
+  covered on main; `go tool cover` printed the total as 100.0% by rounding,
+  and the gate compares that printed number. A test case covers it now; the
+  gate itself still compares a rounded percentage.
+
+**Which main.** Every measurement above ran against v0.21.0. The branch was then
+rebased onto v0.22.0 (Round 31, Intel paths and a 512-bit untangle; on AMD it
+changes only how split twiddles are built, `StockhamSplitTwiddlesFor`, which
+gives the 256-bit tables unchanged). Both packages' suites passed again on Zen 3,
+every statement covered, every `.s` regenerated unchanged, and a seven-round A/B
+against v0.22.0 (`zen3/ab-v022-7.txt`, v0.22.0 ÷ branch) read complex 32 / 64 /
+128 / 256 / 512 1.57 / 1.36 / 1.20 / 1.15 / 1.05, RFFT 256 / 512 1.12 / 1.10,
+IRFFT 256 1.14, untouched complex 1000 / 1024 and RFFT 4096 0.99–1.00. Under
+`GOAMD64=v3` seven tests fail on Zen 3, the same seven on v0.22.0 (Go oracles
+the compiler then fuses; `zen3/suites-rebased.txt`).
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round32-zen3-small-20261009/`](benchmarks/results/round32-zen3-small-20261009/).
 
 ### Round 31 — Cascade Lake: the 2-D 1024² regression located, composites on the split layout, a 512-bit untangle (2026-10-09)
 

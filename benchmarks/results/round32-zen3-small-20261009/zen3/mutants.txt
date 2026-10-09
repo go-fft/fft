@@ -1,0 +1,33 @@
+# Mutants of Round 32's guards and trampoline, each built as its own test binaries (commit 56307be + one change),
+# run on cfarm420 2026-10-09 ~06:43 host time: kernels TestZn* and fft TestZn* (exit codes: 0 pass, 1 fail, 2 crash).
+# Spec (id|file|perl substitution|what it breaks):
+#   m01|internal/kernels/znpass_amd64.go|s/_, _, _ = cc\[n-1\], ch\[n-1\], tw0\[twLen-1\]/_, _ = cc[n-1], ch[n-1]/|tw bound check dropped
+#   m02|internal/kernels/znpass_amd64.go|s/ \|\| r0\*r1 > ZnTwoPassMax \{/ {/|length limit dropped
+#   m03|internal/kernels/znpass_amd64.go|s/case mode0 == splitNone && splitPass\(r0, r1\):/case mode0 <= splitNone \&\& splitPass(r0, r1):/|any split mode accepted
+#   m04|internal/kernels/znpass_amd64.go|s/\tif last == 0 \{\n\t\tpass = 0\n\t\}\n//|missing final kernel not refused
+#   m05|internal/kernels/znpass_amd64.go|s/\t\tif inverse \{\n\t\t\td = 1\n\t\t\}\n//|split inverse kernels not selected
+#   m06|internal/kernels/znpass_amd64.go|s/k0, k, r1, r0, pass, last\)/k0, k, r1, r1, pass, last)/|final pass l1 = r1
+#   m07|internal/kernels/znpass_amd64.go|s/k0, twLen = &splitK\[0\]\[0\], \(r0-1\)\*r1/twLen = (r0-1)*r1/|split pass given the interleaved constants
+#   m08|internal/kernels/asmgen/amd64/gen.go|s/\tbuf\("AX"\)\n\tb.Raw\("MOVQ AX, 0\(SP\)"\)/\tb.Raw("LEAQ 175(SP), AX").Raw("ANDQ \$-64, AX")\n\tb.Raw("MOVQ AX, 0(SP)")/|final pass reads another buffer
+#   m09|internal/kernels/asmgen/amd64/gen.go|s/b.LoadArg\("k1", "AX"\)/b.LoadArg("k0", "AX")/|final pass given k0
+#   m10|internal/kernels/asmgen/amd64/gen.go|s/\tb.Raw\("MOVQ \$1, 40\(SP\)"\)/\tb.Raw("MOVQ \$2, 40(SP)")/|first pass l1 = 2
+#   m11|stockham.go|s/ && p.cascT == 0 &&\n\t\tkernels.ZnTwoPassOK\(p.stages\[0\].r, p.stages\[1\].r, p.stages\[0\].split\)/ \&\& p.cascT == 0/|plan flag ignores ZnTwoPassOK
+#   m12|znstack.go|s/\tif inverse \{\n\t\ttw = st.twXc\n\t\}\n//|inverse uses forward twiddles
+#   m13|route_amd64.go|s/\tif intel \{\n\t\treturn 0\n\t\}\n//|Intel enabled
+#   m14|stockham.go|s/p.zn = len\(p.stages\) == 2 && n <= znTwoPassMax/p.zn = len(p.stages) == 2/|plan flag ignores znTwoPassMax
+#   m01 applied by hand: tw0[twLen-1] -> twLen (bounds check dropped, twLen kept used)
+#   m02 applied by hand: ' || r0*r1 > ZnTwoPassMax' removed (the '|' broke the spec line); 20·20 then overflows the frame: fatal error, traceback did not unwind
+m01 kern=1 fft=0 (tw bound check dropped):     znpass_amd64_test.go:160: tw: no panic
+m02 kern=2 fft=0 (\): 
+m03 kern=1 fft=0 (any split mode accepted):     znpass_amd64_test.go:142: 8·8 mode 1 ran
+m04 kern=2 fft=2 (missing final kernel not refused): panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked]
+m05 kern=1 fft=1 (split inverse kernels not selected):     znpass_amd64_test.go:106: 4·4 mode 4 inverse true signal 0: [1] = (4.115225000783593+0.0178287785937552i) (in place (4.115225000783593+0.01782877
+m06 kern=1 fft=1 (final pass l1 = r1):     znpass_amd64_test.go:106: 2·3 mode 0 inverse false signal 0: [2] = (0+0i) (in place (0+0i)), want (0.5900190530494673-0.4521693071372182i)
+m07 kern=1 fft=1 (split pass given the interleaved constants):     znpass_amd64_test.go:106: 8·4 mode 4 inverse false signal 0: [1] = (1.8579814632749008-4.332560593781473i) (in place (1.8579814632749008-4.332560
+m08 kern=1 fft=1 (final pass reads another buffer):     znpass_amd64_test.go:106: 2·2 mode 0 inverse false signal 0: [0] = (0+0i) (in place (0+0i)), want (3.492876783875025-2.3153222289445i)
+m09 kern=1 fft=1 (final pass given k0):     znpass_amd64_test.go:106: 4·4 mode 4 inverse false signal 0: [4] = (1.059956027431563e+308-0.9875111302464881i) (in place (1.059956027431563e+308
+m10 kern=1 fft=1 (first pass l1 = 2):     znpass_amd64_test.go:106: 2·2 mode 0 inverse false signal 0: [1] = (0+0i) (in place (0+0i)), want (0.007981402836267248+2.07588043278013i)
+m11 kern=0 fft=1 (plan flag ignores ZnTwoPassOK):     znstack_test.go:44: n=14 (2·7): zn true, off false, ZnTwoPassOK false
+m12 kern=0 fft=1 (inverse uses forward twiddles):     znstack_test.go:68: n=6 (3·2) inverse=true: differs from the pool's passes
+m13 kern=0 fft=1 (Intel enabled):     route_amd64_test.go:155: Intel: 256
+m14 kern=0 fft=1 (plan flag ignores znTwoPassMax):     znstack_test.go:44: n=6 (3·2): zn true, off true, ZnTwoPassOK true

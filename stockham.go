@@ -52,6 +52,9 @@ type skPlan struct {
 	cascT, cascB int
 	// cascPair runs passes 0 and 1 as one sweep (cascadePair).
 	cascPair bool
+	// zn runs the transform with the buffers between its passes in a
+	// kernel's stack frame (znPlanFor, Round 32); nil uses p.scratch.
+	zn *kernels.ZnPlan
 }
 
 func newSKPlan(n int) *skPlan { return newSKPlanFactors(n, skFactorize(n)) }
@@ -123,6 +126,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 	}
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
+	p.zn = znPlanFor(n, p.stages) // at most 512 points: never a blocked schedule
 	return p
 }
 
@@ -271,32 +275,38 @@ func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
 // points on Cascade Lake, and inlining it measured 1.01–1.05× over the
 // previous release at 64–256 points there (Round 17).
 func (p *skPlan) transform(dst, src []complex128, inverse bool) {
-	bp := p.scratch.Get().(*[]complex128)
-	s := len(p.stages)
-	if p.cascT > 0 {
-		p.cascadeRun(dst, src, *bp, inverse)
-		p.scratch.Put(bp)
-		return
-	}
-	if s%2 == 1 && &dst[0] == &src[0] {
-		p.run(dst, src, *bp, inverse)
-		p.scratch.Put(bp)
-		return
-	}
-	scr := (*bp)[:p.n]
-	if takesGap(p.n) {
-		scr = offTheSets(*bp, dst, p.n)
-	}
-	in := src
-	for k := range p.stages {
-		out := scr
-		if (s-1-k)%2 == 0 {
-			out = dst
+	// A plan with a kernels.ZnPlan (p.zn, Round 32) needs no scratch buffer.
+	// One condition around the rest rather than an early return, so that no
+	// statement is unreachable where that kernel does not exist, and no call
+	// is added in front of the pool's path.
+	if done := p.zn != nil && p.zn.Run(src, dst, inverse); !done {
+		bp := p.scratch.Get().(*[]complex128)
+		s := len(p.stages)
+		if p.cascT > 0 {
+			p.cascadeRun(dst, src, *bp, inverse)
+			p.scratch.Put(bp)
+			return
 		}
-		p.stages[k].pass(out, in, inverse)
-		in = out
+		if s%2 == 1 && &dst[0] == &src[0] {
+			p.run(dst, src, *bp, inverse)
+			p.scratch.Put(bp)
+			return
+		}
+		scr := (*bp)[:p.n]
+		if takesGap(p.n) {
+			scr = offTheSets(*bp, dst, p.n)
+		}
+		in := src
+		for k := range p.stages {
+			out := scr
+			if (s-1-k)%2 == 0 {
+				out = dst
+			}
+			p.stages[k].pass(out, in, inverse)
+			in = out
+		}
+		p.scratch.Put(bp)
 	}
-	p.scratch.Put(bp)
 }
 
 // run is transform with the scratch buffer given: one from p.scratch.

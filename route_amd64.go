@@ -336,3 +336,19 @@ func splitTableAMD64(on bool) map[int][]int {
 	}
 	return t
 }
+
+// znTwoPassMaxDefault and znThreePassMaxDefault are znFrameMaxAMD64 for this
+// machine.
+func znTwoPassMaxDefault() int   { return znFrameMaxAMD64(kernels.IntelCPU, kernels.ZnTwoPassMax) }
+func znThreePassMaxDefault() int { return znFrameMaxAMD64(kernels.IntelCPU, kernels.ZnThreePassMax) }
+
+// znFrameMaxAMD64 is the longest two- or three-pass transform that keeps its
+// buffers in the kernel's stack frame (kernels.ZnTwoPass, ZnThreePass;
+// Round 32): the kernel's limit on AMD, where it was measured (Zen 3), and 0
+// on Intel, where it was not.
+func znFrameMaxAMD64(intel bool, limit int) int {
+	if intel {
+		return 0
+	}
+	return limit
+}

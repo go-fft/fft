@@ -23,6 +23,11 @@ func TestStockhamSplitModesComposite(t *testing.T) {
 		{[]int{2, 5, 5}, []int{25, 5, 1}, []int{1, 2, 10}, []uint8{0, 0, 0}},
 		// A radix without any NEON kernel (11) before the last pass.
 		{[]int{11, 4}, []int{4, 1}, []int{1, 11}, []uint8{0, 0}},
+		// A last radix without a split final kernel: 6, which no plan
+		// gives (an odd last radix is refused one pass earlier, by the odd
+		// ido it leaves); the coverage gate printed 100.0% without this
+		// case, rounding up one statement.
+		{[]int{4, 6}, []int{6, 1}, []int{1, 4}, []uint8{0, 0}},
 		// One pass only.
 		{[]int{8}, []int{1}, []int{1}, []uint8{0}},
 	} {

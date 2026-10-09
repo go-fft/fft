@@ -1,0 +1,9 @@
+# suites start 12:43:07 load 2.15 2.33 2.51
+fft exit 0
+kern exit 0
+# suites end 12:43:20 load 2.34 2.36 2.52
+PASS
+coverage: 97.9% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+PASS
+coverage: 95.0% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+0 uncovered blocks (union of both suites, amd64 Zen 3)

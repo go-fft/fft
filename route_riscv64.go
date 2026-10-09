@@ -42,3 +42,8 @@ func parThresholdNDefault() int { return parThreshold }
 // cascadeMinDefault is 0: the blocked schedule (cascade.go) was measured on
 // amd64 only, so every length runs breadth first here.
 func cascadeMinDefault() int { return 0 }
+
+// znTwoPassMaxDefault and znThreePassMaxDefault are 0: kernels.ZnTwoPass and
+// ZnThreePass are amd64's (Round 32).
+func znTwoPassMaxDefault() int   { return 0 }
+func znThreePassMaxDefault() int { return 0 }
