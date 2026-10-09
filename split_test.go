@@ -122,7 +122,11 @@ func TestClRowPlan(t *testing.T) {
 	}()
 	factors := func(p *PlanN) []int {
 		var f []int
-		for _, st := range p.axes[len(p.axes)-1].sk.stages {
+		sk := p.axes[len(p.axes)-1].sk
+		if sk == nil {
+			return nil // a 1-D plan on another engine (s390x, loong64: the pow2 kernel)
+		}
+		for _, st := range sk.stages {
 			f = append(f, st.r)
 		}
 		return f

@@ -3117,6 +3117,11 @@ four bins and their mirrors per step, three steps interleaved, Z0..Z15 only:
 `VSHUFF64X2 $0x1b`, and `VADDSUBPD`, which has no 512-bit form, a sign flip
 of the subtrahend's even lanes and an add (x − y and x + (−y) are the same
 IEEE operation), so the bits are the AVX2 kernel's and the Go loop's.
+The wrappers call it with q = 0 too, where it returns before any AVX-512
+instruction, so that no Go statement runs only on an AVX-512 CPU (CI's
+coverage gate runs on CPUs without it); that call cost RFFT and IRFFT 256
+about 2% in a nine-round check (`raw/ab-small-ci-fix.txt`, not rotated,
+within the between-binary noise).
 A pair left over goes to the AVX2 kernel on the slices that start 4q bins
 in. 512 ÷ AVX2, one process, eleven and fifteen rounds (`raw/unt1.txt`,
 `unt2.txt`, `unt3.txt`):

@@ -426,15 +426,13 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		return 0
 	}
 	_, _, _ = dst[m], z[m-1], tw[2*pairs+1] // the kernel trusts these lengths
-	q := 0
-	if UseUntangleAVX512 && clUntangleWide(m) {
-		// Four bins per step; a pair left over goes to the AVX2 kernel,
-		// on the slices that start 4·q bins in (its mirror is then m-4q-1).
-		q = pairs / 2
-		if q > 0 {
-			clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
-		}
-	}
+	// Four bins per step on the 512-bit kernel; a pair left over goes to the
+	// AVX2 kernel, on the slices that start 4·q bins in (its mirror is then
+	// m-4q-1). The kernel is called with q = 0 too: it returns before its first AVX-512
+	// instruction, so no statement here runs only on an AVX-512 CPU (the
+	// coverage gate runs on CPUs without it).
+	q := clQuads(UseUntangleAVX512, pairs, m)
+	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
 	if rest := pairs - 2*q; rest > 0 {
 		smallUntangleAVX2(&dst[4*q], &z[4*q], &tw[4*q], &skFwd[0][0], m-8*q, rest)
 	}
@@ -454,13 +452,8 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	}
 	_, _, _ = z[m-1], x[m], tw[2*pairs+1]
 	hv := [4]float64{h, h, h, h}
-	q := 0
-	if UseUntangleAVX512 && clUntangleWide(m) {
-		q = pairs / 2 // as in Untangle
-		if q > 0 {
-			clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
-		}
-	}
+	q := clQuads(UseUntangleAVX512, pairs, m) // as in Untangle
+	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
 	if rest := pairs - 2*q; rest > 0 {
 		smallRetangleAVX2(&z[4*q], &x[4*q], &tw[4*q], &skFwd[0][0], &hv, m-8*q, rest)
 	}
@@ -618,3 +611,13 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 // RFFT 256 (m = 128) 0.889, RFFT 1000 0.905, RFFT 1920 0.899 — the cost of
 // mixing widths Round 6 met, larger than the untangle's own gain.
 func clUntangleWide(m int) bool { return m >= 256 && m <= 1<<14 && m&(m-1) == 0 }
+
+// clQuads is how many four-bin steps the 512-bit untangle takes of pairs
+// two-bin steps at half-length m: half of them (rounded down) when on and
+// clUntangleWide(m), else none.
+func clQuads(on bool, pairs, m int) int {
+	if on && clUntangleWide(m) {
+		return pairs / 2
+	}
+	return 0
+}

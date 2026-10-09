@@ -86,3 +86,18 @@ func TestClUntangleWide(t *testing.T) {
 		}
 	}
 }
+
+// TestClQuads: half the pairs, rounded down, go to the 512-bit kernel when it
+// is on and the length takes it; none otherwise.
+func TestClQuads(t *testing.T) {
+	for _, c := range []struct {
+		on          bool
+		pairs, m, q int
+	}{
+		{true, 63, 256, 31}, {true, 64, 512, 32}, {false, 63, 256, 0}, {true, 31, 128, 0}, {true, 249, 1000, 0},
+	} {
+		if got := clQuads(c.on, c.pairs, c.m); got != c.q {
+			t.Errorf("clQuads(%v, %d, %d) = %d, want %d", c.on, c.pairs, c.m, got, c.q)
+		}
+	}
+}

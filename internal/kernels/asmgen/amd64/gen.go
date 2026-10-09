@@ -3609,7 +3609,7 @@ func clUntangleStep512(j int, inverse bool) []string {
 // genClUntangle512 emits clUntangleAVX512 or, when inverse,
 // clRetangleAVX512: genSmallUntangle's kernels at 512 bits, smallUntangleSteps
 // steps of four bins per iteration while that many quads are left, then one
-// at a time. The last step reads tw[4·quads+1].re (the VMOVDDUP at tw+8),
+// at a time, nothing at all for quads = 0. The last step reads tw[4·quads+1].re (the VMOVDDUP at tw+8),
 // which the Go wrappers bound-check.
 func genClUntangle512(f *emit.File, inverse bool) {
 	name := "clUntangleAVX512"
@@ -3623,6 +3623,10 @@ func genClUntangle512(f *emit.File, inverse bool) {
 	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
 	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
 		LoadArg("m", "DX").LoadArg("quads", "R8")
+	// No step: return at once, before the first AVX-512 instruction and
+	// without a VZEROUPPER, so the wrappers may call this on any CPU with
+	// quads = 0 for the price of a call.
+	b.Raw("TESTQ R8, R8").Raw("JZ none")
 	b.Raw("SHLQ $4, DX").
 		Raw("LEAQ 16(SI), AX").         // &in[1]
 		Raw("LEAQ -64(SI)(DX*1), BX").  // &in[m-4]
@@ -3673,5 +3677,6 @@ func genClUntangle512(f *emit.File, inverse bool) {
 		Raw("done:").
 		Raw("VZEROUPPER").
 		Ret()
+	b.Raw("none:").Ret()
 	f.Add(b.Func())
 }

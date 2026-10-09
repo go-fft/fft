@@ -278,6 +278,8 @@ TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-48
 	MOVQ k+24(FP), R14
 	MOVQ m+32(FP), DX
 	MOVQ quads+40(FP), R8
+	TESTQ R8, R8
+	JZ none
 	SHLQ $4, DX
 	LEAQ 16(SI), AX
 	LEAQ -64(SI)(DX*1), BX
@@ -407,6 +409,8 @@ TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-48
 	done:
 	VZEROUPPER
 	RET
+	none:
+	RET
 
 TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
 	MOVQ z+0(FP), DI
@@ -415,6 +419,8 @@ TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
 	MOVQ k+24(FP), R14
 	MOVQ m+40(FP), DX
 	MOVQ quads+48(FP), R8
+	TESTQ R8, R8
+	JZ none
 	SHLQ $4, DX
 	LEAQ 16(SI), AX
 	LEAQ -64(SI)(DX*1), BX
@@ -552,5 +558,7 @@ TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
 	JMP tail
 	done:
 	VZEROUPPER
+	RET
+	none:
 	RET
 
