@@ -336,7 +336,7 @@ what was tried and dropped:
 ### Remaining
 
 - **Small sizes on amd64** (v0.23.0, BENCHMARKS.md "Current numbers": complex
-  256 1.09× FFTW on Zen 3 and 1.27× on Cascade Lake; RFFT 256 1.07× and
+  256 1.13× FFTW on Zen 3 and 1.27× on Cascade Lake; RFFT 256 1.06× and
   1.08×). On Neoverse-N1 RFFT 256 is still slower than FFTW (1.046×, inside
   the 5% parity margin), as is RFFT 1,080 (1.04×).
 - **Cascade Lake:** complex 1,296 (1.20×; the split layout has no radix-3 or

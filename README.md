@@ -297,7 +297,7 @@ kernels for riscv64 (RVV) and s390x exist and are validated bit-identical, but
 are not used: the scalar loop measured as fast.
 
 **Against FFTW, numpy and scipy**, on three GCC Compile Farm hosts, with the
-code of v0.23.0 on each (BENCHMARKS.md, "Current numbers": Zen 3 Round 32,
+code of v0.23.0 on each (BENCHMARKS.md, "Current numbers": Zen 3 Round 34,
 Neoverse-N1 Round 33, Cascade Lake Round 31, all 2026-10-09; v0.22.x changed
 only Intel paths, v0.23.0 only AMD paths, arm64 is unchanged since v0.21.0).
 Every row on one pinned core. FFTW's own times move by up to 22% between runs on
@@ -307,33 +307,33 @@ time (below 1 means go-fft is faster):
 
 | transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64, NEON) | Xeon Cascade Lake (AVX-512) |
 |:--|--:|--:|--:|
-| complex 256 | 1.09 | **0.88** | 1.27 |
-| complex 1,024 | 1.13 | **0.77** | 1.18 |
-| complex 4,096 | 1.50 ¹ | **0.58** | **0.94** |
-| complex 65,536 | **0.91** | **0.58** | 1.16 |
-| complex 1,048,576 | **0.55** | **0.45** | **0.79** |
-| complex 1,000 (2³·5³) | 1.06 | **0.85** | 1.11 |
-| complex 1,296 (2⁴·3⁴) | 1.054 | **0.76** | 1.20 |
-| complex 1,009 (prime, Rader) | **0.66** | **0.45** | **0.61** |
-| complex 10,007 (prime, Bluestein) | **1.02** | **0.68** | **0.92** |
-| RFFT 256 | 1.07 | **1.046** | 1.08 |
-| RFFT 4,096 | 1.12 | **0.74** | 1.051 |
-| RFFT 1,048,576 | **0.78** | **0.53** | 1.13 |
-| 2-D 128×128 | **0.92** | **0.66** | 1.06 |
-| 2-D 1024×1024 | **0.89** | **0.41** | **0.75** |
+| complex 256 | 1.13 | **0.88** | 1.27 |
+| complex 1,024 | 1.14 | **0.77** | 1.18 |
+| complex 4,096 | **0.91** | **0.58** | **0.94** |
+| complex 65,536 | **0.83** | **0.58** | 1.16 |
+| complex 1,048,576 | **0.49** | **0.45** | **0.79** |
+| complex 1,000 (2³·5³) | 1.11 | **0.85** | 1.11 |
+| complex 1,296 (2⁴·3⁴) | **1.02** | **0.76** | 1.20 |
+| complex 1,009 (prime, Rader) | **0.63** | **0.45** | **0.61** |
+| complex 10,007 (prime, Bluestein) | 1.07 | **0.68** | **0.92** |
+| RFFT 256 | 1.06 | **1.046** | 1.08 |
+| RFFT 4,096 | 1.09 | **0.74** | 1.051 |
+| RFFT 1,048,576 | **0.84** | **0.53** | 1.13 |
+| 2-D 128×128 | **0.89** | **0.66** | 1.06 |
+| 2-D 1024×1024 | **0.95** | **0.41** | **0.75** |
 
 Bold: at or above FFTW, which here includes rows up to 1.05, slower than FFTW
-by at most 5%. ¹ Host load in one of the two runs; the other run alone gives
-1.03 (BENCHMARKS.md).
+by at most 5%.
 - **At or above FFTW** on 24 of the 24 rows of the full sweep on Neoverse-N1
-  (faster on 22), 12 on Zen 3 (faster on 9) and 11 on Cascade Lake (faster on
+  (faster on 22), 15 on Zen 3 (faster on 11) and 11 on Cascade Lake (faster on
   10). The rows counted but still slower than FFTW: RFFT 256 (1.046) and RFFT
-  1,080 (1.04) on Neoverse-N1; complex 10,007, RFFT 1,000 and 2-D 256²
-  (1.01–1.02) on Zen 3; 2-D 64² (1.045) on Cascade Lake.
+  1,080 (1.04) on Neoverse-N1; complex 1,296 and RFFT
+  1,000, 1,024, 1,080 (1.01–1.04) on Zen 3; 2-D 64² (1.045) on Cascade Lake.
 - **At or above numpy.fft and scipy.fft** on all 24 rows, in both runs, on
   every host.
-- **Where FFTW still leads:** small sizes on amd64 (complex 256: 1.09× on Zen 3,
-  1.27× on Cascade Lake; RFFT 256: 1.07×, 1.08×), and on Cascade Lake complex
+- **Where FFTW still leads:** small sizes on amd64 (complex 256: 1.13× on Zen 3,
+  1.27× on Cascade Lake; RFFT 256: 1.06×, 1.08×), the composites on Zen 3
+  (1.07–1.15×), and on Cascade Lake complex
   1,024 and 65,536 (1.18×, 1.16×), the composites (1.11–1.26×; complex 1,296
   1.20×) and the large real transforms (1.13–1.14×).
 - **Haswell** (no FFTW on the host): v0.21.0 runs complex 512–2^18 1.03–1.21×
