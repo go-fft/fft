@@ -3267,6 +3267,12 @@ time). go-fft's time (mean of its two runs) ÷ the median of FFTW's four:
 | complex 1,000 / 1,080 / 1,296 | 1.05 / 1.09 / 1.02 | 1.04 / 1.08 / 1.04 |
 | 2-D 64×64 / 128×128 | 0.68 / 0.76 | 0.72 / 0.78 |
 
+*Correction (2026-10-10):* the 2-D row above divides go-fft by REPORT.md's
+FFT2 convenience column, not by FFTW (the round's `znparity` read columns 2 and
+3). Against FFTW, the same branch runs give 2-D 64² about 1.13 and 128² about
+0.92; the clean v0.23.0 runs of Round 34 give 1.056 and 0.889 (Current
+numbers). The other rows of this table are against FFTW.
+
 FFTW's medians: complex 256 280 ns (278–281), RFFT 256 228 (221–232).
 go-fft's complex 256 went 365–375 → 304–316 ns, RFFT 256 284–306 → 233–263.
 Untouched rows moved with the host: the first branch run read complex 4096
