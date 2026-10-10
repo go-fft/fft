@@ -74,7 +74,11 @@ func readGo(p string) map[string]float64 {
 			continue
 		}
 		name := strings.TrimPrefix(fs[0], "Benchmark")
-		name = name[:strings.LastIndex(name, "-")]
+		// "-N" is the GOMAXPROCS suffix: present with -test.cpu, absent when
+		// GOMAXPROCS is 1 by affinity (taskset) alone.
+		if i := strings.LastIndex(name, "-"); i > strings.LastIndex(name, "/") {
+			name = name[:i]
+		}
 		name = strings.Replace(name, "_GoFFT", "", 1)
 		v, _ := strconv.ParseFloat(fs[2], 64)
 		runs[name] = append(runs[name], v)
@@ -199,7 +203,11 @@ func readGo2(p, fam string) map[string]float64 {
 			continue
 		}
 		name := strings.TrimPrefix(fs[0], "Benchmark")
-		name = name[:strings.LastIndex(name, "-")]
+		// "-N" is the GOMAXPROCS suffix: present with -test.cpu, absent when
+		// GOMAXPROCS is 1 by affinity (taskset) alone.
+		if i := strings.LastIndex(name, "-"); i > strings.LastIndex(name, "/") {
+			name = name[:i]
+		}
 		name = strings.Replace(name, fam, "/", 1)
 		v, _ := strconv.ParseFloat(fs[2], 64)
 		runs[name] = append(runs[name], v)
