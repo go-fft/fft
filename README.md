@@ -332,8 +332,8 @@ by at most 5%.
 - **At or above numpy.fft and scipy.fft** on all 24 rows, in both runs, on
   every host.
 - **Where FFTW still leads:** small sizes on amd64 (complex 256: 1.13× on Zen 3,
-  1.27× on Cascade Lake; RFFT 256: 1.06×, 1.08×), the composites on Zen 3
-  (1.07–1.15×), and on Cascade Lake complex
+  1.27× on Cascade Lake; RFFT 256: 1.06×, 1.08×), complex 1,000 and 1,080 on
+  Zen 3 (1.11×, 1.15×), and on Cascade Lake complex
   1,024 and 65,536 (1.18×, 1.16×), the composites (1.11–1.26×; complex 1,296
   1.20×) and the large real transforms (1.13–1.14×).
 - **Haswell** (no FFTW on the host): v0.21.0 runs complex 512–2^18 1.03–1.21×
