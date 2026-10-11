@@ -1,0 +1,24 @@
+# start 08:42:01 load 0.47 0.41 0.22 sha 56b656be9e819415 : ./l4.test -test.run TestCsOrders -cs.ab=11,300 -r26.sets=65536:rule,8x8x4x4x8x8,8x8x8x4x4x8,4x8x8x4x8x8;131072:rule,8x8x8x4x8x8,8x8x8x8x8x4;262144:rule,8x8x8x8x4x4x4,4x8x8x4x4x8x8;524288:rule,8x4x8x8x4x8x8,8x4x8x8x8x8x4,4x8x8x8x8x8x4,8x8x8x8x8x4x4;1048576:rule,8x8x8x4x8x8x8,8x8x8x8x8x4x8,8x8x8x8x8x8x4 -test.v -test.timeout 2h
+=== RUN   TestCsOrders
+ORD 65536 4x4x8x8x8x8            t=3 b=16 pair=true split=000000 7.06 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 65536 8x8x4x4x8x8            t=2 b=8 pair=true split=000000 6.52 ns/pt  first/this 1.083 [1.068 1.118]
+ORD 65536 8x8x8x4x4x8            t=2 b=8 pair=true split=000000 6.62 ns/pt  first/this 1.067 [1.050 1.110]
+ORD 65536 4x8x8x4x8x8            t=2 b=4 pair=true split=000000 6.71 ns/pt  first/this 1.052 [1.037 1.078]
+ORD 131072 4x8x8x8x8x8            t=3 b=16 pair=true split=000000 7.28 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 131072 8x8x8x4x8x8            t=2 b=4 pair=true split=000000 7.23 ns/pt  first/this 1.007 [0.663 1.021]
+ORD 131072 8x8x8x8x8x4            t=2 b=4 pair=true split=000000 7.42 ns/pt  first/this 0.981 [0.730 1.002]
+ORD 262144 8x8x8x8x8x8            t=3 b=16 pair=true split=000000 8.60 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 262144 8x8x8x8x4x4x4          t=3 b=16 pair=true split=0000000 9.74 ns/pt  first/this 0.883 [0.822 0.942]
+ORD 262144 4x8x8x4x4x8x8          t=3 b=8 pair=true split=0000000 8.92 ns/pt  first/this 0.964 [0.904 1.048]
+ORD 524288 4x4x8x8x8x8x8          t=4 b=16 pair=true split=0000000 14.03 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 524288 8x4x8x8x4x8x8          t=3 b=4 pair=true split=0000000 13.02 ns/pt  first/this 1.077 [1.014 1.124]
+ORD 524288 8x4x8x8x8x8x4          t=3 b=4 pair=true split=0000000 13.69 ns/pt  first/this 1.025 [0.933 1.117]
+ORD 524288 4x8x8x8x8x8x4          t=3 b=4 pair=true split=0000000 13.56 ns/pt  first/this 1.035 [0.962 1.096]
+ORD 524288 8x8x8x8x8x4x4          t=3 b=8 pair=true split=0000000 13.92 ns/pt  first/this 1.008 [0.967 1.084]
+ORD 1048576 4x8x8x8x8x8x8          t=4 b=16 pair=true split=0000000 19.08 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 1048576 8x8x8x4x8x8x8          t=3 b=4 pair=true split=0000000 17.02 ns/pt  first/this 1.121 [1.063 1.160]
+ORD 1048576 8x8x8x8x8x4x8          t=3 b=4 pair=true split=0000000 16.87 ns/pt  first/this 1.131 [1.082 1.178]
+ORD 1048576 8x8x8x8x8x8x4          t=3 b=4 pair=true split=0000000 17.15 ns/pt  first/this 1.113 [1.071 1.160]
+--- PASS: TestCsOrders (98.77s)
+PASS
+# end 08:43:39 load 0.96 0.60 0.31

@@ -63,12 +63,15 @@ func TestRadix16TableAMD64(t *testing.T) {
 }
 
 // TestIntelSplitTableAMD64: the 512-bit split layout takes its own table,
-// whatever the 256-bit setting, and only 1024 and 8192 change.
+// whatever the 256-bit setting: 1024 and 8192 change, and the three lengths
+// of csCascadeOrders (Round 35).
 func TestIntelSplitTableAMD64(t *testing.T) {
 	for _, on := range []bool{false, true} {
 		for _, intel := range []bool{false, true} {
 			tab := intelSplitTableAMD64(on, true, intel)
-			if len(tab) != 2 || !slices.Equal(tab[1024], []int{8, 4, 4, 8}) || !slices.Equal(tab[8192], []int{8, 8, 4, 4, 8}) {
+			if len(tab) != 5 || !slices.Equal(tab[1024], []int{8, 4, 4, 8}) || !slices.Equal(tab[8192], []int{8, 8, 4, 4, 8}) ||
+				!slices.Equal(tab[1<<16], []int{8, 8, 4, 4, 8, 8}) || !slices.Equal(tab[1<<19], []int{8, 4, 8, 8, 4, 8, 8}) ||
+				!slices.Equal(tab[1<<20], []int{8, 8, 8, 8, 8, 4, 8}) {
 				t.Errorf("512 on, 256 %v, intel %v: %v", on, intel, tab)
 			}
 		}
@@ -111,7 +114,7 @@ func TestIntelStripOrderAMD64(t *testing.T) {
 	}
 	for _, hsw := range []bool{false, true} {
 		m := intelStripOrderAMD64(true, hsw)
-		if len(m) != len(intelSplitTable512()) || !m[1024] || !m[8192] {
+		if len(m) != len(intelSplitTable512()) || !m[1024] || !m[8192] || !m[1<<16] || !m[1<<20] {
 			t.Errorf("strip orders %v", m)
 		}
 	}

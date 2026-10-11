@@ -1,0 +1,9 @@
+# start 08:53:05 load 0.68 0.65 0.44 sha 4e84f69dcecf630f : ./l8.test -test.run TestCsCascadeE2E -cs.ab=31,200 -cs.e2e=C524288,R1048576,I1048576,C262144 -test.v -test.timeout 2h
+=== RUN   TestCsCascadeE2E
+E2E C524288   main 4x4x8x8x8x8x8       7382493 ns  branch 8x4x8x8x4x8x8       7308491 ns  main/branch 1.010 [0.963 1.101] per-round median 1.020
+E2E R1048576  main 4x4x8x8x8x8x8       8571927 ns  branch 8x4x8x8x4x8x8       8043490 ns  main/branch 1.066 [0.960 1.193] per-round median 1.067
+E2E I1048576  main 4x4x8x8x8x8x8      10117821 ns  branch 8x4x8x8x4x8x8       9803959 ns  main/branch 1.032 [0.953 1.139] per-round median 1.039
+E2E C262144   main 8x8x8x8x8x8         2154128 ns  branch 8x8x8x8x8x8         2159018 ns  main/branch 0.998 [0.953 1.042] per-round median 0.998
+--- PASS: TestCsCascadeE2E (69.22s)
+PASS
+# end 08:54:14 load 0.90 0.73 0.49

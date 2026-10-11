@@ -311,10 +311,41 @@ func hswSplitTable() map[int][]int {
 // candidate within 1% (8·4·8, 8·8·4·8, 8·8·4·8·8), so they keep theirs, as do
 // 512, 4096 and 32768, where theirs was the best. Radix 16 lost at every size once the
 // layout ran (intelRadix16Table512).
+//
+// It also holds csCascadeOrders: three lengths that run the blocked schedule
+// (cascade.go), not the split layout.
 func intelSplitTable512() map[int][]int {
-	return map[int][]int{
+	t := map[int][]int{
 		1024: {8, 4, 4, 8},
 		8192: {8, 8, 4, 4, 8},
+	}
+	for n, f := range csCascadeOrders() {
+		t[n] = f
+	}
+	return t
+}
+
+// csCascadeOrders gives the powers of two whose factorization changes where
+// the blocked schedule runs (cascadeMinAMD64: AVX-512 on Intel; Round 35,
+// Cascade Lake). The rule there was skFactorizeOrder's, radix 4 first
+// (65536: 4·4·8·8·8·8), so the passes over the whole array before the groups
+// were three in two sweeps: the fused pair, then one more pass. Taken apart
+// at 65536 (nine rotated rounds), those sweeps cost 4.0 ns per point of the
+// 7.0 the transform took; the groups 1.9 and the final runs 1.1. With radix-8
+// passes first, fewer passes run over the whole array: at 65536 the pair alone
+// (t = 2), at 2^19 and 2^20 the pair and one pass (t = 3, against 4).
+// Every ordering of radix-4 and -8 passes was timed at 2^16 … 2^20 (three
+// rounds), then the best few against the rule (eleven rounds, rule time ÷
+// this one, per-round range): 65536 → 8·8·4·4·8·8 1.083 (1.068–1.118);
+// 2^19 → 8·4·8·8·4·8·8 1.077 (1.014–1.124); 2^20 → 8·8·8·8·8·4·8 1.131
+// (1.082–1.178). 2^17 and 2^18 had nothing better (0.98–1.01), and 32768,
+// which runs breadth first, gained nothing from the schedule with any order
+// (0.89–1.00). Beyond 2^20, not timed.
+func csCascadeOrders() map[int][]int {
+	return map[int][]int{
+		1 << 16: {8, 8, 4, 4, 8, 8},
+		1 << 19: {8, 4, 8, 8, 4, 8, 8},
+		1 << 20: {8, 8, 8, 8, 8, 4, 8},
 	}
 }
 
