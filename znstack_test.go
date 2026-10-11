@@ -31,6 +31,7 @@ func znSetMax(two, three int) func() {
 // accepts it; where the kernels refuse (no kernel for a radix, another
 // architecture), or where they turn out not to run, transform uses the pool.
 func TestZnFrameMatchesPool(t *testing.T) {
+	defer znAVX2Route()()
 	defer znSetMax(0, 0)()
 	rng := rand.New(rand.NewPCG(32, 2))
 	same := func(a, b []complex128) bool {
