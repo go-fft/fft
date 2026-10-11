@@ -1,9 +1,10 @@
 package kernels
 
 // CMul computes the elementwise complex product a[i] *= b[i] over the first
-// min(len(a), len(b)) elements, in place in a. It is the function the FFT core
-// (Bluestein's pointwise spectral product) calls, and the stable seam behind
-// which a SIMD kernel may be selected.
+// min(len(a), len(b)) elements, in place in a. Bluestein's pointwise spectral
+// product called it until Round 36, which moved Bluestein's three products to
+// CMulTo (cmulto.go) and its four-point AVX2 kernel on amd64; it remains the
+// stable seam behind which these per-architecture SIMD kernels are validated.
 //
 // Today CMul routes to the portable scalar oracle CMulScalar. Each supported
 // architecture also ships a generated SIMD kernel (cmulSIMD, from

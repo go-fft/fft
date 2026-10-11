@@ -83,19 +83,17 @@ func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
 	defer p.scratch.Put(bp)
 	a := *bp
-	for j := 0; j < n; j++ {
-		a[j] = src[j] * w[j]
-	}
+	// The three pointwise products run on kernels.CMulTo: on Zen 3 the Go
+	// loops took 24% of a 10007-point transform (Round 36).
+	kernels.CMulTo(a[:n], src, w)
 	clear(a[n:]) // the pooled buffer is dirty; the pad must be zero
 
 	// Convolution, in place: a = IFFT(FFT(a) · bSpec); bSpec carries the 1/m.
 	plan := cachedPlan(p.m)
 	plan.execute(a, a, false)
-	kernels.CMul(a, bSpec)
+	kernels.CMulTo(a, a, bSpec)
 	plan.execute(a, a, true)
 
 	// dst[k] = w[k]·conv[k].
-	for k := 0; k < n; k++ {
-		dst[k] = a[k] * w[k]
-	}
+	kernels.CMulTo(dst[:n], a, w)
 }

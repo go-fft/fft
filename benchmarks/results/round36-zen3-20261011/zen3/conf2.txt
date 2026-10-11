@@ -1,0 +1,27 @@
+ 09:18:50 up 29 days, 17:43, 10 users,  load average: 1.62, 1.74, 1.59
+AB 1000 5x10x20                2273.5 ns  first/this 1.000  spread 1.000
+AB 1000 5x5x5x8                2099.6 ns  first/this 1.073  spread 1.500
+AB 1000 5x5x4x10               2396.2 ns  first/this 0.951  spread 1.618
+AB 1080 3x3x10x12              2595.7 ns  first/this 1.000  spread 1.000
+AB 1080 3x3x3x5x8              2451.7 ns  first/this 1.057  spread 1.264
+AB 1080 3x3x5x3x8              2450.9 ns  first/this 1.064  spread 1.303
+AB 1080 5x3x3x3x8              2423.1 ns  first/this 1.079  spread 1.402
+AB 500 5x5x20                  892.5 ns  first/this 1.000  spread 1.000
+AB 500 5x5x5x4                 932.3 ns  first/this 0.955  spread 1.052
+AB 540 3x15x12                1240.1 ns  first/this 1.000  spread 1.000
+AB 540 3x3x5x12               1082.0 ns  first/this 1.130  spread 1.255
+AB 540 3x3x3x20               1091.5 ns  first/this 1.132  spread 1.202
+AB 540 3x3x5x3x4              1113.4 ns  first/this 1.126  spread 1.279
+AB 960 4x12x20                1966.1 ns  first/this 1.000  spread 1.000
+AB 960 5x3x8x8                1862.3 ns  first/this 1.039  spread 2.773
+AB 960 5x3x4x16               1894.8 ns  first/this 1.019  spread 2.578
+AB 1296 3x3x12x12              3086.8 ns  first/this 1.000  spread 1.000
+AB 1296 3x3x3x4x12             2927.1 ns  first/this 1.055  spread 1.300
+AB 1296 3x3x3x3x16             3012.0 ns  first/this 1.008  spread 1.441
+AB 1920 8x12x20                4102.3 ns  first/this 1.000  spread 1.000
+AB 1920 3x5x8x16               4079.7 ns  first/this 0.993  spread 1.339
+AB 2000 5x20x20                4691.3 ns  first/this 1.000  spread 1.000
+AB 2000 5x5x4x20               4401.7 ns  first/this 1.053  spread 1.444
+AB 2000 5x5x5x16               4459.6 ns  first/this 1.043  spread 1.389
+PASS
+ 09:19:21 up 29 days, 17:44, 10 users,  load average: 1.83, 1.78, 1.61

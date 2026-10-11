@@ -1,0 +1,32 @@
+ 10:54:42 up 29 days, 19:19, 10 users,  load average: 1.27, 1.21, 1.25
+ZMAB blue:10007  old     198689 new     168422  old/new 1.193  range 1.087–1.370
+ZMAB blue:4099   old      79979 new      63924  old/new 1.233  range 1.094–2.539
+ZMAB blue:30011  old     749355 new     655464  old/new 1.141  range 1.005–1.268
+ZMAB 2d:64       old      11441 new       9583  old/new 1.184  range 1.142–1.309
+ZMAB 2d:128      old      51999 new      50041  old/new 1.069  range 0.973–1.120
+ZMAB 2d:256      old     278341 new     266544  old/new 1.040  range 0.959–1.111
+ZMAB 2d:32       old       2867 new       2261  old/new 1.265  range 1.200–1.380
+ZMAB c:1024      old       1763 new       1780  old/new 0.984  range 0.919–1.023
+ZMAB c:1000      old       2087 new       2051  old/new 1.005  range 0.847–1.082
+ZMAB r:4096      old       5718 new       5780  old/new 1.003  range 0.917–1.086
+ZMAB c:64        old         78 new         78  old/new 0.998  range 0.872–1.007
+PASS
+AB 6144 3x4x8x8x8             17954.1 ns  first/this 1.000  spread 1.000
+AB 6144 3x4x4x4x8x4           16170.2 ns  first/this 1.103  spread 1.201
+AB 10240 5x4x8x8x8             33954.4 ns  first/this 1.000  spread 1.000
+AB 10240 5x4x4x4x8x4           29459.7 ns  first/this 1.101  spread 1.369
+AB 12288 3x8x8x8x8             42329.1 ns  first/this 1.000  spread 1.000
+AB 12288 3x4x4x4x4x4x4         39998.7 ns  first/this 1.045  spread 2.049
+AB 20480 5x8x8x8x8             78083.3 ns  first/this 1.000  spread 1.000
+AB 20480 5x4x4x4x4x4x4         72602.3 ns  first/this 1.071  spread 1.225
+AB 1000 5x10x20                2147.5 ns  first/this 1.000  spread 1.000
+AB 1000 5x5x5x8                1988.0 ns  first/this 1.075  spread 1.074
+AB 1296 3x3x12x12              2892.7 ns  first/this 1.000  spread 1.000
+AB 1296 3x3x3x4x12             2801.3 ns  first/this 1.032  spread 1.604
+AB 2000 5x20x20                4641.1 ns  first/this 1.000  spread 1.000
+AB 2000 5x5x4x20               4388.5 ns  first/this 1.051  spread 1.253
+AB 540 3x15x12                1219.5 ns  first/this 1.000  spread 1.000
+AB 540 3x3x5x12               1060.7 ns  first/this 1.142  spread 1.159
+PASS
+153
+ 10:56:07 up 29 days, 19:21, 10 users,  load average: 2.02, 1.47, 1.34

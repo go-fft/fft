@@ -340,6 +340,7 @@ func main() {
 	genSmallUntangleFile()
 	genZnTwoPassFile()
 	csGenRadix9File()
+	genZmCMulFile()
 }
 
 func writeFile(name, content string) {
@@ -1966,6 +1967,14 @@ func genF32StockhamFile() {
 const (
 	splitKH   = 0  // √2/2
 	splitKNeg = 32 // −0: the sign flip
+	// The radix-3 and radix-5 bodies' constants (Round 36), the Go passes'
+	// (stockham.go): 0.5, sin(2π/3), cos and sin of 2π/5 and 4π/5.
+	splitKHalf   = 64
+	splitKSin120 = 96
+	splitKC51    = 128
+	splitKC52    = 160
+	splitKS51    = 192
+	splitKS52    = 224
 )
 
 type splitEmit struct {
@@ -2083,7 +2092,106 @@ func (e splitEmit) body(first bool) {
 		e.twStore(0, 1, 3, t, first)
 	case 8:
 		e.body8(first)
+	case 3:
+		e.body3(first)
+	case 5:
+		e.body5(first)
 	}
+}
+
+// mulc multiplies register a by the constant row at off into dst: c·a,
+// the product the Go pass forms (a product's operands commute exactly).
+func (e splitEmit) mulc(dst, a, off int) {
+	e.raw("VMULPD %d(R14), %s, %s", off, y(a), y(dst))
+}
+
+// body3 is bfly3 (stockham.go's pass3) on split registers (Round 36): t1 =
+// x1 + x2, t2 = x1 − x2, y0 = x0 + t1, ca = x0 − 0.5·t1, cb =
+// rotS(sin(2π/3)·t2), y1 = ca + cb, y2 = ca − cb.
+func (e splitEmit) body3(first bool) {
+	e.load(1, 2, 3, 12, 13)
+	e.load(2, 4, 5, 12, 13)
+	e.add(6, 2, 4) // t1 = x1 + x2
+	e.sub(2, 2, 4) // t2 = x1 − x2
+	e.add(7, 3, 5)
+	e.sub(3, 3, 5) // t1 (6,7), t2 (2,3)
+	e.load(0, 0, 1, 12, 13)
+	e.add(8, 0, 6) // y0 = x0 + t1
+	e.add(9, 1, 7)
+	e.store(0, 8, 9, 12, 13)
+	e.mulc(10, 6, splitKHalf)
+	e.sub(10, 0, 10) // ca = x0 − 0.5·t1
+	e.mulc(11, 7, splitKHalf)
+	e.sub(11, 1, 11)
+	e.mulc(2, 2, splitKSin120)
+	e.mulc(3, 3, splitKSin120)         // sin(2π/3)·t2
+	e.rotAdd(4, 5, 6, 7, 10, 11, 2, 3) // y1, y2 = ca ± rotS(·)
+	t := [4]int{0, 1, 2, 3}
+	e.twStore(4, 5, 1, t, first)
+	e.twStore(6, 7, 2, t, first)
+}
+
+// body5 is pass5's butterfly (stockham.go) on split registers (Round 36):
+// t1, t2 = x1 ± x4, t3, t4 = x2 ± x3, y0 = (x0 + t1) + t3, r1 = x0 +
+// (c51·t1 + c52·t3), r2 = x0 + (c52·t1 + c51·t3), i1 = rotS(s51·t2 +
+// s52·t4), i2 = rotS(s52·t2 − s51·t4), y1, y4 = r1 ± i1, y2, y3 = r2 ± i2.
+func (e splitEmit) body5(first bool) {
+	e.load(1, 0, 1, 12, 13)
+	e.load(4, 2, 3, 12, 13)
+	e.add(4, 0, 2) // t1 = x1 + x4
+	e.sub(0, 0, 2) // t2 = x1 − x4
+	e.add(5, 1, 3)
+	e.sub(1, 1, 3) // t1 (4,5), t2 (0,1)
+	e.load(2, 2, 3, 12, 13)
+	e.load(3, 6, 7, 12, 13)
+	e.add(8, 2, 6) // t3 = x2 + x3
+	e.sub(2, 2, 6) // t4 = x2 − x3
+	e.add(9, 3, 7)
+	e.sub(3, 3, 7)          // t3 (8,9), t4 (2,3)
+	e.load(0, 6, 7, 10, 11) // a (6,7)
+	e.add(10, 6, 4)
+	e.add(10, 10, 8) // y0 = (a + t1) + t3
+	e.add(11, 7, 5)
+	e.add(11, 11, 9)
+	e.store(0, 10, 11, 12, 13)
+	// r1 (10,11) = a + (c51·t1 + c52·t3).
+	e.mulc(10, 4, splitKC51)
+	e.mulc(12, 8, splitKC52)
+	e.add(10, 10, 12)
+	e.add(10, 6, 10)
+	e.mulc(11, 5, splitKC51)
+	e.mulc(12, 9, splitKC52)
+	e.add(11, 11, 12)
+	e.add(11, 7, 11)
+	// r2 (12,13) = a + (c52·t1 + c51·t3).
+	e.mulc(12, 4, splitKC52)
+	e.mulc(14, 8, splitKC51)
+	e.add(12, 12, 14)
+	e.add(12, 6, 12)
+	e.mulc(13, 5, splitKC52)
+	e.mulc(14, 9, splitKC51)
+	e.add(13, 13, 14)
+	e.add(13, 7, 13)
+	// z1 (4,5) = s51·t2 + s52·t4, z2 (6,7) = s52·t2 − s51·t4.
+	e.mulc(4, 0, splitKS51)
+	e.mulc(8, 2, splitKS52)
+	e.add(4, 4, 8)
+	e.mulc(5, 1, splitKS51)
+	e.mulc(9, 3, splitKS52)
+	e.add(5, 5, 9)
+	e.mulc(6, 0, splitKS52)
+	e.mulc(8, 2, splitKS51)
+	e.sub(6, 6, 8)
+	e.mulc(7, 1, splitKS52)
+	e.mulc(9, 3, splitKS51)
+	e.sub(7, 7, 9)
+	e.rotAdd(0, 1, 2, 3, 10, 11, 4, 5)   // y1 (0,1), y4 (2,3) = r1 ± rotS(z1)
+	e.rotAdd(8, 9, 14, 15, 12, 13, 6, 7) // y2 (8,9), y3 (14,15) = r2 ± rotS(z2)
+	t := [4]int{4, 5, 6, 7}
+	e.twStore(0, 1, 1, t, first)
+	e.twStore(8, 9, 2, t, first)
+	e.twStore(14, 15, 3, t, first)
+	e.twStore(2, 3, 4, t, first)
 }
 
 // The radix-8 body spills a1 and a3 (the odd half's sums) to its frame
@@ -2271,6 +2379,14 @@ func genStockhamSplit(f *emit.File, r int, inS, outS, inverse bool) {
 func genSplitFile() {
 	f := emit.NewFile("amd64")
 	for _, r := range []int{4, 8} {
+		for _, inverse := range []bool{false, true} {
+			for _, io := range [][2]bool{{false, true}, {true, true}, {true, false}, {false, false}} {
+				genStockhamSplit(f, r, io[0], io[1], inverse)
+			}
+		}
+	}
+	// Radix 3 and 5 (Round 36), after the others so their code is unmoved.
+	for _, r := range []int{3, 5} {
 		for _, inverse := range []bool{false, true} {
 			for _, io := range [][2]bool{{false, true}, {true, true}, {true, false}, {false, false}} {
 				genStockhamSplit(f, r, io[0], io[1], inverse)
@@ -3802,7 +3918,7 @@ func genZnKernelAddrs(f *emit.File) {
 		put(fmt.Sprintf("%sLast%dAVX2", pre, r), 21+r)
 	}
 	for d, dir := range []string{"Fwd", "Inv"} {
-		for _, r := range []int{4, 8} {
+		for _, r := range []int{4, 8, 3, 5} {
 			for m := 1; m <= 4; m++ {
 				put(fmt.Sprintf("skSplit%d%s%s", r, znSplitModes[m], dir), 42+(9*d+r)*5+m)
 			}
@@ -4106,4 +4222,60 @@ func slicesIndex(names []string, s string) int {
 		}
 	}
 	panic(s)
+}
+
+// genZmCMulFile writes zmcmul_amd64.s (Round 36): zmCMulAVX2(dst, a, b
+// *complex128, quads int) writes dst[i] = a[i]·b[i] for i < 4·quads, four
+// points (two YMM registers) per iteration. Bluestein's chirp products and
+// its spectral product run on it (kernels.CMulTo).
+//
+// Per register a = [ar0 ai0 ar1 ai1], b = [br0 bi0 br1 bi1]:
+//
+//	t = a·[br0 br0 br1 br1]          (VMOVDDUP)    = [ar·br, ai·br]
+//	u = [ai0 ar0 ai1 ar1]·[bi0 bi0 bi1 bi1] (VPERMILPD $5, $15) = [ai·bi, ar·bi]
+//	VADDSUBPD u, t                   = [ar·br − ai·bi, ai·br + ar·bi]
+//
+// the products and the sum or difference Go's complex multiply computes
+// (real ar·br − ai·bi, imaginary ar·bi + ai·br), each separately rounded (no
+// FMA), so the result is the GOAMD64=v1 scalar loop's, bit for bit; an
+// addition's operands commute exactly. dst may be a (in place) but must not
+// otherwise overlap a or b.
+func genZmCMulFile() {
+	f := emit.NewFile("amd64")
+	names := []string{"dst", "a", "b", "quads"}
+	b := amd64.NewFunc("zmCMulAVX2", amd64.Layout(names, []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil), 0)
+	b.LoadArg("dst", "DI").LoadArg("a", "SI").LoadArg("b", "DX").LoadArg("quads", "CX")
+	b.Raw("TESTQ CX, CX").
+		Raw("JZ done").
+		Raw("loop:")
+	for _, s := range []string{
+		"VMOVUPD (SI), Y0",
+		"VMOVUPD 32(SI), Y1",
+		"VMOVDDUP (DX), Y4",
+		"VMOVDDUP 32(DX), Y5",
+		"VPERMILPD $15, (DX), Y2",
+		"VPERMILPD $15, 32(DX), Y3",
+		"VMULPD Y4, Y0, Y4",
+		"VMULPD Y5, Y1, Y5",
+		"VPERMILPD $5, Y0, Y0",
+		"VPERMILPD $5, Y1, Y1",
+		"VMULPD Y2, Y0, Y0",
+		"VMULPD Y3, Y1, Y1",
+		"VADDSUBPD Y0, Y4, Y4",
+		"VADDSUBPD Y1, Y5, Y5",
+		"VMOVUPD Y4, (DI)",
+		"VMOVUPD Y5, 32(DI)",
+		"ADDQ $64, SI",
+		"ADDQ $64, DX",
+		"ADDQ $64, DI",
+		"DECQ CX",
+		"JNZ loop",
+	} {
+		b.Raw("%s", s)
+	}
+	b.Raw("VZEROUPPER").
+		Raw("done:").
+		Ret()
+	f.Add(b.Func())
+	writeFile("zmcmul_amd64.s", f.String())
 }

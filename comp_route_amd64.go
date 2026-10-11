@@ -32,10 +32,11 @@ var comp2On = kernels.UseStockhamAVX2 && !kernels.IntelCPU
 // machine.
 var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU
 
-// compFactorize is skFactorize past radix16Table: on Haswell, hswE11Factors; on AMD comp2Factors, on
-// Intel hswComp2Factors; where those give none, on Intel a composite's
-// radix-12 passes, else its radix-16 tail; else skFactorizeOrder's
-// factorization.
+// compFactorize is skFactorize past radix16Table: on Haswell, hswE11Factors;
+// on AMD zmCompTable, else zmPow2Tail, else comp2Factors, on Intel
+// hswComp2Factors; where those give none, on Intel a composite's radix-12
+// passes, else its radix-16 tail; else skFactorizeOrder's factorization;
+// on Cascade Lake its leading radix-3 passes then merge into radix 9.
 func compFactorize(n int) []int { return csRadix9For(csCompFactorize(n), csRadix9On) }
 
 // csCompFactorize is compFactorize before csRadix9For.
@@ -44,6 +45,12 @@ func csCompFactorize(n int) []int {
 		return f
 	}
 	if f := hswComp2Factors(n, hswCompOn); f != nil {
+		return f
+	}
+	if f := zmCompTable[n]; comp2On && f != nil {
+		return slices.Clone(f)
+	}
+	if f := zmPow2Tail(n, comp2On); f != nil {
 		return f
 	}
 	if f := comp2Factors(n, comp2On); f != nil {
@@ -327,3 +334,126 @@ func csRadix9For(f []int, on bool) []int {
 	}
 	return append(g, f[c:]...)
 }
+
+// zmPow2Tail gives the factorization of n = 2^e·3^a·5^b (a+b >= 1) with e =
+// 11 or 12 and n <= 32768, or nil (or when on is false): the 3s and 5s
+// first, in skFactorizeOrder's order, then 2^e as radix-4 passes with, for e
+// = 11, one radix-8 pass before the final radix-4 one: 4·4·4·8·4 (e = 11),
+// 4·4·4·4·4·4 (e = 12). comp2Factors leaves e >= 11 alone, and
+// skFactorizeOrder ends such a length with radix8Maximal (6144 = 3·4·8·8·8).
+// A final radix-8 pass writes eight streams n/8 points apart, 2^(e+1)·odd
+// bytes, a multiple of 4 KB from e = 11 on, so all eight fall in one L1 set:
+// at 6144 points on Zen 3 it took 4.6 µs of 18.8, the final radix-4 pass
+// that replaces it 2.0 (Round 36, TestR26Passes). Every ordered tail of
+// radices 4, 8 and 16 was timed after the odd passes of 6144, 10240, 12288,
+// 18432, 20480 and 30720 (TestZmTails, nine rotated rounds); this one was
+// the best or within 1.5% of it at 6144, 10240, 12288 and 18432. Against
+// the factorization it replaces (TestR26AB, fifteen rotated rounds) it ran
+// 1.09× as fast at 6144, 1.07× at 10240, 1.04× at 18432, 1.02× at 30720,
+// 1.08× at 12288 and 1.06× at 20480 (Bluestein's convolution for 10007).
+// From 36864 points and at e >= 13 no tail gained consistently
+// (TestZmPow2Rule), so those keep their factorization; Intel was not
+// measured.
+func zmPow2Tail(n int, on bool) []int {
+	if !on || n > 1<<15 {
+		return nil
+	}
+	e, odd := 0, n
+	for odd%2 == 0 {
+		odd /= 2
+		e++
+	}
+	if e < 11 || e > 12 || odd == 1 {
+		return nil
+	}
+	var f []int
+	for _, q := range []int{3, 5} {
+		for odd%q == 0 {
+			f = append(f, q)
+			odd /= q
+		}
+	}
+	if odd != 1 {
+		return nil
+	}
+	f = append(f, 4, 4, 4)
+	if e == 11 {
+		return append(f, 8, 4)
+	}
+	return append(f, 4, 4, 4)
+}
+
+// zmCompTable gives, on AMD (comp2On), the factorization of the composites
+// 2^e·3^a·5^b up to 16384 points for which one with radix-3 and radix-5
+// passes in the split layout (kernels.ZmSplitOdd, Round 36) beat
+// comp2Factors' three times on Zen 3: in a sweep of every such length over
+// comp2Candidates and the orders of its 3s and 5s followed by a
+// power-of-two tail (TestZmSweep, five rotated rounds, 145 lengths, 62 of
+// them gaining 4% or more), in a fifteen-round A/B of the two best against
+// it (TestR26AB) that kept 52 at 3% or more, and in a second, independent
+// fifteen-round A/B of the one kept against it, where these 46 ran 1.02×
+// to 1.62× as fast (median 1.07×; 200, 240, 1080, 2160 and 4800 fell back
+// below 1.02 and keep comp2Factors, and 80, 1.06× there, read 0.935 in the
+// A/B of every composite against v0.23.1, TestZmCompAll, and was dropped
+// too). The data reach the passes split and
+// leave them before the final one, a prime-factor pass of radix 12 or 20
+// where one remains: comp2Factors' non-final radix-10, -12, -15 and -20
+// passes have no split kernel. The rules tried over the sweep did not gain
+// on comp2Factors on average (with every prime-factor pass but the last
+// broken up: 1.002× as fast, geometric mean; the 3s, 5s and a power-of-two
+// tail alone: 0.986×), so the lengths are listed. The tiny ones (10, 12,
+// 20) gain most because two passes on the frame kernels beat one pass of
+// a prime-factor kernel there.
+var zmCompTable = map[int][]int{
+	10:    {5, 2},
+	12:    {3, 4},
+	20:    {5, 4},
+	30:    {2, 15},
+	40:    {2, 20},
+	120:   {5, 3, 8},
+	180:   {3, 3, 20},
+	400:   {5, 4, 20},
+	432:   {3, 3, 4, 12},
+	540:   {3, 3, 5, 12},
+	576:   {3, 4, 4, 12},
+	600:   {3, 5, 5, 8},
+	720:   {3, 3, 4, 20},
+	900:   {3, 5, 5, 12},
+	1000:  {5, 5, 5, 8},
+	1296:  {3, 3, 3, 4, 12},
+	1440:  {3, 3, 8, 20},
+	1600:  {5, 5, 4, 16},
+	1620:  {3, 3, 3, 5, 12},
+	1800:  {5, 3, 3, 5, 8},
+	2000:  {5, 5, 4, 20},
+	2304:  {3, 8, 8, 12},
+	2400:  {5, 5, 8, 12},
+	3000:  {5, 5, 5, 3, 8},
+	3200:  {5, 5, 8, 16},
+	3240:  {5, 3, 3, 3, 3, 8},
+	3840:  {5, 8, 8, 12},
+	4000:  {5, 5, 8, 20},
+	4320:  {3, 3, 5, 8, 12},
+	4500:  {3, 5, 5, 5, 12},
+	4860:  {3, 3, 3, 3, 3, 20},
+	5400:  {5, 3, 3, 5, 3, 8},
+	6400:  {5, 8, 8, 20},
+	6912:  {3, 3, 8, 8, 12},
+	8000:  {5, 5, 5, 8, 8},
+	8100:  {5, 3, 3, 5, 3, 3, 4},
+	9000:  {3, 5, 5, 3, 5, 8},
+	9720:  {3, 5, 3, 3, 3, 3, 8},
+	10000: {5, 5, 5, 4, 20},
+	11520: {3, 5, 8, 8, 12},
+	12000: {5, 5, 5, 8, 12},
+	12960: {3, 3, 3, 3, 8, 20},
+	14580: {3, 3, 3, 3, 3, 5, 12},
+	15000: {5, 5, 5, 5, 3, 8},
+	16000: {5, 5, 4, 8, 20},
+	16200: {3, 5, 5, 3, 3, 3, 8},
+}
+
+// zmFrameRowsDefault is zmFrameRows on amd64: on where the CPU is not
+// Intel's (Round 36 measured Zen 3; the frame kernels also run on AVX-512
+// Intel since Round 35, whose N-D rows were not measured on them).
+func zmFrameRowsDefault() bool { return !kernels.IntelCPU }

@@ -1,0 +1,88 @@
+ 08:31:51 up 29 days, 16:57, 10 users,  load average: 1.35, 1.20, 1.16
+FFTW c256 274.2
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t2fv_32_avx2")
+  (dft-direct-8-x32 "n2fv_8_avx"))
+FFTW c1024 1532.7
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t2fv_32_avx2")
+  (dft-direct-32-x32 "n2fv_32_avx"))
+FFTW c1000 2203.9
+(dft-ct-dit/10
+  (dftw-direct-10/72 "t2fv_10_avx2")
+  (dft-vrank>=1-x10/1
+    (dft-ct-dit/10
+      (dftw-direct-10/72 "t2fv_10_avx2")
+      (dft-direct-10-x10 "n1fv_10_avx2"))))
+FFTW c1080 2386.2
+(dft-ct-dit/15
+  (dftw-direct-15/56 "t1fv_15_avx2")
+  (dft-vrank>=1-x15/1
+    (dft-ct-dit/6
+      (dftw-direct-6/20 "t1fv_6_avx2")
+      (dft-direct-12-x6 "n1fv_12_avx2"))))
+FFTW c10007 539252.0
+(dft-bluestein-10007/20250
+  (dft-ct-dit/15
+    (dftw-direct-15/56 "t1fv_15_avx2")
+    (dft-buffered-1350-x15/15-0
+      (dft-vrank>=1-x15/1
+        (dft-ct-dit/15
+          (dftw-direct-15/56 "t1fv_15_avx2")
+          (dft-vrank>=1-x15/1
+            (dft-ct-dit/15
+              (dftw-direct-15/56 "t1fv_15_avx2")
+              (dft-direct-6-x15 "n2fv_6_avx2_128")))))
+      (dft-r2hc-1
+        (rdft-rank0-memcpy/40500))
+      (dft-nop))))
+FFTW c20480 77669.9
+(dft-ct-dit/8
+  (dftw-direct-8/12 "t3fv_8_avx2")
+  (dft-vrank>=1-x8/1
+    (dft-ct-dit/5
+      (dftw-direct-5/32 "t2fv_5_avx2")
+      (dft-vrank>=1-x5/1
+        (dft-ct-dit/64
+          (dftw-direct-64/504 "t2fv_64_avx2")
+          (dft-direct-8-x64 "n1fv_8_avx2"))))))
+FFTW c6144 16452.7
+(dft-ct-dit/6
+  (dftw-direct-6/20 "t1fv_6_avx2")
+  (dft-vrank>=1-x6/1
+    (dft-ct-dit/32
+      (dftw-direct-32/248 "t2fv_32_avx2")
+      (dft-direct-32-x32 "n1fv_32_avx"))))
+FFTW c10240 31493.8
+(dft-ct-dit/8
+  (dftw-direct-8/28 "t1fv_8_avx2")
+  (dft-vrank>=1-x8/1
+    (dft-ct-dit/20
+      (dftw-direct-20/152 "t2fv_20_avx2")
+      (dft-direct-64-x20 "n1fv_64_avx2"))))
+FFTW r4096 5431.8
+(rdft2-ct-dit/2
+  (hc2c-direct-2/4/1 "hc2cfdftv_2_avx2"
+    (rdft2-r2hc-direct-2 "r2cf_2")
+    (rdft2-r2hc01-direct-2 "r2cfII_2"))
+  (dft-ct-dit/32
+    (dftw-direct-32/124 "t1fv_32_avx2")
+    (dft-direct-64-x32 "n2fv_64_avx2")))
+FFTW r1920 2299.1
+(rdft2-ct-dit/6
+  (hc2c-direct-6/20/1 "hc2cfdftv_6_avx2"
+    (rdft2-r2hc-direct-6 "r2cf_6")
+    (rdft2-r2hc01-direct-6 "r2cfII_6"))
+  (dft-vrank>=1-x3/1
+    (dft-ct-dit/20
+      (dftw-direct-20/152 "t2fv_20_avx2")
+      (dft-direct-16-x20 "n1fv_16_avx2"))))
+FFTW d64 10589.9
+(dft-rank>=2/1
+  (dft-direct-64-x64 "n1fv_64_avx2")
+  (dft-buffered-64-x64/64-6
+    (dft-direct-64-x64 "n2fv_64_avx2")
+    (dft-r2hc-1
+      (rdft-rank0-iter-co/2-x64-x64))
+    (dft-nop)))
+ 08:32:02 up 29 days, 16:57, 10 users,  load average: 1.45, 1.23, 1.17

@@ -1,0 +1,17 @@
+ 08:42:24 up 29 days, 17:07, 11 users,  load average: 1.24, 1.31, 1.26
+--- FAIL: TestF32NDAgainstScipy (0.00s)
+    scipy32_test.go:52: open testdata/scipy_f32.json: no such file or directory
+FAIL
+ZMAB blue:10007  old     213202 new     188793  old/new 1.144  range 1.043–1.196
+ZMAB blue:4099   old      72918 new      61164  old/new 1.196  range 1.038–1.408
+ZMAB blue:30011  old     738238 new     648783  old/new 1.120  range 1.077–1.399
+ZMAB 2d:64       old      11489 new      10086  old/new 1.162  range 0.938–1.252
+ZMAB 2d:128      old      53909 new      50507  old/new 1.072  range 0.954–1.245
+ZMAB 2d:256      old     289934 new     269527  old/new 1.047  range 0.949–1.889
+ZMAB 2d:32       old       4508 new       3436  old/new 1.274  range 1.012–2.013
+ZMAB c:1024      old       1824 new       1830  old/new 1.000  range 0.929–1.120
+ZMAB c:1000      old       2372 new       2335  old/new 1.002  range 0.947–1.279
+ZMAB r:4096      old       5750 new       5748  old/new 0.998  range 0.960–1.147
+ZMAB c:64        old         77 new         77  old/new 1.000  range 0.979–1.052
+PASS
+ 08:42:37 up 29 days, 17:07, 11 users,  load average: 1.41, 1.34, 1.27

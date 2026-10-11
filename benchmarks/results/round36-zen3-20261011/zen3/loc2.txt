@@ -1,0 +1,16 @@
+ 10:14:30 up 29 days, 18:39, 10 users,  load average: 1.46, 2.00, 2.08
+BLUE 10007 m 20480 (5x4x4x4x4x4x4) whole 178821 chirp-in 13545 fft 75565 cmul 23209 ifft 76987 chirp-out 13618
+FFT2 64x64 whole 9588 axis0(strips true) 4816 axis1(rows) 4663 one-row-plan 77 (x64 = 4946)
+FFT2 128x128 whole 49967 axis0(strips true) 29112 axis1(rows) 19650 one-row-plan 159 (x128 = 20319)
+PASS
+PASSES 1000 5x10x20            whole 2221 sum 2119 | r5/i200/s4 581 r10/i20/s0 864 r20/i1/s0 674
+PASSES 1000 5x5x5x8            whole 2014 sum 1871 | r5/i200/s1 524 r5/i40/s2 441 r5/i8/s3 513 r8/i1/s0 393
+PASSES 1296 3x3x12x12          whole 2884 sum 2836 | r3/i432/s1 586 r3/i144/s3 539 r12/i12/s0 999 r12/i1/s0 712
+PASSES 1296 3x3x3x4x12         whole 2820 sum 2757 | r3/i432/s1 586 r3/i144/s2 471 r3/i48/s2 472 r4/i12/s3 508 r12/i1/s0 718
+PASSES 2000 5x20x20            whole 4620 sum 4504 | r5/i400/s4 1166 r20/i20/s0 1919 r20/i1/s0 1420
+PASSES 2000 5x5x4x20           whole 4133 sum 4066 | r5/i400/s1 997 r5/i80/s2 914 r4/i20/s3 786 r20/i1/s0 1369
+PASSES 540 3x15x12            whole 1250 sum 1209 | r3/i180/s4 339 r15/i12/s0 563 r12/i1/s0 307
+PASSES 540 3x3x5x12           whole 1095 sum 974 | r3/i180/s1 210 r3/i60/s2 168 r5/i12/s3 273 r12/i1/s0 323
+PASSES 20480 5x4x4x4x4x4x4      whole 78131 sum 78682 | r5/i4096/s1 16175 r4/i1024/s2 11575 r4/i256/s2 11702 r4/i64/s2 11164 r4/i16/s2 9543 r4/i4/s3 9981 r4/i1/s0 8542
+PASS
+ 10:14:43 up 29 days, 18:39, 10 users,  load average: 1.66, 2.02, 2.08

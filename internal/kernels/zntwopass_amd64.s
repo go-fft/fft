@@ -146,6 +146,22 @@ TEXT ·znKernelAddrs(SB), NOSPLIT, $0-8
 	MOVQ AX, 680(DI)
 	LEAQ ·skSplit8IIFwd(SB), AX
 	MOVQ AX, 688(DI)
+	LEAQ ·skSplit3ISFwd(SB), AX
+	MOVQ AX, 464(DI)
+	LEAQ ·skSplit3SSFwd(SB), AX
+	MOVQ AX, 472(DI)
+	LEAQ ·skSplit3SIFwd(SB), AX
+	MOVQ AX, 480(DI)
+	LEAQ ·skSplit3IIFwd(SB), AX
+	MOVQ AX, 488(DI)
+	LEAQ ·skSplit5ISFwd(SB), AX
+	MOVQ AX, 544(DI)
+	LEAQ ·skSplit5SSFwd(SB), AX
+	MOVQ AX, 552(DI)
+	LEAQ ·skSplit5SIFwd(SB), AX
+	MOVQ AX, 560(DI)
+	LEAQ ·skSplit5IIFwd(SB), AX
+	MOVQ AX, 568(DI)
 	LEAQ ·skSplit4ISInv(SB), AX
 	MOVQ AX, 864(DI)
 	LEAQ ·skSplit4SSInv(SB), AX
@@ -162,6 +178,22 @@ TEXT ·znKernelAddrs(SB), NOSPLIT, $0-8
 	MOVQ AX, 1040(DI)
 	LEAQ ·skSplit8IIInv(SB), AX
 	MOVQ AX, 1048(DI)
+	LEAQ ·skSplit3ISInv(SB), AX
+	MOVQ AX, 824(DI)
+	LEAQ ·skSplit3SSInv(SB), AX
+	MOVQ AX, 832(DI)
+	LEAQ ·skSplit3SIInv(SB), AX
+	MOVQ AX, 840(DI)
+	LEAQ ·skSplit3IIInv(SB), AX
+	MOVQ AX, 848(DI)
+	LEAQ ·skSplit5ISInv(SB), AX
+	MOVQ AX, 904(DI)
+	LEAQ ·skSplit5SSInv(SB), AX
+	MOVQ AX, 912(DI)
+	LEAQ ·skSplit5SIInv(SB), AX
+	MOVQ AX, 920(DI)
+	LEAQ ·skSplit5IIInv(SB), AX
+	MOVQ AX, 928(DI)
 	LEAQ ·intelSplit512R4ISFwd(SB), AX
 	MOVQ AX, 1224(DI)
 	LEAQ ·intelSplit512R4SSFwd(SB), AX
