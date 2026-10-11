@@ -335,16 +335,22 @@ what was tried and dropped:
 
 ### Remaining
 
-- **Small sizes on amd64** (v0.23.0, BENCHMARKS.md "Current numbers": complex
-  256 1.13× FFTW on Zen 3 and 1.27× on Cascade Lake; RFFT 256 1.06× and
-  1.08×). On Neoverse-N1 RFFT 256 is still slower than FFTW (1.046×, inside
-  the 5% parity margin), as is RFFT 1,080 (1.04×).
-- **Cascade Lake:** complex 1,296 (1.20×; the split layout has no radix-3 or
-  radix-12 kernel), the other composites (1.11–1.26×) and the large real
-  transforms (1.13–1.14×). The 2-D 1024² regression of v0.19.0 is fixed in
+- **Small powers of two on amd64** (v0.26.0, BENCHMARKS.md "Current numbers"):
+  complex 256 1.10× FFTW on Zen 3 and 1.04× on Cascade Lake, complex 1,024
+  1.13× and 1.20×, and on Zen 3 RFFT 256 and 4,096 (1.051×, 1.09×). FFTW does
+  complex 256 and 1,024 and RFFT 4,096 in two passes with 32- and 64-point
+  codelets; go-fft has no radix-32 pass. Neoverse-N1 is faster than FFTW on all
+  24 rows since v0.24.0 (RFFT 256 0.991×, RFFT 1,080 0.995×).
+- **Zen 3:** complex and RFFT 1,080 (1.08×, 1.06×). Its RFFT rows have not been
+  re-measured against FFTW since v0.25.0's untangle tail jump.
+- **Cascade Lake:** the composites 1,000–1,920 (1.07–1.13×; complex 1,296 is
+  1.07× since v0.25.0's radix-9 passes), complex and RFFT 65,536 (1.07×,
+  1.11×) and 2-D 64² (1.19×). The 2-D 1024² regression of v0.19.0 is fixed in
   v0.22.0 (Round 31).
-- **Haswell** (Intel AVX2-only) was measured in Round 29 (v0.21.0), but it has
-  no FFTW, so its ratio to FFTW is unknown. **Apple M4** has not been measured
+- **Haswell** (Intel AVX2-only) was measured in Rounds 29 and 37 (v0.21.0,
+  v0.24.0), but it has no FFTW, so its ratio to FFTW is unknown; v0.25.0's
+  untangle tail jump, which addresses the ~1.5% Round 37 measured on RFFT 256
+  there, has not been re-measured on it. **Apple M4** has not been measured
   with the current engines.
 - **float32:** AVX-512 kernels, and a comparison with FFTW's single-precision
   library (not built on the hosts).
