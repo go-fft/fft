@@ -101,7 +101,7 @@ func TestR30Real(t *testing.T) {
 		fns := []func(){
 			func() { p.RFFT(dst, src) },
 			func() { p.half.execute(Z, zin, false) },
-			func() { rfftUntangle(dst, Z, p.tw, m) },
+			func() { rfftUntangle(dst, Z, p.tw, p.ktw, m) },
 			func() { p.scratch.Put(p.scratch.Get()) },
 			func() {
 				if sk := p.half.sk; sk != nil {
@@ -109,7 +109,7 @@ func TestR30Real(t *testing.T) {
 				}
 			},
 			func() { p.IRFFT(back, dst) },
-			func() { irfftRetangle(zb, dst, p.tw, m, 0.5/float64(m)) },
+			func() { irfftRetangle(zb, dst, p.tw, p.ktw, m, 0.5/float64(m)) },
 			func() { p.half.execute(Z, zb, true) },
 		}
 		times := smallRotate(fns, rounds, ms)

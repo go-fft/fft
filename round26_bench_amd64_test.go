@@ -183,8 +183,8 @@ func TestR26Real(t *testing.T) {
 		fns := []func(){
 			func() { p.RFFT(dst, src) },
 			func() { p.half.execute(Z, zin, false) },
-			func() { rfftUntangle(dst, Z, p.tw, m) },
-			func() { p.half.execute(Z, zin, false); rfftUntangle(dst, Z, p.tw, m) },
+			func() { rfftUntangle(dst, Z, p.tw, p.ktw, m) },
+			func() { p.half.execute(Z, zin, false); rfftUntangle(dst, Z, p.tw, p.ktw, m) },
 		}
 		times := comp2Rotate(fns, rounds, ms)
 		var f []int

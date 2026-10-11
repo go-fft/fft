@@ -10,6 +10,9 @@ func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) b
 	return false
 }
 
+// UntangleTable returns tw: no kernel reads it.
+func UntangleTable(tw []complex128, m int) []complex128 { return tw }
+
 // Untangle returns 0: the fft package untangles every bin in Go.
 func Untangle(dst, z, tw []complex128, m int) int { return 0 }
 

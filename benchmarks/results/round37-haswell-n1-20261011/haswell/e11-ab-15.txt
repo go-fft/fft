@@ -1,0 +1,12 @@
+# round 1 variant br-amd64 11:29:27 load 0.33 1.41 3.16
+AB 6144 3x4x8x8x8             43781.9 ns  first/this 1.000  spread 1.000
+AB 6144 3x8x16x16             36543.3 ns  first/this 1.198  spread 1.001
+AB 6144 3x16x8x16             38456.0 ns  first/this 1.139  spread 1.002
+AB 10240 5x4x8x8x8             83966.3 ns  first/this 1.000  spread 1.000
+AB 10240 5x8x16x16             70049.0 ns  first/this 1.199  spread 1.002
+AB 10240 8x8x16x10             73533.2 ns  first/this 1.142  spread 1.001
+AB 12288 3x8x8x8x8            103367.7 ns  first/this 1.000  spread 1.000
+AB 12288 8x8x16x12            101414.6 ns  first/this 1.019  spread 1.005
+PASS
+# end 11:29:45 load 0.48 1.39 3.12
+# done 11:29:45 load 0.48 1.39 3.12

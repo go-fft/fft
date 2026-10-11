@@ -1,0 +1,117 @@
+// hwmut applies each mutation of a list to a source tree, regenerates the
+// arm64 assembly when gen.go changed, runs the given tests, records whether
+// they failed (the mutant is caught) and restores the file.
+//
+//	hwmut TREE MUTFILE -- go test args...
+//
+// MUTFILE holds blocks "## name\nfile\n<<<\nold\n===\nnew\n>>>".
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+)
+
+type mut struct{ name, file, old, new string }
+
+func parse(s string) []mut {
+	var out []mut
+	for _, blk := range strings.Split(s, "## ")[1:] {
+		lines := strings.SplitN(blk, "\n", 3)
+		name, file, rest := lines[0], lines[1], lines[2]
+		rest = strings.TrimPrefix(rest, "<<<\n")
+		old, rest, _ := strings.Cut(rest, "\n===\n")
+		nw, _, _ := strings.Cut(rest, "\n>>>")
+		out = append(out, mut{name, file, old, nw})
+	}
+	return out
+}
+
+func run(dir string, args ...string) (string, error) {
+	c := exec.Command(args[0], args[1:]...)
+	c.Dir = dir
+	b, err := c.CombinedOutput()
+	return string(b), err
+}
+
+func regen(tree string) error {
+	g := filepath.Join(tree, "internal/kernels/asmgen/arm64")
+	c := exec.Command("go", "run", "gen.go")
+	c.Dir = g
+	c.Env = append(os.Environ(), "GOFLAGS=-mod=mod")
+	if b, err := c.CombinedOutput(); err != nil {
+		return fmt.Errorf("%v: %s", err, b)
+	}
+	ents, _ := os.ReadDir(g)
+	for _, e := range ents {
+		if strings.HasSuffix(e.Name(), ".s") {
+			if err := os.Rename(filepath.Join(g, e.Name()), filepath.Join(tree, "internal/kernels", e.Name())); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func main() {
+	tree, mf := os.Args[1], os.Args[2]
+	var test []string
+	for i, a := range os.Args {
+		if a == "--" {
+			test = os.Args[i+1:]
+		}
+	}
+	b, err := os.ReadFile(mf)
+	if err != nil {
+		panic(err)
+	}
+	caught := 0
+	ms := parse(string(b))
+	for _, m := range ms {
+		p := filepath.Join(tree, m.file)
+		orig, err := os.ReadFile(p)
+		if err != nil {
+			panic(err)
+		}
+		if strings.Count(string(orig), m.old) != 1 {
+			fmt.Printf("MUT %-40s NOT APPLIED (pattern count %d)\n", m.name, strings.Count(string(orig), m.old))
+			continue
+		}
+		os.WriteFile(p, []byte(strings.Replace(string(orig), m.old, m.new, 1)), 0o644)
+		verdict := ""
+		if strings.HasSuffix(m.file, "gen.go") {
+			if err := regen(tree); err != nil {
+				verdict = "GENERATOR FAILED (caught at build): " + strings.SplitN(err.Error(), "\n", 2)[0]
+			}
+		}
+		if verdict == "" {
+			out, err := run(tree, test...)
+			if err != nil {
+				fail := ""
+				for _, l := range strings.Split(out, "\n") {
+					if strings.HasPrefix(l, "--- FAIL") || strings.Contains(l, "panic:") || strings.Contains(l, "SIGSEGV") || strings.Contains(l, "build failed") {
+						fail = strings.TrimSpace(l)
+						break
+					}
+				}
+				verdict = "CAUGHT: " + fail
+				caught++
+			} else {
+				verdict = "SURVIVED"
+			}
+		} else {
+			caught++
+		}
+		fmt.Printf("MUT %-40s %s\n", m.name, verdict)
+		os.WriteFile(p, orig, 0o644)
+		if strings.HasSuffix(m.file, "gen.go") {
+			if err := regen(tree); err != nil {
+				panic(err)
+			}
+		}
+	}
+	fmt.Printf("caught %d of %d\n", caught, len(ms))
+}

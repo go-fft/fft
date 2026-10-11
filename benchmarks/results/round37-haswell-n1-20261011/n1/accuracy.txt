@@ -1,0 +1,32 @@
+EXPORT r_256 half 4x4x8
+EXPORT r_512 half 4x8x8
+EXPORT r_1000 half 5x5x5x4
+EXPORT r_1024 half 8x8x8
+EXPORT r_1080 half 3x3x3x5x4
+EXPORT r_1920 half 3x5x8x8
+EXPORT r_4096 half 4x8x8x8
+EXPORT r_65536 half 2x4x4x4x4x4x4x4
+numpy 2.5.3
+i_1000               rel_rms 3.78e-16  max/scale 4.32e-16  ok
+i_1024               rel_rms 3.46e-16  max/scale 4.39e-16  ok
+i_1080               rel_rms 4.27e-16  max/scale 4.56e-16  ok
+i_1920               rel_rms 4.03e-16  max/scale 3.92e-16  ok
+i_256                rel_rms 3.24e-16  max/scale 3.10e-16  ok
+i_4096               rel_rms 4.05e-16  max/scale 4.26e-16  ok
+i_512                rel_rms 3.34e-16  max/scale 4.15e-16  ok
+i_65536              rel_rms 5.53e-16  max/scale 6.36e-16  ok
+r_1000               rel_rms 3.41e-16  max/scale 4.30e-16  ok
+r_1024               rel_rms 3.38e-16  max/scale 3.47e-16  ok
+r_1080               rel_rms 4.12e-16  max/scale 3.95e-16  ok
+r_1920               rel_rms 4.26e-16  max/scale 4.79e-16  ok
+r_256                rel_rms 3.31e-16  max/scale 4.25e-16  ok
+r_4096               rel_rms 3.95e-16  max/scale 5.14e-16  ok
+r_512                rel_rms 3.34e-16  max/scale 4.59e-16  ok
+r_65536              rel_rms 5.50e-16  max/scale 6.00e-16  ok
+FAILURES 0
+exit 0
+--- planted
+r_512                rel_rms 4.21e-02  max/scale 2.73e-01  FAIL
+r_65536              rel_rms 8.08e-04  max/scale 4.64e-02  FAIL
+FAILURES 16
+exit 0

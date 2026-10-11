@@ -1,0 +1,28 @@
+numpy 2.5.3
+c_10240              rel_rms 4.57e-16  max/scale 5.49e-16  ok
+c_12288              rel_rms 4.81e-16  max/scale 5.81e-16  ok
+c_6144               rel_rms 4.40e-16  max/scale 5.52e-16  ok
+i_1000               rel_rms 3.61e-16  max/scale 4.13e-16  ok
+i_1024               rel_rms 3.37e-16  max/scale 3.51e-16  ok
+i_1080               rel_rms 3.89e-16  max/scale 4.19e-16  ok
+i_1920               rel_rms 4.02e-16  max/scale 4.83e-16  ok
+i_256                rel_rms 2.90e-16  max/scale 2.59e-16  ok
+i_4096               rel_rms 3.78e-16  max/scale 3.74e-16  ok
+i_512                rel_rms 2.95e-16  max/scale 2.76e-16  ok
+i_65536              rel_rms 5.01e-16  max/scale 5.36e-16  ok
+nd_1024x1024         rel_rms 5.88e-16  max/scale 7.15e-16  ok
+nd_4x256x1024        rel_rms 5.46e-16  max/scale 5.97e-16  ok
+nd_64x1024           rel_rms 4.73e-16  max/scale 6.28e-16  ok
+r_1000               rel_rms 3.60e-16  max/scale 4.42e-16  ok
+r_1024               rel_rms 3.38e-16  max/scale 3.25e-16  ok
+r_1080               rel_rms 3.80e-16  max/scale 3.75e-16  ok
+r_1920               rel_rms 4.06e-16  max/scale 4.03e-16  ok
+r_256                rel_rms 3.02e-16  max/scale 4.13e-16  ok
+r_4096               rel_rms 3.77e-16  max/scale 5.18e-16  ok
+r_512                rel_rms 3.10e-16  max/scale 4.90e-16  ok
+r_65536              rel_rms 4.95e-16  max/scale 5.69e-16  ok
+FAILURES 0
+exit 0
+--- planted
+r_65536              rel_rms 8.08e-04  max/scale 4.64e-02  FAIL
+FAILURES 22

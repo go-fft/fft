@@ -55,7 +55,8 @@ row is on:
 - **Against FFTW** (all 24 rows of the sweep: 11 complex, 8 RFFT, 5 2-D):
   - **Neoverse-N1: 24 of 24** at or above it; faster on 22. The two rows
     within 5% but still slower than FFTW: RFFT 256 (1.046; 1.04 and 1.05 in the
-    two runs) and RFFT 1,080 (1.04).
+    two runs) and RFFT 1,080 (1.04). Round 37 (after v0.23.1, not in a
+    release yet) takes them to 0.991 and 0.995: faster than FFTW on all 24.
   - **Zen 3: 15 of 24**; faster on 11 (2-D 512² is a tie, 1.000). Within 5% but
     slower: complex 1,296 (1.02), RFFT 1,024 (1.04), RFFT 1,000 (1.04), RFFT
     1,080 (1.01). Slower by more: complex 256, 1,024, 1,000, 1,080 (1.15),
@@ -3060,6 +3061,189 @@ the ends). Main time ÷ branch time, fifteen rounds:
   (the naive sum's own error included).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
+
+### Round 37 — Haswell's RFFT across releases, its N-D rows and e = 11 composites; Neoverse-N1's last two rows behind FFTW (2026-10-11)
+
+**The question.** Four items: (1) on Haswell, the RFFT and IRFFT rows Round 29
+left unmeasured after v0.20.0 changed the amd64 untangle and the direct RFFT
+path, across v0.20.0, v0.21.0 and v0.23.1; (2) whether Haswell has Round 31's
+cold-row effect on the contiguous axis of large N-D plans; (3) the e = 11
+composites (6144, 10240) no rule covered; (4) on Neoverse-N1, RFFT 256
+(1.046× FFTW) and RFFT 1,080 (1.04×), the last two rows behind FFTW. Hosts:
+Haswell (cfarm13, Xeon E5-2620 v3, AVX2 without AVX-512, no FFTW, no numpy)
+and Neoverse-N1 (cfarm424), each used by this round alone, one pinned core
+(`GOMAXPROCS=1 taskset -c 10` / `-c 40`), go1.27.1. Every timed run waited
+for a one-minute load below 2 (Haswell) or 1.5 (N1) and would have been rerun
+had it reached that plus one by its end; none did. Haswell runs started at
+1.63–1.99 and ended at 1.66–2.35 (other users kept its 15-minute load at
+3–5); N1 0.01–0.98. Comparisons between binaries rotate the binaries; the
+other comparisons are in one process with the variant order rotated, rows a
+change does not touch timed after the ones it does.
+
+**1. Haswell, RFFT and IRFFT across releases (measurement; no change).** One
+external harness (Round 32's `TestZnPlace`, exported API only, four heap
+placements per row) built against v0.19.1, v0.20.0, v0.21.0 and v0.23.1,
+nine rotated rounds (`haswell/releases-9.txt`). Time ÷ v0.21.0's, median
+(per-round range):
+
+| | v0.19.1 | v0.20.0 | v0.23.1 | v0.21.0, ns |
+|:--|:--|:--|:--|--:|
+| RFFT 256 / 512 / 1024 | 1.114 / 1.075 / 1.089 | 1.002 / 0.998 / 0.999 | **1.015** (1.014–1.018) / 1.008 (0.990–1.034) / 1.006 | 488 / 978 / 2,067 |
+| RFFT 2048 / 4096 | 1.133 / 1.112 | 1.044 / 1.033 | 1.004 / 1.001 | 4,630 / 11,590 |
+| RFFT 8192 / 16384 / 32768 / 65536 | 1.26 / 1.34 / 1.21 / 1.18 | 1.12 / 1.19 / 1.10 / 1.11 | 1.000–1.001 | 25,590 … 312,580 |
+| RFFT 1000 / 1080 / 1920 | 1.186 / 1.173 / 1.154 | 1.083 / 1.016 / 1.050 | 1.004 / 1.005 / 1.005 | 2,317 / 2,668 / 4,495 |
+| IRFFT 256 / 512 / 1024 | 1.041 / 1.062 / 1.101 | 0.990 / 1.000 / 1.027 | **1.015** (1.012–1.023) / **1.009** (1.007–1.013) / 1.005 | 511 / 966 / 2,087 |
+| IRFFT 2048 … 65536 | 1.09–1.29 | 1.02–1.16 | 1.000–1.003 | |
+| IRFFT 1000 / 1080 / 1920 | 1.106 / 1.082 / 1.136 | 1.028 / 1.003 / 1.024 | 1.003 / 1.009 / 0.999 | |
+
+- **v0.20.0 and v0.21.0 did not regress Haswell**: v0.20.0 ran every RFFT and
+  IRFFT row 1.03–1.16× as fast as v0.19.1 (time ratio 0.86–0.97), and v0.21.0
+  (Round 29's split layout and composite rule) another 1.02–1.19× on top from
+  1024 points up, the same at 256 and 512.
+- **v0.22.x cost the smallest rows 1–1.7%** (v0.23.1 ÷ v0.21.0 above 1 in all
+  nine rounds at RFFT 256, IRFFT 256 and IRFFT 512; from 1024 up within
+  ±0.6%). Located in one process (`internal/kernels` `TestHwUntangleCall`,
+  fifteen rounds, `haswell/untangle-call-15.txt`): the Untangle wrapper,
+  which since Round 31 calls the 512-bit kernel with quads = 0 before the
+  AVX2 one (so that no Go statement runs only on an AVX-512 CPU), takes 152.6
+  ns at m = 128 against 142.8 for the AVX2 kernel alone (1.069, every round
+  1.066–1.082), 1.034 at m = 256, 1.007–1.011 at 512 and 540 — about 10 ns,
+  2% of RFFT 256. **Not fixed**: a version of the 512-bit kernels that
+  tail-jumps into the AVX2 kernel (one call from Go on every CPU) was written
+  (`scripts/untangle512-tailjump-unverified.patch.txt`) and withdrawn,
+  because it changes the AVX-512 path, which no host of this round can run.
+- The harness and placements are the same in every binary, and the best
+  placement of each binary ("min" in `.vs-v0.21.0.txt`) gives v0.23.1 ÷
+  v0.21.0 within 0.005 of the medians above on every row but RFFT 32768
+  (0.980 against 1.000).
+
+**2. Haswell, the rows of large N-D plans (kept).** The last axis alone,
+in place on the array the other axes leave (`TestHwRows`, Round 31's
+`TestR31Rows2D` for any number of axes; nine rounds, `haswell/rows-9.txt`),
+1-D plan (8·8·16, split) ÷ variant:
+
+| row plan | 1024² | 512×1024 | 4×256×1024 |
+|:--|--:|--:|--:|
+| 4·8·4·8 | **1.159** (1.136–1.185) | **1.125** (1.105–1.141) | **1.146** (1.089–1.168) |
+| 4·4·8·8 / 4·8·8·4 / 4·4·4·16 | 1.118 / 1.105 / 1.125 | 1.097 / 1.064 / 1.104 | 1.118 / 1.102 / 1.123 |
+| 8·4·4·8 / 8·8·4·4 | 1.020 / 1.011 | 1.160 (0.972–1.187) / 1.115 | 1.020 / 0.994 |
+| 4·16·16 / 16·8·8 (three passes) | 0.972 / 0.931 | 0.975 / 0.918 | 0.966 / 0.926 |
+
+- **Not Cascade Lake's effect.** On Haswell 4·8·4·8 also wins when the rows
+  are in cache: 1.110 at 8×1024 (128 KB), 1.118–1.138 from 32 to 256 rows
+  (`haswell/rows-m-11.txt`, eleven rounds). Every three-pass order loses and
+  every four-pass order gains: the rows of an N-D plan are transformed in
+  place, and a plan with an odd number of passes copies the row first
+  (`skPlan.run`), which 8·8·16 pays and 4·8·4·8 does not. A 1-D transform out
+  of place does not, so Round 29's 1-D table stands.
+- **Whole transforms**, the two plans sharing src and dst in one process
+  (`TestHwWhole`, fifteen rounds, `haswell/whole-e11-15.txt`), main ÷ rule:
+  64×1024 **1.063** (1.056–1.234), 256×1024 1.053 (1.023–1.158), 512×1024
+  1.042 (1.022–1.114), 1024² **1.038** (1.031–1.049), 4×256×1024 1.016
+  (1.014–1.051); 8×1024 1.022 (0.968–1.045); untouched 1024×512 and 256×512
+  1.009 and 1.001.
+- **The change:** `clRowOrderAMD64` gives Haswell (the 256-bit split layout
+  on Intel) the same 1024 → 4·8·4·8 as Cascade Lake, from 2^16 elements (64
+  rows; at 8 rows the whole-transform gain was inside its spread), and the
+  size threshold becomes per architecture (`clRowMin`: 2^19 on Cascade Lake,
+  unchanged).
+
+**3. Haswell, e = 11 composites (kept).** Every factorization of the 3 or 5,
+the radix-10, -12 and -20 passes and every ordering of radix-4, -8 and -16
+tails (`TestHwE11`, 35, 52 and 53 candidates, five rounds,
+`haswell/e11-sweep-5.txt`), then the finalists (fifteen rounds,
+`e11-ab-15.txt`), old ÷ new:
+
+| n | old | best | old ÷ best | runner-up |
+|:--|:--|:--|--:|:--|
+| 6144 (2^11·3) | 3·4·8·8·8 | **3·8·16·16** | **1.198** (spread 0.1%) | 3·16·8·16 1.139 |
+| 10240 (2^11·5) | 5·4·8·8·8 | **5·8·16·16** | **1.199** | 8·8·16·10 1.142 |
+| 12288 (2^12·3) | 3·8·8·8·8 | 8·8·16·12 | 1.019 | — |
+
+`hswE11Factors` gives 6144 and 10240 p·8·16·16 on Haswell only
+(`hswE11Default`: AVX2, Intel, no AVX-512; Cascade Lake was not measured);
+12288 keeps its own (1.019 is not a margin). A second run with the rule in
+place read 1.183 and 1.202 (`whole-e11-15.txt`). Round 29's sweep had seen
+1.05–1.12 for these lengths among its candidates; the radix-16 pair after an
+8 was not among them.
+
+**4. Neoverse-N1, RFFT 256 and 1080 (kept).** Where the time goes on main
+(`TestR30Real`, nine rounds), ns: RFFT 256 = half transform 497 (128 points,
+4·4·8) + untangle 254; RFFT 1080 = half 3,310 (540, 3·3·3·5·4) + untangle
+1,023. The half orders were already the best (540: five orders within 1%,
+the others 0.77–0.89; 128: 4·4·8 ahead of four others by 2–10%,
+`TestR30Orders`). The untangle was the lever: Round 27's NEON kernel loads
+its bins with `VLD2`, its mirrors with `VLD2` and two `VEXT` lane swaps, its
+twiddles with `VLD2`, and stores the same way. Variants, one process, nine
+rounds (`n1/untangle-zip-yz-9.txt`, `untangle-x-9.txt`), main ÷ variant:
+
+| | untangle 256 / 1080 / 4096 | retangle 256 / 1080 / 4096 |
+|:--|:--|:--|
+| Z: mirrors by `VLD1` + `VZIP1/2` (lanes reversed by the operand order), stored the same way | 1.092 / 1.094 / 1.098 | 1.076 / 1.092 / 1.099 |
+| Y: Z, and the bins too | 1.104 / 1.103 / 1.110 | 1.108 / 1.128 / 1.136 |
+| **X: Y, and the twiddles from a pre-split table** | **1.197 / 1.208 / 1.189** | **1.169 / 1.181 / 1.188** |
+
+On N1 a `VLD2`/`VST2` of two `.2D` registers costs more vector work than a
+`VLD1`/`VST1` and two `VZIP`s, and the table laid out wr_k, wr_k+1, wi_k,
+wi_k+1 per pair (`kernels.UntangleTable`, `RealPlan.ktw`; on amd64 the
+table itself) needs no permute at all. Every product, sum and fusion is the
+old kernel's, so the result is the Go loop's bits
+(`TestUntangleMatchesScalarNEON`, `TestRetangleMatchesScalarNEON` on Round
+30's signals). Thirteen mutations (`n1/mutants.txt`: each `VZIP`'s operand
+order or half, the twiddles loaded with `VLD2`, the stored bins swapped, the
+table not split, split from k = 0, wi from one bin, the last pair left
+unsplit) each fail both tests separately.
+
+**End to end on N1** (the external harness, v0.23.1 against the branch, nine
+rounds, `n1/ab-main-branch-9.txt`), branch ÷ main: RFFT 256 **0.953**
+(0.940–0.963), IRFFT 256 0.960, RFFT 1080 **0.962** (0.949–0.970), IRFFT
+1080 0.968, RFFT/IRFFT 1000, 1024, 1920, 4096 0.946–0.967, 65536
+0.982/0.992; untouched complex 256, 1024, 1080 1.000–1.002. **Against
+FFTW** (`benchmarks/remote/run.sh`, main, branch, branch, main, each correct
+24/24; `n1/parity/partab-*.txt`), go-fft ÷ FFTW:
+
+| | main (v0.23.1) | branch |
+|:--|--:|--:|
+| RFFT 256 | 1.049 | **0.991** |
+| RFFT 1,080 | 1.039 | **0.995** |
+| RFFT 1,000 / 1,920 / 1,024 / 4,096 | 0.976 / 0.974 / 0.739 / 0.751 | 0.937 / 0.934 / 0.694 / 0.713 |
+| the other 18 rows | 0.43–0.90 | 0.41–0.89 |
+
+So on Neoverse-N1 go-fft is now faster than FFTW on all 24 parity rows, two
+of them (RFFT 256 and 1,080) by under 1%. On these two rows FFTW's own times
+moved by under 1% across the four runs (RFFT 256 719–724 ns, RFFT 1,080
+4,206–4,244).
+
+**Accuracy against numpy 2.5.3 on the exact bytes** (`TestHwExport`,
+`scripts/hw_acc.py`): N1, RFFT and IRFFT at 256 … 65536 and 1000, 1080,
+1920, worst error 6.4e-16 of the largest output; Haswell (exported there,
+numpy run on N1), the same lengths plus complex 6144, 10240, 12288 and 2-D
+64×1024, 1024², 4×256×1024, worst 7.2e-16 (bound 1e-14); a byte planted in
+one output fails every file.
+
+**Tests.** Both packages' suites pass on Haswell and on N1, and with `-race`
+on Apple M4 (arm64), every statement covered there. On Haswell,
+`TestZnFrameMatchesPool` failed on v0.23.1 too: Haswell's routing gives 18
+three-pass plans the frame kernel, the test asked for 20; it now asks for 15.
+Sixteen mutations of the Haswell rules (`haswell/mutants.txt`, each built
+and run on Haswell, `TestHaswellRoutesHere` checking the routing the CPU
+gets) each fail.
+
+**Not done, or not verified.**
+- **Haswell was never idle**: other users kept its 15-minute load at 3–5;
+  every run waited for a one-minute load below 2, and the in-process ratios
+  are what is claimed. No FFTW on Haswell, so no ratio to FFTW there.
+- **The quads = 0 call** (v0.22.x, 1–2% at 256–512 points on Haswell) is
+  located but not fixed: the fix changes AVX-512 kernels that this round could
+  not run.
+- **Cascade Lake** gets none of this round's Haswell rules (6144 and 10240
+  there were not timed); the N-D row rule is Round 31's there.
+- **Zen 3 and arm64 N-D rows**: whether the in-place copy of an odd pass
+  count costs them too was not measured.
+- **The N1 half transforms** (128 and 540 points, now three quarters of
+  RFFT 256 and 1080) were not changed: no order timed beat them.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round37-haswell-n1-20261011/`](benchmarks/results/round37-haswell-n1-20261011/).
 
 ### Round 33 — N1 parity at v0.21.0 (2026-10-09)
 

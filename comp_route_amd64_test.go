@@ -201,3 +201,47 @@ func TestHswComp2Factors(t *testing.T) {
 		t.Errorf("skFactorize(3840) on Haswell's route = %v", got)
 	}
 }
+
+// TestHswE11Factors: 6144 and 10240 take p·8·16·16 on Haswell, nothing else
+// does, and skFactorize follows it.
+func TestHswE11Factors(t *testing.T) {
+	for n := 2; n <= 1<<15; n++ {
+		got := hswE11Factors(n, true)
+		var want []int
+		switch n {
+		case 6144:
+			want = []int{3, 8, 16, 16}
+		case 10240:
+			want = []int{5, 8, 16, 16}
+		}
+		if !slices.Equal(got, want) {
+			t.Errorf("hswE11Factors(%d) = %v, want %v", n, got, want)
+		}
+		if hswE11Factors(n, false) != nil {
+			t.Errorf("hswE11Factors(%d, off) not nil", n)
+		}
+	}
+	defer func(v bool) { hswE11On = v }(hswE11On)
+	hswE11On = true
+	if got := skFactorize(10240); !slices.Equal(got, []int{5, 8, 16, 16}) {
+		t.Errorf("skFactorize(10240) = %v", got)
+	}
+	hswE11On = false
+	if got := skFactorize(10240); slices.Equal(got, []int{5, 8, 16, 16}) {
+		t.Errorf("skFactorize(10240) = %v with the rule off", got)
+	}
+}
+
+// TestHswE11Default: the e = 11 rule is Haswell's only.
+func TestHswE11Default(t *testing.T) {
+	for _, c := range []struct{ avx2, intel, avx512, want bool }{
+		{true, true, false, true},
+		{true, true, true, false},
+		{true, false, false, false},
+		{false, true, false, false},
+	} {
+		if got := hswE11Default(c.avx2, c.intel, c.avx512); got != c.want {
+			t.Errorf("%+v: %v", c, got)
+		}
+	}
+}

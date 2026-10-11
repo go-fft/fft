@@ -42,10 +42,10 @@ func TestUntangleMatchesScalarNEON(t *testing.T) {
 		for s, z := range armrealSignals(m) {
 			kernels.UseUntangleNEON = false
 			scalar := make([]complex128, m+1)
-			rfftUntangle(scalar, z, tw, m)
+			rfftUntangle(scalar, z, tw, kernels.UntangleTable(tw, m), m)
 			kernels.UseUntangleNEON = true
 			simd := make([]complex128, m+1)
-			rfftUntangle(simd, z, tw, m)
+			rfftUntangle(simd, z, tw, kernels.UntangleTable(tw, m), m)
 			for i := range scalar {
 				if !neonMatch(simd[i], scalar[i]) {
 					t.Fatalf("m=%d signal %d bin %d: kernel %v, Go %v", m, s, i, simd[i], scalar[i])
@@ -66,10 +66,10 @@ func TestRetangleMatchesScalarNEON(t *testing.T) {
 			for _, h := range hs {
 				kernels.UseUntangleNEON = false
 				scalar := make([]complex128, m)
-				irfftRetangle(scalar, x, tw, m, h)
+				irfftRetangle(scalar, x, tw, kernels.UntangleTable(tw, m), m, h)
 				kernels.UseUntangleNEON = true
 				simd := make([]complex128, m)
-				irfftRetangle(simd, x, tw, m, h)
+				irfftRetangle(simd, x, tw, kernels.UntangleTable(tw, m), m, h)
 				for i := 1; i < m; i++ {
 					if !neonMatch(simd[i], scalar[i]) {
 						t.Fatalf("m=%d signal %d h=%g bin %d: kernel %v, Go %v", m, s, h, i, simd[i], scalar[i])

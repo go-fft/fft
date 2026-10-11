@@ -1,0 +1,4 @@
+ 09:42:46 up 104 days, 20:31,  7 users,  load average: 0.01, 0.14, 0.49
+HWPARTS 256 half(4x4x8) rfft 715.8 half 498.6 untangle 214.1 irfft 738.8 retangle 214.9
+HWPARTS 1080 half(3x3x3x5x4) rfft 4140.5 half 3302.5 untangle 844.2 irfft 4199.5 retangle 841.7
+ 09:42:49 up 104 days, 20:31,  7 users,  load average: 0.09, 0.15, 0.50

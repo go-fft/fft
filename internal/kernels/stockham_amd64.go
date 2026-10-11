@@ -409,6 +409,10 @@ func skLast5AVX2(cc, ch *complex128, k *float64, l1 int)
 //go:noescape
 func skLast8AVX2(cc, ch *complex128, k *float64, l1 int)
 
+// UntangleTable returns the table Untangle and Retangle read: tw itself, the
+// twiddles as they lie (the AVX2 kernels permute them).
+func UntangleTable(tw []complex128, m int) []complex128 { return tw }
+
 // UseUntangleAVX2 reports whether Untangle takes the AVX2 kernel; a variable so
 // the tests can compare it with the scalar loop on an AVX2 machine.
 var UseUntangleAVX2 = useAVX2
