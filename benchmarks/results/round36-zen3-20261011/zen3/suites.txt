@@ -1,0 +1,21 @@
+PASS
+coverage: 97.7% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+PASS
+coverage: 95.4% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+V3
+--- FAIL: TestCascadeKernelModes (0.67s)
+--- FAIL: TestIRFFTIgnoresBinsPastHalf (0.00s)
+--- FAIL: TestZmBluesteinMatchesLoops (0.00s)
+--- FAIL: TestStockham32PassMatchesScalar (0.00s)
+--- FAIL: TestStockham32EachPassMatchesScalar (0.00s)
+--- FAIL: TestUntangle32MatchesScalar (0.00s)
+--- FAIL: TestRetangle32MatchesScalar (0.00s)
+--- FAIL: TestRealPlan32KernelsEndToEnd (0.00s)
+--- FAIL: TestRadix2StageMatchesScalar (0.00s)
+--- FAIL: TestRadix4StageMatchesScalar (0.00s)
+--- FAIL: TestCMulMatchesScalar (0.00s)
+--- FAIL: TestCMulToMatchesScalar (0.00s)
+--- FAIL: TestZmCMulKernelMatchesScalar (0.00s)
+K9
+--- FAIL: TestZmCMulBulkGate (0.00s)
+FAIL

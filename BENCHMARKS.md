@@ -3245,6 +3245,249 @@ gets) each fail.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round37-haswell-n1-20261011/`](benchmarks/results/round37-haswell-n1-20261011/).
 
+### Round 36 — Zen 3, the rows FFTW still led: Bluestein's products, the 2-D rows on the frame, radix 3 and 5 split, e = 11 and 12 (2026-10-11)
+
+**The question.** Round 34 left go-fft behind FFTW on Zen 3 on complex 1000
+(1.11), 1080 (1.15), 1024 (1.14), 256 (1.13), 10007 (Bluestein, 1.07), RFFT
+4096 (1.09), RFFT 1920 (1.07) and 2-D 64² (1.06), and Round 29 had found the
+e = 11 composites (6144, 10240) 1.05–1.12× faster with other tails on Haswell
+without a rule for them. Host: Zen 3 (cfarm420), used by this round alone, one
+pinned core (`GOMAXPROCS=1 taskset -c 40`; another user's job sat on core 3),
+load 1.2–2.3 (each file gives it at its head and end). "Main" is v0.23.1
+(2770704) throughout. Every comparison is interleaved, the order rotated every
+round; in-process A/Bs where the code allows it, and the binaries' A/B time
+the untouched rows after the touched ones in the same process.
+
+**FFTW's plans for these sizes** (`FFTW_MEASURE`, printed by
+`scripts/fftwplan36.c`, `zen3/fftw-plans.txt`):
+
+| size | FFTW | go-fft (main) |
+|:--|:--|:--|
+| complex 256 / 1024 | 32·8 (`t2fv_32`, `n2fv_8`) / 32·32 | 4·8·8 / 8·8·16 |
+| complex 1000 / 1080 | 10·10·10 (`t2fv_10`, `n1fv_10`) / 15·6·12 | 5·10·20 / 3·3·10·12 |
+| complex 6144 / 10240 | 6·32·32 / 8·20·64 | 3·4·8·8·8 / 5·4·8·8·8 |
+| RFFT 4096 / 1920 | r2c radix 2 + 32·64 / r2c radix 6 + 3·20·16 | 2048 = 8·8·8·4 + untangle / 960 = 4·12·20 + untangle |
+| 2-D 64² | `n1fv_64` on the rows, one pass each; buffered `n2fv_64` columns | 8·8 strips, then 8·8 rows |
+| complex 10007 | Bluestein over 20250 (2·3⁴·5³) in this MEASURE run | Bluestein over 20480 (5·8·8·8·8) |
+
+FFTW reaches 256 and 1024 in two passes with 32- and 64-point codelets, which
+go-fft does not have (Round 32 left radix 32 unbuilt); the composites in three
+of its radix-10, -15, -6 and -12 codelets.
+
+**Where the time goes**, main (`zen3/loc1.txt`, nine rounds, ns):
+
+| | whole | parts |
+|:--|--:|:--|
+| complex 10007 | 212,516 | chirp in 14,402 + FFT 20480 83,551 + spectral product 23,157 + IFFT 81,549 + chirp out 13,244 |
+| 2-D 64² | 11,704 | columns (strips) 5,157 + rows 6,436 (100 ns a row; one 64-point `Plan.FFT` 76) |
+| 2-D 128² | 55,272 | columns 29,826 + rows 24,385 (190 a row; `Plan.FFT` 154) |
+| complex 1000 (5·10·20) | 2,301 | 645 (r5, `ido` 200) + 886 (r10) + 689 (r20, final) |
+| complex 1080 (3·3·10·12) | 2,779 | 534 + 522 (r3) + 945 (r10) + 582 (r12, final) |
+| complex 6144 (3·4·8·8·8) | 17,969 | 2,933 (r3) + 2,966 (r4) + 3,779 + 3,510 (r8) + **4,593** (r8, final) |
+| complex 1024 (8·8·16) | 1,755 | 544 + 502 (r8, split) + 637 (r16, final) |
+| RFFT 4096 | 5,904 | half (2048 = 8·8·8·4) 4,554 + untangle 1,204 |
+| RFFT 1920 | 2,492 | half (960 = 4·12·20) 1,945 + untangle 568 |
+
+- **Bluestein**: the three pointwise products were Go loops, 51 µs, 24% of
+  the transform.
+- **2-D**: the rows went through `skPlan.run` on a pooled buffer; the 1-D plan
+  of the same length runs on Round 32's frame kernels, 24% faster per row.
+- **The composites**: no other order of their radices was faster. Every
+  ordering of 3, 3, 10, 12 and of 3, 3, 15, 8 and of 3, 3, 3, 5, 8 for 1080,
+  and eleven orders for 1000, nine rotated rounds (`zen3/ab-comp1.txt`): the
+  current ones were the best. What costs is the odd and prime-factor passes,
+  interleaved: 0.26–0.28 ns per point and bit, against 0.16 for a final
+  radix-20 pass.
+- **e >= 11**: the final radix-8 pass of 6144 writes eight streams n/8
+  points apart, 12 KB, a multiple of 4 KB: all eight in one L1 set. It costs
+  1.6× a middle radix-8 pass of the same transform.
+
+**1. Bluestein's products on an AVX2 kernel (kept, amd64).**
+`kernels.CMulTo(dst, a, b)` writes dst[i] = a[i]·b[i]; on amd64 with AVX2,
+where `kernels.ZmCMulOn` says so (the CPU is not Intel's), four points per
+iteration run on `zmCMulAVX2` (`genZmCMulFile` in
+`asmgen/amd64/gen.go`, go-asmgen v0.16.0, `zmcmul_amd64.s`): `VMOVDDUP` and
+`VPERMILPD` give [br br] and [bi bi], two `VMULPD` and one `VADDSUBPD` give
+(ar·br − ai·bi, ai·br + ar·bi), Go's complex product with its imaginary sum's
+operands commuted, each rounded separately, so the bits are the
+`GOAMD64=v1` loop's. The rest, and every other architecture, run the Go loop
+`dst[i] = a[i] * b[i]`, the expression the Bluestein loops had. Bluestein's
+chirp-in, spectral and chirp-out products call it. The old `CMul` (SSE2
+kernel, never on the hot path because one complex per iteration did not beat
+the Go loop) is unchanged. In one process, old ÷ new (`zen3/ab-br1.txt`,
+eleven rounds): Bluestein 10007 1.14, 4099 1.20, 30011 1.12.
+
+**2. The 2-D rows on the frame kernels (kept, AMD).** `PlanN.contiguousLines`
+runs each line of a Stockham axis whose plan has a `kernels.ZnPlan` on it, and
+takes the pooled buffer only for lines that cannot (one condition per line,
+so no statement is unreachable where the kernel does not exist). It changes
+the plans of 512 points or fewer with two or three passes, where Round 32
+enabled the frame (AMD). In one process: 2-D 32² 1.27, 64² 1.16, 128² 1.07,
+256² 1.05.
+
+**3. e = 11 and 12 composites: radix-4 tails (kept, AMD).** Every ordered tail
+of radices 4, 8 and 16 after the odd passes of 6144, 10240, 12288, 18432,
+20480 and 30720 (`TestZmTails`, nine rounds, `zen3/tails1.txt`); then, for
+2^e·{3, 5, 9, 15, 25, 27, 45} with e = 11..14 up to 2^18, the current
+factorization against `splitPow2Factors` and a radix-4 tail with one
+radix-8 pass (`TestZmPow2Rule`, `zen3/pow2rule1.txt`). The tails with more
+radix-4 passes won up to 32768 points and lost or tied above:
+`zmPow2Tail` (`comp_route_amd64.go`) gives n = 2^e·3^a·5^b with e = 11 or 12
+and n <= 32768 the odd passes, then 4·4·4·8·4 (e = 11) or 4^6 (e = 12).
+Fifteen rotated rounds against main's factorization (`zen3/pow2-ab15.txt`):
+6144 1.09, 10240 1.07, 18432 1.04, 30720 1.02, 12288 1.08, 20480 1.06; per
+pass, the final radix-8 pass of 6144 (4.6 µs) became a final radix-4 one
+(2.0 µs). 20480 is Bluestein's convolution for 10007, which gains with it.
+
+**4. Radix 3 and 5 in the split layout (kept, AMD).** Round 23's layout kept
+radix-4 and -8 passes split; the composites' odd passes ran interleaved,
+with a shuffle per point and twiddle. `splitEmit` gains `body3` and `body5`,
+the Go passes' butterflies on split registers, operation for operation
+(products, sums, and the exact ±i rotations by operand choice), and
+`genSplitFile` writes their 32 kernels after the existing ones (which
+regenerate unchanged; the frame kernels' address table gains them, so a
+split odd pass also runs on the frame). `kernels.ZmSplitOdd` (on where the
+CPU is not Intel's) lets `splitModes` put them in runs; Intel keeps its
+layout, unmeasured. Each split pass alone matches the Go pass bit for bit
+(`TestSplitEachPassMatchesScalar` now takes radix 3 and 5).
+
+Which factorizations then: a sweep of every composite 2^e·3^a·5^b up to 16384
+over Round 26's candidates plus every order of the 3s and 5s followed by a
+power-of-two tail (`TestZmSweep`, five rounds, `zen3/sweep1.txt`, 145
+lengths): the current rule was 1.053× the best candidate's time (geometric
+mean), and 62 lengths gained 4% or more with another factorization. No simple
+rule captured it (`scripts/an_sweep.go.txt`: the 3s, 5s and a radix-4/8 tail
+0.986× as fast as the current rule; the current rule with all but its final
+prime-factor pass broken up, 1.002×). So the winners went through two more
+A/Bs, fifteen rounds each (`zen3/conf1.txt`, then `zen3/conf3.txt` on the one
+kept), and the 46 that gained 2% or more in both (and in the A/B of every
+composite below) are `zmCompTable`, the AMD route's first lookup: 1000 =
+5·5·5·8, 1296 = 3·3·3·4·12, 2000 = 5·5·4·20, 540 = 3·3·5·12 (RFFT 1080's
+half), 10, 12, 20 as two passes (1.5–1.6×). 1080 and 1920 kept their
+factorizations (the candidates were inside the spread in one of the runs).
+
+Every composite up to 16384, v0.23.1's plan (radix 3 and 5 interleaved)
+against the current one, nine rounds in one process (`TestZmCompAll`,
+`zen3/compall1.txt`): geometric mean 1.070× as fast, median 1.062, 10th
+percentile 0.995; below 0.99: 80 (0.935, then dropped from the table),
+1536, 2250, 6250, 8640, 12150, 13824, 14400 (0.96–0.99). 2250, 6250 and 12150
+have a single 2 (no `ido` a multiple of four), so they run the same passes
+as before and read the spread of this measurement.
+
+**End to end against main**, the binaries alternating (`TestZmPlace`, Round
+32's placement harness with 2-D rows, exported API only, four placements,
+nine rounds, `zen3/ab-main-br2-9.txt`), main ÷ branch, median (per-round
+range):
+
+| | main ÷ branch |
+|:--|:--|
+| complex 10007 | **1.232** (1.207–1.258) |
+| 2-D 32² / 64² / 128² | 1.321 / **1.182** (1.164–1.190) / 1.067 |
+| complex 1000 / 1080 / 1296 / 2000 / 540 | **1.111** / **1.041** / 1.071 / 1.110 / 1.133 |
+| RFFT 1000 / 1080 / 2000 | 1.086 / 1.110 / 1.073 |
+| complex 6144 / 10240 / 12288 | 1.107 / 1.124 / 1.088 |
+| untouched: complex 1024, 256, 64, 4096, 1920 | 1.000 / 0.998 / 0.985 / 0.998 / 0.993 |
+| untouched: RFFT 4096 / 1920 | 1.008 / 1.003 |
+
+**Bit identity and tests.** `TestZmBluesteinMatchesLoops` holds Bluestein
+to the Go loops it replaced, bit for bit (seven lengths, both directions, in
+place and not, the pooled buffer reused); `TestCMulToMatchesScalar`,
+`TestCMulToLengths` and `TestZmCMulBulkGate` hold the kernel to Go's product
+on signed zeros, infinities and subnormals, its length guard (a shorter `a`
+with room in its capacity must still panic, before writing) and its AVX2
+gate; `TestZmRowsMatchRun` holds N-D transforms whose last axis runs on the
+frame to the same axis run line by line through `skPlan.run`, in place and
+out of place; `TestZmPow2Tail` and `TestZmCompTable` pin the two routes, that
+`skFactorize` takes them where `comp2On` says, and the transforms against
+the factorizations they replace. Mutations, each built and run on Zen 3
+(`zen3/mutants.txt`), all fail: the kernel's `VADDSUBPD` operands swapped,
+its imaginary-part shuffle, its stride, its count, the AVX2 gate, either half
+of the length guard; the rows' inverse flag, their source and destination
+swapped (it survived until out-of-place shapes were added), the buffer
+condition; Bluestein's spectral product over n points only, its chirp-out
+with the spectrum, the pad's clear; `zmPow2Tail`'s five limits, its e = 11
+tail, and its being wired in at all (it survived until the routing was
+asserted); the split bodies' ca sign, y1/y2 swapped, c51 for c52, the z2
+difference reversed, y0's sum order, y3/y4 swapped, z1's parts swapped, the
+constants table's rows, 0.5 for sin(2π/3); `ZmSplitOdd` ignored; the frame
+table without the new kernels; the table lookup without `comp2On`, or not
+found. Both packages' suites pass on Zen 3 with every statement covered there
+(the two profiles merged) and on arm64 (Apple M4, every statement covered).
+Under `GOAMD64=v3` the new kernels' tests fail, as the package's other Go
+oracles do: the compiler then fuses the oracle's products.
+
+**Accuracy against numpy on the exact bytes** (`TestZmExport`,
+`scripts/zm_accuracy.py`, numpy 2.5.3, `zen3/accuracy.txt`): Bluestein
+FFT/IFFT (7 lengths to 30011), every table length and 11 other composites,
+RFFT/IRFFT 1000–4096 and 14 2-D sizes: worst error relative to the largest
+output 1.3e-15 (Bluestein), 8.1e-16 (composites), 6.7e-16 (2-D), 6.0e-16
+(real); a byte planted in each output fails every check.
+
+**Against FFTW**, the parity harness (`benchmarks/remote/run.sh` patched to
+run in its own directory, binaries checked by SHA-256 on the host) pinned to
+core 40, main, branch, branch, main back to back, 09:34–10:13 UTC, load
+1.85–2.25 at the runs' starts and ends (`zen3/parity/`, `runs.log`; 24/24
+correct every time). go-fft's time (mean of its two runs) ÷ the median of
+FFTW's four, computed by `current-numbers-v0.23.0/partab.go.txt`
+(`zen3/parity/partab-{main,br}.txt`):
+
+| | main | branch |
+|:--|--:|--:|
+| complex 10,007 (Bluestein) | 1.072 | **0.821** |
+| 2-D 64² / 128² / 256² | **1.031** / **0.851** / **0.936** | **0.894** / **0.830** / **0.899** |
+| complex 1,000 / 1,080 / 1,296 | **1.049** / 1.147 / **0.975** | **0.986** / 1.083 / **0.915** |
+| RFFT 1,000 / 1,080 / 1,920 | **0.980** / 1.135 / **0.991** | **0.892** / 1.061 / **0.991** |
+| complex 256 / 1,024 (untouched) | 1.120 / 1.133 | 1.101 / 1.133 |
+| RFFT 256 / 1,024 / 4,096 (untouched) | 1.087 / 1.053 / 1.092 | 1.051 / 1.047 / 1.085 |
+
+Within 5% of FFTW or faster: 16 of 24 rows on main, **18 of 24** on the
+branch; faster: 13 and **17**. Faster than numpy.fft and scipy.fft on 24 of
+24 in every run, than gonum on 19 of 19. FFTW's own times moved by up to 37%
+between its four runs on a row (2-D 256²: 283–389 µs; complex 1920:
+3.8–4.7 µs), and go-fft's main read complex 1,000 at 1.049 here against
+Round 34's 1.114 (its time 2,193 against 2,284 ns, FFTW's 2,091 against
+2,050): the rows this round does not change (complex 256 and 1024, RFFT 256
+and 4096) moved by up to 3.5% between main and branch, which is this
+measurement's spread. Still behind FFTW by more than 5%: complex 256 (1.10)
+and 1,024 (1.13), complex 1,080 (1.08), RFFT 4,096 (1.085) and 1,080 (1.06).
+
+After the round, in one process (`zen3/loc3.txt`): Bluestein 10007 163.6 µs,
+its products 8.2 + 9.3 + 5.3 µs on `CMulTo` against 13.8 + 21.8 + 12.8 in
+Go, its two FFTs of 20480 points 70.5 and 71.7 µs (5·4^6); 2-D 64² rows 4.70
+µs (73 ns a row). Per pass (`zen3/loc2.txt`): 1000 = 5·5·5·8 runs its three
+radix-5 passes split at 524, 441 and 513 ns where 5·10·20 spent 581 (one
+radix-5 pass split alone) and 864 on its radix-10 pass; 540 = 3·3·5·12
+spends 651 ns before its final pass where 3·15·12 spent 902.
+
+**Tried and dropped, or not done:**
+- **Complex 256 and 1024, RFFT 4096**: FFTW's 32- and 64-point codelets do
+  them in two passes; go-fft has no radix-32 pass. The 2048-point half of
+  RFFT 4096 runs its first pass at 0.28 ns per point and bit against 0.18 for
+  the others (input streams 4 KB apart); 4·8·8·8, 8·8·4·8 and nine other
+  orders tied or lost (`zen3/ab-pow2-conv.txt`). A radix-32 AVX2 pass and its
+  Go oracle were not built.
+- **Bluestein's convolution length**: every 7-smooth length from 20013 to
+  28019 was timed for 10007 (`TestZmConv`, `zen3/ab-pow2-conv.txt`); only
+  20736 (1.03) beat 20480, inside the spread, and with the radix-4 tail 20480
+  is faster still, so `bestConvLen` is unchanged.
+- **e >= 13 and composites above 32768 points**: no tail gained consistently.
+- **A rule instead of `zmCompTable`**: none of those tried over the sweep
+  matched the table (above). The sweep's own noise (load 1.6–2.3) is why
+  every entry needed three agreeing runs.
+- **Intel, arm64**: every change here runs only where `kernels.IntelCPU` is
+  false (`comp2On`, the frame kernels, `ZmSplitOdd`, `ZmCMulOn`); Intel and
+  arm64 run what they ran. The products kernel and the split radix-3/5
+  kernels are compared bit for bit on any AVX2 CPU by the tests, which turn
+  them on there; they were not timed on Intel.
+- **`GOAMD64=v3`**: the suites then fail 13 tests on Zen 3, 3 of them this
+  round's (`TestZmBluesteinMatchesLoops`, `TestCMulToMatchesScalar`,
+  `TestZmCMulKernelMatchesScalar`) and 10 that already failed on main: the
+  compiler fuses the Go oracles' products (`zen3/suites.txt`).
+
+**Which main.** v0.23.1 (2770704) for every measurement above.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round36-zen3-20261011/`](benchmarks/results/round36-zen3-20261011/).
+
 ### Round 35 — Cascade Lake: radix-8 first in the blocked schedule, radix-9 passes, the frame kernels at 512 bits (2026-10-11)
 
 **The question.** On Cascade Lake, v0.23.0 still took more than 1.05× FFTW's

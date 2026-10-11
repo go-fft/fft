@@ -1,0 +1,6 @@
+ 10:15:42 up 29 days, 18:40, 10 users,  load average: 1.60, 1.95, 2.06
+BLUE 10007 m 20480 (5x4x4x4x4x4x4) whole 163571 chirp-in 13789 fft 70471 cmul 21833 ifft 71660 chirp-out 12847 | CMulTo: chirp-in 8184 cmul 9291 chirp-out 5278
+FFT2 64x64 whole 9610 axis0(strips true) 4853 axis1(rows) 4700 one-row-plan 76 (x64 = 4844)
+FFT2 128x128 whole 49967 axis0(strips true) 28900 axis1(rows) 20004 one-row-plan 160 (x128 = 20454)
+PASS
+ 10:15:45 up 29 days, 18:40, 10 users,  load average: 1.60, 1.95, 2.06

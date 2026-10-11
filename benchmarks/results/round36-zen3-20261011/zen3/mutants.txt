@@ -1,55 +1,51 @@
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
-SHA-OK
-K1: --- FAIL: TestCMulToMatchesScalar (0.00s) --- FAIL: TestCMulToLengths (0.00s) FAIL 
-K2: --- FAIL: TestCMulToMatchesScalar (0.00s) --- FAIL: TestCMulToLengths (0.00s) FAIL 
-K3: --- FAIL: TestCMulToMatchesScalar (0.00s) FAIL 
-K4: --- FAIL: TestCMulToMatchesScalar (0.05s) panic: runtime error: index out of range [0] with length 0 [recovered, repanicked] panic({0x74af10?, 0x1af6908360a8?}) 
-K5: --- FAIL: TestCMulToLengths (0.00s) FAIL 
-K6: --- FAIL: TestCMulToLengths (0.00s) FAIL 
-K7: --- FAIL: TestZmCMulBulkGate (0.00s) FAIL 
-K8: --- FAIL: TestCMulToMatchesScalar (0.00s) --- FAIL: TestZmCMulBulkGate (0.00s) FAIL 
-F1: --- FAIL: TestZmRowsMatchRun (0.00s) FAIL 
-F2: PASS 
-F3: --- FAIL: TestZmRowsMatchRun (0.01s) panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked] panic({0x9d5f80?, 0xa257e0?}) 
-F4: --- FAIL: TestZmBluesteinMatchesLoops (0.00s) FAIL 
-F5: --- FAIL: TestZmBluesteinMatchesLoops (0.00s) FAIL 
-F6: --- FAIL: TestZmRowsMatchRun (0.03s) --- FAIL: TestZmBluesteinMatchesLoops (0.00s) FAIL 
-F2 (after adding out-of-place shapes): --- FAIL: TestZmRowsMatchRun FAIL
-SHA-OK
-P1: --- FAIL: TestZmPow2Tail (0.03s) FAIL 
-P2: --- FAIL: TestZmPow2Tail (0.02s) FAIL 
-P3: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
-P4: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
-P5: --- FAIL: TestZmPow2Tail (0.02s) FAIL 
-P6: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
-P7: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
-P8: PASS 
-P8 (after the routing assertion): --- FAIL: TestZmPow2Tail FAIL
-40
-SHA-OK
-S1: --- FAIL: TestSplitEachPassMatchesScalar (0.06s) --- FAIL: TestSplitTransformMatchesScalar (0.01s) FAIL 
-S2: --- FAIL: TestSplitEachPassMatchesScalar (0.07s) --- FAIL: TestSplitTransformMatchesScalar (0.01s) FAIL 
-S4: --- FAIL: TestSplitEachPassMatchesScalar (0.09s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S5: --- FAIL: TestSplitEachPassMatchesScalar (0.07s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S6: --- FAIL: TestSplitEachPassMatchesScalar (0.07s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S7: --- FAIL: TestSplitEachPassMatchesScalar (0.05s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S8: --- FAIL: TestSplitEachPassMatchesScalar (0.06s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S9: --- FAIL: TestSplitEachPassMatchesScalar (0.08s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S12: --- FAIL: TestSplitEachPassMatchesScalar (0.05s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
-S10: --- FAIL: TestClCompSplit256 (0.00s) --- FAIL: TestSplitModes (0.00s) FAIL 
-S11: --- FAIL: TestZnKernelAddrs (0.00s) FAIL 
-T1: --- FAIL: TestCompFactorize (0.00s) --- FAIL: TestZmCompTable (0.07s) FAIL 
-T3: --- FAIL: TestZmCompTable (0.07s) FAIL 
+# Round 36 mutations: each one applied to a copy of the branch, regenerated
+# (go run gen.go) where it touches the generator, cross-compiled, checked by
+# SHA-256 on cfarm420 and run there (taskset -c 64-79) on the tests named.
+# A mutation is killed when a test FAILs (or panics).
+#
+# CMulTo and its AVX2 kernel (tests: CMulTo|ZmCMul)
+K1  gen: VADDSUBPD Y0, Y4, Y4 -> VADDSUBPD Y4, Y0, Y4      --- FAIL: TestCMulToMatchesScalar --- FAIL: TestCMulToLengths
+K2  gen: VPERMILPD $15, (DX), Y2 -> $0 (bi -> br)          --- FAIL: TestCMulToMatchesScalar --- FAIL: TestCMulToLengths
+K3  gen: ADDQ $64, DX -> ADDQ $32, DX                      --- FAIL: TestCMulToMatchesScalar
+K4  zmCMulBulk: q == 0 -> q < 0                            --- FAIL: TestCMulToMatchesScalar (panic: index out of range [0] with length 0)
+K5  CMulTo guard: len(a) < n || len(b) < n -> len(a) < n   --- FAIL: TestCMulToLengths
+K6  CMulTo guard: ... -> len(b) < n                        --- FAIL: TestCMulToLengths
+K7  zmCMulBulk: !UseStockhamAVX2 dropped                   --- FAIL: TestZmCMulBulkGate
+K8  zmCMulBulk: return 4*q -> 4*q - 1                      --- FAIL: TestCMulToMatchesScalar --- FAIL: TestZmCMulBulkGate
+K9  zmCMulBulk: !ZmCMulOn dropped                          --- FAIL: TestZmCMulBulkGate
+#
+# The 2-D rows on the frame, Bluestein (tests: TestZm(Rows|Bluestein))
+F1  contiguousLines: zn.Run(s, d, inverse) -> (s, d, false)    --- FAIL: TestZmRowsMatchRun
+F2  contiguousLines: zn.Run(s, d, ...) -> (d, s, ...)          PASS at first (every shape ran its rows in place);
+                                                               --- FAIL: TestZmRowsMatchRun once 1-D and 1×…×n shapes were added
+F3  contiguousLines: bp == nil -> bp != nil                    --- FAIL: TestZmRowsMatchRun (nil dereference)
+F4  Bluestein: CMulTo(a, a, bSpec) -> CMulTo(a[:n], a, bSpec)  --- FAIL: TestZmBluesteinMatchesLoops
+F5  Bluestein: chirp-out with bSpec instead of w               --- FAIL: TestZmBluesteinMatchesLoops
+F6  Bluestein: clear(a[n:]) -> clear(a[n+1:])                  --- FAIL: TestZmRowsMatchRun --- FAIL: TestZmBluesteinMatchesLoops
+#
+# zmPow2Tail (tests: TestZmPow2Tail|TestSkFactor|TestComp)
+P1  !on dropped                                  --- FAIL: TestZmPow2Tail
+P2  n > 1<<15 -> n > 1<<16                       --- FAIL: TestZmPow2Tail
+P3  e < 11 -> e < 10                             --- FAIL: TestZmPow2Tail
+P4  e > 12 -> e > 13                             --- FAIL: TestZmPow2Tail
+P5  odd == 1 dropped                             --- FAIL: TestZmPow2Tail
+P6  odd != 1 check dropped                       --- FAIL: TestZmPow2Tail
+P7  e == 11 -> e == 12                           --- FAIL: TestZmPow2Tail
+P8  compFactorize without zmPow2Tail             PASS at first; --- FAIL: TestZmPow2Tail once skFactorize's routing was asserted
+#
+# Radix 3 and 5 split (tests: Split|Zn)
+S1  body3: ca = x0 - 0.5·t1 -> 0.5·t1 - x0                  --- FAIL: TestSplitEachPassMatchesScalar --- FAIL: TestSplitTransformMatchesScalar
+S2  body3: y1, y2 exchanged                                 --- FAIL: (both)
+S4  body5: c52·t3 -> c51·t3 in r1                            --- FAIL: (both)
+S5  body5: z2 = s52·t2 - s51·t4 reversed                     --- FAIL: (both)
+S6  body5: y0 = (a + t1) + t3 -> (a + t3) + t1               --- FAIL: (both)
+S7  body5: y3, y4 written to each other's stream             --- FAIL: (both)
+S8  body5: z1's parts exchanged in the rotation              --- FAIL: (both)
+S9  splitK: cos(2π/5) and cos(4π/5) rows exchanged           --- FAIL: (both)
+S12 body3: 0.5 -> sin(2π/3) in ca's imaginary part           --- FAIL: (both)
+S10 zmSplitRun: ZmSplitOdd ignored                           --- FAIL: TestClCompSplit256 --- FAIL: TestSplitModes
+S11 znKernelAddrs without the radix-3 and -5 split kernels   --- FAIL: TestZnKernelAddrs
+#
+# zmCompTable (tests: TestZmCompTable|TestCompFactorize)
+T1  lookup without comp2On                       --- FAIL: TestCompFactorize --- FAIL: TestZmCompTable
+T3  lookup of n+1 (table never found)            --- FAIL: TestZmCompTable

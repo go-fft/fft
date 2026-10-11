@@ -98,14 +98,19 @@ func TestZmLocate(t *testing.T) {
 					dst[k] = a[k] * w[k]
 				}
 			},
+			// The same three products through kernels.CMulTo (Round 36).
+			func() { kernels.CMulTo(a[:n], src, w); clear(a[n:]) },
+			func() { kernels.CMulTo(a, a, bp.bF) },
+			func() { kernels.CMulTo(dst, a, w) },
 		}
 		times := comp2Rotate(fns, rounds, ms)
 		var f []int
 		if cp.sk != nil {
 			f = cp.sk.factors()
 		}
-		fmt.Printf("BLUE %d m %d (%s) whole %.0f chirp-in %.0f fft %.0f cmul %.0f ifft %.0f chirp-out %.0f\n", n, m, factorName(f),
-			median(times[0]), median(times[1]), median(times[2]), median(times[3]), median(times[4]), median(times[5]))
+		fmt.Printf("BLUE %d m %d (%s) whole %.0f chirp-in %.0f fft %.0f cmul %.0f ifft %.0f chirp-out %.0f | CMulTo: chirp-in %.0f cmul %.0f chirp-out %.0f\n", n, m, factorName(f),
+			median(times[0]), median(times[1]), median(times[2]), median(times[3]), median(times[4]), median(times[5]),
+			median(times[6]), median(times[7]), median(times[8]))
 	}
 	for _, n := range []int{64, 128} {
 		p := NewPlanN(n, n)
