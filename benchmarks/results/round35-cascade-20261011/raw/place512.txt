@@ -1,0 +1,13 @@
+# start 09:18:49 load 0.10 0.20 0.31 sha d5bcd86d9af1a43a : ./t14.test -test.run TestCsPlace2D -cs.ab=7,100 -cs.pairs=8 -test.v
+=== RUN   TestCsPlace2D
+PLACE [512 512] pair 0 src%2M= 180000 dst%2M= 180000 median 2410163 ns [2330526 2779444]
+PLACE [512 512] pair 1 src%2M= 180000 dst%2M= 180000 median 2344424 ns [2206440 2739856]
+PLACE [512 512] pair 2 src%2M= 180000 dst%2M= 180000 median 2310719 ns [2291311 2475924]
+PLACE [512 512] pair 3 src%2M= 180000 dst%2M= 180000 median 2281274 ns [2151821 2545393]
+PLACE [512 512] pair 4 src%2M= 180000 dst%2M= 180000 median 2318145 ns [2181789 2433702]
+PLACE [512 512] pair 5 src%2M= 180000 dst%2M= 180000 median 2407800 ns [2352375 2497090]
+PLACE [512 512] pair 6 src%2M= 180000 dst%2M= 180000 median 2595151 ns [2280473 2789617]
+PLACE [512 512] pair 7 src%2M= 180000 dst%2M= 180000 median 2366759 ns [2235126 2595324]
+--- PASS: TestCsPlace2D (8.75s)
+PASS
+# end 09:18:58 load 0.24 0.22 0.32

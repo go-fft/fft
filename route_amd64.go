@@ -387,15 +387,28 @@ func splitTableAMD64(on bool) map[int][]int {
 
 // znTwoPassMaxDefault and znThreePassMaxDefault are znFrameMaxAMD64 for this
 // machine.
-func znTwoPassMaxDefault() int   { return znFrameMaxAMD64(kernels.IntelCPU, kernels.ZnTwoPassMax) }
-func znThreePassMaxDefault() int { return znFrameMaxAMD64(kernels.IntelCPU, kernels.ZnThreePassMax) }
+func znTwoPassMaxDefault() int {
+	return znFrameMaxAMD64(kernels.IntelCPU, kernels.UseStockhamAVX512, kernels.ZnTwoPassMax)
+}
+
+func znThreePassMaxDefault() int {
+	return znFrameMaxAMD64(kernels.IntelCPU, kernels.UseStockhamAVX512, kernels.ZnThreePassMax)
+}
 
 // znFrameMaxAMD64 is the longest two- or three-pass transform that keeps its
 // buffers in the kernel's stack frame (kernels.ZnTwoPass, ZnThreePass;
-// Round 32): the kernel's limit on AMD, where it was measured (Zen 3), and 0
-// on Intel, where it was not.
-func znFrameMaxAMD64(intel bool, limit int) int {
-	if intel {
+// Round 32): the kernel's limit on AMD, where it was measured (Zen 3), and
+// on an Intel CPU with AVX-512 (Cascade Lake, Round 35); 0 on an Intel CPU
+// without it (Haswell), where it was not measured.
+//
+// On Cascade Lake the plans the frame kernels run (every AVX2 two- or
+// three-pass plan up to 512 points; not the powers of two from 256, whose
+// 512-bit split passes they do not run) ran, pool time ÷ frame time, eleven
+// rotated rounds, one process: complex 16 / 32 / 64 / 128 1.58 / 1.59 / 1.39 /
+// 1.18; 192, 240, 288, 324, 432 1.04–1.11; RFFT 128 and 256 1.16, IRFFT 256
+// 1.10; complex 256, 512 and RFFT 512, which keep the pool, 1.00.
+func znFrameMaxAMD64(intel, avx512 bool, limit int) int {
+	if intel && !avx512 {
 		return 0
 	}
 	return limit

@@ -166,14 +166,20 @@ func TestClRowOrderAMD64(t *testing.T) {
 	}
 }
 
-// TestZnFrameMaxAMD64: the frame kernels run on AMD only, up to the kernels
-// package's limits.
+// TestZnFrameMaxAMD64: the frame kernels run on AMD and on Intel with
+// AVX-512 (Round 35), up to the kernels package's limits, and not on Intel
+// without AVX-512.
 func TestZnFrameMaxAMD64(t *testing.T) {
-	if got := znFrameMaxAMD64(false, 77); got != 77 {
-		t.Errorf("AMD: %d", got)
+	for _, avx512 := range []bool{false, true} {
+		if got := znFrameMaxAMD64(false, avx512, 77); got != 77 {
+			t.Errorf("AMD, AVX-512 %v: %d", avx512, got)
+		}
 	}
-	if got := znFrameMaxAMD64(true, 77); got != 0 {
-		t.Errorf("Intel: %d", got)
+	if got := znFrameMaxAMD64(true, true, 77); got != 77 {
+		t.Errorf("Intel with AVX-512: %d", got)
+	}
+	if got := znFrameMaxAMD64(true, false, 77); got != 0 {
+		t.Errorf("Intel without AVX-512: %d", got)
 	}
 	if kernels.ZnTwoPassMax < 128 || kernels.ZnThreePassMax < 256 {
 		t.Errorf("limits %d, %d", kernels.ZnTwoPassMax, kernels.ZnThreePassMax)

@@ -118,7 +118,7 @@ func TestZnFrameMatchesPool(t *testing.T) {
 	if kernels.ZnTwoPassMax == 0 {
 		// No frame kernel here: the stub runs nothing.
 		var none *kernels.ZnPlan
-		if none.Run(nil, nil, false) {
+		if none.Run(nil, nil, false) || none.Wide() {
 			t.Error("the stub ran")
 		}
 	} else if p64 := NewPlan(64); p64.sk != nil && p64.sk.zn != nil && (taken[2] < 15 || taken[3] < 15) {

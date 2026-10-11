@@ -3782,6 +3782,19 @@ func genZnKernelAddrs(f *emit.File) {
 			}
 		}
 	}
+	// Round 35: the 512-bit split kernels (Cascade Lake's powers of two from
+	// 256 points), at 132 + their 256-bit twins' offset, and the AVX-512
+	// final-pass kernels by radix from 222.
+	for d, dir := range []string{"Fwd", "Inv"} {
+		for _, r := range []int{4, 8} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("intelSplit512R%d%s%s", r, znSplitModes[m], dir), 132+(9*d+r)*5+m)
+			}
+		}
+	}
+	for _, r := range []int{2, 4, 8} {
+		put(fmt.Sprintf("skLast%dAVX512", r), 222+r)
+	}
 	b.Ret()
 	f.Add(b.Func())
 }

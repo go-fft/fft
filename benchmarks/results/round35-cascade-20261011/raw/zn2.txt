@@ -1,0 +1,16 @@
+# start 09:24:06 load 0.17 0.20 0.29 sha 645a07525fc475af : ./t15.test -test.run TestZnFrame$ -zn.ab=15,100 -zn.rows=C256,C512,R512,R1024,I512,I1024,R256,C128,C64,C1024,R4096 -test.v
+=== RUN   TestZnFrame
+ZNTWO C256  pool   475.8 frame   390.9 pool/frame 1.215 (1.199-1.222)
+ZNTWO C512  pool   902.8 frame   833.9 pool/frame 1.082 (1.075-1.111)
+ZNTWO R512  pool   661.8 frame   588.3 pool/frame 1.125 (0.982-1.130)
+ZNTWO R1024 pool  1290.6 frame  1201.7 pool/frame 1.073 (1.067-1.086)
+ZNTWO I512  pool   722.5 frame   625.7 pool/frame 1.155 (1.140-1.176)
+ZNTWO I1024 pool  1471.9 frame  1324.5 pool/frame 1.111 (1.056-1.135)
+ZNTWO R256  pool   392.9 frame   361.8 pool/frame 1.088 (1.071-1.167)
+ZNTWO C128  pool   261.2 frame   221.3 pool/frame 1.181 (1.175-1.202)
+ZNTWO C64   pool   158.1 frame   116.4 pool/frame 1.359 (1.339-1.403)
+ZNTWO C1024 pool  2516.9 frame  2525.3 pool/frame 0.999 (0.992-1.051)
+ZNTWO R4096 pool  7798.7 frame  7848.8 pool/frame 0.993 (0.986-0.996)
+--- PASS: TestZnFrame (48.27s)
+PASS
+# end 09:24:55 load 0.61 0.32 0.32

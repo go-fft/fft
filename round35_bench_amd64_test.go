@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"unsafe"
 )
 
 // Round 35 (Cascade Lake): the rows where FFTW still leads, located part by
@@ -505,3 +506,32 @@ func TestCsComp9(t *testing.T) {
 	}
 	fmt.Printf("COMP9 summary: %d lengths, geometric mean %.3f, min %.3f, max %.3f\n", len(qs), math.Exp(g/float64(len(qs))), mn, mx)
 }
+
+var csPlaceShape = flag.String("cs.place", "512,512", "TestCsPlace2D: shape")
+
+// TestCsPlace2D times one N-D plan on -cs.pairs separately allocated src/dst
+// pairs, rotated, to tell a difference between allocations from one between
+// plans: per pair, the median ns and the addresses' offsets.
+func TestCsPlace2D(t *testing.T) {
+	rounds, ms := csRounds(t)
+	shape := csInts(t, *csPlaceShape)
+	p := NewPlanN(shape...)
+	size := shapeProduct(shape...)
+	var fns []func()
+	var offs []string
+	var keep [][]complex128
+	for range *csPairs {
+		src, dst := benchComplex(size), make([]complex128, size)
+		keep = append(keep, src, dst)
+		fns = append(fns, func() { p.FFT(dst, src) })
+		offs = append(offs, fmt.Sprintf("src%%2M=%7x dst%%2M=%7x", uintptr(unsafe.Pointer(&src[0]))%(2<<20), uintptr(unsafe.Pointer(&dst[0]))%(2<<20)))
+	}
+	times := comp2Rotate(fns, rounds, ms)
+	for k := range fns {
+		lo, hi := slices.Min(times[k]), slices.Max(times[k])
+		fmt.Printf("PLACE %v pair %d %s median %.0f ns [%.0f %.0f]\n", shape, k, offs[k], median(times[k]), lo, hi)
+	}
+	_ = keep
+}
+
+var csPairs = flag.Int("cs.pairs", 8, "TestCsPlace2D: allocations")
