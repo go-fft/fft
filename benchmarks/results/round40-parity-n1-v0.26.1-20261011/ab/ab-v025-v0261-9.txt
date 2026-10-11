@@ -1,0 +1,415 @@
+# round 1 variant arm-v0.26.1 16:34:27 load 0.60 0.91 0.72
+PLACE C1009 j=0  21627.8  src%4K=0 dst%4K=0
+PLACE C10007 j=0  415355.3  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4926.3  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6929.1  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21612.8  src%4K=0 dst%4K=0
+PLACE C10007 j=1  417037.0  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4928.7  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6934.0  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21711.1  src%4K=0 dst%4K=0
+PLACE C10007 j=2  416385.5  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4963.6  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6970.5  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21806.7  src%4K=0 dst%4K=0
+PLACE C10007 j=3  418092.0  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4938.0  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6914.1  src%4K=0 dst%4K=0
+ROW C1009 median 21669.5  min 21612.8  max 21806.7  (4 placements)
+ROW C10007 median 416711.2  min 415355.3  max 418092.0  (4 placements)
+ROW C1024 median  4933.4  min  4926.3  max  4963.6  (4 placements)
+ROW C1080 median  6931.6  min  6914.1  max  6970.5  (4 placements)
+PASS
+# end 16:35:17 load 0.83 0.93 0.73
+# round 1 variant arm-v0.25.0 16:35:17 load 0.83 0.93 0.73
+PLACE C1009 j=0  21701.6  src%4K=0 dst%4K=0
+PLACE C10007 j=0  422356.7  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4917.6  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6879.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21751.5  src%4K=0 dst%4K=0
+PLACE C10007 j=1  418944.0  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4905.7  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6894.4  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21835.8  src%4K=0 dst%4K=0
+PLACE C10007 j=2  420887.1  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4910.0  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6923.3  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21791.6  src%4K=0 dst%4K=0
+PLACE C10007 j=3  423113.9  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4915.9  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6881.0  src%4K=0 dst%4K=0
+ROW C1009 median 21771.6  min 21701.6  max 21835.8  (4 placements)
+ROW C10007 median 421621.9  min 418944.0  max 423113.9  (4 placements)
+ROW C1024 median  4912.9  min  4905.7  max  4917.6  (4 placements)
+ROW C1080 median  6887.7  min  6879.5  max  6923.3  (4 placements)
+PASS
+# end 16:36:06 load 0.93 0.94 0.75
+# round 2 variant arm-v0.25.0 16:36:07 load 0.93 0.94 0.75
+PLACE C1009 j=0  21834.0  src%4K=0 dst%4K=0
+PLACE C10007 j=0  424384.3  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4966.9  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6879.3  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21664.4  src%4K=0 dst%4K=0
+PLACE C10007 j=1  409816.5  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4918.5  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6940.2  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21896.3  src%4K=0 dst%4K=0
+PLACE C10007 j=2  417780.1  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4939.8  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6935.9  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21854.2  src%4K=0 dst%4K=0
+PLACE C10007 j=3  419140.9  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4960.0  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6903.0  src%4K=0 dst%4K=0
+ROW C1009 median 21844.1  min 21664.4  max 21896.3  (4 placements)
+ROW C10007 median 418460.5  min 409816.5  max 424384.3  (4 placements)
+ROW C1024 median  4949.9  min  4918.5  max  4966.9  (4 placements)
+ROW C1080 median  6919.5  min  6879.3  max  6940.2  (4 placements)
+PASS
+# end 16:36:56 load 0.97 0.95 0.76
+# round 2 variant arm-v0.26.1 16:36:57 load 0.97 0.95 0.76
+PLACE C1009 j=0  21616.9  src%4K=0 dst%4K=0
+PLACE C10007 j=0  413445.0  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4921.9  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6881.4  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21606.7  src%4K=0 dst%4K=0
+PLACE C10007 j=1  410225.1  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4917.6  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6872.1  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21633.0  src%4K=0 dst%4K=0
+PLACE C10007 j=2  411641.3  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4917.3  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6920.9  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21695.2  src%4K=0 dst%4K=0
+PLACE C10007 j=3  409885.2  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4915.8  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6900.2  src%4K=0 dst%4K=0
+ROW C1009 median 21624.9  min 21606.7  max 21695.2  (4 placements)
+ROW C10007 median 410933.2  min 409885.2  max 413445.0  (4 placements)
+ROW C1024 median  4917.4  min  4915.8  max  4921.9  (4 placements)
+ROW C1080 median  6890.8  min  6872.1  max  6920.9  (4 placements)
+PASS
+# end 16:37:46 load 0.99 0.96 0.78
+# round 3 variant arm-v0.26.1 16:37:46 load 0.99 0.96 0.78
+PLACE C1009 j=0  21530.7  src%4K=0 dst%4K=0
+PLACE C10007 j=0  410907.8  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4879.2  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6895.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21516.7  src%4K=0 dst%4K=0
+PLACE C10007 j=1  411934.3  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4894.2  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6871.7  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21585.1  src%4K=0 dst%4K=0
+PLACE C10007 j=2  414677.4  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4913.5  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6889.5  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21529.0  src%4K=0 dst%4K=0
+PLACE C10007 j=3  412059.6  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4874.6  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6888.0  src%4K=0 dst%4K=0
+ROW C1009 median 21529.8  min 21516.7  max 21585.1  (4 placements)
+ROW C10007 median 411996.9  min 410907.8  max 414677.4  (4 placements)
+ROW C1024 median  4886.7  min  4874.6  max  4913.5  (4 placements)
+ROW C1080 median  6888.8  min  6871.7  max  6895.5  (4 placements)
+PASS
+# end 16:38:36 load 1.00 0.97 0.79
+# round 3 variant arm-v0.25.0 16:38:36 load 1.00 0.97 0.79
+PLACE C1009 j=0  21740.4  src%4K=0 dst%4K=0
+PLACE C10007 j=0  423036.7  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4933.5  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6894.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21581.4  src%4K=0 dst%4K=0
+PLACE C10007 j=1  415096.9  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4894.2  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6862.1  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21678.1  src%4K=0 dst%4K=0
+PLACE C10007 j=2  415658.5  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4904.1  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6871.3  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21680.1  src%4K=0 dst%4K=0
+PLACE C10007 j=3  421121.0  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4890.4  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6931.9  src%4K=0 dst%4K=0
+ROW C1009 median 21679.1  min 21581.4  max 21740.4  (4 placements)
+ROW C10007 median 418389.8  min 415096.9  max 423036.7  (4 placements)
+ROW C1024 median  4899.2  min  4890.4  max  4933.5  (4 placements)
+ROW C1080 median  6882.9  min  6862.1  max  6931.9  (4 placements)
+PASS
+# end 16:39:25 load 1.00 0.98 0.81
+# round 4 variant arm-v0.25.0 16:39:25 load 1.00 0.98 0.81
+PLACE C1009 j=0  21729.0  src%4K=0 dst%4K=0
+PLACE C10007 j=0  419782.5  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4881.7  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6861.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21629.4  src%4K=0 dst%4K=0
+PLACE C10007 j=1  418131.3  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4887.0  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6875.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21698.3  src%4K=0 dst%4K=0
+PLACE C10007 j=2  418912.8  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4881.2  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6859.1  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21657.0  src%4K=0 dst%4K=0
+PLACE C10007 j=3  420747.7  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4901.1  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6909.0  src%4K=0 dst%4K=0
+ROW C1009 median 21677.7  min 21629.4  max 21729.0  (4 placements)
+ROW C10007 median 419347.6  min 418131.3  max 420747.7  (4 placements)
+ROW C1024 median  4884.4  min  4881.2  max  4901.1  (4 placements)
+ROW C1080 median  6868.5  min  6859.1  max  6909.0  (4 placements)
+PASS
+# end 16:40:15 load 1.15 1.01 0.83
+# round 4 variant arm-v0.26.1 16:40:15 load 1.15 1.01 0.83
+PLACE C1009 j=0  21673.8  src%4K=0 dst%4K=0
+PLACE C10007 j=0  411237.9  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4940.6  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6915.0  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21455.4  src%4K=0 dst%4K=0
+PLACE C10007 j=1  409189.8  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4906.7  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6901.8  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21625.8  src%4K=0 dst%4K=0
+PLACE C10007 j=2  404035.6  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4898.1  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6891.4  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21646.3  src%4K=0 dst%4K=0
+PLACE C10007 j=3  410315.5  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4913.0  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6853.7  src%4K=0 dst%4K=0
+ROW C1009 median 21636.1  min 21455.4  max 21673.8  (4 placements)
+ROW C10007 median 409752.6  min 404035.6  max 411237.9  (4 placements)
+ROW C1024 median  4909.9  min  4898.1  max  4940.6  (4 placements)
+ROW C1080 median  6896.6  min  6853.7  max  6915.0  (4 placements)
+PASS
+# end 16:41:05 load 1.06 1.01 0.84
+# round 5 variant arm-v0.26.1 16:41:05 load 1.06 1.01 0.84
+PLACE C1009 j=0  21794.1  src%4K=0 dst%4K=0
+PLACE C10007 j=0  414209.8  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4930.0  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6943.0  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21630.5  src%4K=0 dst%4K=0
+PLACE C10007 j=1  413690.3  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4923.3  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6858.1  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21507.7  src%4K=0 dst%4K=0
+PLACE C10007 j=2  408881.1  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4886.3  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6897.3  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21592.3  src%4K=0 dst%4K=0
+PLACE C10007 j=3  412535.9  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4926.8  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6940.0  src%4K=0 dst%4K=0
+ROW C1009 median 21611.4  min 21507.7  max 21794.1  (4 placements)
+ROW C10007 median 413113.1  min 408881.1  max 414209.8  (4 placements)
+ROW C1024 median  4925.0  min  4886.3  max  4930.0  (4 placements)
+ROW C1080 median  6918.7  min  6858.1  max  6943.0  (4 placements)
+PASS
+# end 16:41:54 load 1.03 1.00 0.85
+# round 5 variant arm-v0.25.0 16:41:54 load 1.03 1.00 0.85
+PLACE C1009 j=0  21852.0  src%4K=0 dst%4K=0
+PLACE C10007 j=0  420153.8  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4912.0  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6884.2  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21864.5  src%4K=0 dst%4K=0
+PLACE C10007 j=1  420703.8  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4919.9  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6916.9  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21755.8  src%4K=0 dst%4K=0
+PLACE C10007 j=2  418303.3  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4902.4  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6913.7  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21771.4  src%4K=0 dst%4K=0
+PLACE C10007 j=3  421052.7  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4907.1  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6925.3  src%4K=0 dst%4K=0
+ROW C1009 median 21811.7  min 21755.8  max 21864.5  (4 placements)
+ROW C10007 median 420428.8  min 418303.3  max 421052.7  (4 placements)
+ROW C1024 median  4909.5  min  4902.4  max  4919.9  (4 placements)
+ROW C1080 median  6915.3  min  6884.2  max  6925.3  (4 placements)
+PASS
+# end 16:42:44 load 1.01 1.00 0.86
+# round 6 variant arm-v0.25.0 16:42:44 load 1.01 1.00 0.86
+PLACE C1009 j=0  21744.7  src%4K=0 dst%4K=0
+PLACE C10007 j=0  422724.0  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4922.7  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6893.3  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21748.0  src%4K=0 dst%4K=0
+PLACE C10007 j=1  419770.9  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4896.3  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6900.2  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21756.7  src%4K=0 dst%4K=0
+PLACE C10007 j=2  423090.6  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4897.3  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6907.9  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21850.4  src%4K=0 dst%4K=0
+PLACE C10007 j=3  422434.8  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4885.7  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6859.1  src%4K=0 dst%4K=0
+ROW C1009 median 21752.4  min 21744.7  max 21850.4  (4 placements)
+ROW C10007 median 422579.4  min 419770.9  max 423090.6  (4 placements)
+ROW C1024 median  4896.8  min  4885.7  max  4922.7  (4 placements)
+ROW C1080 median  6896.7  min  6859.1  max  6907.9  (4 placements)
+PASS
+# end 16:43:34 load 1.08 1.02 0.87
+# round 6 variant arm-v0.26.1 16:43:34 load 1.08 1.02 0.87
+PLACE C1009 j=0  21671.8  src%4K=0 dst%4K=0
+PLACE C10007 j=0  417012.1  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4975.6  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6932.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21871.2  src%4K=0 dst%4K=0
+PLACE C10007 j=1  411083.8  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4975.5  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6971.7  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21771.0  src%4K=0 dst%4K=0
+PLACE C10007 j=2  410346.1  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4957.9  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6928.3  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21717.9  src%4K=0 dst%4K=0
+PLACE C10007 j=3  409962.1  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4974.7  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6932.1  src%4K=0 dst%4K=0
+ROW C1009 median 21744.5  min 21671.8  max 21871.2  (4 placements)
+ROW C10007 median 410714.9  min 409962.1  max 417012.1  (4 placements)
+ROW C1024 median  4975.1  min  4957.9  max  4975.6  (4 placements)
+ROW C1080 median  6932.3  min  6928.3  max  6971.7  (4 placements)
+PASS
+# end 16:44:24 load 1.13 1.04 0.89
+# round 7 variant arm-v0.26.1 16:44:24 load 1.13 1.04 0.89
+PLACE C1009 j=0  21696.5  src%4K=0 dst%4K=0
+PLACE C10007 j=0  416082.5  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4941.2  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6905.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21551.9  src%4K=0 dst%4K=0
+PLACE C10007 j=1  410781.9  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4908.6  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6939.9  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21616.6  src%4K=0 dst%4K=0
+PLACE C10007 j=2  409911.6  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4896.3  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6865.3  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21631.8  src%4K=0 dst%4K=0
+PLACE C10007 j=3  415142.2  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4929.4  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6928.8  src%4K=0 dst%4K=0
+ROW C1009 median 21624.2  min 21551.9  max 21696.5  (4 placements)
+ROW C10007 median 412962.1  min 409911.6  max 416082.5  (4 placements)
+ROW C1024 median  4919.0  min  4896.3  max  4941.2  (4 placements)
+ROW C1080 median  6917.2  min  6865.3  max  6939.9  (4 placements)
+PASS
+# end 16:45:14 load 1.21 1.07 0.92
+# round 7 variant arm-v0.25.0 16:45:14 load 1.21 1.07 0.92
+PLACE C1009 j=0  21876.7  src%4K=0 dst%4K=0
+PLACE C10007 j=0  423346.5  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4924.6  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6926.5  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21769.8  src%4K=0 dst%4K=0
+PLACE C10007 j=1  422544.4  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4914.9  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6903.7  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21748.1  src%4K=0 dst%4K=0
+PLACE C10007 j=2  421254.1  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4913.0  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6876.0  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21784.1  src%4K=0 dst%4K=0
+PLACE C10007 j=3  418818.7  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4907.0  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6901.6  src%4K=0 dst%4K=0
+ROW C1009 median 21776.9  min 21748.1  max 21876.7  (4 placements)
+ROW C10007 median 421899.3  min 418818.7  max 423346.5  (4 placements)
+ROW C1024 median  4913.9  min  4907.0  max  4924.6  (4 placements)
+ROW C1080 median  6902.6  min  6876.0  max  6926.5  (4 placements)
+PASS
+# end 16:46:04 load 1.09 1.05 0.92
+# round 8 variant arm-v0.25.0 16:46:04 load 1.09 1.05 0.92
+PLACE C1009 j=0  21738.9  src%4K=0 dst%4K=0
+PLACE C10007 j=0  421224.8  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4926.1  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6911.1  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21757.2  src%4K=0 dst%4K=0
+PLACE C10007 j=1  428586.3  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4902.1  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6903.4  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21801.9  src%4K=0 dst%4K=0
+PLACE C10007 j=2  421471.9  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4902.3  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6880.5  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21775.8  src%4K=0 dst%4K=0
+PLACE C10007 j=3  421312.0  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4908.6  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6920.0  src%4K=0 dst%4K=0
+ROW C1009 median 21766.5  min 21738.9  max 21801.9  (4 placements)
+ROW C10007 median 421392.0  min 421224.8  max 428586.3  (4 placements)
+ROW C1024 median  4905.4  min  4902.1  max  4926.1  (4 placements)
+ROW C1080 median  6907.3  min  6880.5  max  6920.0  (4 placements)
+PASS
+# end 16:46:54 load 1.04 1.04 0.93
+# round 8 variant arm-v0.26.1 16:46:54 load 1.04 1.04 0.93
+PLACE C1009 j=0  21434.4  src%4K=0 dst%4K=0
+PLACE C10007 j=0  407411.8  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4902.2  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6850.3  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21652.5  src%4K=0 dst%4K=0
+PLACE C10007 j=1  412946.8  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4943.8  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6941.2  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21623.3  src%4K=0 dst%4K=0
+PLACE C10007 j=2  410002.8  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4912.2  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6920.6  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21626.4  src%4K=0 dst%4K=0
+PLACE C10007 j=3  410993.5  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4915.8  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6926.8  src%4K=0 dst%4K=0
+ROW C1009 median 21624.9  min 21434.4  max 21652.5  (4 placements)
+ROW C10007 median 410498.1  min 407411.8  max 412946.8  (4 placements)
+ROW C1024 median  4914.0  min  4902.2  max  4943.8  (4 placements)
+ROW C1080 median  6923.7  min  6850.3  max  6941.2  (4 placements)
+PASS
+# end 16:47:43 load 1.02 1.03 0.93
+# round 9 variant arm-v0.26.1 16:47:43 load 1.02 1.03 0.93
+PLACE C1009 j=0  21607.3  src%4K=0 dst%4K=0
+PLACE C10007 j=0  416494.6  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4927.2  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6879.9  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21453.1  src%4K=0 dst%4K=0
+PLACE C10007 j=1  410291.6  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4936.0  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6862.6  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21570.9  src%4K=0 dst%4K=0
+PLACE C10007 j=2  412726.8  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4894.3  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6887.9  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21429.0  src%4K=0 dst%4K=0
+PLACE C10007 j=3  407026.4  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4887.9  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6904.9  src%4K=0 dst%4K=0
+ROW C1009 median 21512.0  min 21429.0  max 21607.3  (4 placements)
+ROW C10007 median 411509.2  min 407026.4  max 416494.6  (4 placements)
+ROW C1024 median  4910.8  min  4887.9  max  4936.0  (4 placements)
+ROW C1080 median  6883.9  min  6862.6  max  6904.9  (4 placements)
+PASS
+# end 16:48:33 load 1.00 1.03 0.93
+# round 9 variant arm-v0.25.0 16:48:33 load 1.00 1.03 0.93
+PLACE C1009 j=0  21577.7  src%4K=0 dst%4K=0
+PLACE C10007 j=0  422048.7  src%4K=0 dst%4K=0
+PLACE C1024 j=0   4912.9  src%4K=0 dst%4K=0
+PLACE C1080 j=0   6936.7  src%4K=2048 dst%4K=0
+PLACE C1009 j=1  21629.8  src%4K=0 dst%4K=0
+PLACE C10007 j=1  420004.0  src%4K=0 dst%4K=0
+PLACE C1024 j=1   4903.4  src%4K=0 dst%4K=0
+PLACE C1080 j=1   6891.8  src%4K=2048 dst%4K=0
+PLACE C1009 j=2  21646.4  src%4K=0 dst%4K=0
+PLACE C10007 j=2  419137.7  src%4K=0 dst%4K=0
+PLACE C1024 j=2   4901.1  src%4K=0 dst%4K=0
+PLACE C1080 j=2   6912.5  src%4K=0 dst%4K=2048
+PLACE C1009 j=3  21638.7  src%4K=0 dst%4K=0
+PLACE C10007 j=3  419828.7  src%4K=0 dst%4K=0
+PLACE C1024 j=3   4891.4  src%4K=0 dst%4K=0
+PLACE C1080 j=3   6862.3  src%4K=0 dst%4K=0
+ROW C1009 median 21634.3  min 21577.7  max 21646.4  (4 placements)
+ROW C10007 median 419916.3  min 419137.7  max 422048.7  (4 placements)
+ROW C1024 median  4902.3  min  4891.4  max  4912.9  (4 placements)
+ROW C1080 median  6902.1  min  6862.3  max  6936.7  (4 placements)
+PASS
+# end 16:49:22 load 1.05 1.04 0.95
+# done 16:49:22 load 1.05 1.04 0.95

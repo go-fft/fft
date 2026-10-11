@@ -1,0 +1,199 @@
+# round 1 variant bench-v0.26.1 16:52:54 load 0.09 0.54 0.76
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  244916	      4874 ns/op
+BenchmarkComplex_GoFFT/1009         	   55047	     21729 ns/op
+BenchmarkComplex_GoFFT/10007        	    2949	    430475 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1947	    618705 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     376	   3149650 ns/op
+PASS
+# end 16:53:02 load 0.17 0.55 0.76
+# round 1 variant bench-v0.25.0 16:53:02 load 0.17 0.55 0.76
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  240822	      4936 ns/op
+BenchmarkComplex_GoFFT/1009         	   54674	     22840 ns/op
+BenchmarkComplex_GoFFT/10007        	    2800	    424830 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1884	    660340 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     363	   3297147 ns/op
+PASS
+# end 16:53:09 load 0.29 0.57 0.77
+# round 2 variant bench-v0.25.0 16:53:09 load 0.29 0.57 0.77
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  240759	      4886 ns/op
+BenchmarkComplex_GoFFT/1009         	   55166	     22627 ns/op
+BenchmarkComplex_GoFFT/10007        	    2877	    416066 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1939	    625288 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     386	   3071244 ns/op
+PASS
+# end 16:53:16 load 0.35 0.57 0.77
+# round 2 variant bench-v0.26.1 16:53:16 load 0.35 0.57 0.77
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  240165	      4935 ns/op
+BenchmarkComplex_GoFFT/1009         	   55453	     22877 ns/op
+BenchmarkComplex_GoFFT/10007        	    2971	    411331 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1768	    680730 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     349	   3336867 ns/op
+PASS
+# end 16:53:23 load 0.45 0.59 0.77
+# round 3 variant bench-v0.26.1 16:53:23 load 0.45 0.59 0.77
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  238093	      4973 ns/op
+BenchmarkComplex_GoFFT/1009         	   54000	     22987 ns/op
+BenchmarkComplex_GoFFT/10007        	    2881	    418539 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1701	    669510 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     352	   3106689 ns/op
+PASS
+# end 16:53:29 load 0.50 0.60 0.77
+# round 3 variant bench-v0.25.0 16:53:29 load 0.50 0.60 0.77
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  245581	      4857 ns/op
+BenchmarkComplex_GoFFT/1009         	   55525	     22519 ns/op
+BenchmarkComplex_GoFFT/10007        	    2865	    418126 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1876	    646919 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     381	   3165330 ns/op
+PASS
+# end 16:53:36 load 0.54 0.60 0.77
+# round 4 variant bench-v0.25.0 16:53:36 load 0.54 0.60 0.77
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  241080	      4918 ns/op
+BenchmarkComplex_GoFFT/1009         	   55514	     22902 ns/op
+BenchmarkComplex_GoFFT/10007        	    2878	    423769 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1848	    642758 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     379	   3116800 ns/op
+PASS
+# end 16:53:43 load 0.61 0.62 0.78
+# round 4 variant bench-v0.26.1 16:53:43 load 0.61 0.62 0.78
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  242437	      5002 ns/op
+BenchmarkComplex_GoFFT/1009         	   54531	     23576 ns/op
+BenchmarkComplex_GoFFT/10007        	    2863	    411906 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1912	    625057 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     372	   3189986 ns/op
+PASS
+# end 16:53:50 load 0.64 0.62 0.78
+# round 5 variant bench-v0.26.1 16:53:50 load 0.64 0.62 0.78
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  244256	      4860 ns/op
+BenchmarkComplex_GoFFT/1009         	   55696	     22712 ns/op
+BenchmarkComplex_GoFFT/10007        	    2875	    414816 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1918	    625850 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     380	   3192866 ns/op
+PASS
+# end 16:53:57 load 0.67 0.63 0.78
+# round 5 variant bench-v0.25.0 16:53:57 load 0.67 0.63 0.78
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  243319	      4908 ns/op
+BenchmarkComplex_GoFFT/1009         	   55539	     22770 ns/op
+BenchmarkComplex_GoFFT/10007        	    2803	    425858 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1736	    692474 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     370	   3282413 ns/op
+PASS
+# end 16:54:04 load 0.72 0.64 0.78
+# round 6 variant bench-v0.25.0 16:54:04 load 0.72 0.64 0.78
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  238490	      4922 ns/op
+BenchmarkComplex_GoFFT/1009         	   54020	     22966 ns/op
+BenchmarkComplex_GoFFT/10007        	    2818	    434316 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1712	    686203 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     369	   3210326 ns/op
+PASS
+# end 16:54:11 load 0.74 0.65 0.78
+# round 6 variant bench-v0.26.1 16:54:11 load 0.74 0.65 0.78
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  244250	      4881 ns/op
+BenchmarkComplex_GoFFT/1009         	   54730	     22759 ns/op
+BenchmarkComplex_GoFFT/10007        	    2884	    413927 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1765	    678941 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     368	   3275714 ns/op
+PASS
+# end 16:54:18 load 0.78 0.66 0.79
+# round 7 variant bench-v0.26.1 16:54:18 load 0.78 0.66 0.79
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  242620	      4919 ns/op
+BenchmarkComplex_GoFFT/1009         	   55386	     22427 ns/op
+BenchmarkComplex_GoFFT/10007        	    2775	    428707 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1770	    689338 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     364	   3236116 ns/op
+PASS
+# end 16:54:25 load 0.80 0.67 0.79
+# round 7 variant bench-v0.25.0 16:54:25 load 0.80 0.67 0.79
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  245580	      4881 ns/op
+BenchmarkComplex_GoFFT/1009         	   54328	     22864 ns/op
+BenchmarkComplex_GoFFT/10007        	    2758	    430419 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1780	    683289 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     372	   3205295 ns/op
+PASS
+# end 16:54:32 load 0.82 0.67 0.79
+# round 8 variant bench-v0.25.0 16:54:32 load 0.82 0.67 0.79
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  240774	      4911 ns/op
+BenchmarkComplex_GoFFT/1009         	   55723	     22740 ns/op
+BenchmarkComplex_GoFFT/10007        	    2773	    422520 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1776	    686420 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     376	   3222160 ns/op
+PASS
+# end 16:54:39 load 0.85 0.68 0.79
+# round 8 variant bench-v0.26.1 16:54:39 load 0.85 0.68 0.79
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  244240	      4885 ns/op
+BenchmarkComplex_GoFFT/1009         	   54643	     22815 ns/op
+BenchmarkComplex_GoFFT/10007        	    2942	    417661 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1744	    688146 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     376	   3183418 ns/op
+PASS
+# end 16:54:46 load 0.86 0.69 0.79
+# round 9 variant bench-v0.26.1 16:54:46 load 0.86 0.69 0.79
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  243432	      4925 ns/op
+BenchmarkComplex_GoFFT/1009         	   55593	     22642 ns/op
+BenchmarkComplex_GoFFT/10007        	    2930	    413585 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1746	    704614 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     366	   3242572 ns/op
+PASS
+# end 16:54:53 load 0.95 0.71 0.80
+# round 9 variant bench-v0.25.0 16:54:53 load 0.95 0.71 0.80
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplex_GoFFT/1024         	  239989	      4978 ns/op
+BenchmarkComplex_GoFFT/1009         	   54700	     22672 ns/op
+BenchmarkComplex_GoFFT/10007        	    2695	    424160 ns/op
+BenchmarkFFT2Plan_GoFFT/256x256     	    1984	    610296 ns/op
+BenchmarkFFT2Plan_GoFFT/512x512     	     388	   3111033 ns/op
+PASS
+# end 16:55:00 load 0.96 0.72 0.80
+# done 16:55:00 load 0.96 0.72 0.80
