@@ -3484,7 +3484,11 @@ spends 651 ns before its final pass where 3·15·12 spent 902.
   `TestZmCMulKernelMatchesScalar`) and 10 that already failed on main: the
   compiler fuses the Go oracles' products (`zen3/suites.txt`).
 
-**Which main.** v0.23.1 (2770704) for every measurement above.
+**Which main.** v0.23.1 (2770704) for every measurement above. The parity
+runs' branch binary is 340f999; the commits after it gate the products
+kernel on the vendor (`ZmCMulOn`, true on Zen 3, so the same code ran there)
+and change tests and this text; the suites, coverage and mutation runs are
+on the final code.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round36-zen3-20261011/`](benchmarks/results/round36-zen3-20261011/).
 
