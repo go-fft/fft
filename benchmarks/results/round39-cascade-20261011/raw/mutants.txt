@@ -1,0 +1,15 @@
+M1 caught (exit 1): --- FAIL: TestCl3StripWidth (0.00s) --- FAIL: TestCl3WideStripsPlans (0.00s) 
+M2 caught (exit 1): --- FAIL: TestCl3StripWidth (0.00s) 
+M3 caught (exit 1): --- FAIL: TestCl3StripWidth (0.00s) 
+M4 caught (exit 1): --- FAIL: TestCl3StripWidth (0.00s) --- FAIL: TestCl3WideStripsPlans (0.00s) 
+M5 caught (exit 1): --- FAIL: TestCl3StripWidth (0.00s) --- FAIL: TestCl3WideStripsPlans (0.00s) 
+M6 caught (exit 1): --- FAIL: TestCl3StripWidth (0.00s) --- FAIL: TestCl3WideStripsPlans (0.00s) 
+M7 caught (exit 1): --- FAIL: TestCl3FrameRows (0.00s) 
+M8 caught (exit 2): --- FAIL: TestCl3WideStripsPlans (0.00s) panic: runtime error: slice bounds out of range [:32768] with capacity 16384 
+M9 caught (exit 1): --- FAIL: TestCl3WideStripsMatch (0.01s) 
+M10 caught (exit 2): --- FAIL: TestRotateAgainstOldPath (0.00s) --- FAIL: TestFFTN32AgainstFloat64 (0.34s) 
+M11 caught (exit 1): --- FAIL: TestCl3FrameRows (0.00s) 
+M12 caught (exit 1): --- FAIL: TestCl3FrameRows (0.00s) 
+M13 SURVIVED
+M14 caught (exit 1): --- FAIL: TestCl3WideStripsPlans (0.00s) --- FAIL: TestCl3WideStripsMatch (0.00s) 
+# done 17:22:48
