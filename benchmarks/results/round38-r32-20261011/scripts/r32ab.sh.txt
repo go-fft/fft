@@ -1,0 +1,8 @@
+#!/bin/sh
+# r32ab.sh CORE OUT: the Round 38 factorization A/B (TestR32AB), nine rotated rounds.
+C=$1; O=$2
+ROWS="c1024:cur,32x32,4x8x32,8x4x32,32x8x4;c256:cur,8x32,32x8;c512:cur,16x32,32x16;c2048:cur,2x32x32,8x8x32,4x16x32;c4096:cur,4x32x32,8x16x32,16x8x32;r4096:cur,2x32x32,8x8x32,4x16x32;r2048:cur,32x32,8x4x32;r512:cur,8x32,32x8;c128:cur,4x32,32x4;c64:cur,2x32,32x2;c96:cur,3x32,32x3;c160:cur,5x32;c480:cur,15x32,3x5x32;c960:cur,3x10x32,15x2x32;c1920:cur,15x4x32,3x5x4x32;c1000:cur;r1024:cur"
+cd ~/r38
+sha256sum r32br.test
+GOMAXPROCS=1 taskset -c $C ./r32br.test -test.run 'TestR32AB$' -r32.ab=9,2000000 -r32.rows="$ROWS" > $O 2>&1
+echo "exit $?" >> $O

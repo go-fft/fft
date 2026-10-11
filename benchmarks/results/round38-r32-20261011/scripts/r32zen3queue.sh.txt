@@ -1,0 +1,35 @@
+#!/bin/sh
+# r32zen3q.sh: Zen 3 queue, one job at a time: the A/B, then two parity runs.
+cd ~/r38
+./r32calm.sh 2.5 5400 ./r32ab.sh 40 ab1.txt > calm-ab1.txt 2>&1
+sh ~/r38par/parity38.sh 40 par1-v0261 par2-v0261 > ~/r38par/runs.log 2>&1
+echo QDONE >> ~/r38par/runs.log
+#!/bin/sh
+# r32zen3q2.sh: after r32zen3q.sh (QDONE in runs.log): the passes alone, then
+# the spill experiment (r32exp.test, scripts/r32exp.diff.txt), nine rounds each.
+cd ~/r38
+until grep -q QDONE ~/r38par/runs.log 2>/dev/null; do sleep 30; done
+P="1024:32x32;1024:8x8x16;1024:4x8x32;256:8x32;256:32x8;256:4x8x8;256:16x16;2048:8x8x32;2048:8x8x8x4"
+./r32calm.sh 2.5 5400 env GOMAXPROCS=1 taskset -c 40 ./r32br.test -test.run 'TestR32Passes$' -r32.pass=9,2000000 -r32.pns="$P" > passes1.txt 2>&1
+sha256sum r32exp.test >> spill1.txt
+./r32calm.sh 2.5 5400 env GOMAXPROCS=1 taskset -c 40 ./r32exp.test -test.run 'TestR32ExpSpill$' -r32.pass=9,2000000 -r32.pns="1024:32x32;256:8x32;256:32x8;2048:2x32x32;2048:8x8x32" >> spill1.txt 2>&1
+echo Q2DONE >> spill1.txt
+#!/bin/sh
+# r32zen3q3.sh: after r32zen3q2.sh (Q2DONE): both suites with coverage, then
+# TestR32Export and numpy on its bytes (with and without a planted byte).
+cd ~/r38
+until grep -q Q2DONE spill1.txt 2>/dev/null; do sleep 30; done
+./r32suite.sh suite1 > suites.txt 2>&1
+mkdir -p exp1 && ./r32br2.test -test.run 'TestR32Export$' -r32.export=$HOME/r38/exp1 > exp1.log 2>&1
+echo "export exit $?" >> exp1.log
+{ ~/gofft-bench/venv/bin/python -c 'import numpy; print("numpy", numpy.__version__)'; ~/gofft-bench/venv/bin/python r32_accuracy.py exp1; echo "exit $?"; ~/gofft-bench/venv/bin/python r32_accuracy.py exp1 plant; echo "plant exit $?"; } > accuracy.txt 2>&1
+echo Q3DONE >> accuracy.txt
+#!/bin/sh
+# r32zen3q4.sh: after r32zen3q3.sh (Q3DONE): parity reruns for runs that ended
+# above 3.5 (par1 did): par3, and par4 if par3 or par2 is flagged too.
+until grep -q Q3DONE ~/r38/accuracy.txt 2>/dev/null; do sleep 30; done
+sh ~/r38par/parity38.sh 40 par3-v0261 > ~/r38par/runs2.log 2>&1
+if grep -q "LOADED" ~/r38par/runs2.log || grep -q "par2-v0261 LOADED" ~/r38par/runs.log; then
+  sh ~/r38par/parity38.sh 40 par4-v0261 >> ~/r38par/runs2.log 2>&1
+fi
+echo Q4DONE >> ~/r38par/runs2.log

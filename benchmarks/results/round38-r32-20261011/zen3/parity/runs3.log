@@ -1,0 +1,6 @@
+verify.amd64: OK
+bench.amd64: OK
+R32CALM go after 30s: 2.41 2.94 3.15 5/1308 1408293
+# par5-v0261 start 17:49:54 load 2.41 2.94 3.15
+# par5-v0261 exit 0 end 17:59:41 load 3.07 3.15 3.17
+END

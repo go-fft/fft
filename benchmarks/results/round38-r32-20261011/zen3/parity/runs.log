@@ -1,0 +1,14 @@
+verify.amd64: OK
+bench.amd64: OK
+R32CALM go after 0s: 2.29 2.49 2.76 3/1316 1145943
+# par1-v0261 start 16:55:52 load 2.29 2.49 2.76
+# par1-v0261 exit 0 end 17:05:52 load 3.71 3.56 3.27
+# par1-v0261 LOADED at end: rerun
+verify.amd64: OK
+bench.amd64: OK
+R32CALM go after 210s: 2.38 3.06 3.13 4/1317 1211650
+# par2-v0261 start 17:09:22 load 2.38 3.06 3.13
+# par2-v0261 exit 0 end 17:19:13 load 3.89 3.69 3.37
+# par2-v0261 LOADED at end: rerun
+END
+QDONE
