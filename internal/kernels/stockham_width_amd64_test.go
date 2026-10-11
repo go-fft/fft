@@ -57,8 +57,8 @@ func TestStockhamKernels(t *testing.T) {
 		w       int
 		inverse bool
 		k       *float64
-		pass    [21]skPassFn
-		last    [21]skLastFn
+		pass    [33]skPassFn
+		last    [33]skLastFn
 	}{
 		{256, false, &skFwd[0][0], skPass256, skLast256},
 		{256, true, &skInv[0][0], skPass256, skLast256},

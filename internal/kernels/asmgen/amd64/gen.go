@@ -341,6 +341,7 @@ func main() {
 	genZnTwoPassFile()
 	csGenRadix9File()
 	genZmCMulFile()
+	genR32File()
 }
 
 func writeFile(name, content string) {
@@ -4278,4 +4279,316 @@ func genZmCMulFile() {
 		Ret()
 	f.Add(b.Func())
 	writeFile("zmcmul_amd64.s", f.String())
+}
+
+// ---------------------------------------------------------------------------
+// Radix-32 Stockham passes (Round 38), into r32_amd64.s: skPass32AVX2 and
+// skLast32AVX2, the fft package's pass32 and pass32last (radix32.go),
+// operation for operation, two points (or, in the final pass, two blocks) per
+// YMM register and an odd last one in an XMM register, as genStockhamAVX2
+// and genStockhamLastAVX2 run the other radices.
+//
+// The butterfly is the 8×4 split: four radix-8 butterflies over the inputs
+// n2 + 4·n1 (stage 1), the internal twiddles W32^(n2·k1), then eight radix-4
+// butterflies over V[0..3][k1] (stage 2), whose outputs k1 + 8·k2 take the
+// pass's twiddles (twStore). 16 YMM registers hold one radix-8 butterfly and
+// its scratch, not the 32 values between the stages, so every value goes
+// through memory once more. It goes through the OUTPUT: V[n2][k1] is stored
+// to output slot k1 + 8·n2, and stage 2's butterfly k1 reads slots k1, k1+8,
+// k1+16, k1+24 and writes its outputs to those same four slots. The kernels
+// so need no spill frame (16 bytes of loop counters in the pass kernel,
+// none in the final one), touch no cache line the pass does not write
+// anyway, and are NOSPLIT leaves. A Stockham pass never runs in place, so
+// the output never aliases an input still to be read.
+//
+// Registers (pass kernel): AX = input block + i (P), BX = output + i (O),
+// CX = S = ido·16, DX = D = l1·ido·16, R12 = 3·S, R13 = 3·D, R11 = 16·D,
+// R10 = twiddle group cursor, R14 = constants; SI and DI address stage 1's
+// inputs (P + n2·S and that + 16·S), R8 and R9 the slots (O + 8·n2·D and
+// that + 4·D in stage 1; O + k1·D in stage 2). The final kernel uses the same
+// output registers (D = l1·16) and R10 as its pair counter.
+
+// r32Es are the exponents e of the general internal twiddles W32^e, in the
+// order of their rows in the constants table (kernels.r32Es).
+var r32Es = []int{1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 14, 15, 18, 21}
+
+// kR32Base is the offset of the radix-32 rows: after skConst's 23 rows,
+// a row cos θ then a row [−ss, ss, −ss, ss] (ss = s·sin θ) for each e of
+// r32Es, θ = 2π·e/32.
+const kR32Base = 23 * 32
+
+// r32K returns the offsets of the cosine and ss rows of W32^e.
+func r32K(e int) (c, ss int) {
+	for q, x := range r32Es {
+		if x == e {
+			return kR32Base + 64*q, kR32Base + 64*q + 32
+		}
+	}
+	panic(fmt.Sprintf("r32K: no row for e = %d", e))
+}
+
+// r32Addr is the addressing of the radix-32 kernels: stage 2 selects the
+// slot mapping (false: stage 1's, slot k1 + 8·n2 from R8/R9; true: stage
+// 2's, slot k1 + 8·k2 from R8).
+type r32Addr struct{ stage2 bool }
+
+func (a *r32Addr) addr(out bool, j int) string {
+	if !out {
+		// Input n2 + 4·n1 of stage 1: n1 from SI = P + n2·S, DI = SI + 16·S.
+		return [...]string{"(SI)", "(SI)(CX*4)", "(SI)(CX*8)", "(SI)(R12*4)", "(DI)", "(DI)(CX*4)", "(SI)(R12*8)", "(DI)(R12*4)"}[j/4]
+	}
+	if a.stage2 {
+		return [...]string{"(R8)", "(R8)(DX*8)", "(R8)(R11*1)", "(R8)(R13*8)"}[j/8]
+	}
+	return [...]string{"(R8)", "(R8)(DX*1)", "(R8)(DX*2)", "(R8)(R13*1)", "(R9)", "(R9)(DX*1)", "(R8)(R13*2)", "(R9)(R13*1)"}[j%8]
+}
+
+// r32Bfly8 emits stage 1's radix-8 butterfly over inputs n2 + 4·n1: the
+// operations of body's case 8 (the Go bfly8), its outputs y0..y7 left in
+// registers 4, 10, 12, 8, 0, 3, 1, 2.
+func (e skEmit) r32Bfly8(n2 int) [8]int {
+	in := func(dst, n1 int) { e.in(dst, n2+4*n1) }
+	in(1, 1)
+	in(5, 5)
+	e.add(8, 1, 5) // a1
+	e.sub(9, 1, 5) // a5
+	in(3, 3)
+	in(7, 7)
+	e.add(10, 3, 7) // a3
+	e.sub(11, 3, 7) // a7
+	e.add(12, 8, 10)
+	e.sub(10, 8, 10) // a1, a3 = a1+a3, a1-a3
+	e.rot(10, 10)
+	e.rot(11, 11)
+	e.add(8, 9, 11)
+	e.sub(9, 9, 11) // a5, a7 = a5+a7, a5-a7
+	e.rot(11, 8)
+	e.add(8, 8, 11)
+	e.mulk(8, 8, kH) // a5 = h·(a5 + rotS(a5))
+	e.rot(11, 9)
+	e.sub(9, 11, 9)
+	e.mulk(9, 9, kH) // a7 = h·(rotS(a7) - a7)
+	in(0, 0)
+	in(4, 4)
+	e.add(1, 0, 4) // a0
+	e.sub(2, 0, 4) // a4
+	in(0, 2)
+	in(4, 6)
+	e.add(3, 0, 4) // a2
+	e.sub(5, 0, 4) // a6
+	e.add(0, 1, 3)
+	e.sub(1, 1, 3) // a0, a2 = a0+a2, a0-a2
+	e.rot(5, 5)
+	e.add(3, 2, 5)
+	e.sub(2, 2, 5) // a4, a6 = a4+a6, a4-a6
+	// a0=0 a2=1 a4=3 a6=2 a1=12 a3=10 a5=8 a7=9
+	e.add(4, 0, 12)  // y0
+	e.sub(0, 0, 12)  // y4
+	e.add(12, 1, 10) // y2
+	e.sub(1, 1, 10)  // y6
+	e.add(10, 3, 8)  // y1
+	e.sub(3, 3, 8)   // y5
+	e.add(8, 2, 9)   // y3
+	e.sub(2, 2, 9)   // y7
+	return [8]int{4, 10, 12, 8, 0, 3, 1, 2}
+}
+
+// r32Twiddle emits r = r·W32^e in place (e = n2·k1 >= 1): rotS for e = 8,
+// else c·r + swap(r)·[−ss, ss], radix16Rot's four operations; ta and tb are
+// scratch.
+func (e skEmit) r32Twiddle(r, ex, ta, tb int) {
+	if ex == 8 {
+		e.rot(r, r)
+		return
+	}
+	c, ss := r32K(ex)
+	e.mulk(ta, r, c)
+	e.perm("swap", r, tb)
+	e.mulk(tb, tb, ss)
+	e.add(r, ta, tb)
+}
+
+// r32Body emits one radix-32 butterfly over the points (or blocks) the
+// register width holds, with the pass's twiddles unless this is a final
+// pass. a is the addressing the emitter's addr reads.
+func (e skEmit) r32Body(a *r32Addr, first bool) {
+	scratch := [][2]int{{5, 6}, {7, 9}, {11, 13}, {14, 15}}
+	for n2 := 0; n2 < 4; n2++ {
+		a.stage2 = false
+		if e.last == 0 {
+			switch n2 {
+			case 0:
+				e.raw("MOVQ AX, SI")
+			case 1:
+				e.raw("LEAQ (AX)(CX*1), SI")
+			case 2:
+				e.raw("LEAQ (AX)(CX*2), SI")
+			case 3:
+				e.raw("LEAQ (AX)(R12*1), SI")
+			}
+			e.raw("LEAQ (SI)(CX*8), DI")
+			e.raw("LEAQ (DI)(CX*8), DI")
+		}
+		e.raw("%s", [...]string{"MOVQ BX, R8", "LEAQ (BX)(DX*8), R8", "LEAQ (BX)(R11*1), R8", "LEAQ (BX)(R13*8), R8"}[n2])
+		e.raw("LEAQ (R8)(DX*4), R9")
+		y := e.r32Bfly8(n2)
+		for k1 := 0; k1 < 8; k1++ {
+			if n2 > 0 && k1 > 0 {
+				s := scratch[k1%4]
+				e.r32Twiddle(y[k1], n2*k1, s[0], s[1])
+			}
+			e.st(y[k1], e.outAddr(k1+8*n2))
+		}
+	}
+	a.stage2 = true
+	e.raw("MOVQ BX, R8")
+	for k1 := 0; k1 < 8; k1++ {
+		if k1 > 0 {
+			e.raw("ADDQ DX, R8")
+		}
+		for n2 := 0; n2 < 4; n2++ {
+			e.ld(n2, e.outAddr(k1+8*n2))
+		}
+		z := [4]int{8, 9, 10, 11}
+		e.bfly4r([4]int{0, 1, 2, 3}, [4]int{4, 5, 6, 7}, z)
+		for k2 := 0; k2 < 4; k2++ {
+			if j := k1 + 8*k2; j == 0 {
+				e.st(z[0], e.outAddr(0))
+			} else {
+				e.twStore(z[k2], j, 12, 13, 14, 15, first)
+			}
+		}
+	}
+}
+
+const (
+	r32Blocks = 0 // blocks left (pass kernel frame)
+	r32Groups = 8 // four-point groups left
+	r32Frame  = 16
+)
+
+// genR32Pass emits skPass32AVX2: the radix-32 pass, the loop of
+// genStockhamAVX2 around r32Body.
+func genR32Pass(f *emit.File) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc("skPass32AVX2", sig, r32Frame)
+	a := &r32Addr{}
+	q0 := skEmit{b: b, w: "Y", g: 4, addr: a.addr}
+	q1 := skEmit{b: b, w: "Y", g: 4, half: 1, addr: a.addr}
+	p := skEmit{b: b, w: "Y", g: 2, addr: a.addr}
+	x := skEmit{b: b, w: "X", g: 1, addr: a.addr}
+	adv := func(bytes int) { b.Raw("ADDQ $%d, AX", bytes).Raw("ADDQ $%d, BX", bytes) }
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").
+		LoadArg("ido", "CX").LoadArg("l1", "R8")
+	b.Raw("MOVQ CX, DX").
+		Raw("IMULQ R8, DX").
+		Raw("SHLQ $4, CX"). // S
+		Raw("SHLQ $4, DX"). // D
+		Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("MOVQ DX, R11").
+		Raw("SHLQ $4, R11"). // 16·D
+		Raw("MOVQ R8, %d(SP)", r32Blocks).
+		Raw("kloop:").
+		Raw("CMPQ %d(SP), $0", r32Blocks).
+		Raw("JEQ done").
+		Raw("MOVQ CX, R9").
+		Raw("SHRQ $6, R9"). // four-point groups = ido/4
+		Raw("MOVQ R9, %d(SP)", r32Groups)
+	b.LoadArg("tw", "R10")
+	b.Raw("CMPQ %d(SP), $0", r32Groups).
+		Raw("JEQ firstpair")
+	q0.r32Body(a, true)
+	adv(32)
+	q1.r32Body(a, false)
+	adv(32)
+	q0.twNext(32)
+	b.Raw("DECQ %d(SP)", r32Groups).
+		Raw("qloop:").
+		Raw("CMPQ %d(SP), $0", r32Groups).
+		Raw("JEQ pair")
+	q0.r32Body(a, false)
+	adv(32)
+	q1.r32Body(a, false)
+	adv(32)
+	q0.twNext(32)
+	b.Raw("DECQ %d(SP)", r32Groups).
+		Raw("JMP qloop").
+		Raw("pair:").
+		Raw("TESTQ $32, CX"). // ido & 2
+		Raw("JZ single")
+	p.r32Body(a, false)
+	adv(32)
+	p.twNext(32)
+	b.Raw("JMP single").
+		Raw("firstpair:") // ido is 2 or 3: the first pair is the two-point group
+	p.r32Body(a, true)
+	adv(32)
+	p.twNext(32)
+	b.Raw("single:").
+		Raw("TESTQ $16, CX"). // ido & 1
+		Raw("JZ knext")
+	x.r32Body(a, false)
+	adv(16)
+	// P advanced by S over the block; the next block starts 32·S after this
+	// one. O advanced by S, which is the next block's output start.
+	b.Raw("knext:").
+		Raw("MOVQ CX, SI").
+		Raw("SHLQ $5, SI").
+		Raw("SUBQ CX, SI").
+		Raw("ADDQ SI, AX"). // 31·S
+		Raw("DECQ %d(SP)", r32Blocks).
+		Raw("JMP kloop").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genR32Last emits skLast32AVX2: the final radix-32 pass (ido == 1), two
+// blocks per register as in genStockhamLastAVX2, an odd l1 finished by one
+// 128-bit step.
+func genR32Last(f *emit.File) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "k", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc("skLast32AVX2", sig, 0)
+	a := &r32Addr{}
+	y := skEmit{b: b, w: "Y", last: 32, addr: a.addr}
+	x := skEmit{b: b, w: "X", last: 32, addr: a.addr}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
+	b.Raw("MOVQ DX, R10").
+		Raw("SHRQ $1, R10"). // block pairs
+		Raw("SHLQ $4, DX").  // D
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("MOVQ DX, R11").
+		Raw("SHLQ $4, R11"). // 16·D
+		Raw("loop:").
+		Raw("TESTQ R10, R10").
+		Raw("JZ tail")
+	y.r32Body(a, false)
+	b.Raw("ADDQ $%d, AX", 32*32).
+		Raw("ADDQ $32, BX").
+		Raw("DECQ R10").
+		Raw("JMP loop").
+		Raw("tail:").
+		Raw("TESTQ $16, DX"). // l1 odd
+		Raw("JZ done")
+	x.r32Body(a, false)
+	b.Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// genR32File writes r32_amd64.s.
+func genR32File() {
+	f := emit.NewFile("amd64")
+	genR32Pass(f)
+	genR32Last(f)
+	writeFile("r32_amd64.s", f.String())
 }

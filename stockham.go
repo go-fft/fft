@@ -81,7 +81,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 		st.twX, st.twXc = kernels.StockhamTwiddles(r, ido, l1, root)
 		switch r {
-		case 2, 3, 4, 5, 7, 8, 9, 10, 12, 15, 16, 20:
+		case 2, 3, 4, 5, 7, 8, 9, 10, 12, 15, 16, 20, 32:
 		default:
 			st.rt = make([]complex128, r)
 			st.rtc = make([]complex128, r)
@@ -142,6 +142,9 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // cache. So a large power of two stays on radix 4; a length with an odd factor
 // has no such aliasing and keeps radix 8 (20160: 1.07×).
 //
+// Where the amd64 radix-32 kernel runs, the lengths of r32Table take its
+// factorization before anything else (Round 38).
+//
 // Where the amd64 radix-16 kernel runs, a few powers of two take radix-16
 // passes instead (radix16Table, Round 19), and where the amd64 split layout
 // runs, the powers of two from 256 points take splitTable's factorizations
@@ -152,6 +155,9 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 // prime-factor passes (comp2Factors, Round 26), and the
 // complex128 order is compOddFirst, which may differ from the float32 plans'.
 func skFactorize(n int) []int {
+	if f := r32Table[n]; f != nil {
+		return slices.Clone(f)
+	}
 	if f := splitTable[n]; f != nil {
 		return slices.Clone(f)
 	}
@@ -165,12 +171,12 @@ func skFactorize(n int) []int {
 // per-architecture (comp_route_*.go).
 var compOddFirst = compOddFirstDefault()
 
-// compTakes16 reports whether skFactorize gives n radix-9, -10, -12, -15, -16
-// or -20 passes, which have no batched kernel for the strips of an N-D plan.
+// compTakes16 reports whether skFactorize gives n radix-9, -10, -12, -15, -16,
+// -20 or -32 passes, which have no batched kernel for the strips of an N-D plan.
 func compTakes16(n int) bool {
 	return slices.ContainsFunc(skFactorize(n), func(r int) bool {
 		switch r {
-		case 9, 10, 12, 15, 16, 20:
+		case 9, 10, 12, 15, 16, 20, 32:
 			return true
 		}
 		return false
@@ -438,6 +444,8 @@ func (st *skStage) passScalarL(ch, cc []complex128, l1 int, inverse bool) {
 		pass8(st.ido, l1, cc, ch, tw, inverse)
 	case 16:
 		pass16(st.ido, l1, cc, ch, tw, inverse)
+	case 32:
+		pass32(st.ido, l1, cc, ch, tw, inverse)
 	case 9:
 		pass9(st.ido, l1, cc, ch, tw, inverse)
 	case 12:
