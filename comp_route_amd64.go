@@ -32,11 +32,14 @@ var comp2On = kernels.UseStockhamAVX2 && !kernels.IntelCPU
 // machine.
 var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU
 
-// compFactorize is skFactorize past radix16Table: on AMD comp2Factors, on
+// compFactorize is skFactorize past radix16Table: on Haswell, hswE11Factors; on AMD comp2Factors, on
 // Intel hswComp2Factors; where those give none, on Intel a composite's
 // radix-12 passes, else its radix-16 tail; else skFactorizeOrder's
 // factorization.
 func compFactorize(n int) []int {
+	if f := hswE11Factors(n, hswE11On); f != nil {
+		return f
+	}
 	if f := hswComp2Factors(n, hswCompOn); f != nil {
 		return f
 	}
@@ -266,4 +269,29 @@ func hswComp2Factors(n int, on bool) []int {
 		return f
 	}
 	return slices.Concat(f[:at], r16, f[at+len(tail):])
+}
+
+// hswE11On enables hswE11Factors: the AVX2 kernels on an Intel CPU without
+// the AVX-512 ones (Haswell, Round 37; Cascade Lake was not measured). A
+// variable so the tests can take the route on any machine.
+var hswE11On = kernels.UseStockhamAVX2 && kernels.IntelCPU && !kernels.UseStockhamAVX512
+
+// hswE11Factors gives n = 2^11·p, p = 3 or 5 (6144 and 10240, the lengths
+// 2^e·3^a·5^b up to 16384 with e = 11 and one odd factor), the factorization
+// p·8·16·16, or nil. No rule covered e >= 11 (comp2Factors stops at e = 10),
+// so they took 3·4·8·8·8 and 5·4·8·8·8. On Haswell (Round 37, one pinned
+// core) every factorization of the 3 or 5, the radix-10, -12 and -20 passes
+// and every ordering of radix-4, -8 and -16 tails was timed (5 rotated
+// rounds, 35 and 52 candidates): p·8·16·16 was the best of both, 1.173× and
+// 1.211× as fast as the old one, every round within 0.003 of that; 12288
+// (e = 12, 3·8^4) had none better than 1.010, so it keeps its own.
+func hswE11Factors(n int, on bool) []int {
+	if !on || n&(1<<11-1) != 0 {
+		return nil
+	}
+	switch p := n >> 11; p {
+	case 3, 5:
+		return []int{p, 8, 16, 16}
+	}
+	return nil
 }

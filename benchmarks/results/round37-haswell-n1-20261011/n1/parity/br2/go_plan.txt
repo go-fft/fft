@@ -1,0 +1,26 @@
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft/benchmarks
+BenchmarkComplexPlan_GoFFT/256-1         	   25696	     14149 ns/op
+BenchmarkComplexPlan_GoFFT/1024-1        	    7083	     53357 ns/op
+BenchmarkComplexPlan_GoFFT/4096-1        	    1879	    189556 ns/op
+BenchmarkComplexPlan_GoFFT/65536-1       	     100	   3343276 ns/op
+BenchmarkComplexPlan_GoFFT/1048576-1     	       7	  47742593 ns/op
+BenchmarkComplexPlan_GoFFT/1000-1        	    6754	     52038 ns/op
+BenchmarkComplexPlan_GoFFT/1080-1        	    5097	     59116 ns/op
+BenchmarkComplexPlan_GoFFT/1920-1        	    3490	     98585 ns/op
+BenchmarkComplexPlan_GoFFT/1009-1        	    2992	    127708 ns/op
+BenchmarkComplexPlan_GoFFT/1296-1        	    4296	     82735 ns/op
+BenchmarkComplexPlan_GoFFT/10007-1       	     255	   1388612 ns/op
+BenchmarkComplexPlan_Gonum/256-1         	   35643	     10073 ns/op
+BenchmarkComplexPlan_Gonum/1024-1        	    9075	     35726 ns/op
+BenchmarkComplexPlan_Gonum/4096-1        	    2506	    132697 ns/op
+BenchmarkComplexPlan_Gonum/65536-1       	     176	   1971098 ns/op
+BenchmarkComplexPlan_Gonum/1048576-1     	      10	  30945372 ns/op
+BenchmarkComplexPlan_Gonum/1000-1        	   10549	     34719 ns/op
+BenchmarkComplexPlan_Gonum/1080-1        	    8439	     37358 ns/op
+BenchmarkComplexPlan_Gonum/1920-1        	    5030	     65093 ns/op
+BenchmarkComplexPlan_Gonum/1009-1        	    8083	     40172 ns/op
+BenchmarkComplexPlan_Gonum/1296-1        	    7274	     44065 ns/op
+BenchmarkComplexPlan_Gonum/10007-1       	     958	    402438 ns/op
+PASS
