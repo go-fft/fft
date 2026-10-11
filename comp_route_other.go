@@ -8,3 +8,7 @@ func compOddFirstDefault() bool { return oddRadicesFirstDefault() }
 
 // compFactorize is skFactorize past radix16Table.
 func compFactorize(n int) []int { return skFactorizeOrder(n, compOddFirst) }
+
+// zmFrameRowsDefault is zmFrameRows here: there is no frame kernel, so it
+// changes nothing.
+func zmFrameRowsDefault() bool { return true }

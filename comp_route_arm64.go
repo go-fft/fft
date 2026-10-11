@@ -55,3 +55,7 @@ func smallArmPow2(n int) []int {
 	slices.Reverse(f)
 	return f
 }
+
+// zmFrameRowsDefault is zmFrameRows here: there is no frame kernel, so it
+// changes nothing.
+func zmFrameRowsDefault() bool { return true }

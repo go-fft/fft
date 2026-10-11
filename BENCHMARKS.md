@@ -3492,11 +3492,36 @@ spends 651 ns before its final pass where 3·15·12 spent 902.
 runs' branch binary is 340f999; the commits after it gate the products
 kernel on the vendor (`ZmCMulOn`, true on Zen 3, so the same code ran there)
 and change tests and this text; the suites, coverage and mutation runs are
-on the final code. The branch was then rebased onto c3715e3 (Round 37,
-whose code changes are Intel's and arm64's paths: `hswE11Factors` runs
-before this round's AMD routes in `compFactorize`, each behind its own
-vendor flag); both packages' suites passed again on Zen 3 with every
-statement covered, and on arm64, and every `.s` file regenerates unchanged.
+on the final code.
+
+**Rebased onto v0.25.0** (bb02953: Rounds 37 and 35, whose code changes
+are Intel's and arm64's paths; `hswE11Factors` and Round 35's radix-9 merge
+wrap this round's AMD routes in `compFactorize`, each behind its own vendor
+flag). Round 35 enabled the frame kernels on AVX-512 Intel, so the 2-D rows
+on the frame now sit behind `zmFrameRows` (off on Intel CPUs). Every `.s`
+file regenerates; against v0.25.0's only `zmcmul_amd64.s` is new and
+`stockhamsplit_amd64.s` and `zntwopass_amd64.s` gain this round's kernels.
+Both packages' suites pass on Zen 3 with every statement covered (merged
+profiles; `kernels.ZnPlan.Wide`, Round 35's, is covered only where
+AVX-512 runs) and on arm64. Re-measured on that base (`zen3/ab-v025-inproc.txt`,
+`compall-v025.txt`, `ab-main25-br25-7.txt`, load 1.2–2.2):
+- in one process, old ÷ new: Bluestein 10007 1.19, 4099 1.23, 30011 1.14;
+  2-D 32² 1.27, 64² 1.18, 128² 1.07, 256² 1.04; 6144 1.10, 10240 1.10, 12288
+  1.05, 20480 1.07; 1000 1.08, 1296 1.03, 2000 1.05, 540 1.14; untouched
+  1024, 1000's plan run alone, RFFT 4096 and 64: 0.98–1.01;
+- every composite to 16384, v0.25.0's plan against this one's: geometric
+  mean 1.07×, median 1.06×; five below 0.98 (1200, 1536, 4800, 6250, 12150,
+  0.91–0.98), of which 1536, 4800, 6250 and 12150 run the same passes in
+  both plans (the spread between two plan objects), and 1200 = 5·12·20
+  splits a lone radix-5 pass;
+- v0.25.0 against the branch between binaries (seven rounds, four
+  placements): complex 10007 1.27, 2-D 32² / 64² / 128² 1.63 / 1.17 / 1.07,
+  complex 1000 / 1080 / 1296 / 2000 / 540 1.12 / 1.05 / 1.08 / 1.11 / 1.14,
+  RFFT 1000 / 1080 1.08 / 1.09, 6144 / 10240 / 12288 1.12 / 1.13 / 1.12;
+  untouched rows 0.98–1.02.
+
+The FFTW parity table above was taken on v0.23.1 and the branch before
+these rebases; on AMD the rebases change no code path.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round36-zen3-20261011/`](benchmarks/results/round36-zen3-20261011/).
 

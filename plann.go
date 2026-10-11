@@ -245,9 +245,14 @@ func (p *PlanN) transformAxis(dst, src []complex128, ax int, inverse bool) {
 	}
 }
 
+// zmFrameRows lets contiguousLines run lines on their plan's frame kernel
+// (Round 36): per architecture (comp_route_*.go), off on Intel CPUs. A
+// variable so the tests can take both routes on any machine.
+var zmFrameRows = zmFrameRowsDefault()
+
 // contiguousLines transforms lines lo..hi-1 of the contiguous last axis. A
 // Stockham axis whose plan has a frame kernel (skPlan.zn, Round 32) runs each
-// line on it, with no scratch buffer at all: at 64×64 on Zen 3 the rows took
+// line on it where zmFrameRows says so, with no scratch buffer at all: at 64×64 on Zen 3 the rows took
 // 100 ns each through run and 76 on the frame (Round 36). Any other Stockham
 // axis takes its scratch buffer once for all of its lines.
 func (p *PlanN) contiguousLines(dst, src []complex128, ax, lo, hi int, inverse bool) {
@@ -256,7 +261,7 @@ func (p *PlanN) contiguousLines(dst, src []complex128, ax, lo, hi int, inverse b
 		var bp *[]complex128
 		for c := lo; c < hi; c++ {
 			d, s := dst[c*n:(c+1)*n], src[c*n:(c+1)*n]
-			if done := sk.zn != nil && sk.zn.Run(s, d, inverse); !done {
+			if done := zmFrameRows && sk.zn != nil && sk.zn.Run(s, d, inverse); !done {
 				if bp == nil {
 					bp = sk.scratch.Get().(*[]complex128)
 				}

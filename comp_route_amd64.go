@@ -452,3 +452,8 @@ var zmCompTable = map[int][]int{
 	16000: {5, 5, 4, 8, 20},
 	16200: {3, 5, 5, 3, 3, 3, 8},
 }
+
+// zmFrameRowsDefault is zmFrameRows on amd64: on where the CPU is not
+// Intel's (Round 36 measured Zen 3; the frame kernels also run on AVX-512
+// Intel since Round 35, whose N-D rows were not measured on them).
+func zmFrameRowsDefault() bool { return !kernels.IntelCPU }

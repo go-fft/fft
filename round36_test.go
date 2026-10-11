@@ -30,7 +30,10 @@ func zmRowsByRun(p *PlanN, dst, src []complex128, ax int, inverse bool) {
 // square, oblong and 3-D shapes (those arm64 runs as rotating passes are
 // skipped, but not all of them). Where the frame kernels exist
 // (znTwoPassMax > 0) it first asserts that some of these axes take them.
+// zmFrameRows is turned on for it, so an Intel CPU runs the same route.
 func TestZmRowsMatchRun(t *testing.T) {
+	defer func(v bool) { zmFrameRows = v }(zmFrameRows)
+	zmFrameRows = true // the Round 36 route, whatever the vendor
 	// A 1-D shape, or one whose other axes have length 1, runs its last
 	// axis out of place: src to dst. Every other shape runs it in place.
 	shapes := [][]int{{64}, {256}, {1, 128}, {1, 3, 1, 200}, {3, 64}, {5, 256}, {2, 3, 128}, {4, 512}, {7, 100}, {2, 1000}, {6, 13}}

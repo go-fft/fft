@@ -1,0 +1,4 @@
+PASS
+coverage: 97.6% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+PASS
+coverage: 95.2% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
