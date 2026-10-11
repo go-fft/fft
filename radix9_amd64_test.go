@@ -89,3 +89,25 @@ func TestCs9TransformMatchesScalar(t *testing.T) {
 		}
 	}
 }
+
+// TestCs9Columns: with the radix-9 rule on, an N-D plan's strided axes take
+// the factorization without radix 9 (no batched radix-9 kernel: compTakes16)
+// and its last axis the rule's, and the result is still the DFT.
+func TestCs9Columns(t *testing.T) {
+	defer func(v, w, x, y bool) { compRadix16On, comp2On, hswCompOn, csRadix9On = v, w, x, y }(compRadix16On, comp2On, hswCompOn, csRadix9On)
+	compRadix16On, comp2On, hswCompOn, csRadix9On = true, false, true, true
+	forget := func() { planMu.Lock(); delete(planCache, 18); delete(planNo16Cache, 18); planMu.Unlock() }
+	forget() // plans cached under another rule
+	defer forget()
+	p := NewPlanN(18, 18)
+	for _, st := range p.axes[0].sk.stages {
+		if st.r == 9 {
+			t.Fatalf("column axis factored %v", p.axes[0].sk.stages)
+		}
+	}
+	if p.axes[1].sk.stages[0].r != 9 {
+		t.Fatalf("row axis factored %v, want a radix-9 pass", p.axes[1].sk.stages)
+	}
+	x := cmplxSignal(18 * 18)
+	closeVec(t, p.FFT(make([]complex128, len(x)), x), naiveDFTN(x, []int{18, 18}))
+}

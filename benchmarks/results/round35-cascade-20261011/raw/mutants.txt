@@ -1,0 +1,18 @@
+Round 35 mutants, each built (gen.go regenerated where it is the file mutated) and run on cfarm151
+with scripts/mrun.sh through ~/.local/bin/mutate, 2026-10-11. "caught" = the named tests failed.
+
+csRadix9For ignores on                                  caught  TestCsRadix9For
+csRadix9For drops the lone 3                            caught  TestCsRadix9For
+csRadix9For merges with c < 1 instead of c < 2          SURVIVED: equivalent (one 3 gives g = [3], the input)
+kernel e=2 rotation with cos(8pi/9)                     caught  TestCs9EachPassMatchesScalar
+kernel stage-2 outputs k1+3 and k1+6 swapped            caught  TestCs9EachPassMatchesScalar
+kernel ss row of e=1 negated (stockham_amd64.go)        caught  TestCs9EachPassMatchesScalar
+kernel constant cos(2pi/9) one ulp off                  caught  TestCs9EachPassMatchesScalar
+Go bfly9 e=4 with cos(4pi/9)                            caught  TestCs9* (AgainstNaive alone runs the kernel on AVX2 hosts and survived)
+Go sin(4pi/9) last digits truncated at 17 digits        SURVIVED: equivalent (same float64)
+Go sin(4pi/9) wrong in the 10th digit                   caught  TestCs9Constants
+batch guard back to the radix list (9 reaches nil slot) caught  TestStockhamBatchMatchesScalar
+frame address table without radix 9                     caught  TestZnKernelAddrs
+compTakes16 forgets radix 9                             SURVIVED the whole suite at first; TestCs9Columns added, now caught
+cascade table: 65536 order changed                      caught  TestIntelSplitTableAMD64
+cascade table not merged into intelSplitTable512        caught  TestIntelSplitTableAMD64, TestIntelStripOrderAMD64
