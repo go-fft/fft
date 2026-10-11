@@ -1,0 +1,35 @@
+# round 1 variant br-amd64 11:29:26 load 0.33 1.41 3.16
+HWROWS 8x1024       s:cur          8x8x16       other axes     102247 ns  rows      33488 ns (4.09 ns/pt)  first/this 1.000  range 1.000-1.000
+HWROWS 8x1024       s:4x8x4x8      4x8x4x8      other axes     102526 ns  rows      30162 ns (3.68 ns/pt)  first/this 1.110  range 1.018-1.165
+HWROWS 8x1024       s:4x4x4x16     4x4x4x16     other axes     102546 ns  rows      30444 ns (3.72 ns/pt)  first/this 1.099  range 0.952-1.157
+PASS
+# end 11:29:26 load 0.33 1.41 3.16
+# done 11:29:26 load 0.33 1.41 3.16
+# round 1 variant br-amd64 11:29:26 load 0.33 1.41 3.16
+HWROWS 32x1024      s:cur          8x8x16       other axes      93977 ns  rows     137851 ns (4.21 ns/pt)  first/this 1.000  range 1.000-1.000
+HWROWS 32x1024      s:4x8x4x8      4x8x4x8      other axes      94774 ns  rows     123290 ns (3.76 ns/pt)  first/this 1.118  range 1.110-1.210
+HWROWS 32x1024      s:4x4x4x16     4x4x4x16     other axes      94165 ns  rows     124730 ns (3.81 ns/pt)  first/this 1.105  range 1.086-1.121
+PASS
+# end 11:29:26 load 0.33 1.41 3.16
+# done 11:29:26 load 0.33 1.41 3.16
+# round 1 variant br-amd64 11:29:26 load 0.33 1.41 3.16
+HWROWS 64x1024      s:cur          8x8x16       other axes     192916 ns  rows     277031 ns (4.23 ns/pt)  first/this 1.000  range 1.000-1.000
+HWROWS 64x1024      s:4x8x4x8      4x8x4x8      other axes     193063 ns  rows     246753 ns (3.77 ns/pt)  first/this 1.123  range 1.112-1.131
+HWROWS 64x1024      s:4x4x4x16     4x4x4x16     other axes     192864 ns  rows     250272 ns (3.82 ns/pt)  first/this 1.107  range 1.039-1.113
+PASS
+# end 11:29:26 load 0.33 1.41 3.16
+# done 11:29:26 load 0.33 1.41 3.16
+# round 1 variant br-amd64 11:29:26 load 0.33 1.41 3.16
+HWROWS 128x1024     s:cur          8x8x16       other axes     514345 ns  rows     563724 ns (4.30 ns/pt)  first/this 1.000  range 1.000-1.000
+HWROWS 128x1024     s:4x8x4x8      4x8x4x8      other axes     514536 ns  rows     494884 ns (3.78 ns/pt)  first/this 1.138  range 1.111-1.141
+HWROWS 128x1024     s:4x4x4x16     4x4x4x16     other axes     514501 ns  rows     499576 ns (3.81 ns/pt)  first/this 1.129  range 1.123-1.130
+PASS
+# end 11:29:27 load 0.33 1.41 3.16
+# done 11:29:27 load 0.33 1.41 3.16
+# round 1 variant br-amd64 11:29:27 load 0.33 1.41 3.16
+HWROWS 256x1024     s:cur          8x8x16       other axes    1108597 ns  rows    1110926 ns (4.24 ns/pt)  first/this 1.000  range 1.000-1.000
+HWROWS 256x1024     s:4x8x4x8      4x8x4x8      other axes    1107858 ns  rows     990019 ns (3.78 ns/pt)  first/this 1.123  range 1.118-1.145
+HWROWS 256x1024     s:4x4x4x16     4x4x4x16     other axes    1108862 ns  rows    1000241 ns (3.82 ns/pt)  first/this 1.111  range 1.108-1.134
+PASS
+# end 11:29:27 load 0.33 1.41 3.16
+# done 11:29:27 load 0.33 1.41 3.16

@@ -1,0 +1,13 @@
+# hwmut, GOARCH=amd64 on darwin/arm64 (Rosetta): the rules' logic; tests TestHswE11Factors|TestClRowOrderAMD64|TestClRowPlan|TestHswComp2Factors
+MUT e11-mask-2^10                            CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-on-ignored                           CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-only-3                               CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-also-15                              CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-order                                CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-not-hooked                           CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT rows-hsw-min-2^19                        CAUGHT: --- FAIL: TestClRowOrderAMD64 (0.00s)
+MUT rows-hsw-case-dropped                    CAUGHT: --- FAIL: TestClRowOrderAMD64 (0.00s)
+MUT rows-cascade-min-hsw                     CAUGHT: --- FAIL: TestClRowOrderAMD64 (0.01s)
+MUT rowmin-boundary                          CAUGHT: --- FAIL: TestClRowPlan (0.06s)
+MUT rowmin-ignored                           CAUGHT: --- FAIL: TestClRowPlan (0.08s)
+caught 11 of 11

@@ -195,7 +195,7 @@ func init() {
 	hsw := kernels.UseStockhamSplit && !kernels.UseStockhamSplit512 && kernels.IntelCPU
 	intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512, hsw)
 	hswSplitFloor = hswSplitFloorAMD64(hsw)
-	clRowOrder = clRowOrderAMD64(kernels.UseStockhamSplit512)
+	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, hsw)
 }
 
 // clRowOrderAMD64 is clRowOrder: with the 512-bit split layout, the rows of
@@ -212,11 +212,25 @@ func init() {
 // streamer as following one forward stream per page, which fits, though
 // this VM has no PMU to show it. At 2048 (radix 8 first, streams 4 KB
 // apart) and 8192 the table's orders kept their lead on cold rows.
-func clRowOrderAMD64(on512 bool) map[int][]int {
-	if !on512 {
-		return nil
+//
+// On Haswell (hsw, Round 37) the same order wins for another reason, from
+// eight rows on: the rows of an N-D plan are transformed in place, and the
+// 1-D plan, 8·8·16, has an odd number of passes, which in place costs a copy
+// of every row (skPlan.run). The row step alone (TestHwRows, eleven and nine
+// rotated rounds, 1-D plan ÷ 4·8·4·8) ran 1.110 at 8×1024, 1.118–1.138 from
+// 32 to 256 rows, 1.125 at 512×1024, 1.159 at 1024² and 1.146 at
+// 4×256×1024; every three-pass order timed lost or tied (4·16·16 0.97,
+// 16·8·8 0.92–0.93) and every four-pass order gained (4·4·8·8 1.10–1.12,
+// 4·4·4·16 1.10–1.13), so the pass count, not the first radix, decides
+// there.
+func clRowOrderAMD64(on512, hsw bool) (map[int][]int, int) {
+	switch {
+	case on512:
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 19
+	case hsw:
+		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
 	}
-	return map[int][]int{1024: {4, 8, 4, 8}}
+	return nil, 0
 }
 
 // hswSplitFloorAMD64 is hswSplitFloor: 512 on an Intel CPU with the 256-bit

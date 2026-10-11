@@ -104,11 +104,13 @@ func TestHswSplitKept(t *testing.T) {
 	}
 }
 
-// TestClRowPlan: the last axis of an N-D plan of at least clRowMinSize
+// TestClRowPlan: the last axis of an N-D plan of at least clRowMin
 // elements takes clRowOrder's factorization, a smaller one its 1-D plan's;
 // the large plan reuses one cached row plan and stays correct.
 func TestClRowPlan(t *testing.T) {
 	defer func(m map[int][]int) { clRowOrder = m }(clRowOrder)
+	defer func(v int) { clRowMin = v }(clRowMin)
+	clRowMin = 1 << 19
 	const n = 64
 	want := []int{2, 4, 8}
 	clRowOrder = map[int][]int{n: want}
@@ -131,10 +133,10 @@ func TestClRowPlan(t *testing.T) {
 		}
 		return f
 	}
-	m := clRowMinSize / n
+	m := clRowMin / n
 	small := NewPlanN(m/2, n)
 	if got := factors(small); slices.Equal(got, want) || small.axes[1] != cachedPlan(n) {
-		t.Errorf("a plan below clRowMinSize: row factors %v, want the 1-D plan's", got)
+		t.Errorf("a plan below clRowMin: row factors %v, want the 1-D plan's", got)
 	}
 	if other := NewPlanN(2*m, n/2); other.axes[1] != cachedPlan(n/2) {
 		t.Error("a large plan's rows of a length not in clRowOrder: not the 1-D plan")

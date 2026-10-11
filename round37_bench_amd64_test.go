@@ -121,13 +121,12 @@ func TestHwWhole(t *testing.T) {
 	f := hwShape(t, *hwRowOrder)
 	for _, s := range strings.Split(*hwShapes, ",") {
 		shape := hwShape(t, s)
-		n := shape[len(shape)-1]
-		savedOrder, savedCache := clRowOrder, clRowCache
+		savedOrder, savedCache, savedMin := clRowOrder, clRowCache, clRowMin
 		clRowOrder, clRowCache = nil, map[int]*Plan{}
 		pm := NewPlanN(shape...)
-		clRowOrder = map[int][]int{n: f}
+		clRowOrder, clRowMin = map[int][]int{product(f): f}, 0 // rows of another length: the same plan twice
 		pb := NewPlanN(shape...)
-		clRowOrder, clRowCache = savedOrder, savedCache
+		clRowOrder, clRowCache, clRowMin = savedOrder, savedCache, savedMin
 		src := benchComplex(pm.Len())
 		dst := make([]complex128, pm.Len())
 		fns := []func(){func() { pm.FFT(dst, src) }, func() { pb.FFT(dst, src) }}

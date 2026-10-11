@@ -1,0 +1,83 @@
+## e11-mask-2^10
+comp_route_amd64.go
+<<<
+	if !on || n&(1<<11-1) != 0 {
+===
+	if !on || n&(1<<10-1) != 0 {
+>>>
+## e11-on-ignored
+comp_route_amd64.go
+<<<
+	if !on || n&(1<<11-1) != 0 {
+===
+	if n&(1<<11-1) != 0 {
+>>>
+## e11-only-3
+comp_route_amd64.go
+<<<
+	case 3, 5:
+		return []int{p, 8, 16, 16}
+===
+	case 3:
+		return []int{p, 8, 16, 16}
+>>>
+## e11-also-15
+comp_route_amd64.go
+<<<
+	case 3, 5:
+		return []int{p, 8, 16, 16}
+===
+	case 3, 5, 15:
+		return []int{p, 8, 16, 16}
+>>>
+## e11-order
+comp_route_amd64.go
+<<<
+		return []int{p, 8, 16, 16}
+===
+		return []int{p, 16, 8, 16}
+>>>
+## e11-not-hooked
+comp_route_amd64.go
+<<<
+	if f := hswE11Factors(n, hswE11On); f != nil {
+===
+	if f := hswE11Factors(n, false); f != nil {
+>>>
+## rows-hsw-min-2^19
+route_amd64.go
+<<<
+		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+===
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 19
+>>>
+## rows-hsw-case-dropped
+route_amd64.go
+<<<
+	case hsw:
+		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+===
+	case false && hsw:
+		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+>>>
+## rows-cascade-min-hsw
+route_amd64.go
+<<<
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 19
+===
+		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+>>>
+## rowmin-boundary
+split.go
+<<<
+	if f == nil || size < clRowMin {
+===
+	if f == nil || size <= clRowMin {
+>>>
+## rowmin-ignored
+split.go
+<<<
+	if f == nil || size < clRowMin {
+===
+	if f == nil {
+>>>

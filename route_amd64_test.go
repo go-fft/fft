@@ -145,15 +145,21 @@ func TestSplitTableAMD64(t *testing.T) {
 	}
 }
 
-// TestClRowOrderAMD64: with the 512-bit layout, rows of 1024 points of a
-// large N-D plan take 4·8·4·8; without it, nothing changes.
+// TestClRowOrderAMD64: with the 512-bit layout, rows of 1024 points of an
+// N-D plan of at least 2^19 elements take 4·8·4·8, on Haswell from 8192
+// elements; elsewhere nothing changes.
 func TestClRowOrderAMD64(t *testing.T) {
-	if clRowOrderAMD64(false) != nil {
-		t.Error("row orders without the 512-bit layout")
+	if m, min := clRowOrderAMD64(false, false); m != nil || min != 0 {
+		t.Errorf("row orders %v from %d without the split layouts", m, min)
 	}
-	m := clRowOrderAMD64(true)
-	if len(m) != 1 || !slices.Equal(m[1024], []int{4, 8, 4, 8}) {
-		t.Errorf("row orders %v", m)
+	for _, c := range []struct {
+		on512, hsw bool
+		min        int
+	}{{true, false, 1 << 19}, {false, true, 8192}, {true, true, 1 << 19}} {
+		m, min := clRowOrderAMD64(c.on512, c.hsw)
+		if len(m) != 1 || !slices.Equal(m[1024], []int{4, 8, 4, 8}) || min != c.min {
+			t.Errorf("%+v: row orders %v from %d", c, m, min)
+		}
 	}
 }
 
@@ -168,5 +174,24 @@ func TestZnFrameMaxAMD64(t *testing.T) {
 	}
 	if kernels.ZnTwoPassMax < 128 || kernels.ZnThreePassMax < 256 {
 		t.Errorf("limits %d, %d", kernels.ZnTwoPassMax, kernels.ZnThreePassMax)
+	}
+}
+
+// TestHaswellRoutesHere: on an Intel CPU with the 256-bit split layout and
+// without the 512-bit one (Haswell), the rows of 1024 of an N-D plan of at
+// least 8192 elements take 4·8·4·8 and a smaller plan's its 1-D plan's, and
+// 6144 and 10240 take Round 37's factorizations. Skipped elsewhere.
+func TestHaswellRoutesHere(t *testing.T) {
+	if !(kernels.UseStockhamSplit && !kernels.UseStockhamSplit512 && kernels.IntelCPU) {
+		t.Skip("not a Haswell-class CPU")
+	}
+	if got := factorsOf(NewPlanN(8, 1024).axes[1]); !slices.Equal(got, []int{4, 8, 4, 8}) {
+		t.Errorf("8×1024 rows: %v", got)
+	}
+	if got := factorsOf(NewPlanN(4, 1024).axes[1]); !slices.Equal(got, []int{8, 8, 16}) {
+		t.Errorf("4×1024 rows: %v", got)
+	}
+	if got := skFactorize(6144); !slices.Equal(got, []int{3, 8, 16, 16}) {
+		t.Errorf("6144: %v", got)
 	}
 }
