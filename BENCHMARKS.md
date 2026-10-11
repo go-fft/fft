@@ -3488,7 +3488,11 @@ spends 651 ns before its final pass where 3·15·12 spent 902.
 runs' branch binary is 340f999; the commits after it gate the products
 kernel on the vendor (`ZmCMulOn`, true on Zen 3, so the same code ran there)
 and change tests and this text; the suites, coverage and mutation runs are
-on the final code.
+on the final code. The branch was then rebased onto c3715e3 (Round 37,
+whose code changes are Intel's and arm64's paths: `hswE11Factors` runs
+before this round's AMD routes in `compFactorize`, each behind its own
+vendor flag); both packages' suites passed again on Zen 3 with every
+statement covered, and on arm64, and every `.s` file regenerates unchanged.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round36-zen3-20261011/`](benchmarks/results/round36-zen3-20261011/).
 

@@ -36,8 +36,8 @@ func TestZmPow2Tail(t *testing.T) {
 		}
 	}
 	// skFactorize takes it on AMD: comp2On, and Intel's rule off.
-	defer func(c, h bool) { comp2On, hswCompOn = c, h }(comp2On, hswCompOn)
-	comp2On, hswCompOn = true, false
+	defer func(c, h, e bool) { comp2On, hswCompOn, hswE11On = c, h, e }(comp2On, hswCompOn, hswE11On)
+	comp2On, hswCompOn, hswE11On = true, false, false
 	for _, n := range []int{6144, 12288, 30720} {
 		if got, want := skFactorize(n), zmPow2Tail(n, true); !slices.Equal(got, want) {
 			t.Errorf("skFactorize(%d) = %v on AMD, want %v", n, got, want)
@@ -71,8 +71,8 @@ func TestZmPow2Tail(t *testing.T) {
 // comp2On or Intel's rule; it differs from comp2Factors; and each
 // transform agrees with the factorization it replaces.
 func TestZmCompTable(t *testing.T) {
-	defer func(c, h, r bool) { comp2On, hswCompOn, compRadix16On = c, h, r }(comp2On, hswCompOn, compRadix16On)
-	compRadix16On = false // nor Round 24's Intel rule
+	defer func(c, h, r, e bool) { comp2On, hswCompOn, compRadix16On, hswE11On = c, h, r, e }(comp2On, hswCompOn, compRadix16On, hswE11On)
+	compRadix16On, hswE11On = false, false // nor the Intel rules
 	for n, f := range zmCompTable {
 		e, a, b := 0, 0, 0
 		m := n
