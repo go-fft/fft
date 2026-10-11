@@ -54,7 +54,7 @@ var clRowOrder map[int][]int
 // Cascade Lake, where (Round 31, m×1024 arrays,
 // the row step alone, eleven rotated rounds) 4·8·4·8 rows ran 0.94–0.99× as
 // fast as the 1-D table's 8·4·4·8 up to 128 rows (2 MB), tied at 256 rows
-// (0.999) and gained 1.18 from 512 rows; 8192 (eight rows of 1024) on
+// (0.999) and gained 1.18 from 512 rows; 2^16 (64 rows of 1024) on
 // Haswell (Round 37: route_amd64.go).
 var clRowMin int
 

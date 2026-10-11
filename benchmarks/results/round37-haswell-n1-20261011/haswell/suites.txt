@@ -1,0 +1,10 @@
+PASS
+--- PASS: TestHswE11Factors (0.00s)
+--- PASS: TestHswE11Default (0.00s)
+--- PASS: TestClRowOrderAMD64 (0.00s)
+--- PASS: TestHaswellRoutesHere (0.00s)
+--- PASS: TestClRowPlan (0.05s)
+--- PASS: TestZnFrameMatchesPool (0.16s)
+PASS
+Model name:                              Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+go version go1.15.15 linux/amd64

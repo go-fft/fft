@@ -274,7 +274,10 @@ func hswComp2Factors(n int, on bool) []int {
 // hswE11On enables hswE11Factors: the AVX2 kernels on an Intel CPU without
 // the AVX-512 ones (Haswell, Round 37; Cascade Lake was not measured). A
 // variable so the tests can take the route on any machine.
-var hswE11On = kernels.UseStockhamAVX2 && kernels.IntelCPU && !kernels.UseStockhamAVX512
+var hswE11On = hswE11Default(kernels.UseStockhamAVX2, kernels.IntelCPU, kernels.UseStockhamAVX512)
+
+// hswE11Default is hswE11On's choice: AVX2 on Intel without AVX-512.
+func hswE11Default(avx2, intel, avx512 bool) bool { return avx2 && intel && !avx512 }
 
 // hswE11Factors gives n = 2^11·p, p = 3 or 5 (6144 and 10240, the lengths
 // 2^e·3^a·5^b up to 16384 with e = 11 and one odd factor), the factorization

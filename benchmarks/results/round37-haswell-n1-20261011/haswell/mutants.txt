@@ -1,4 +1,23 @@
-# hwmut, GOARCH=amd64 on darwin/arm64 (Rosetta): the rules' logic; tests TestHswE11Factors|TestClRowOrderAMD64|TestClRowPlan|TestHswComp2Factors
+# hwmut: each mutant built for linux/amd64 and run on cfarm13 (Haswell): TestHswE11|TestClRowOrderAMD64|TestClRowPlan|TestHswComp2Factors|TestHaswellRoutesHere
+MUT e11-mask-2^10                            CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-on-ignored                           CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-only-3                               CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-also-15                              CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-order                                CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT e11-not-hooked                           CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
+MUT rows-hsw-min-2^19                        CAUGHT: --- FAIL: TestClRowOrderAMD64 (0.00s)
+MUT rows-hsw-case-dropped                    CAUGHT: --- FAIL: TestClRowOrderAMD64 (0.00s)
+MUT rows-cascade-min-hsw                     CAUGHT: --- FAIL: TestClRowOrderAMD64 (0.00s)
+MUT rowmin-boundary                          CAUGHT: --- FAIL: TestHaswellRoutesHere (0.01s)
+MUT rowmin-ignored                           CAUGHT: --- FAIL: TestHaswellRoutesHere (0.00s)
+MUT e11-default-any-avx512                   CAUGHT: --- FAIL: TestHswE11Default (0.00s)
+MUT e11-default-any-vendor                   CAUGHT: --- FAIL: TestHswE11Default (0.00s)
+MUT e11-default-no-avx2                      CAUGHT: --- FAIL: TestHswE11Default (0.00s)
+MUT rows-init-hsw-false                      CAUGHT: --- FAIL: TestHaswellRoutesHere (0.00s)
+MUT e11-init-off                             CAUGHT: --- FAIL: TestHaswellRoutesHere (0.00s)
+caught 16 of 16
+
+# the first eleven, earlier, under Rosetta (GOARCH=amd64 on darwin/arm64), min 8192 then:
 MUT e11-mask-2^10                            CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
 MUT e11-on-ignored                           CAUGHT: --- FAIL: TestHswE11Factors (0.00s)
 MUT e11-only-3                               CAUGHT: --- FAIL: TestHswE11Factors (0.00s)

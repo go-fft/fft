@@ -231,3 +231,17 @@ func TestHswE11Factors(t *testing.T) {
 		t.Errorf("skFactorize(10240) = %v with the rule off", got)
 	}
 }
+
+// TestHswE11Default: the e = 11 rule is Haswell's only.
+func TestHswE11Default(t *testing.T) {
+	for _, c := range []struct{ avx2, intel, avx512, want bool }{
+		{true, true, false, true},
+		{true, true, true, false},
+		{true, false, false, false},
+		{false, true, false, false},
+	} {
+		if got := hswE11Default(c.avx2, c.intel, c.avx512); got != c.want {
+			t.Errorf("%+v: %v", c, got)
+		}
+	}
+}

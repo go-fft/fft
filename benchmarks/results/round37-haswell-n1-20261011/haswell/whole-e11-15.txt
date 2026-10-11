@@ -1,0 +1,24 @@
+# round 1 variant br3-amd64 11:43:27 load 1.92 5.50 4.53
+HWWHOLE 8x1024       main [8 8 16]     135958 ns  rows [4 8 4 8]     133062 ns  main/this 1.022  range 0.968-1.045
+HWWHOLE 64x1024      main [8 8 16]     467395 ns  rows [4 8 4 8]     440448 ns  main/this 1.063  range 1.056-1.234
+HWWHOLE 256x1024     main [8 8 16]    2219668 ns  rows [4 8 4 8]    2108326 ns  main/this 1.053  range 1.023-1.158
+HWWHOLE 512x1024     main [8 8 16]    5831457 ns  rows [4 8 4 8]    5636465 ns  main/this 1.042  range 1.022-1.114
+HWWHOLE 1024x1024    main [8 8 16]   16297992 ns  rows [4 8 4 8]   15705635 ns  main/this 1.038  range 1.031-1.049
+HWWHOLE 4x256x1024   main [8 8 16]   33609540 ns  rows [4 8 4 8]   33091310 ns  main/this 1.016  range 1.014-1.051
+HWWHOLE 1024x512     main [8 4 16]    6187401 ns  rows [8 4 16]    6178573 ns  main/this 1.009  range 0.988-1.015
+HWWHOLE 256x512      main [8 4 16]     970669 ns  rows [8 4 16]     970740 ns  main/this 1.001  range 0.997-1.003
+PASS
+# end 11:43:39 load 2.01 5.40 4.51
+# done 11:43:39 load 2.01 5.40 4.51
+
+# round 1 variant br3-amd64 11:43:54 load 1.78 5.18 4.45
+AB 6144 3x8x16x16             36909.2 ns  first/this 1.000  spread 1.000
+AB 6144 3x4x8x8x8             43653.9 ns  first/this 0.845  spread 1.002
+AB 10240 5x8x16x16             69920.3 ns  first/this 1.000  spread 1.000
+AB 10240 5x4x8x8x8             84070.7 ns  first/this 0.832  spread 1.001
+AB 12288 3x8x8x8x8            103251.9 ns  first/this 1.000  spread 1.000
+AB 4096 8x8x8x8               20154.6 ns  first/this 1.000  spread 1.000
+AB 8192 8x8x4x4x8             51493.7 ns  first/this 1.000  spread 1.000
+PASS
+# end 11:44:10 load 1.83 5.03 4.41
+# done 11:44:10 load 1.83 5.03 4.41

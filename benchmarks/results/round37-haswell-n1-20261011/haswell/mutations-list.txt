@@ -47,7 +47,7 @@ comp_route_amd64.go
 ## rows-hsw-min-2^19
 route_amd64.go
 <<<
-		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 16
 ===
 		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 19
 >>>
@@ -55,17 +55,17 @@ route_amd64.go
 route_amd64.go
 <<<
 	case hsw:
-		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 16
 ===
 	case false && hsw:
-		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 16
 >>>
 ## rows-cascade-min-hsw
 route_amd64.go
 <<<
 		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 19
 ===
-		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 16
 >>>
 ## rowmin-boundary
 split.go
@@ -80,4 +80,39 @@ split.go
 	if f == nil || size < clRowMin {
 ===
 	if f == nil {
+>>>
+## e11-default-any-avx512
+comp_route_amd64.go
+<<<
+func hswE11Default(avx2, intel, avx512 bool) bool { return avx2 && intel && !avx512 }
+===
+func hswE11Default(avx2, intel, avx512 bool) bool { return avx2 && intel }
+>>>
+## e11-default-any-vendor
+comp_route_amd64.go
+<<<
+func hswE11Default(avx2, intel, avx512 bool) bool { return avx2 && intel && !avx512 }
+===
+func hswE11Default(avx2, intel, avx512 bool) bool { return avx2 && !avx512 }
+>>>
+## e11-default-no-avx2
+comp_route_amd64.go
+<<<
+func hswE11Default(avx2, intel, avx512 bool) bool { return avx2 && intel && !avx512 }
+===
+func hswE11Default(avx2, intel, avx512 bool) bool { return intel && !avx512 }
+>>>
+## rows-init-hsw-false
+route_amd64.go
+<<<
+	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, hsw)
+===
+	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, false)
+>>>
+## e11-init-off
+comp_route_amd64.go
+<<<
+var hswE11On = hswE11Default(kernels.UseStockhamAVX2, kernels.IntelCPU, kernels.UseStockhamAVX512)
+===
+var hswE11On = false
 >>>

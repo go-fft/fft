@@ -146,7 +146,7 @@ func TestSplitTableAMD64(t *testing.T) {
 }
 
 // TestClRowOrderAMD64: with the 512-bit layout, rows of 1024 points of an
-// N-D plan of at least 2^19 elements take 4·8·4·8, on Haswell from 8192
+// N-D plan of at least 2^19 elements take 4·8·4·8, on Haswell from 2^16
 // elements; elsewhere nothing changes.
 func TestClRowOrderAMD64(t *testing.T) {
 	if m, min := clRowOrderAMD64(false, false); m != nil || min != 0 {
@@ -155,7 +155,7 @@ func TestClRowOrderAMD64(t *testing.T) {
 	for _, c := range []struct {
 		on512, hsw bool
 		min        int
-	}{{true, false, 1 << 19}, {false, true, 8192}, {true, true, 1 << 19}} {
+	}{{true, false, 1 << 19}, {false, true, 1 << 16}, {true, true, 1 << 19}} {
 		m, min := clRowOrderAMD64(c.on512, c.hsw)
 		if len(m) != 1 || !slices.Equal(m[1024], []int{4, 8, 4, 8}) || min != c.min {
 			t.Errorf("%+v: row orders %v from %d", c, m, min)
@@ -185,11 +185,11 @@ func TestHaswellRoutesHere(t *testing.T) {
 	if !(kernels.UseStockhamSplit && !kernels.UseStockhamSplit512 && kernels.IntelCPU) {
 		t.Skip("not a Haswell-class CPU")
 	}
-	if got := factorsOf(NewPlanN(8, 1024).axes[1]); !slices.Equal(got, []int{4, 8, 4, 8}) {
-		t.Errorf("8×1024 rows: %v", got)
+	if got := factorsOf(NewPlanN(64, 1024).axes[1]); !slices.Equal(got, []int{4, 8, 4, 8}) {
+		t.Errorf("64×1024 rows: %v", got)
 	}
-	if got := factorsOf(NewPlanN(4, 1024).axes[1]); !slices.Equal(got, []int{8, 8, 16}) {
-		t.Errorf("4×1024 rows: %v", got)
+	if got := factorsOf(NewPlanN(32, 1024).axes[1]); !slices.Equal(got, []int{8, 8, 16}) {
+		t.Errorf("32×1024 rows: %v", got)
 	}
 	if got := skFactorize(6144); !slices.Equal(got, []int{3, 8, 16, 16}) {
 		t.Errorf("6144: %v", got)

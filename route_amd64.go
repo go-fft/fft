@@ -213,8 +213,8 @@ func init() {
 // this VM has no PMU to show it. At 2048 (radix 8 first, streams 4 KB
 // apart) and 8192 the table's orders kept their lead on cold rows.
 //
-// On Haswell (hsw, Round 37) the same order wins for another reason, from
-// eight rows on: the rows of an N-D plan are transformed in place, and the
+// On Haswell (hsw, Round 37) the same order wins for another reason: the
+// rows of an N-D plan are transformed in place, and the
 // 1-D plan, 8·8·16, has an odd number of passes, which in place costs a copy
 // of every row (skPlan.run). The row step alone (TestHwRows, eleven and nine
 // rotated rounds, 1-D plan ÷ 4·8·4·8) ran 1.110 at 8×1024, 1.118–1.138 from
@@ -222,13 +222,16 @@ func init() {
 // 4×256×1024; every three-pass order timed lost or tied (4·16·16 0.97,
 // 16·8·8 0.92–0.93) and every four-pass order gained (4·4·8·8 1.10–1.12,
 // 4·4·4·16 1.10–1.13), so the pass count, not the first radix, decides
-// there.
+// there. Whole transforms, the two plans in one process (TestHwWhole,
+// fifteen rotated rounds): 64×1024 1.063, 256×1024 1.053, 512×1024 1.042,
+// 1024² 1.038, 4×256×1024 1.016, every round above 1.01; at 8×1024 1.022
+// with rounds from 0.968, so the rule starts at 64 rows (2^16 elements).
 func clRowOrderAMD64(on512, hsw bool) (map[int][]int, int) {
 	switch {
 	case on512:
 		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 19
 	case hsw:
-		return map[int][]int{1024: {4, 8, 4, 8}}, 8192
+		return map[int][]int{1024: {4, 8, 4, 8}}, 1 << 16
 	}
 	return nil, 0
 }
