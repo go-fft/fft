@@ -3390,8 +3390,12 @@ range):
 | untouched: RFFT 4096 / 1920 | 1.008 / 1.003 |
 
 **Bit identity and tests.** `TestZmBluesteinMatchesLoops` holds Bluestein
-to the Go loops it replaced, bit for bit (seven lengths, both directions, in
-place and not, the pooled buffer reused); `TestCMulToMatchesScalar`,
+to the Go loops it replaced (seven lengths, both directions, in place and
+not, the pooled buffer reused): bit for bit on amd64, within 1e-12 of the
+largest output elsewhere, because on macOS arm64 under `-race` and
+`-coverpkg` (the CI gate) the compiler fused the same complex product into
+an FMA differently in `CMulTo` than in the code it replaced, an ULP apart, which
+the first CI run caught; `TestCMulToMatchesScalar`,
 `TestCMulToLengths` and `TestZmCMulBulkGate` hold the kernel to Go's product
 on signed zeros, infinities and subnormals, its length guard (a shorter `a`
 with room in its capacity must still panic, before writing) and its AVX2

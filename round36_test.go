@@ -1,6 +1,9 @@
 package fft
 
 import (
+	"math"
+	"math/cmplx"
+	"runtime"
 	"slices"
 	"testing"
 
@@ -99,10 +102,14 @@ func zmBlueLoops(p *bluesteinPlan, dst, src []complex128, inverse bool) {
 }
 
 // TestZmBluesteinMatchesLoops holds Bluestein with its products on
-// kernels.CMulTo (Round 36) to the Go loops it replaced, bit for bit, both
-// directions, in place and not, on the pooled buffer's second use too (its
-// pad must be cleared again).
+// kernels.CMulTo (Round 36) to the Go loops it replaced, both directions, in
+// place and not, on the pooled buffer's second use too (its pad must be
+// cleared again): bit for bit on amd64, where neither fuses a product into
+// an FMA; elsewhere within 1e-12 of the largest output, because the
+// compiler may fuse the same expression differently in another function
+// (it did on macOS arm64 under -race and -coverpkg, by an ULP).
 func TestZmBluesteinMatchesLoops(t *testing.T) {
+	exact := runtime.GOARCH == "amd64"
 	for _, n := range []int{23, 46, 47, 59, 94, 4099, 10007} {
 		p := NewPlan(n)
 		if p.bluestein == nil {
@@ -112,13 +119,28 @@ func TestZmBluesteinMatchesLoops(t *testing.T) {
 			for _, inverse := range []bool{false, true} {
 				want := make([]complex128, n)
 				zmBlueLoops(p.bluestein, want, x, inverse)
+				scale := 0.0
+				for _, v := range want {
+					if a := cmplx.Abs(v); !math.IsInf(a, 0) && !math.IsNaN(a) {
+						scale = max(scale, a)
+					}
+				}
+				same := func(a, b complex128) bool {
+					if exact {
+						return sameBits(a, b)
+					}
+					c := func(u, v float64) bool {
+						return u == v || math.IsNaN(u) && math.IsNaN(v) || math.Abs(u-v) <= 1e-12*scale
+					}
+					return c(real(a), real(b)) && c(imag(a), imag(b))
+				}
 				for rep := range 2 {
 					got := make([]complex128, n)
 					p.bluestein.transform(got, x, inverse)
 					inPlace := slices.Clone(x)
 					p.bluestein.transform(inPlace, inPlace, inverse)
 					for i := range want {
-						if !sameBits(got[i], want[i]) || !sameBits(inPlace[i], want[i]) {
+						if !same(got[i], want[i]) || !same(inPlace[i], want[i]) {
 							t.Fatalf("n=%d signal %d inverse %v call %d point %d: %v, in place %v, want %v", n, s, inverse, rep, i, got[i], inPlace[i], want[i])
 						}
 					}
