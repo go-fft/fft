@@ -85,10 +85,10 @@ func TestUntangleMatchesScalar(t *testing.T) {
 			for s, z := range smallSignals(m) {
 				kernels.UseUntangleAVX2 = true
 				simd := make([]complex128, m+1)
-				rfftUntangle(simd, z, tw, m)
+				rfftUntangle(simd, z, tw, kernels.UntangleTable(tw, m), m)
 				kernels.UseUntangleAVX2 = false
 				scalar := make([]complex128, m+1)
-				rfftUntangle(scalar, z, tw, m)
+				rfftUntangle(scalar, z, tw, kernels.UntangleTable(tw, m), m)
 				for k := range scalar {
 					if !sameBits(simd[k], scalar[k]) {
 						t.Fatalf("m=%d signal %d bin %d wide=%v: SIMD %v vs Go %v", m, s, k, wide, simd[k], scalar[k])
@@ -118,10 +118,10 @@ func TestRetangleMatchesScalar(t *testing.T) {
 				for _, h := range []float64{0.5, 0.5 / float64(m), 1 / math.Sqrt(float64(2*m)), 0x1p-1030} {
 					kernels.UseUntangleAVX2 = true
 					simd := make([]complex128, m)
-					irfftRetangle(simd, x, tw, m, h)
+					irfftRetangle(simd, x, tw, kernels.UntangleTable(tw, m), m, h)
 					kernels.UseUntangleAVX2 = false
 					scalar := make([]complex128, m)
-					irfftRetangle(scalar, x, tw, m, h)
+					irfftRetangle(scalar, x, tw, kernels.UntangleTable(tw, m), m, h)
 					for k := range scalar {
 						if !sameBits(simd[k], scalar[k]) {
 							t.Fatalf("m=%d signal %d h=%v bin %d wide=%v: SIMD %v vs Go %v", m, s, h, k, wide, simd[k], scalar[k])

@@ -35,12 +35,12 @@ func BenchmarkR27Real(b *testing.B) {
 		})
 		b.Run(name+"/untangle", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				rfftUntangle(dst, z, p.tw, m)
+				rfftUntangle(dst, z, p.tw, p.ktw, m)
 			}
 		})
 		b.Run(name+"/retangle", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				irfftRetangle(z, spec, p.tw, m, 0.5/float64(m))
+				irfftRetangle(z, spec, p.tw, p.ktw, m, 0.5/float64(m))
 			}
 		})
 	}

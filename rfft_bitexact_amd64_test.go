@@ -45,7 +45,7 @@ func realPlanRFFTMatchesScalarStages(t *testing.T) {
 				}
 			}
 			want, got := make([]complex128, n/2+1), make([]complex128, n/2+1)
-			rfftUntangle(want, z, p.tw, n/2)
+			rfftUntangle(want, z, p.tw, p.ktw, n/2)
 			p.RFFT(got, x)
 			for k := range want {
 				if math.Float64bits(real(want[k])) != math.Float64bits(real(got[k])) || math.Float64bits(imag(want[k])) != math.Float64bits(imag(got[k])) {

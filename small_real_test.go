@@ -5,6 +5,8 @@ import (
 	"math/rand/v2"
 	"slices"
 	"testing"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
 
 // smallSignals are simdSignals plus the signals the float64 untangle kernels
@@ -50,9 +52,9 @@ func TestUntangleInPlace(t *testing.T) {
 		tw := NewRealPlan(2 * m).tw
 		for s, z := range smallSignals(m) {
 			out := make([]complex128, m+1)
-			rfftUntangle(out, z, tw, m)
+			rfftUntangle(out, z, tw, kernels.UntangleTable(tw, m), m)
 			in := append(slices.Clone(z), 0)
-			rfftUntangle(in, in[:m], tw, m)
+			rfftUntangle(in, in[:m], tw, kernels.UntangleTable(tw, m), m)
 			for k := range out {
 				if !sameBits(out[k], in[k]) {
 					t.Fatalf("m=%d signal %d bin %d: in place %v, out of place %v", m, s, k, in[k], out[k])
@@ -86,7 +88,7 @@ func TestRealPlanInPlaceMatchesBuffered(t *testing.T) {
 			} else {
 				p.half.execute(Z, asComplex(src), false)
 			}
-			rfftUntangle(want, Z, p.tw, m)
+			rfftUntangle(want, Z, p.tw, p.ktw, m)
 			for k := range want {
 				if !sameBits(got[k], want[k]) {
 					t.Fatalf("RFFT n=%d signal %d bin %d: %v, buffered %v", n, s, k, got[k], want[k])

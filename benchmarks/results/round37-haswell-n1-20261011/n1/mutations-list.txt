@@ -1,0 +1,93 @@
+## a-zip1-operands-swapped
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 7, 6, 0),     // a: re
+===
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 6, 7, 0),     // a: re
+>>>
+## a-im-as-zip1
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 7, 6, 1),     // a: im
+===
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 7, 6, 1),     // a: im
+>>>
+## mirror-not-reversed
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 8, 9, 2),     // b: re, lane q = bin m-k-q
+===
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 9, 8, 2),     // b: re, lane q = bin m-k-q
+>>>
+## mirror-im-not-reversed
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 8, 9, 3),     // b: im
+===
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 9, 8, 3),     // b: im
+>>>
+## twiddles-loaded-interleaved
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VLD1.P 32("+tw+"), [V%d.D2, V%d.D2]", 4, 5), // wr, wi, split in the table
+===
+		raw("VLD2.P 32("+tw+"), [V%d.D2, V%d.D2]", 4, 5), // wr, wi, split in the table
+>>>
+## out-k-joined-wrong-order
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", ki, kr, 6), // bin k
+===
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", kr, ki, 6), // bin k
+>>>
+## out-k-and-k1-swapped
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VST1.P [V%d.D2, V%d.D2], 32("+out+")", 6, 7),
+===
+		raw("VST1.P [V%d.D2, V%d.D2], 32("+out+")", 7, 8),
+>>>
+## out-mirror-lanes-swapped
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", mi, mr, 4), // bin m-k-1
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", mi, mr, 5), // bin m-k
+===
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", mi, mr, 4), // bin m-k-1
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", mi, mr, 5), // bin m-k
+>>>
+## out-mirror-re-im-swapped
+internal/kernels/asmgen/arm64/gen.go
+<<<
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", mi, mr, 4), // bin m-k-1
+===
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", mr, mi, 4), // bin m-k-1
+>>>
+## table-not-split
+internal/kernels/untangle_arm64.go
+<<<
+		s[k], s[k+1] = complex(real(tw[k]), real(tw[k+1])), complex(imag(tw[k]), imag(tw[k+1]))
+===
+		s[k], s[k+1] = tw[k], tw[k+1]
+>>>
+## table-split-wi-from-k-only
+internal/kernels/untangle_arm64.go
+<<<
+		s[k], s[k+1] = complex(real(tw[k]), real(tw[k+1])), complex(imag(tw[k]), imag(tw[k+1]))
+===
+		s[k], s[k+1] = complex(real(tw[k]), real(tw[k+1])), complex(imag(tw[k]), imag(tw[k]))
+>>>
+## table-split-from-k0
+internal/kernels/untangle_arm64.go
+<<<
+		k := 1 + 2*p
+===
+		k := 2 * p
+>>>
+## table-last-pair-not-split
+internal/kernels/untangle_arm64.go
+<<<
+	for p := range armrealPairs(m) {
+===
+	for p := range armrealPairs(m) - 1 {
+>>>

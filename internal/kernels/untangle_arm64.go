@@ -17,12 +17,27 @@ var UseUntangleNEON = true
 // negative when m is too small (or negative) for one pair.
 func armrealPairs(m int) int { return (m - 1) / 2 / 2 }
 
+// UntangleTable returns the table Untangle and Retangle read for the
+// twiddles tw[k] = W_2m^k, k = 0 .. m: on arm64 a copy whose pairs tw[k],
+// tw[k+1] (k = 1, 3, .. 2·pairs-1) hold wr_k, wr_k+1 and wi_k, wi_k+1, so the
+// kernels load them split with no permute (Round 37).
+func UntangleTable(tw []complex128, m int) []complex128 {
+	s := make([]complex128, len(tw))
+	copy(s, tw)
+	for p := range armrealPairs(m) {
+		k := 1 + 2*p
+		s[k], s[k+1] = complex(real(tw[k]), real(tw[k+1])), complex(imag(tw[k]), imag(tw[k+1]))
+	}
+	return s
+}
+
 // Untangle runs the real-FFT untangle for bins k = 1 .. 2·pairs (and their
 // mirrors m-k), pairs = ⌊(m-1)/2/2⌋, on the NEON kernel and returns the last
 // bin it produced, or 0 when it did nothing; the caller finishes the
-// remaining bins, and the DC, Nyquist and middle bins, in Go. dst holds at
-// least m+1 entries, z m and tw 2·pairs+1: the bound checks below panic
-// before the kernel runs when one is shorter.
+// remaining bins, and the DC, Nyquist and middle bins, in Go. tw is
+// UntangleTable's table. dst holds at least m+1 entries, z m and tw
+// 2·pairs+1: the bound checks below panic before the kernel runs when one is
+// shorter.
 func Untangle(dst, z, tw []complex128, m int) int {
 	pairs := armrealPairs(m)
 	if !UseUntangleNEON || pairs <= 0 {
@@ -36,7 +51,8 @@ func Untangle(dst, z, tw []complex128, m int) int {
 // Retangle runs the inverse untangle for k = 1 .. 2·pairs on the NEON kernel,
 // writing z (and its mirrors z[m-k]) from the complete half spectrum x scaled
 // by h = 0.5·scale, and returns the last k it produced, or 0 when it did
-// nothing. z holds at least m entries, x m+1 and tw 2·pairs+1.
+// nothing. tw is UntangleTable's table. z holds at least m entries, x m+1
+// and tw 2·pairs+1.
 func Retangle(z, x, tw []complex128, m int, h float64) int {
 	pairs := armrealPairs(m)
 	if !UseUntangleNEON || pairs <= 0 {

@@ -1,0 +1,10 @@
+# TestHwUntangleX -hw.unt 9,30, cfarm424 core 40 GOMAXPROCS=1, 2026-10-11 08:44:52 UTC load 0.27 0.43 0.22
+# main = Round 27's kernel (VLD2/VST2 + VEXT), Y = VLD1/VST1 + VZIP for bins and mirrors, X = Y + split twiddle table
+# each ratio = main time / variant time, median over 9 rotated rounds (min-max); X checked bit for bit against main first
+HWUNTX 256 untangle main 240.1 Y 217.3 1.106 (1.100-1.693) X 200.7 1.197 (1.183-2.211) | retangle main 234.1 Y 208.0 1.126 (1.123-1.183) X 200.6 1.169 (1.162-1.239)
+HWUNTX 1080 untangle main 1011.7 Y 915.8 1.104 (1.101-1.131) X 840.7 1.208 (1.188-1.233) | retangle main 982.5 Y 870.2 1.129 (1.124-1.140) X 832.2 1.181 (1.161-1.205)
+HWUNTX 1024 untangle main 962.0 Y 862.8 1.107 (1.073-1.125) X 804.8 1.204 (1.181-1.219) | retangle main 940.2 Y 831.7 1.133 (1.126-1.141) X 789.6 1.179 (1.169-1.194)
+HWUNTX 1000 untangle main 936.6 Y 839.7 1.108 (1.089-1.128) X 770.0 1.209 (1.187-1.232) | retangle main 909.6 Y 811.7 1.131 (1.110-1.136) X 771.2 1.177 (1.160-1.204)
+HWUNTX 1920 untangle main 1789.7 Y 1632.0 1.102 (1.081-1.110) X 1477.2 1.208 (1.185-1.229) | retangle main 1746.2 Y 1548.1 1.129 (1.110-1.134) X 1482.8 1.178 (1.161-1.202)
+HWUNTX 4096 untangle main 3837.6 Y 3458.6 1.111 (1.095-1.123) X 3227.9 1.189 (1.176-1.194) | retangle main 3770.3 Y 3355.1 1.124 (1.121-1.132) X 3174.9 1.188 (1.150-1.202)
+# end 08:45:02 load 0.38 0.45 0.23

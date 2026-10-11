@@ -1763,10 +1763,20 @@ func genF32rUntangle(f *emit.File, inverse bool) {
 // package's rfftUntangle loop for bins k = 1 .. 2·pairs, and
 // armrealRetangleNEON(z, x, tw *complex128, h *float64, m, pairs int) its
 // irfftRetangle loop (retangle, inlined) for the same k: genF32rUntangle on
-// .2D, two consecutive k per register pair. VLD2 splits Z[k], Z[k+1] into real
-// and imaginary parts, and the mirrored Z[m-k-1], Z[m-k] the same way; VEXT
-// $8 swaps the two lanes so lane q holds bin m-k-q (and swaps the mirrored
-// outputs back before their VST2).
+// .2D, two consecutive k per register pair. Z[k], Z[k+1] and the mirrored
+// Z[m-k-1], Z[m-k] are loaded as they lie (VLD1) and split into real and
+// imaginary parts by VZIP1/VZIP2, whose operand order also puts bin m-k-q in
+// lane q of the mirrors; the outputs are joined the same way before their
+// VST1. The twiddles come split from the table (kernels.UntangleTable:
+// wr_k, wr_k+1, wi_k, wi_k+1 per pair), so one VLD1 loads them with no
+// permute.
+//
+// Round 37 (Neoverse-N1) replaced Round 27's VLD2/VST2 and the four VEXT $8
+// lane swaps a step with this: VLD2 and VST2 cost N1 more vector work than a
+// VLD1 or VST1 and two VZIPs, and the split table drops the twiddles'
+// permute altogether. One process, nine rotated rounds, untangle alone
+// 1.19–1.21× and retangle 1.17–1.19× as fast from 256 to 4096 points
+// (BENCHMARKS.md, Round 37).
 //
 // Bit identity. gc compiles rfftUntangle and retangle with the fusions it
 // gives their float32 twins (go build -gcflags=-S, Go 1.27.1, realplan.go),
@@ -1790,11 +1800,6 @@ func genArmrealUntangleFile() {
 	genArmrealUntangle(f, false)
 	genArmrealUntangle(f, true)
 	write("untangle_arm64.s", f)
-}
-
-// armrealSwap exchanges the two .2D lanes of V(v).
-func armrealSwap(b *arm64.Builder, v int) {
-	b.Raw("VEXT $8, V%d.B16, V%d.B16, V%d.B16", v, v, v)
 }
 
 // armrealOp is one instruction of an untangle step, its registers numbered
@@ -1832,20 +1837,24 @@ func armrealStep(inverse bool, in, mir, tw, out, mout string) []armrealOp {
 			b.Raw(format, args...)
 		}
 	}
-	swap := func(v int) armrealOp {
-		return func(b *arm64.Builder, o int) { armrealSwap(b, v+o) }
-	}
 	add, sub, mul := (*arm64.Builder).VFADD2D, (*arm64.Builder).VFSUB2D, (*arm64.Builder).VFMUL2D
 	fmla, fmls := (*arm64.Builder).VFMLA2D, (*arm64.Builder).VFMLS2D
 	// Ten registers a step: each is reused once its value is dead.
+	// VZIP1 Vm, Vn, Vd (Go's operand order) is [Vn.d0, Vm.d0], VZIP2 the
+	// same with lane 1.
 	ops := []armrealOp{
-		raw("VLD2.P 32("+in+"), [V%d.D2, V%d.D2]", 0, 1), // a: re, im
-		raw("VLD2 ("+mir+"), [V%d.D2, V%d.D2]", 2, 3),    // b, lanes swapped below
-		raw("VLD2.P 32("+tw+"), [V%d.D2, V%d.D2]", 4, 5), // wr, wi
-		swap(2), swap(3),
+		raw("VLD1.P 32("+in+"), [V%d.D2, V%d.D2]", 6, 7), // a[k], a[k+1] as they lie
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 7, 6, 0),     // a: re
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 7, 6, 1),     // a: im
+		raw("VLD1 ("+mir+"), [V%d.D2, V%d.D2]", 8, 9),    // b[m-k-1], b[m-k] as they lie
+		raw("VLD1.P 32("+tw+"), [V%d.D2, V%d.D2]", 4, 5), // wr, wi, split in the table
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", 8, 9, 2),     // b: re, lane q = bin m-k-q
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", 8, 9, 3),     // b: im
+	}
+	ops = append(ops,
 		v3(add, 6, 0, 2), // s.re
 		v3(sub, 7, 1, 3), // d.im
-	}
+	)
 	var kr, ki, mr, mi int // the registers stored
 	if !inverse {
 		ops = append(ops,
@@ -1887,10 +1896,14 @@ func armrealStep(inverse bool, in, mir, tw, out, mout string) []armrealOp {
 		)
 		kr, ki, mr, mi = 2, 3, 0, 1
 	}
+	// V4–V7 (the twiddles, s.re and d.im) are dead by now.
 	return append(ops,
-		swap(mr), swap(mi),
-		raw("VST2.P [V%d.D2, V%d.D2], 32("+out+")", kr, ki),
-		raw("VST2 [V%d.D2, V%d.D2], ("+mout+")", mr, mi),
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", ki, kr, 6), // bin k
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", ki, kr, 7), // bin k+1
+		raw("VST1.P [V%d.D2, V%d.D2], 32("+out+")", 6, 7),
+		raw("VZIP2 V%d.D2, V%d.D2, V%d.D2", mi, mr, 4), // bin m-k-1
+		raw("VZIP1 V%d.D2, V%d.D2, V%d.D2", mi, mr, 5), // bin m-k
+		raw("VST1 [V%d.D2, V%d.D2], ("+mout+")", 4, 5),
 	)
 }
 

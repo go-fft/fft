@@ -233,16 +233,6 @@ func TestR31Whole(t *testing.T) {
 	}
 }
 
-func factorsOf(p *Plan) []int {
-	var f []int
-	if p.sk != nil {
-		for _, st := range p.sk.stages {
-			f = append(f, st.r)
-		}
-	}
-	return f
-}
-
 var (
 	r31Untangle = flag.String("r31.untangle", "", "TestR31Untangle: rounds,ms")
 	r31Reals    = flag.String("r31.reals", "256,512,1024,2048,4096,8192,65536,1048576,1000,1920", "TestR31Untangle: RFFT lengths")
@@ -279,8 +269,8 @@ func TestR31Untangle(t *testing.T) {
 			name string
 			fn   func()
 		}{
-			{"untangle", func() { rfftUntangle(dst, Z, p.tw, m) }},
-			{"retangle", func() { irfftRetangle(zb, dst, p.tw, m, 0.5/float64(m)) }},
+			{"untangle", func() { rfftUntangle(dst, Z, p.tw, p.ktw, m) }},
+			{"retangle", func() { irfftRetangle(zb, dst, p.tw, p.ktw, m, 0.5/float64(m)) }},
 			{"rfft", func() { p.RFFT(dst, src) }},
 			{"irfft", func() { p.IRFFT(back, dst) }},
 		}

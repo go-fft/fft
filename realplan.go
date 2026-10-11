@@ -23,6 +23,7 @@ type RealPlan struct {
 	// Even path: half-length complex plan + untangle table.
 	half *Plan        // length n/2, nil for the odd path
 	tw   []complex128 // exp(-2πi·k/n) for k = 0 .. n/2, untangle twiddles
+	ktw  []complex128 // tw as the untangle kernels read it (kernels.UntangleTable)
 
 	// scratch pools a single 2·m complex128 buffer per concurrent caller so the
 	// pack/untangle (and the inverse's reverse-untangle/unpack) reuse a private
@@ -53,6 +54,7 @@ func NewRealPlan(n int) *RealPlan {
 		ang := -2 * math.Pi * float64(k) / float64(n)
 		p.tw[k] = complex(math.Cos(ang), math.Sin(ang))
 	}
+	p.ktw = kernels.UntangleTable(p.tw, m)
 	p.scratch = &sync.Pool{New: func() any {
 		s := make([]complex128, 2*m)
 		return &s
@@ -112,7 +114,7 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 		// write/read entirely — one gather instead of pack + gather.
 		buf, _, Z := p.getScratch()
 		p.half.it.transformRealPacked(Z, src)
-		rfftUntangle(dst, Z, p.tw, m)
+		rfftUntangle(dst, Z, p.tw, p.ktw, m)
 		p.putScratch(buf)
 		return dst[:m+1]
 	}
@@ -128,13 +130,13 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 		// build it in the RealPlan's own buffer instead.
 		buf, _, Zs := p.getScratch()
 		p.half.execute(Zs, asComplex(src[:2*m]), false)
-		rfftUntangle(dst, Zs, p.tw, m)
+		rfftUntangle(dst, Zs, p.tw, p.ktw, m)
 		p.putScratch(buf)
 		return dst[:m+1]
 	}
 	Z := dst[:m]
 	p.half.execute(Z, asComplex(src[:2*m]), false)
-	rfftUntangle(dst, Z, p.tw, m)
+	rfftUntangle(dst, Z, p.tw, p.ktw, m)
 	return dst[:m+1]
 }
 
@@ -148,7 +150,8 @@ func realOverlap(a unsafe.Pointer, an int, b unsafe.Pointer, bn int) bool {
 
 // rfftUntangle splits the m-point packed spectrum Z into the m+1 real-FFT bins
 // dst[0..m], using the precomputed recombination twiddles tw (tw[k]=W_n^k for
-// k=0..m). The k=0 and k=m bins are purely real and handled outside the loop.
+// k=0..m; ktw, the same as kernels.UntangleTable lays it out for the kernel).
+// The k=0 and k=m bins are purely real and handled outside the loop.
 // The interior bins are produced in conjugate pairs (k, m-k): both read the same
 // Z[k], Z[m-k] and the same twiddle W_n^k, and satisfy
 //
@@ -167,14 +170,14 @@ func realOverlap(a unsafe.Pointer, an int, b unsafe.Pointer, bn int) bool {
 // both dst[k] and dst[m-k] every iteration. The self-paired middle bin k = m/2
 // (present only when m is even, where m-k == k) is finished once after the loop
 // from the same formula, so it is never written twice.
-func rfftUntangle(dst, Z, tw []complex128, m int) {
+func rfftUntangle(dst, Z, tw, ktw []complex128, m int) {
 	z0r, z0i := real(Z[0]), imag(Z[0])
 	dst[0] = complex(z0r+z0i, 0)
 	dst[m] = complex(z0r-z0i, 0)
 	half := (m - 1) / 2
 	// An AVX2 (amd64) or NEON (arm64) kernel produces the leading bins,
 	// bit-identically.
-	for k := kernels.Untangle(dst, Z, tw, m) + 1; k <= half; k++ {
+	for k := kernels.Untangle(dst, Z, ktw, m) + 1; k <= half; k++ {
 		zk := Z[k]
 		zmk := Z[m-k]
 		// xe = (zk + conj(zmk))/2, xo = (zk - conj(zmk))·(-i/2).
@@ -295,13 +298,14 @@ func (p *RealPlan) irfftPacked(dst []float64, src []complex128) []float64 {
 }
 
 // irfftRetangle rebuilds the packed spectrum Z[1..m-1] from the complete half
-// spectrum X[0..m] (len(X) == m+1), pair by pair; h = 0.5·scale.
-func irfftRetangle(Z, X, tw []complex128, m int, h float64) {
+// spectrum X[0..m] (len(X) == m+1), pair by pair; h = 0.5·scale. tw and ktw
+// are as for rfftUntangle.
+func irfftRetangle(Z, X, tw, ktw []complex128, m int, h float64) {
 	X = X[:m+1]
 	tw = tw[:m+1]
 	// An AVX2 (amd64) or NEON (arm64) kernel produces the leading pairs,
 	// bit-identically.
-	k := kernels.Retangle(Z, X, tw, m, h) + 1
+	k := kernels.Retangle(Z, X, ktw, m, h) + 1
 	for ; k < m-k; k++ {
 		Z[k], Z[m-k] = retangle(X[k], X[m-k], tw[k], h)
 	}
@@ -397,7 +401,7 @@ func (p *RealPlan) packSpectrum(Z, src []complex128, h float64) {
 	Z[0] = complex((x0+xm)*h, (x0-xm)*h)
 	if len(src) >= m+1 {
 		// Complete spectrum (the usual case): no per-bin bounds test.
-		irfftRetangle(Z, src[:m+1], p.tw, m, h)
+		irfftRetangle(Z, src[:m+1], p.tw, p.ktw, m, h)
 		return
 	}
 	for k := 1; k <= m-k; k++ {
