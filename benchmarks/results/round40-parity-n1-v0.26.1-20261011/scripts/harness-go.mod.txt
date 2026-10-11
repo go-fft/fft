@@ -1,0 +1,7 @@
+module hwrel
+
+go 1.27.1
+
+require github.com/go-fft/fft v0.0.0
+
+replace github.com/go-fft/fft => ../src-v0.26.1
