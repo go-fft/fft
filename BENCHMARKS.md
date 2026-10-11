@@ -3388,7 +3388,9 @@ new `r32_amd64.s` unchanged.
 
 **Which main.** v0.26.1 (365a1e3) for every measurement; the A/B binaries
 are the branch at 75780bd (`r32br.test`, SHA-256 in each file), whose
-`r32Table` was already empty, so their current plans are v0.26.1's.
+`r32Table` was already empty, so their current plans are v0.26.1's. The
+branch was then rebased onto v0.26.2 (8bb6d09, Round 40: documentation and
+results only, no code).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round38-r32-20261011/`](benchmarks/results/round38-r32-20261011/).
 
