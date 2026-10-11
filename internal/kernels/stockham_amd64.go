@@ -435,16 +435,14 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		return 0
 	}
 	_, _, _ = dst[m], z[m-1], tw[2*pairs+1] // the kernel trusts these lengths
-	// Four bins per step on the 512-bit kernel; a pair left over goes to the
-	// AVX2 kernel, on the slices that start 4·q bins in (its mirror is then
-	// m-4q-1). The kernel is called with q = 0 too: it returns before its first AVX-512
-	// instruction, so no statement here runs only on an AVX-512 CPU (the
-	// coverage gate runs on CPUs without it).
+	// Four bins per step on the 512-bit kernel; the pairs left over go, by a
+	// tail jump inside it, to the AVX2 kernel, on the slices that start 4·q
+	// bins in (its mirror is then m-4q-1). With q = 0 it jumps there before
+	// its first AVX-512 instruction, so it serves every AVX2 CPU in one call
+	// and no statement here runs only on an AVX-512 CPU (the coverage gate
+	// runs on CPUs without it).
 	q := clQuads(UseUntangleAVX512, pairs, m, UntangleWideMax)
-	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
-	if rest := pairs - 2*q; rest > 0 {
-		smallUntangleAVX2(&dst[4*q], &z[4*q], &tw[4*q], &skFwd[0][0], m-8*q, rest)
-	}
+	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q, pairs)
 	return 2 * pairs
 }
 
@@ -462,10 +460,7 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	_, _, _ = z[m-1], x[m], tw[2*pairs+1]
 	hv := [4]float64{h, h, h, h}
 	q := clQuads(UseUntangleAVX512, pairs, m, RetangleWideMax) // as in Untangle
-	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
-	if rest := pairs - 2*q; rest > 0 {
-		smallRetangleAVX2(&z[4*q], &x[4*q], &tw[4*q], &skFwd[0][0], &hv, m-8*q, rest)
-	}
+	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q, pairs)
 	return 2 * pairs
 }
 

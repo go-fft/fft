@@ -656,3 +656,43 @@ func TestCsExport(t *testing.T) {
 		}
 	}
 }
+
+var csND = flag.String("cs.nd", "64x64,128x128,256x256,512x512", "TestCsFrameND: shapes")
+
+// TestCsFrameND times N-D plans built with the frame kernels off (main on
+// Cascade Lake) and on, in one process, rotated: their rows are 1-D plans
+// the frame now serves.
+func TestCsFrameND(t *testing.T) {
+	rounds, ms := csRounds(t)
+	defer znSetMax(znTwoPassMax, znThreePassMax)()
+	for _, s := range strings.Split(*csND, ",") {
+		var shape []int
+		for _, f := range strings.Split(s, "x") {
+			n, _ := strconv.Atoi(f)
+			shape = append(shape, n)
+		}
+		build := func(two, three int) *PlanN {
+			znSetMax(two, three)
+			for _, n := range shape {
+				znForget(n)
+			}
+			p := NewPlanN(shape...)
+			for _, n := range shape {
+				znForget(n)
+			}
+			return p
+		}
+		off := build(0, 0)
+		on := build(kernels.ZnTwoPassMax, kernels.ZnThreePassMax)
+		size := shapeProduct(shape...)
+		src, d0, d1 := benchComplex(size), make([]complex128, size), make([]complex128, size)
+		times := comp2Rotate([]func(){func() { off.FFT(d0, src) }, func() { on.FFT(d1, src) }}, rounds, ms)
+		lo, hi := 1e300, 0.0
+		for r := range times[0] {
+			q := times[0][r] / times[1][r]
+			lo, hi = min(lo, q), max(hi, q)
+		}
+		fmt.Printf("ND %-9s off %10.0f ns  on %10.0f ns  off/on %.3f [%.3f %.3f] rows zn=%v\n", s, median(times[0]), median(times[1]),
+			median(times[0])/median(times[1]), lo, hi, on.axes[len(shape)-1].sk.zn != nil)
+	}
+}

@@ -32,3 +32,11 @@ address table: the AVX-512 final kernels in one slot     caught  TestCsZn* (a fi
 The forward untangle's bound (UntangleWideMax):
 bound back to 16384                                      caught  TestCsUntangleWideMax
 clUntangleWide ignores its max argument                  caught  TestCsUntangleWideMax
+
+The untangle tail jump (Round 37's patch, verified and extended here). The first run of these
+three generator mutants did not rebuild untangle_amd64.s (mrun.sh copied only the radix-9 and
+frame files) and "survived" without testing anything; mrun.sh now copies it, and they were rerun:
+tail jump advances the slices 32 bytes per quad          caught  TestCsTailJumpMatchesTwoCalls
+tail jump does not reduce m                               caught  TestCsTailJumpMatchesTwoCalls
+Untangle passes 2q as pairs (drops the AVX2 tail)         caught  TestCsTailJumpMatchesTwoCalls
+early return when no pair is left removed                 SURVIVED: equivalent in bits (the AVX2 kernel does nothing with 0 pairs); a cost only

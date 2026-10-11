@@ -1,0 +1,9 @@
+# start 10:24:45 load 0.46 0.80 1.06 sha 1ba95d0c02372eaa : ./f17.test -test.run TestCsFrameND -cs.ab=15,300 -test.v
+=== RUN   TestCsFrameND
+ND 64x64     off      17680 ns  on      17690 ns  off/on 0.999 [0.991 1.015] rows zn=true
+ND 128x128   off      82200 ns  on      81902 ns  off/on 1.004 [0.993 1.016] rows zn=true
+ND 256x256   off     446541 ns  on     448543 ns  off/on 0.996 [0.982 1.015] rows zn=true
+ND 512x512   off    2313216 ns  on    2272608 ns  off/on 1.018 [0.956 1.084] rows zn=true
+--- PASS: TestCsFrameND (59.59s)
+PASS
+# end 10:25:44 load 0.79 0.83 1.05

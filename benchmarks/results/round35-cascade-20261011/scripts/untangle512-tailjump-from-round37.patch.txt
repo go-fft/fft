@@ -1,0 +1,214 @@
+diff --git a/internal/kernels/asmgen/amd64/gen.go b/internal/kernels/asmgen/amd64/gen.go
+index f785a8b..b8fc4d9 100644
+--- a/internal/kernels/asmgen/amd64/gen.go
++++ b/internal/kernels/asmgen/amd64/gen.go
+@@ -3612,22 +3612,37 @@ func clUntangleStep512(j int, inverse bool) []string {
+ // clRetangleAVX512: genSmallUntangle's kernels at 512 bits, smallUntangleSteps
+ // steps of four bins per iteration while that many quads are left, then one
+ // at a time, nothing at all for quads = 0. The last step reads tw[4·quads+1].re (the VMOVDDUP at tw+8),
+-// which the Go wrappers bound-check.
++// which the Go wrappers bound-check. It then hands the pairs - 2·quads pairs
++// left to the AVX2 kernel (smallUntangleAVX2, smallRetangleAVX2) by a tail
++// jump, its own arguments rewritten into the AVX2 kernel's (the slices 4·quads
++// bins in, m - 8·quads, the pairs left), which share their layout: one call
++// from Go whatever the CPU (Round 37: on Haswell the second call, with quads
++// = 0, cost RFFT 256 about 2%).
++// slicesIndex is the position of s in names.
++func slicesIndex(names []string, s string) int {
++	for i, n := range names {
++		if n == s {
++			return i
++		}
++	}
++	panic(s)
++}
++
+ func genClUntangle512(f *emit.File, inverse bool) {
+ 	name := "clUntangleAVX512"
+-	names := []string{"dst", "z", "tw", "k", "m", "quads"}
+-	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
++	names := []string{"dst", "z", "tw", "k", "m", "quads", "pairs"}
++	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64}
++	next := "smallUntangleAVX2"
+ 	if inverse {
+-		name = "clRetangleAVX512"
+-		names = []string{"z", "x", "tw", "k", "h", "m", "quads"}
+-		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
++		name, next = "clRetangleAVX512", "smallRetangleAVX2"
++		names = []string{"z", "x", "tw", "k", "h", "m", "quads", "pairs"}
++		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64}
+ 	}
+ 	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
+ 	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
+ 		LoadArg("m", "DX").LoadArg("quads", "R8")
+-	// No step: return at once, before the first AVX-512 instruction and
+-	// without a VZEROUPPER, so the wrappers may call this on any CPU with
+-	// quads = 0 for the price of a call.
++	// No step: on to the AVX2 kernel at once, before the first AVX-512
++	// instruction, so the wrappers may call this on any CPU with quads = 0.
+ 	b.Raw("TESTQ R8, R8").Raw("JZ none")
+ 	b.Raw("SHLQ $4, DX").
+ 		Raw("LEAQ 16(SI), AX").         // &in[1]
+@@ -3678,8 +3693,22 @@ func genClUntangle512(f *emit.File, inverse bool) {
+ 		Raw("JMP tail").
+ 		Raw("done:").
+ 		Raw("VZEROUPPER").
+-		Ret()
+-	b.Raw("none:").Ret()
++		Raw("none:")
++	// The AVX2 kernel's arguments, in this kernel's slots (the same layout,
++	// the last one unused): the three slices 4·quads bins (64·quads bytes)
++	// in, m - 8·quads, and pairs - 2·quads in the slot it reads its pair
++	// count from.
++	b.LoadArg("quads", "R8").
++		Raw("MOVQ R8, R11").Raw("SHLQ $6, R11")
++	for _, p := range names[:3] {
++		b.LoadArg(p, "AX").Raw("ADDQ R11, AX").Raw("MOVQ AX, %s+%d(FP)", p, 8*slicesIndex(names, p))
++	}
++	b.LoadArg("m", "AX").
++		Raw("MOVQ R8, R11").Raw("SHLQ $3, R11").
++		Raw("SUBQ R11, AX").Raw("MOVQ AX, m+%d(FP)", 8*slicesIndex(names, "m")).
++		LoadArg("pairs", "AX").
++		Raw("SUBQ R8, AX").Raw("SUBQ R8, AX").Raw("MOVQ AX, quads+%d(FP)", 8*slicesIndex(names, "quads")).
++		Raw("JMP ·%s(SB)", next)
+ 	f.Add(b.Func())
+ }
+ 
+diff --git a/internal/kernels/stockham_amd64.go b/internal/kernels/stockham_amd64.go
+index c18796e..16236f5 100644
+--- a/internal/kernels/stockham_amd64.go
++++ b/internal/kernels/stockham_amd64.go
+@@ -430,16 +430,14 @@ func Untangle(dst, z, tw []complex128, m int) int {
+ 		return 0
+ 	}
+ 	_, _, _ = dst[m], z[m-1], tw[2*pairs+1] // the kernel trusts these lengths
+-	// Four bins per step on the 512-bit kernel; a pair left over goes to the
+-	// AVX2 kernel, on the slices that start 4·q bins in (its mirror is then
+-	// m-4q-1). The kernel is called with q = 0 too: it returns before its first AVX-512
+-	// instruction, so no statement here runs only on an AVX-512 CPU (the
+-	// coverage gate runs on CPUs without it).
++	// Four bins per step on the 512-bit kernel; the pairs left over go, by a
++	// tail jump inside it, to the AVX2 kernel, on the slices that start 4·q
++	// bins in (its mirror is then m-4q-1). With q = 0 it jumps there before
++	// its first AVX-512 instruction, so it serves every AVX2 CPU in one call
++	// and no statement here runs only on an AVX-512 CPU (the coverage gate
++	// runs on CPUs without it).
+ 	q := clQuads(UseUntangleAVX512, pairs, m)
+-	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
+-	if rest := pairs - 2*q; rest > 0 {
+-		smallUntangleAVX2(&dst[4*q], &z[4*q], &tw[4*q], &skFwd[0][0], m-8*q, rest)
+-	}
++	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q, pairs)
+ 	return 2 * pairs
+ }
+ 
+@@ -457,10 +455,7 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
+ 	_, _, _ = z[m-1], x[m], tw[2*pairs+1]
+ 	hv := [4]float64{h, h, h, h}
+ 	q := clQuads(UseUntangleAVX512, pairs, m) // as in Untangle
+-	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
+-	if rest := pairs - 2*q; rest > 0 {
+-		smallRetangleAVX2(&z[4*q], &x[4*q], &tw[4*q], &skFwd[0][0], &hv, m-8*q, rest)
+-	}
++	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q, pairs)
+ 	return 2 * pairs
+ }
+ 
+diff --git a/internal/kernels/untangle_amd64.go b/internal/kernels/untangle_amd64.go
+index 20fc8a7..4ac613f 100644
+--- a/internal/kernels/untangle_amd64.go
++++ b/internal/kernels/untangle_amd64.go
+@@ -11,10 +11,12 @@ func smallUntangleAVX2(dst, z, tw *complex128, k *float64, m, pairs int)
+ func smallRetangleAVX2(z, x, tw *complex128, k *float64, h *[4]float64, m, pairs int)
+ 
+ // The 512-bit untangle and retangle (Round 31): genClUntangle512, four bins
+-// per step. Untangle and Retangle take them where UseUntangleAVX512 says.
++// per step. Untangle and Retangle take them where UseUntangleAVX512 says;
++// they finish the pairs left over on the AVX2 kernels by a tail jump (Round
++// 37), so the wrappers make one call whatever the CPU.
+ 
+ //go:noescape
+-func clUntangleAVX512(dst, z, tw *complex128, k *float64, m, quads int)
++func clUntangleAVX512(dst, z, tw *complex128, k *float64, m, quads, pairs int)
+ 
+ //go:noescape
+-func clRetangleAVX512(z, x, tw *complex128, k *float64, h *[4]float64, m, quads int)
++func clRetangleAVX512(z, x, tw *complex128, k *float64, h *[4]float64, m, quads, pairs int)
+diff --git a/internal/kernels/untangle_amd64.s b/internal/kernels/untangle_amd64.s
+index e30104d..0974bed 100644
+--- a/internal/kernels/untangle_amd64.s
++++ b/internal/kernels/untangle_amd64.s
+@@ -271,7 +271,7 @@ TEXT ·smallRetangleAVX2(SB), NOSPLIT, $0-56
+ 	VZEROUPPER
+ 	RET
+ 
+-TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-48
++TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-56
+ 	MOVQ dst+0(FP), DI
+ 	MOVQ z+8(FP), SI
+ 	MOVQ tw+16(FP), CX
+@@ -408,11 +408,31 @@ TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-48
+ 	JMP tail
+ 	done:
+ 	VZEROUPPER
+-	RET
+ 	none:
+-	RET
++	MOVQ quads+40(FP), R8
++	MOVQ R8, R11
++	SHLQ $6, R11
++	MOVQ dst+0(FP), AX
++	ADDQ R11, AX
++	MOVQ AX, dst+0(FP)
++	MOVQ z+8(FP), AX
++	ADDQ R11, AX
++	MOVQ AX, z+8(FP)
++	MOVQ tw+16(FP), AX
++	ADDQ R11, AX
++	MOVQ AX, tw+16(FP)
++	MOVQ m+32(FP), AX
++	MOVQ R8, R11
++	SHLQ $3, R11
++	SUBQ R11, AX
++	MOVQ AX, m+32(FP)
++	MOVQ pairs+48(FP), AX
++	SUBQ R8, AX
++	SUBQ R8, AX
++	MOVQ AX, quads+40(FP)
++	JMP ·smallUntangleAVX2(SB)
+ 
+-TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
++TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-64
+ 	MOVQ z+0(FP), DI
+ 	MOVQ x+8(FP), SI
+ 	MOVQ tw+16(FP), CX
+@@ -558,7 +578,27 @@ TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
+ 	JMP tail
+ 	done:
+ 	VZEROUPPER
+-	RET
+ 	none:
+-	RET
++	MOVQ quads+48(FP), R8
++	MOVQ R8, R11
++	SHLQ $6, R11
++	MOVQ z+0(FP), AX
++	ADDQ R11, AX
++	MOVQ AX, z+0(FP)
++	MOVQ x+8(FP), AX
++	ADDQ R11, AX
++	MOVQ AX, x+8(FP)
++	MOVQ tw+16(FP), AX
++	ADDQ R11, AX
++	MOVQ AX, tw+16(FP)
++	MOVQ m+40(FP), AX
++	MOVQ R8, R11
++	SHLQ $3, R11
++	SUBQ R11, AX
++	MOVQ AX, m+40(FP)
++	MOVQ pairs+56(FP), AX
++	SUBQ R8, AX
++	SUBQ R8, AX
++	MOVQ AX, quads+48(FP)
++	JMP ·smallRetangleAVX2(SB)
+ 

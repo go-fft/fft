@@ -3613,22 +3613,28 @@ func clUntangleStep512(j int, inverse bool) []string {
 // clRetangleAVX512: genSmallUntangle's kernels at 512 bits, smallUntangleSteps
 // steps of four bins per iteration while that many quads are left, then one
 // at a time, nothing at all for quads = 0. The last step reads tw[4·quads+1].re (the VMOVDDUP at tw+8),
-// which the Go wrappers bound-check.
+// which the Go wrappers bound-check. It then hands the pairs - 2·quads pairs
+// left to the AVX2 kernel (smallUntangleAVX2, smallRetangleAVX2) by a tail
+// jump, its own arguments rewritten into the AVX2 kernel's (the slices 4·quads
+// bins in, m - 8·quads, the pairs left), which share their layout: one call
+// from Go whatever the CPU (Round 37: on Haswell the second call, with quads
+// = 0, cost RFFT 256 about 2%). Round 35: when no pair is left it returns
+// instead, as the wrappers' `if rest > 0` did.
 func genClUntangle512(f *emit.File, inverse bool) {
 	name := "clUntangleAVX512"
-	names := []string{"dst", "z", "tw", "k", "m", "quads"}
-	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	names := []string{"dst", "z", "tw", "k", "m", "quads", "pairs"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64}
+	next := "smallUntangleAVX2"
 	if inverse {
-		name = "clRetangleAVX512"
-		names = []string{"z", "x", "tw", "k", "h", "m", "quads"}
-		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+		name, next = "clRetangleAVX512", "smallRetangleAVX2"
+		names = []string{"z", "x", "tw", "k", "h", "m", "quads", "pairs"}
+		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64}
 	}
 	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
 	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
 		LoadArg("m", "DX").LoadArg("quads", "R8")
-	// No step: return at once, before the first AVX-512 instruction and
-	// without a VZEROUPPER, so the wrappers may call this on any CPU with
-	// quads = 0 for the price of a call.
+	// No step: on to the AVX2 kernel at once, before the first AVX-512
+	// instruction, so the wrappers may call this on any CPU with quads = 0.
 	b.Raw("TESTQ R8, R8").Raw("JZ none")
 	b.Raw("SHLQ $4, DX").
 		Raw("LEAQ 16(SI), AX").         // &in[1]
@@ -3679,8 +3685,28 @@ func genClUntangle512(f *emit.File, inverse bool) {
 		Raw("JMP tail").
 		Raw("done:").
 		Raw("VZEROUPPER").
+		Raw("none:")
+	// The AVX2 kernel's arguments, in this kernel's slots (the same layout,
+	// the last one unused): the three slices 4·quads bins (64·quads bytes)
+	// in, m - 8·quads, and pairs - 2·quads in the slot it reads its pair
+	// count from.
+	// No pair left (Round 35): return, as the Go wrappers did when they
+	// made the second call themselves.
+	b.LoadArg("quads", "R8").LoadArg("pairs", "AX").
+		Raw("SUBQ R8, AX").Raw("SUBQ R8, AX").
+		Raw("JNZ rest").
 		Ret()
-	b.Raw("none:").Ret()
+	b.Raw("rest:").
+		Raw("MOVQ R8, R11").Raw("SHLQ $6, R11")
+	for _, p := range names[:3] {
+		b.LoadArg(p, "AX").Raw("ADDQ R11, AX").Raw("MOVQ AX, %s+%d(FP)", p, 8*slicesIndex(names, p))
+	}
+	b.LoadArg("m", "AX").
+		Raw("MOVQ R8, R11").Raw("SHLQ $3, R11").
+		Raw("SUBQ R11, AX").Raw("MOVQ AX, m+%d(FP)", 8*slicesIndex(names, "m")).
+		LoadArg("pairs", "AX").
+		Raw("SUBQ R8, AX").Raw("SUBQ R8, AX").Raw("MOVQ AX, quads+%d(FP)", 8*slicesIndex(names, "quads")).
+		Raw("JMP ·%s(SB)", next)
 	f.Add(b.Func())
 }
 
@@ -4069,4 +4095,15 @@ func csGenRadix9File() {
 	csGenPass9(f)
 	csGenLast9(f)
 	writeFile("radix9_amd64.s", f.String())
+}
+
+// slicesIndex is the position of s in names (Round 37's tail jump in
+// genClUntangle512).
+func slicesIndex(names []string, s string) int {
+	for i, n := range names {
+		if n == s {
+			return i
+		}
+	}
+	panic(s)
 }

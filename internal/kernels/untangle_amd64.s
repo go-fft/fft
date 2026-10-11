@@ -271,7 +271,7 @@ TEXT ·smallRetangleAVX2(SB), NOSPLIT, $0-56
 	VZEROUPPER
 	RET
 
-TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-48
+TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-56
 	MOVQ dst+0(FP), DI
 	MOVQ z+8(FP), SI
 	MOVQ tw+16(FP), CX
@@ -408,11 +408,37 @@ TEXT ·clUntangleAVX512(SB), NOSPLIT, $0-48
 	JMP tail
 	done:
 	VZEROUPPER
-	RET
 	none:
+	MOVQ quads+40(FP), R8
+	MOVQ pairs+48(FP), AX
+	SUBQ R8, AX
+	SUBQ R8, AX
+	JNZ rest
 	RET
+	rest:
+	MOVQ R8, R11
+	SHLQ $6, R11
+	MOVQ dst+0(FP), AX
+	ADDQ R11, AX
+	MOVQ AX, dst+0(FP)
+	MOVQ z+8(FP), AX
+	ADDQ R11, AX
+	MOVQ AX, z+8(FP)
+	MOVQ tw+16(FP), AX
+	ADDQ R11, AX
+	MOVQ AX, tw+16(FP)
+	MOVQ m+32(FP), AX
+	MOVQ R8, R11
+	SHLQ $3, R11
+	SUBQ R11, AX
+	MOVQ AX, m+32(FP)
+	MOVQ pairs+48(FP), AX
+	SUBQ R8, AX
+	SUBQ R8, AX
+	MOVQ AX, quads+40(FP)
+	JMP ·smallUntangleAVX2(SB)
 
-TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
+TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-64
 	MOVQ z+0(FP), DI
 	MOVQ x+8(FP), SI
 	MOVQ tw+16(FP), CX
@@ -558,7 +584,33 @@ TEXT ·clRetangleAVX512(SB), NOSPLIT, $0-56
 	JMP tail
 	done:
 	VZEROUPPER
-	RET
 	none:
+	MOVQ quads+48(FP), R8
+	MOVQ pairs+56(FP), AX
+	SUBQ R8, AX
+	SUBQ R8, AX
+	JNZ rest
 	RET
+	rest:
+	MOVQ R8, R11
+	SHLQ $6, R11
+	MOVQ z+0(FP), AX
+	ADDQ R11, AX
+	MOVQ AX, z+0(FP)
+	MOVQ x+8(FP), AX
+	ADDQ R11, AX
+	MOVQ AX, x+8(FP)
+	MOVQ tw+16(FP), AX
+	ADDQ R11, AX
+	MOVQ AX, tw+16(FP)
+	MOVQ m+40(FP), AX
+	MOVQ R8, R11
+	SHLQ $3, R11
+	SUBQ R11, AX
+	MOVQ AX, m+40(FP)
+	MOVQ pairs+56(FP), AX
+	SUBQ R8, AX
+	SUBQ R8, AX
+	MOVQ AX, quads+48(FP)
+	JMP ·smallRetangleAVX2(SB)
 
