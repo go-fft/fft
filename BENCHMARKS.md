@@ -2,86 +2,130 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-## Current numbers (v0.23.0)
+## Current numbers (v0.26.0)
 
 Measured on three GCC Compile Farm hosts against FFTW 3.3.10 (built from source
 with the host's SIMD; AVX-512 codelets on Cascade Lake), numpy.fft 2.5.3 and
 scipy.fft 1.18.1 (pocketfft), and gonum, with go1.27.1, every row on one pinned
 core. Every transform first passed the correctness gate (24/24 against
-`numpy.fft`, `rtol=1e-9`). Each host's newest parity round runs code that is
-v0.23.0's on that host: v0.22.x changed only Intel paths, v0.23.0 only AMD
-paths, and nothing has changed arm64 since v0.21.0.
+`numpy.fft`, `rtol=1e-9`). Each host's numbers are the parity runs of the
+branch that became the release changing that host's paths: v0.24.0 (Round 37)
+changed Haswell's (Intel without AVX-512) and arm64's, v0.25.0 (Round 35)
+Intel AVX-512's, v0.26.0 (Round 36) only paths taken where the CPU is not
+Intel's. The exceptions are listed under the table.
 
-- **Zen 3** (AMD EPYC 7773X, cfarm420): Round 34, 2026-10-09, v0.23.0
-  ([`round34-parity-zen3-v0.23.0-20261009/zen3/`](benchmarks/results/round34-parity-zen3-v0.23.0-20261009/zen3/) `run1`, `run2`). Round
-  32's parity runs of the same code ran at a load of 3.3–4.2 and are replaced;
-- **Neoverse-N1** (cfarm424): Round 33, 2026-10-09, v0.21.0
-  ([`round33-parity-n1-v0.21.0-20261009/neoverse-n1/`](benchmarks/results/round33-parity-n1-v0.21.0-20261009/neoverse-n1/) `parity-a`, `parity-b`);
-- **Cascade Lake** (cfarm151): Round 31, 2026-10-09, the branch that became
-  v0.22.0 ([`round31-cascade-20261009/parity/rp-br/`](benchmarks/results/round31-cascade-20261009/parity/rp-br/) `out-br1`, `out-br2`).
+- **Neoverse-N1** (cfarm424): Round 37, 2026-10-11, the branch that became
+  v0.24.0 ([`round37-haswell-n1-20261011/n1/parity/`](benchmarks/results/round37-haswell-n1-20261011/n1/parity/) `br1`, `br2`);
+- **Cascade Lake** (cfarm151): Round 35, 2026-10-11, the branch that became
+  v0.25.0 ([`round35-cascade-20261011/parity/`](benchmarks/results/round35-cascade-20261011/parity/) `p-br1`, `p-br2`);
+- **Zen 3** (AMD EPYC 7773X, cfarm420): Round 36, 2026-10-11, the branch that
+  became v0.26.0 ([`round36-zen3-20261011/zen3/parity/`](benchmarks/results/round36-zen3-20261011/zen3/parity/) `par2-br`, `par3-br`).
 
 **Method.** go-fft: the median of the three repetitions in each run's
-`go_bench.txt`, then the mean of the two runs. FFTW: the median of its
-`fftw.json` time over every run of the round (four on Cascade Lake, whose round
-ran main, branch, branch, main; two on Zen 3 and Neoverse-N1), because
-FFTW's own times move by up to 22% between runs on one host (Round 26).
-numpy.fft and scipy.fft: each run's `ref.json` against that run's go-fft time.
-The tables are computed from those raw files by
-[`current-numbers-v0.23.0/partab.go.txt`](benchmarks/results/current-numbers-v0.23.0/),
-whose output for each host, every row with both runs, is beside it.
+`go_bench.txt`, then the mean of the two branch runs. FFTW: the median of its
+`fftw.json` time over the round's four runs (every round ran main, branch,
+branch, main), because FFTW's own times move by up to 48% between runs on one
+host (below). numpy.fft and scipy.fft: each run's `ref.json` against that
+run's go-fft time. The 2-D rows are `PlanN` (`FFT2Plan`) against FFTW's
+`fftw_ns`, not REPORT.md's FFT2 convenience column (Round 32's 2-D parity
+ratios divided by that column; see the correction in its section). The tables
+are computed from those raw files by
+[`current-numbers-v0.26.0/partab.go.txt`](benchmarks/results/current-numbers-v0.26.0/)
+(v0.23.0's, unchanged), whose output for each host, every row with both runs
+and FFTW's four times, is beside it, after the command line that produced it.
 
 go-fft time ÷ FFTW time, below 1 means go-fft is faster. Bold: at or above
 FFTW, which by this file's convention includes rows up to 1.05, slower than
-FFTW by at most 5%; three decimals where two would hide which side of 1.05 a
-row is on:
+FFTW by at most 5% (every such row is named below the table); three decimals
+where two would hide which side of 1 or 1.05 a row is on:
 
 | transform | AMD EPYC 7773X (Zen 3, AVX2) | Neoverse-N1 (arm64, NEON) | Xeon Cascade Lake (AVX-512) |
 |:--|--:|--:|--:|
-| complex 256 | 1.13 | **0.88** | 1.27 |
-| complex 1,024 | 1.14 | **0.77** | 1.18 |
-| complex 4,096 | **0.91** | **0.58** | **0.94** |
-| complex 65,536 | **0.83** | **0.58** | 1.16 |
-| complex 1,048,576 | **0.49** | **0.45** | **0.79** |
-| complex 1,000 (2³·5³) | 1.11 | **0.85** | 1.11 |
-| complex 1,296 (2⁴·3⁴) | **1.02** | **0.76** | 1.20 |
-| complex 1,009 (prime, Rader) | **0.63** | **0.45** | **0.61** |
-| complex 10,007 (prime, Bluestein) | 1.07 | **0.68** | **0.92** |
-| RFFT 256 | 1.06 | **1.046** | 1.08 |
-| RFFT 4,096 | 1.09 | **0.74** | 1.051 |
-| RFFT 1,048,576 | **0.84** | **0.53** | 1.13 |
-| 2-D 128×128 | **0.89** | **0.66** | 1.06 |
-| 2-D 1024×1024 | **0.95** | **0.41** | **0.75** |
+| complex 256 | 1.10 | **0.88** | **1.042** |
+| complex 1,024 | 1.13 | **0.77** | 1.20 |
+| complex 4,096 | **0.89** | **0.58** | **0.94** |
+| complex 65,536 | **0.87** | **0.58** | 1.07 |
+| complex 1,048,576 | **0.51** | **0.47** | **0.70** |
+| complex 1,000 (2³·5³) | **0.986** | **0.84** | 1.09 |
+| complex 1,080 (2³·3³·5) | 1.08 | **0.89** | 1.13 |
+| complex 1,920 (2⁷·3·5) | **0.98** | **0.88** | 1.12 |
+| complex 1,009 (prime, Rader) | **0.61** | **0.45** | **0.59** |
+| complex 1,296 (2⁴·3⁴) | **0.91** | **0.77** | 1.07 |
+| complex 10,007 (prime, Bluestein) | **0.82** | **0.72** | **0.92** |
+| RFFT 256 | 1.051 | **0.991** | **0.97** |
+| RFFT 1,024 | **1.047** | **0.69** | **0.80** |
+| RFFT 4,096 | 1.09 | **0.71** | **1.039** |
+| RFFT 65,536 | **0.89** | **0.72** | 1.11 |
+| RFFT 1,048,576 | **0.78** | **0.56** | **1.040** |
+| RFFT 1,000 | **0.89** | **0.94** | **0.94** |
+| RFFT 1,080 | 1.06 | **0.995** | **1.020** |
+| RFFT 1,920 | **0.991** | **0.93** | **0.98** |
+| 2-D 64×64 | **0.89** | **0.80** | 1.19 |
+| 2-D 128×128 | **0.83** | **0.66** | **1.027** |
+| 2-D 256×256 | **0.90** | **0.50** | **0.97** |
+| 2-D 512×512 | **0.991** | **0.47** | 1.20 |
+| 2-D 1024×1024 | **0.96** | **0.41** | **0.80** |
 
-- **Against FFTW** (all 24 rows of the sweep: 11 complex, 8 RFFT, 5 2-D):
-  - **Neoverse-N1: 24 of 24** at or above it; faster on 22. The two rows
-    within 5% but still slower than FFTW: RFFT 256 (1.046; 1.04 and 1.05 in the
-    two runs) and RFFT 1,080 (1.04). Round 37 (after v0.23.1, not in a
-    release yet) takes them to 0.991 and 0.995: faster than FFTW on all 24.
-  - **Zen 3: 15 of 24**; faster on 11 (2-D 512² is a tie, 1.000). Within 5% but
-    slower: complex 1,296 (1.02), RFFT 1,024 (1.04), RFFT 1,000 (1.04), RFFT
-    1,080 (1.01). Slower by more: complex 256, 1,024, 1,000, 1,080 (1.15),
-    10,007; RFFT 256, 4,096, 1,920 (1.07); 2-D 64² (1.056).
-  - **Cascade Lake: 11 of 24**; faster on 10. Within 5% but slower: 2-D 64²
-    (1.045). Slower by more: complex 256, 1,024, 65,536, 1,000, 1,080 (1.26),
-    1,920 (1.11), 1,296; RFFT 256, 4,096 (1.051), 65,536 (1.14), 2^20; 2-D
-    128², 512² (1.17).
+- **Against FFTW** (all 24 rows: 11 complex, 8 RFFT, 5 2-D):
+  - **Neoverse-N1: 24 of 24**, faster on all 24. The closest are RFFT 256
+    (0.991) and RFFT 1,080 (0.995), 1.049 and 1.039 on v0.23.1 in the same
+    round's main runs.
+  - **Zen 3: 18 of 24**; faster on 17. Within 5% but still slower: RFFT
+    1,024 (1.047). Slower by more: complex 256 (1.10), 1,024 (1.13), 1,080
+    (1.08); RFFT 256 (1.051), 4,096 (1.09), 1,080 (1.06).
+  - **Cascade Lake: 15 of 24**; faster on 10. Within 5% but still slower:
+    complex 256 (1.042), RFFT 4,096 (1.039), RFFT 2^20 (1.040), RFFT 1,080
+    (1.020), 2-D 128² (1.027). Slower by more: complex 1,024 (1.20), 65,536
+    (1.07), 1,000 (1.09), 1,080 (1.13), 1,920 (1.12), 1,296 (1.07); RFFT
+    65,536 (1.11); 2-D 64² (1.19) and 512² (1.20, allocation placement, below).
 - **Against numpy.fft and scipy.fft:** at or above both on all 24 rows in both
-  runs on every host (go-fft takes 0.04–0.70 of numpy's time and 0.04–0.92 of
+  runs on every host (go-fft takes 0.04–0.69 of numpy's time and 0.04–0.93 of
   scipy's).
 - **Against gonum:** faster on all 19 1-D rows in both runs on every host.
+- **What these tables do not contain:**
+  - **Cascade Lake.** Round 35's parity binary predates its tail jump (the
+    512-bit untangle ending in a jump to the AVX2 one, Round 35 §6, neutral in
+    process there) and its rebase onto v0.24.0, whose changes are Haswell's
+    and arm64's. Its 2-D 512² is allocation placement, not code: the same
+    binary read 2.17 and 3.62 ms in its two runs, and on eight separately
+    allocated buffer pairs it ran 2.19–2.60 ms against FFTW's 2.29–2.59
+    (Round 35 §5). Its RFFT 2^20 is noisy on both sides (go-fft 7.6 and 9.3 ms
+    in the two runs, FFTW 6.9–9.6).
+  - **Zen 3.** Round 36's parity was taken on the v0.23.1 base, before the
+    rebase onto v0.25.0; its A/Bs were redone on v0.25.0 (Round 36, "Rebased
+    onto v0.25.0"). That rebase brings Zen 3 one change of its own paths:
+    Round 35's tail jump makes `Untangle` and `Retangle` one call instead of
+    two on every CPU without AVX-512, a call Round 37 measured at about 1.5%
+    of RFFT 256 on Haswell. Zen 3's RFFT rows have not been re-measured against
+    FFTW with it.
+  - **Neoverse-N1.** v0.26.0 moved Bluestein's three pointwise products to
+    `kernels.CMulTo` on every architecture; on arm64 that is the same scalar
+    loop behind one call (no kernel), and complex 10,007 has not been
+    re-measured on N1 since.
 - **Haswell** (Xeon E5-2620 v3, no FFTW on the host, so no ratio): v0.21.0
   (Round 29) runs complex 512–2^18 1.03–1.21× faster than v0.19.1, the
-  composites 1000–6000 1.07–1.21× faster and RFFT 1000 1.09× faster.
+  composites 1000–6000 1.07–1.21× faster and RFFT 1000 1.09× faster. v0.24.0
+  (Round 37): 2-D 64×1024 … 1024² 1.04–1.06× faster (the 1024-point rows of
+  N-D plans of at least 2^16 elements take 4·8·4·8), complex 6,144 and 10,240
+  1.20× faster (p·8·16·16). Round 37 also measured, without fixing it, that
+  v0.22.x's call to the 512-bit untangle with nothing to do costs RFFT 256
+  and IRFFT 256 about 1.5% (v0.23.1 ÷ v0.21.0: 1.015). v0.25.0's tail jump
+  removes that second call, but it has **not** been re-measured on Haswell.
 - **Not measured:** Apple M4 has never been measured against FFTW with the
   current engines (the June 2026 M4 tables below describe the previous ones),
   and no loong64 host could be reached.
-- **Open on Cascade Lake:** complex 256 (1.27) and complex 1,296 (1.20; no
-  rule timed in Round 31 beats 3·3·12·12, and the split layout has no radix-3
-  or radix-12 kernel). 2-D 1024², which v0.19.0 had slowed to 0.94× v0.18.0's
-  speed, is fixed in v0.22.0 (1.03× v0.18.0, Round 31).
-- **FFTW's variance:** FFTW's 2-D times varied twofold over Cascade Lake's four
-  runs (1024²: 13.7–27.3 ms), and go-fft's 2-D 512² read 3.1 ms in one branch
-  run and 2.4 ms in the other (allocation placement, Round 31).
+- **Open on Cascade Lake:** complex 1,024 (1.20; four passes, which no frame
+  kernel runs), the composites 1,000–1,920 (1.07–1.13), complex and RFFT
+  65,536 (1.07, 1.11) and 2-D 64² (1.19). Complex 256 (1.27 in v0.23.0) is
+  now 1.04 and complex 1,296 (1.20) 1.07.
+- **Open on Zen 3:** complex 256 and 1,024 and RFFT 4,096 (FFTW does them in
+  two passes with 32- and 64-point codelets; go-fft has no radix-32 pass),
+  complex and RFFT 1,080, RFFT 256.
+- **FFTW's variance:** over each round's four runs FFTW's own time on one row
+  moved by up to 48% on Cascade Lake (2-D 1024²: 16.3–24.1 ms; go-fft's 0.80
+  there is against the median, and 1.00 against FFTW's fastest run), 37% on
+  Zen 3 (2-D 256²: 283–389 µs) and 12% on Neoverse-N1 (RFFT 2^20: 17.3–19.2
+  ms).
 - **Single precision** (Rounds 22, 25, 27): float32 takes 0.46–0.83× the float64 time on Zen 3 and 0.58–0.73× on Neoverse-N1. FFTW's single-precision library is not built on the hosts, so there is no float32 comparison with it.
 - **Earlier tables** are in the git history of this file and in the dated rounds below.
 The dated rounds below (from "Stockham round" on) record how the code got
@@ -3495,7 +3539,8 @@ and change tests and this text; the suites, coverage and mutation runs are
 on the final code.
 
 **Rebased onto v0.25.0** (bb02953: Rounds 37 and 35, whose code changes
-are Intel's and arm64's paths; `hswE11Factors` and Round 35's radix-9 merge
+are Intel's and arm64's paths, but for Round 35's untangle tail jump (below);
+`hswE11Factors` and Round 35's radix-9 merge
 wrap this round's AMD routes in `compFactorize`, each behind its own vendor
 flag). Round 35 enabled the frame kernels on AVX-512 Intel, so the 2-D rows
 on the frame now sit behind `zmFrameRows` (off on Intel CPUs). Every `.s`
@@ -3521,7 +3566,11 @@ AVX-512 runs) and on arm64. Re-measured on that base (`zen3/ab-v025-inproc.txt`,
   untouched rows 0.98–1.02.
 
 The FFTW parity table above was taken on v0.23.1 and the branch before
-these rebases; on AMD the rebases change no code path.
+these rebases. On AMD the rebases change one code path: Round 35's tail jump
+(its §6) makes `Untangle` and `Retangle` one call instead of two on every CPU
+without AVX-512, Zen 3 included. Round 37 measured the second call at about
+1.5% of RFFT 256 on Haswell; Zen 3's RFFT rows were not re-measured against
+FFTW with the tail jump in place.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round36-zen3-20261011/`](benchmarks/results/round36-zen3-20261011/).
 
