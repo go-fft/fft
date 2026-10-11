@@ -88,7 +88,7 @@ func BenchmarkDecomp2D(b *testing.B) {
 			}
 		})
 		if p.strips[0] != nil {
-			strips := (n + stripWidth(n) - 1) / stripWidth(n)
+			strips := p.stripCount(0)
 			b.Run(name+"/strips", func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p.stripLines(dst, dst, 0, 0, strips, false)

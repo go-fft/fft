@@ -89,3 +89,42 @@ var hswSplitFloor int
 func hswSplitKept(n int) bool {
 	return hswSplitFloor <= 0 || n >= hswSplitFloor && n&(n-1) == 0
 }
+
+// cl3WideStrips makes the strip axes of a large N-D array take wider strips
+// (cl3StripWidth). Set per architecture (route_amd64.go: Intel with the
+// 512-bit split layout, Round 39); false elsewhere.
+var cl3WideStrips bool
+
+// cl3StripWidth is how many neighbouring lines one strip holds on an axis of
+// length n whose lines start st elements apart. With cl3WideStrips, an axis
+// spanning at least 2^18 elements (4 MB of complex128) whose lines lie at
+// least 256 elements (4 KB) apart takes strips of 128 lines up to n = 256
+// and of 64 above; every other axis takes stripWidth(n).
+//
+// On Cascade Lake (Round 39, the strip step alone, one process, seven
+// rotated rounds, TestCl3StripVars), main's width ÷ the wide one:
+//   - 512×512 1.93–2.36 (64; 128: 1.75), 512×1024 1.82–2.00,
+//     512×2048 2.01, 640² 2.16, 1024² 1.54 (64; 128: 1.68),
+//     1024×512 1.43, 2048² 1.40, 4096×256 1.45, 256×1024 1.14;
+//   - n ≤ 256, 128 lines: 64×4096 2.12, 128×4096 2.07, 32×8192 1.40,
+//     16×16384 1.36, the first two axes of 128³ 2.25 and 2.76, the first
+//     of 64³ 2.97 and of 256×256×64 2.06;
+//   - below the span or the distance the wide strips lost or tied:
+//     384×512 and 256×768 (3 MB) 0.96 and 0.93, 512×384 0.90, 128² 0.87,
+//     1024×128 and 2048×64 (lines 2 and 1 KB apart, from 16 lines)
+//     0.78–0.91, 4096×64 1.00.
+//
+// The strip's first pass reads, and its last writes, a few hundred bytes
+// of every line; once the array is beyond the cache, 1 KB or 2 KB of each
+// line per visit is what the prefetchers follow (a probe that only reads
+// the 512×512 columns' 256-byte pieces took 0.34 ms where the first pass
+// took 1.31). This VM has no PMU to show it.
+func cl3StripWidth(n, st int) int {
+	if cl3WideStrips && n*st >= 1<<18 && st >= 256 {
+		if n <= 256 {
+			return 128
+		}
+		return 64
+	}
+	return stripWidth(n)
+}

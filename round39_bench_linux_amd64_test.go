@@ -201,9 +201,9 @@ func TestCl3Pages(t *testing.T) {
 	}
 }
 
-// TestCl3FrameRows times N-D plans with their last axis on the frame kernels
+// TestCl3FrameRowsAB times N-D plans with their last axis on the frame kernels
 // (zmFrameRows, Round 36) and off it, in one process, rotated.
-func TestCl3FrameRows(t *testing.T) {
+func TestCl3FrameRowsAB(t *testing.T) {
 	rounds, ms := cl3Rounds(t)
 	defer func(v bool) { zmFrameRows = v }(zmFrameRows)
 	for _, s := range strings.Split(*cl3Shapes, ",") {
