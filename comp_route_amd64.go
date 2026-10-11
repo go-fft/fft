@@ -32,8 +32,9 @@ var comp2On = kernels.UseStockhamAVX2 && !kernels.IntelCPU
 // machine.
 var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU
 
-// compFactorize is skFactorize past radix16Table: on Haswell, hswE11Factors; on AMD comp2Factors, on
-// Intel hswComp2Factors; where those give none, on Intel a composite's
+// compFactorize is skFactorize past radix16Table: on Haswell, hswE11Factors;
+// on AMD zmPow2Tail, else comp2Factors, on Intel hswComp2Factors; where those
+// give none, on Intel a composite's
 // radix-12 passes, else its radix-16 tail; else skFactorizeOrder's
 // factorization.
 func compFactorize(n int) []int { return csRadix9For(csCompFactorize(n), csRadix9On) }
@@ -44,6 +45,9 @@ func csCompFactorize(n int) []int {
 		return f
 	}
 	if f := hswComp2Factors(n, hswCompOn); f != nil {
+		return f
+	}
+	if f := zmPow2Tail(n, comp2On); f != nil {
 		return f
 	}
 	if f := comp2Factors(n, comp2On); f != nil {
@@ -326,4 +330,52 @@ func csRadix9For(f []int, on bool) []int {
 		g = append(g, 3)
 	}
 	return append(g, f[c:]...)
+}
+
+// zmPow2Tail gives the factorization of n = 2^e·3^a·5^b (a+b >= 1) with e =
+// 11 or 12 and n <= 32768, or nil (or when on is false): the 3s and 5s
+// first, in skFactorizeOrder's order, then 2^e as radix-4 passes with, for e
+// = 11, one radix-8 pass before the final radix-4 one: 4·4·4·8·4 (e = 11),
+// 4·4·4·4·4·4 (e = 12). comp2Factors leaves e >= 11 alone, and
+// skFactorizeOrder ends such a length with radix8Maximal (6144 = 3·4·8·8·8).
+// A final radix-8 pass writes eight streams n/8 points apart, 2^(e+1)·odd
+// bytes, a multiple of 4 KB from e = 11 on, so all eight fall in one L1 set:
+// at 6144 points on Zen 3 it took 4.6 µs of 18.8, the final radix-4 pass
+// that replaces it 2.0 (Round 36, TestR26Passes). Every ordered tail of
+// radices 4, 8 and 16 was timed after the odd passes of 6144, 10240, 12288,
+// 18432, 20480 and 30720 (TestZmTails, nine rotated rounds); this one was
+// the best or within 1.5% of it at 6144, 10240, 12288 and 18432. Against
+// the factorization it replaces (TestR26AB, fifteen rotated rounds) it ran
+// 1.09× as fast at 6144, 1.07× at 10240, 1.04× at 18432, 1.02× at 30720,
+// 1.08× at 12288 and 1.06× at 20480 (Bluestein's convolution for 10007).
+// From 36864 points and at e >= 13 no tail gained consistently
+// (TestZmPow2Rule), so those keep their factorization; Intel was not
+// measured.
+func zmPow2Tail(n int, on bool) []int {
+	if !on || n > 1<<15 {
+		return nil
+	}
+	e, odd := 0, n
+	for odd%2 == 0 {
+		odd /= 2
+		e++
+	}
+	if e < 11 || e > 12 || odd == 1 {
+		return nil
+	}
+	var f []int
+	for _, q := range []int{3, 5} {
+		for odd%q == 0 {
+			f = append(f, q)
+			odd /= q
+		}
+	}
+	if odd != 1 {
+		return nil
+	}
+	f = append(f, 4, 4, 4)
+	if e == 11 {
+		return append(f, 8, 4)
+	}
+	return append(f, 4, 4, 4)
 }

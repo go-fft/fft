@@ -296,3 +296,145 @@ func TestZmExport(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+var zmTailsN = flag.String("r36.tails", "6144,10240,12288,20480", "TestZmTails' lengths")
+
+// zmPow2Tails lists every ordered sequence of radices 4, 8 and 16 whose
+// product is 2^e, at most six passes.
+func zmPow2Tails(e int) [][]int {
+	var out [][]int
+	var rec func(left int, cur []int)
+	rec = func(left int, cur []int) {
+		if left == 0 {
+			out = append(out, slices.Clone(cur))
+			return
+		}
+		if len(cur) == 6 {
+			return
+		}
+		for _, b := range []int{2, 3, 4} {
+			if b <= left {
+				rec(left-b, append(cur, 1<<b))
+			}
+		}
+	}
+	rec(e, nil)
+	return out
+}
+
+// TestZmTails times, for each length 2^e·odd, the current factorization
+// against its odd passes followed by every power-of-two tail of radices 4,
+// 8 and 16 (zmPow2Tails), rotated.
+func TestZmTails(t *testing.T) {
+	rounds, ms := zmRounds(t)
+	for _, n := range zmInts(t, *zmTailsN) {
+		rule := skFactorize(n)
+		var odd []int
+		for _, r := range rule {
+			if r&(r-1) != 0 {
+				odd = append(odd, r)
+			}
+		}
+		e := 0
+		for m := n / product(odd); m > 1; m /= 2 {
+			e++
+		}
+		sets := [][]int{rule}
+		for _, tail := range zmPow2Tails(e) {
+			if f := slices.Concat(odd, tail); !slices.Equal(f, rule) {
+				sets = append(sets, f)
+			}
+		}
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		var fns []func()
+		for _, f := range sets {
+			p := newSKPlanFactors(n, f)
+			fns = append(fns, func() { p.transform(dst, src, false) })
+		}
+		times := comp2Rotate(fns, rounds, ms)
+		for v, f := range sets {
+			ratios := make([]float64, rounds)
+			for i := range ratios {
+				ratios[i] = times[0][i] / times[v][i]
+			}
+			fmt.Printf("TAILS %d %-22s %10.0f ns  rule/this %.3f  range %.3f–%.3f\n", n, factorName(f), median(times[v]), median(ratios), slices.Min(ratios), slices.Max(ratios))
+		}
+	}
+}
+
+var zmPow2N = flag.String("r36.pow2", "", "TestZmPow2Rule's lengths (default: 2^e·odd, e = 11..14, odd in 3, 5, 9, 15, 25, 27, 45, at most 2^18)")
+
+// zmOddPart is the odd passes of skFactorize(n), in its order, and the
+// power of two left.
+func zmOddPart(n int) (odd []int, e int) {
+	for _, r := range skFactorize(n) {
+		if r&(r-1) != 0 {
+			odd = append(odd, r)
+		}
+	}
+	for m := n / product(odd); m > 1; m /= 2 {
+		e++
+	}
+	return odd, e
+}
+
+// zmOneEight is 2^e as radix-4 passes, then (e odd) one radix-8 pass, then
+// a final radix-4 pass.
+func zmOneEight(e int) []int {
+	var f []int
+	k := e - 2
+	if k%2 == 1 {
+		k -= 3
+	}
+	for ; k > 0; k -= 2 {
+		f = append(f, 4)
+	}
+	if (e-2)%2 == 1 {
+		f = append(f, 8)
+	}
+	return append(f, 4)
+}
+
+// TestZmPow2Rule times, for composites 2^e·odd with e >= 11, the current
+// factorization against the odd passes followed by splitPow2Factors(e) and
+// by zmOneEight(e).
+func TestZmPow2Rule(t *testing.T) {
+	rounds, ms := zmRounds(t)
+	var ns []int
+	if *zmPow2N != "" {
+		ns = zmInts(t, *zmPow2N)
+	} else {
+		for e := 11; e <= 14; e++ {
+			for _, o := range []int{3, 5, 9, 15, 25, 27, 45} {
+				if n := o << e; n <= 1<<18 {
+					ns = append(ns, n)
+				}
+			}
+		}
+	}
+	for _, n := range ns {
+		odd, e := zmOddPart(n)
+		sets := [][]int{skFactorize(n)}
+		for _, tail := range [][]int{splitPow2Factors(e), zmOneEight(e)} {
+			if f := slices.Concat(odd, tail); !slices.ContainsFunc(sets, func(g []int) bool { return slices.Equal(f, g) }) {
+				sets = append(sets, f)
+			}
+		}
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		var fns []func()
+		for _, f := range sets {
+			p := newSKPlanFactors(n, f)
+			fns = append(fns, func() { p.transform(dst, src, false) })
+		}
+		times := comp2Rotate(fns, rounds, ms)
+		for v, f := range sets {
+			ratios := make([]float64, rounds)
+			for i := range ratios {
+				ratios[i] = times[0][i] / times[v][i]
+			}
+			fmt.Printf("POW2 %d e%d %-22s %10.0f ns  rule/this %.3f  range %.3f–%.3f\n", n, e, factorName(f), median(times[v]), median(ratios), slices.Min(ratios), slices.Max(ratios))
+		}
+	}
+}
