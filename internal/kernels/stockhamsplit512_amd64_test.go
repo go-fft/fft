@@ -197,8 +197,9 @@ func TestIntelSplit512PassLayoutRefuses(t *testing.T) {
 // and a longer composite, or any composite with ClCompSplit256 off, none; a
 // mode's twiddles are its width's.
 func TestClCompSplit256(t *testing.T) {
-	defer func(a, h, c bool) { UseStockhamSplit512, intelHasAVX512, ClCompSplit256 = a, h, c }(UseStockhamSplit512, intelHasAVX512, ClCompSplit256)
-	UseStockhamSplit512, intelHasAVX512, ClCompSplit256 = true, true, true
+	defer func(a, h, c, o bool) { UseStockhamSplit512, intelHasAVX512, ClCompSplit256, ZmSplitOdd = a, h, c, o }(UseStockhamSplit512, intelHasAVX512, ClCompSplit256, ZmSplitOdd)
+	// Cascade Lake: an Intel CPU, so no radix-3 or radix-5 split pass.
+	UseStockhamSplit512, intelHasAVX512, ClCompSplit256, ZmSplitOdd = true, true, true, false
 	plan := func(n int, f ...int) (r, ido, l1 []int) {
 		l := 1
 		for _, x := range f {

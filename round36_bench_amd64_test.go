@@ -438,3 +438,148 @@ func TestZmPow2Rule(t *testing.T) {
 		}
 	}
 }
+
+var zmOddSets = flag.String("r36.odd", "1000:rule,5x5x5x8,5x5x4x10;1080:rule,3x3x3x5x8,3x3x15x8", `TestZmOddAB's factorizations, as -r26.sets`)
+
+// TestZmOddAB times each factorization with radix-3 and radix-5 passes
+// interleaved (kernels.ZmSplitOdd off, as before Round 36) and in the split
+// runs (on), all rotated; ratios are against the first factorization with
+// ZmSplitOdd off.
+func TestZmOddAB(t *testing.T) {
+	rounds, ms := zmRounds(t)
+	old := *comp2Sets
+	*comp2Sets = *zmOddSets
+	ns, sets := comp2Variants(t)
+	*comp2Sets = old
+	defer func(v bool) { kernels.ZmSplitOdd = v }(kernels.ZmSplitOdd)
+	for _, n := range ns {
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		var fns []func()
+		var names []string
+		for _, on := range []bool{false, true} {
+			kernels.ZmSplitOdd = on
+			for _, f := range sets[n] {
+				p := newSKPlanFactors(n, f)
+				fns = append(fns, func() { p.transform(dst, src, false) })
+				var modes []string
+				for _, st := range p.stages {
+					modes = append(modes, strconv.Itoa(int(st.split)))
+				}
+				names = append(names, fmt.Sprintf("%s odd=%v modes=%s", factorName(f), on, strings.Join(modes, "")))
+			}
+		}
+		times := comp2Rotate(fns, rounds, ms)
+		for v := range fns {
+			ratios := make([]float64, rounds)
+			for i := range ratios {
+				ratios[i] = times[0][i] / times[v][i]
+			}
+			fmt.Printf("ODD %d %-40s %10.0f ns  first/this %.3f  range %.3f–%.3f\n", n, names[v], median(times[v]), median(ratios), slices.Min(ratios), slices.Max(ratios))
+		}
+	}
+}
+
+// zmOddPerms lists the distinct orders of a 3s and b 5s (at most 20 of
+// them, the first in skFactorizeOrder's order: 3s, then 5s).
+func zmOddPerms(a, b int) [][]int {
+	var out [][]int
+	var rec func(a, b int, cur []int)
+	rec = func(a, b int, cur []int) {
+		if len(out) == 20 {
+			return
+		}
+		if a == 0 && b == 0 {
+			out = append(out, slices.Clone(cur))
+			return
+		}
+		if a > 0 {
+			rec(a-1, b, append(cur, 3))
+		}
+		if b > 0 {
+			rec(a, b-1, append(cur, 5))
+		}
+	}
+	rec(a, b, nil)
+	return out
+}
+
+// zmOddCandidates is comp2Candidates plus, for the split radix-3 and -5
+// passes (Round 36), every order of the 3s and 5s (zmOddPerms) followed by
+// radix8Maximal's tail (radix 4 before 8) or, from e = 4, one that ends
+// with radix 16.
+func zmOddCandidates(n int) [][]int {
+	out := comp2Candidates(n)
+	if out == nil {
+		return nil
+	}
+	seen := map[string]bool{}
+	for _, f := range out {
+		seen[factorName(f)] = true
+	}
+	e, odd := 0, n
+	for odd%2 == 0 {
+		odd /= 2
+		e++
+	}
+	a, b := 0, 0
+	for ; odd%3 == 0; odd /= 3 {
+		a++
+	}
+	for ; odd%5 == 0; odd /= 5 {
+		b++
+	}
+	t := radix8Maximal(e)
+	slices.Reverse(t)
+	tails := [][]int{t}
+	if e >= 4 {
+		t16 := radix8Maximal(e - 4)
+		slices.Reverse(t16)
+		tails = append(tails, append(t16, 16))
+	}
+	for _, o := range zmOddPerms(a, b) {
+		for _, tl := range tails {
+			f := slices.Concat(o, tl)
+			if k := factorName(f); !seen[k] {
+				seen[k] = true
+				out = append(out, f)
+			}
+		}
+	}
+	return out
+}
+
+var zmSweepMax = flag.Int("r36.sweepmax", 1<<14, "TestZmSweep's longest length")
+
+// TestZmSweep is TestR26Sweep over zmOddCandidates, with kernels.ZmSplitOdd
+// on (as built), every n = 2^e·3^a·5^b (a+b >= 1, e >= 1) up to
+// -r36.sweepmax; the first candidate is the current factorization.
+func TestZmSweep(t *testing.T) {
+	rounds, ms := zmRounds(t)
+	for n := 6; n <= *zmSweepMax; n += 2 {
+		if n&(n-1) == 0 {
+			continue
+		}
+		cs := zmOddCandidates(n)
+		if len(cs) < 2 {
+			continue
+		}
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		var fns []func()
+		for _, f := range cs {
+			p := newSKPlanFactors(n, f)
+			fns = append(fns, func() { p.transform(dst, src, false) })
+		}
+		times := comp2Rotate(fns, rounds, ms)
+		var b strings.Builder
+		for v, f := range cs {
+			ratios := make([]float64, rounds)
+			for i := range ratios {
+				ratios[i] = times[0][i] / times[v][i]
+			}
+			fmt.Fprintf(&b, " %s=%.0f/%.3f", factorName(f), median(times[v]), median(ratios))
+		}
+		fmt.Printf("SWEEP %d%s\n", n, b.String())
+	}
+}

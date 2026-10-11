@@ -38,10 +38,14 @@ func splitFromBlocks(y []complex128) []complex128 {
 // splitOn builds plans with the 256-bit split layout on (or off) for every
 // length (no hswSplitFloor), and the 512-bit one off, until the returned
 // function restores the settings.
+// Radix-3 and radix-5 passes join the runs (kernels.ZmSplitOdd, Round 36)
+// whatever the vendor.
 func splitOn(on bool) func() {
-	old, old512, floor := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor
-	kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor = on, false, 0
-	return func() { kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor = old, old512, floor }
+	old, old512, floor, odd := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd
+	kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd = on, false, 0, true
+	return func() {
+		kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd = old, old512, floor, odd
+	}
 }
 
 // TestSplitEachPassMatchesScalar compares every split pass kernel alone with
@@ -50,13 +54,14 @@ func splitOn(on bool) func() {
 // output converted back where it writes it so. A whole transform absorbs most
 // of a zero's sign that one pass gets wrong (Round 18), so this is the test
 // that sees one. It covers l1 from 1 to 9 and ido from 4 to 36 (one group,
-// several, the first group only), on radix16Signals' seven signals.
+// several, the first group only), on radix16Signals' seven signals, radix
+// 4 and 8 and, since Round 36, 3 and 5.
 func TestSplitEachPassMatchesScalar(t *testing.T) {
 	if !kernels.UseStockhamAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go passes run and there is nothing to compare")
 	}
 	defer splitOn(true)()
-	for _, r := range []int{4, 8} {
+	for _, r := range []int{4, 8, 3, 5} {
 		for _, l1 := range []int{1, 2, 3, 4, 5, 9} {
 			for _, ido := range []int{4, 8, 12, 16, 20, 36} {
 				var f []int
@@ -113,6 +118,9 @@ var splitFactorLists = [][]int{
 	{16, 4, 4}, {4, 4, 4, 4, 4, 4, 4, 4},
 	{8, 8}, {8, 8, 8}, {4, 8, 8, 8}, {8, 8, 16}, {8, 4, 8}, {3, 8, 8}, {8, 8, 5},
 	{8, 8, 8, 8, 8, 8},
+	// Round 36: radix-3 and radix-5 passes in the runs.
+	{5, 5, 5, 8}, {3, 3, 3, 5, 8}, {3, 3, 10, 12}, {5, 10, 20}, {3, 5, 4, 4, 8},
+	{5, 5, 4}, {3, 3, 4}, {4, 3, 5, 16}, {3, 5, 3, 5, 3, 4},
 }
 
 // TestSplitTransformMatchesScalar runs whole transforms with split runs,

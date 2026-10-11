@@ -67,7 +67,7 @@ func TestZnKernelAddrs(t *testing.T) {
 	for d := range 2 {
 		for r := range 9 {
 			for m := range 5 {
-				has := m >= 1 && (r == 4 || r == 8)
+				has := m >= 1 && (r == 4 || r == 8 || r == 3 || r == 5) // 3, 5: Round 36
 				if got := znAddrs[42+(9*d+r)*5+m]; (got != 0) != has {
 					t.Errorf("split d=%d r=%d m=%d: %#x", d, r, m, got)
 				}

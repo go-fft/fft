@@ -40,10 +40,13 @@ var UseStockhamSplit = splitDefault(useAVX2, supportsAVX512F())
 func splitDefault(avx2, avx512 bool) bool { return avx2 && !avx512 }
 
 // splitK holds the split kernels' constants, one 32-byte row each (the
-// split* offsets in gen.go): √2/2, and −0, the sign flip.
-var splitK = [2][4]float64{
+// split* offsets in gen.go): √2/2, and −0, the sign flip; then (Round 36)
+// the radix-3 and radix-5 bodies' 0.5, sin(2π/3), cos(2π/5), cos(4π/5),
+// sin(2π/5), sin(4π/5): skConst's rows 1 to 6, the Go passes' values.
+var splitK = [8][4]float64{
 	{0.707106781186547524400844362104849, 0.707106781186547524400844362104849, 0.707106781186547524400844362104849, 0.707106781186547524400844362104849},
 	{math.Copysign(0, -1), math.Copysign(0, -1), math.Copysign(0, -1), math.Copysign(0, -1)},
+	skFwd[1], skFwd[2], skFwd[3], skFwd[4], skFwd[5], skFwd[6],
 }
 
 // The split kernels by radix and mode, per direction.
@@ -51,12 +54,29 @@ var (
 	skSplitFwd = [9][5]skPassFn{
 		4: {splitOut: skSplit4ISFwd, splitBoth: skSplit4SSFwd, splitIn: skSplit4SIFwd, splitNone: skSplit4IIFwd},
 		8: {splitOut: skSplit8ISFwd, splitBoth: skSplit8SSFwd, splitIn: skSplit8SIFwd, splitNone: skSplit8IIFwd},
+		3: {splitOut: skSplit3ISFwd, splitBoth: skSplit3SSFwd, splitIn: skSplit3SIFwd, splitNone: skSplit3IIFwd},
+		5: {splitOut: skSplit5ISFwd, splitBoth: skSplit5SSFwd, splitIn: skSplit5SIFwd, splitNone: skSplit5IIFwd},
 	}
 	skSplitInv = [9][5]skPassFn{
 		4: {splitOut: skSplit4ISInv, splitBoth: skSplit4SSInv, splitIn: skSplit4SIInv, splitNone: skSplit4IIInv},
 		8: {splitOut: skSplit8ISInv, splitBoth: skSplit8SSInv, splitIn: skSplit8SIInv, splitNone: skSplit8IIInv},
+		3: {splitOut: skSplit3ISInv, splitBoth: skSplit3SSInv, splitIn: skSplit3SIInv, splitNone: skSplit3IIInv},
+		5: {splitOut: skSplit5ISInv, splitBoth: skSplit5SSInv, splitIn: skSplit5SIInv, splitNone: skSplit5IIInv},
 	}
 )
+
+// ZmSplitOdd lets splitModes put radix-3 and radix-5 passes in a split run
+// (Round 36, measured on Zen 3 only): on where the CPU is not Intel's. A
+// variable so the tests can take both routes on any machine; a plan keeps
+// the modes it was built with, and the kernels run either way.
+var ZmSplitOdd = !IntelCPU
+
+// zmSplitRun reports whether splitModes puts a pass of radix r with ido
+// points per block in a split run: splitPass, and for radix 3 and 5
+// ZmSplitOdd.
+func zmSplitRun(r, ido int) bool {
+	return splitPass(r, ido) && (ZmSplitOdd || r != 3 && r != 5)
+}
 
 // splitPass reports whether a split kernel runs a pass of radix r with ido
 // points per block: a radix with a split body, and ido a positive multiple of
@@ -116,12 +136,12 @@ func splitModes(r, ido []int, on bool) []uint8 {
 		return modes
 	}
 	for k := 0; k < len(r); {
-		if !splitPass(r[k], ido[k]) {
+		if !zmSplitRun(r[k], ido[k]) {
 			k++
 			continue
 		}
 		e := k + 1
-		for e < len(r) && splitPass(r[e], ido[e]) {
+		for e < len(r) && zmSplitRun(r[e], ido[e]) {
 			e++
 		}
 		if e-k == 1 {
@@ -264,3 +284,51 @@ func skSplit8SIInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
 func skSplit8IIInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3ISFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3SSFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3SIFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3IIFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3ISInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3SSInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3SIInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit3IIInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5ISFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5SSFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5SIFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5IIFwd(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5ISInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5SSInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5SIInv(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+//go:noescape
+func skSplit5IIInv(cc, ch, tw *complex128, k *float64, ido, l1 int)

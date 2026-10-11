@@ -10,8 +10,9 @@ import (
 // splitOut, splitBoth…, splitIn (splitNone alone); the others, and the final
 // pass, stay interleaved; off, everything is interleaved.
 func TestSplitModes(t *testing.T) {
-	defer func(v bool) { UseStockhamSplit512 = v }(UseStockhamSplit512)
+	defer func(v, o bool) { UseStockhamSplit512, ZmSplitOdd = v, o }(UseStockhamSplit512, ZmSplitOdd)
 	UseStockhamSplit512 = false // the 256-bit layout
+	ZmSplitOdd = false          // radix 3 and 5 below
 	for _, c := range []struct {
 		r, ido []int
 		want   []uint8
@@ -33,6 +34,23 @@ func TestSplitModes(t *testing.T) {
 		}
 		if got := splitModes(c.r, c.ido, false); slices.ContainsFunc(got, func(m uint8) bool { return m != 0 }) {
 			t.Errorf("splitModes(%v, %v, off) = %v, want all zero", c.r, c.ido, got)
+		}
+	}
+	// With ZmSplitOdd (Round 36) radix-3 and radix-5 passes join the runs.
+	ZmSplitOdd = true
+	for _, c := range []struct {
+		r, ido []int
+		want   []uint8
+	}{
+		{[]int{4, 3, 4, 8}, []int{96, 32, 8, 1}, []uint8{splitOut, splitBoth, splitIn, 0}},
+		{[]int{5, 5, 5, 8}, []int{200, 40, 8, 1}, []uint8{splitOut, splitBoth, splitIn, 0}},
+		{[]int{3, 3, 10, 12}, []int{360, 120, 12, 1}, []uint8{splitOut, splitIn, 0, 0}},
+		{[]int{5, 10, 20}, []int{200, 20, 1}, []uint8{splitNone, 0, 0}},
+		{[]int{3, 5}, []int{5, 1}, []uint8{0, 0}},
+		{[]int{5, 3, 7}, []int{21, 7, 1}, []uint8{0, 0, 0}},
+	} {
+		if got := splitModes(c.r, c.ido, true); !slices.Equal(got, c.want) {
+			t.Errorf("ZmSplitOdd: splitModes(%v, %v) = %v, want %v", c.r, c.ido, got, c.want)
 		}
 	}
 	old := UseStockhamSplit
@@ -73,7 +91,7 @@ func TestSplitPassLayoutRefuses(t *testing.T) {
 		r, ido, l1 int
 	}{
 		{5, 4, 4, 1}, {splitBoth, 4, 6, 1}, {splitBoth, 4, 2, 1}, {splitBoth, 4, 0, 1},
-		{splitBoth, 4, -4, 1}, {splitIn, 3, 4, 1}, {splitOut, 16, 4, 1}, {splitNone, 2, 4, 1},
+		{splitBoth, 4, -4, 1}, {splitIn, 7, 4, 1}, {splitOut, 16, 4, 1}, {splitBoth, 3, 6, 1}, {splitIn, 5, 2, 1}, {splitNone, 2, 4, 1},
 		{splitOut, -1, 4, 1}, {splitOut, 9, 4, 1}, {splitBoth, 4, 4, 0}, {splitBoth, 8, 4, -1},
 	} {
 		expect("mode", refuse, func() {
