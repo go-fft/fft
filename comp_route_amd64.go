@@ -391,9 +391,11 @@ func zmPow2Tail(n int, on bool) []int {
 // power-of-two tail (TestZmSweep, five rotated rounds, 145 lengths, 62 of
 // them gaining 4% or more), in a fifteen-round A/B of the two best against
 // it (TestR26AB) that kept 52 at 3% or more, and in a second, independent
-// fifteen-round A/B of the one kept against it, where these 47 ran 1.02×
+// fifteen-round A/B of the one kept against it, where these 46 ran 1.02×
 // to 1.62× as fast (median 1.07×; 200, 240, 1080, 2160 and 4800 fell back
-// below 1.02 and keep comp2Factors). The data reach the passes split and
+// below 1.02 and keep comp2Factors, and 80, 1.06× there, read 0.935 in the
+// A/B of every composite against v0.23.1, TestZmCompAll, and was dropped
+// too). The data reach the passes split and
 // leave them before the final one, a prime-factor pass of radix 12 or 20
 // where one remains: comp2Factors' non-final radix-10, -12, -15 and -20
 // passes have no split kernel. The rules tried over the sweep did not gain
@@ -408,7 +410,6 @@ var zmCompTable = map[int][]int{
 	20:    {5, 4},
 	30:    {2, 15},
 	40:    {2, 20},
-	80:    {5, 4, 4},
 	120:   {5, 3, 8},
 	180:   {3, 3, 20},
 	400:   {5, 4, 20},

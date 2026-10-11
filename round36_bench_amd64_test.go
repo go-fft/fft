@@ -284,6 +284,44 @@ func TestZmExport(t *testing.T) {
 		put(fmt.Sprintf("b%d.ifft", n), p.IFFT(make([]complex128, n), x))
 		fmt.Fprintf(&list, "b %d %d\n", n, p.bluestein.m)
 	}
+	// The composites whose plans Round 36 changes, and a few it does not.
+	comps := []int{1080, 1920, 960, 500, 6000, 6144, 10240, 12288, 18432, 20480, 30720}
+	for n := range zmCompTable {
+		comps = append(comps, n)
+	}
+	slices.Sort(comps)
+	for _, n := range comps {
+		p := NewPlan(n)
+		x := sig(n)
+		put(fmt.Sprintf("c%d.in", n), x)
+		put(fmt.Sprintf("c%d.fft", n), p.FFT(make([]complex128, n), x))
+		put(fmt.Sprintf("c%d.ifft", n), p.IFFT(make([]complex128, n), x))
+		var f []int
+		if p.sk != nil {
+			f = p.sk.factors()
+		}
+		fmt.Fprintf(&list, "c %d %s\n", n, factorName(f))
+	}
+	// Real transforms whose half-length plans it changes (RFFT 1080: 540).
+	for _, n := range []int{1000, 1080, 1920, 2000, 2592, 4096} {
+		p := NewRealPlan(n)
+		x := make([]complex128, n)
+		xr := make([]float64, n)
+		for i := range xr {
+			xr[i] = r.NormFloat64()
+			x[i] = complex(xr[i], 0)
+		}
+		spec := p.RFFT(make([]complex128, n/2+1), xr)
+		back := p.IRFFT(make([]float64, n), spec)
+		y := make([]complex128, n)
+		for i, v := range back {
+			y[i] = complex(v, 0)
+		}
+		put(fmt.Sprintf("r%d.in", n), x)
+		put(fmt.Sprintf("r%d.rfft", n), spec)
+		put(fmt.Sprintf("r%d.irfft", n), y)
+		fmt.Fprintf(&list, "r %d -\n", n)
+	}
 	for _, n := range []int{2, 3, 8, 12, 16, 20, 32, 48, 60, 64, 100, 128, 200, 256} {
 		p := NewPlanN(n, n)
 		x := sig(n * n)
@@ -581,5 +619,36 @@ func TestZmSweep(t *testing.T) {
 			fmt.Fprintf(&b, " %s=%.0f/%.3f", factorName(f), median(times[v]), median(ratios))
 		}
 		fmt.Printf("SWEEP %d%s\n", n, b.String())
+	}
+}
+
+// TestZmCompAll times, for every n = 2^e·3^a·5^b (a+b >= 1, e >= 1) up to
+// -r36.sweepmax, the plan as v0.23.1 built it (comp2Factors, or
+// skFactorizeOrder's for e >= 11, radix-3 and -5 passes interleaved) against
+// the current one (skFactorize, kernels.ZmSplitOdd on), rotated.
+func TestZmCompAll(t *testing.T) {
+	rounds, ms := zmRounds(t)
+	defer func(v bool) { kernels.ZmSplitOdd = v }(kernels.ZmSplitOdd)
+	for n := 6; n <= *zmSweepMax; n += 2 {
+		if n&(n-1) == 0 || comp2Candidates(n) == nil {
+			continue
+		}
+		oldF := comp2Factors(n, true)
+		if oldF == nil {
+			oldF = skFactorizeOrder(n, true)
+		}
+		kernels.ZmSplitOdd = false
+		po := newSKPlanFactors(n, oldF)
+		kernels.ZmSplitOdd = true
+		pn := newSKPlanFactors(n, skFactorize(n))
+		src := benchComplex(n)
+		dst := make([]complex128, n)
+		times := comp2Rotate([]func(){func() { po.transform(dst, src, false) }, func() { pn.transform(dst, src, false) }}, rounds, ms)
+		ratios := make([]float64, rounds)
+		for i := range ratios {
+			ratios[i] = times[0][i] / times[1][i]
+		}
+		fmt.Printf("ALL %6d old %-16s new %-18s old/new %.3f  range %.3f–%.3f\n", n, factorName(oldF), factorName(skFactorize(n)),
+			median(ratios), slices.Min(ratios), slices.Max(ratios))
 	}
 }
