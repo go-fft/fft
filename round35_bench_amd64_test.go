@@ -1,10 +1,14 @@
 package fft
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"github.com/go-fft/fft/internal/kernels"
 	"math"
+	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -568,6 +572,87 @@ func TestCsUntangleMax(t *testing.T) {
 			}
 			fmt.Printf("UNT %8d inverse=%v main %10.0f ns  wide %10.0f ns  main/wide %.3f [%.3f %.3f]\n", n, inv,
 				median(times[0]), median(times[1]), median(times[0])/median(times[1]), lo, hi)
+		}
+	}
+}
+
+var csExport = flag.String("cs.export", "", "TestCsExport: directory the inputs and outputs go to")
+
+// TestCsExport writes random inputs and the outputs with Round 35's changes
+// on ("new") and off ("old": main's cascade orders, no radix 9, the frame
+// kernels off, the 512-bit untangle to 16384), as little-endian float64, so
+// numpy can judge both on the bytes this code received.
+func TestCsExport(t *testing.T) {
+	if *csExport == "" {
+		t.Skip("set -cs.export=dir")
+	}
+	r := rand.New(rand.NewPCG(35, 2026))
+	write := func(name string, x []float64) {
+		b := make([]byte, 0, 8*len(x))
+		for _, v := range x {
+			b = binary.LittleEndian.AppendUint64(b, math.Float64bits(v))
+		}
+		if err := os.WriteFile(filepath.Join(*csExport, name), b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cplx := func(x []complex128) []float64 { return unsafe.Slice((*float64)(unsafe.Pointer(&x[0])), 2*len(x)) }
+	old := map[int][]int{}
+	for n, f := range splitTable {
+		if csCascadeOrders()[n] == nil {
+			old[n] = f
+		}
+	}
+	tab, r9, two, three, unt := splitTable, csRadix9On, znTwoPassMax, znThreePassMax, kernels.UntangleWideMax
+	defer func() {
+		splitTable, csRadix9On, znTwoPassMax, znThreePassMax, kernels.UntangleWideMax = tab, r9, two, three, unt
+	}()
+	set := func(on bool) {
+		splitTable, csRadix9On, znTwoPassMax, znThreePassMax, kernels.UntangleWideMax = old, false, 0, 0, 1<<14
+		if on {
+			splitTable, csRadix9On, znTwoPassMax, znThreePassMax, kernels.UntangleWideMax = tab, r9, two, three, unt
+		}
+	}
+	tags := map[bool]string{false: "old", true: "new"}
+	for _, n := range []int{16, 128, 256, 512, 81, 324, 1080, 1296, 65536, 1 << 20} {
+		x := make([]complex128, n)
+		for i := range x {
+			x[i] = complex(r.NormFloat64(), r.NormFloat64())
+		}
+		name := fmt.Sprintf("c_%d", n)
+		write("in_"+name+".bin", cplx(x))
+		for _, on := range []bool{false, true} {
+			set(on)
+			p := NewPlan(n)
+			write(fmt.Sprintf("%s_%s.bin", tags[on], name), cplx(p.FFT(make([]complex128, n), x)))
+			fmt.Printf("EXPORT %s %s %v zn=%v\n", name, tags[on], p.sk.factors(), p.sk.zn != nil)
+		}
+	}
+	for _, n := range []int{256, 512, 1024, 65536, 131072, 1 << 20} {
+		x := make([]float64, n)
+		for i := range x {
+			x[i] = r.NormFloat64()
+		}
+		name := fmt.Sprintf("r_%d", n)
+		write("in_"+name+".bin", x)
+		var spec []complex128
+		for _, on := range []bool{false, true} {
+			set(on)
+			znForget(n / 2)
+			p := NewRealPlan(n)
+			spec = p.RFFT(make([]complex128, n/2+1), x)
+			write(fmt.Sprintf("%s_%s.bin", tags[on], name), cplx(spec))
+			znForget(n / 2)
+		}
+		// The inverse of the new spectrum, old and new.
+		iname := fmt.Sprintf("ir_%d", n)
+		write("in_"+iname+".bin", cplx(spec))
+		for _, on := range []bool{false, true} {
+			set(on)
+			znForget(n / 2)
+			p := NewRealPlan(n)
+			write(fmt.Sprintf("%s_%s.bin", tags[on], iname), p.IRFFT(make([]float64, n), spec))
+			znForget(n / 2)
 		}
 	}
 }
