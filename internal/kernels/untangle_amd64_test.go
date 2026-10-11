@@ -81,7 +81,7 @@ func TestUntangle512Default(t *testing.T) {
 // TestClUntangleWide: the 512-bit untangle takes the powers of two from 256.
 func TestClUntangleWide(t *testing.T) {
 	for m, want := range map[int]bool{128: false, 255: false, 256: true, 500: false, 1024: true, 1 << 14: true, 1 << 15: false, 3 << 8: false} {
-		if got := clUntangleWide(m); got != want {
+		if got := clUntangleWide(m, 1<<14); got != want {
 			t.Errorf("clUntangleWide(%d) = %v, want %v", m, got, want)
 		}
 	}
@@ -96,8 +96,19 @@ func TestClQuads(t *testing.T) {
 	}{
 		{true, 63, 256, 31}, {true, 64, 512, 32}, {false, 63, 256, 0}, {true, 31, 128, 0}, {true, 249, 1000, 0},
 	} {
-		if got := clQuads(c.on, c.pairs, c.m); got != c.q {
+		if got := clQuads(c.on, c.pairs, c.m, 1<<14); got != c.q {
 			t.Errorf("clQuads(%v, %d, %d) = %d, want %d", c.on, c.pairs, c.m, got, c.q)
 		}
+	}
+}
+
+// TestCsUntangleWideMax pins Round 35's bounds: the forward untangle runs at
+// 512 bits to m = 65536, the inverse to 16384.
+func TestCsUntangleWideMax(t *testing.T) {
+	if UntangleWideMax != 1<<16 || RetangleWideMax != 1<<14 {
+		t.Errorf("bounds %d, %d", UntangleWideMax, RetangleWideMax)
+	}
+	if !clUntangleWide(1<<16, UntangleWideMax) || clUntangleWide(1<<17, UntangleWideMax) || clUntangleWide(1<<15, RetangleWideMax) {
+		t.Error("clUntangleWide ignores its bound")
 	}
 }

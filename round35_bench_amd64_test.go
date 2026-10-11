@@ -535,3 +535,39 @@ func TestCsPlace2D(t *testing.T) {
 }
 
 var csPairs = flag.Int("cs.pairs", 8, "TestCsPlace2D: allocations")
+
+var csReals = flag.String("cs.reals", "65536,131072,1048576,32768", "TestCsUntangleMax: real lengths")
+
+// TestCsUntangleMax times RFFT and IRFFT with the 512-bit untangle and
+// retangle bounded at m = 16384 (main) and unbounded, in one process,
+// rotated.
+func TestCsUntangleMax(t *testing.T) {
+	rounds, ms := csRounds(t)
+	defer func(a, b int) { kernels.UntangleWideMax, kernels.RetangleWideMax = a, b }(kernels.UntangleWideMax, kernels.RetangleWideMax)
+	for _, n := range csInts(t, *csReals) {
+		p := NewRealPlan(n)
+		src := benchReal(n)
+		spec := p.RFFT(make([]complex128, n/2+1), src)
+		dst, back := make([]complex128, n/2+1), make([]float64, n)
+		for _, inv := range []bool{false, true} {
+			run := func(max int) func() {
+				return func() {
+					kernels.UntangleWideMax, kernels.RetangleWideMax = max, max
+					if inv {
+						p.IRFFT(back, spec)
+					} else {
+						p.RFFT(dst, src)
+					}
+				}
+			}
+			times := comp2Rotate([]func(){run(1 << 14), run(1 << 30)}, rounds, ms)
+			lo, hi := 1e300, 0.0
+			for r := range times[0] {
+				q := times[0][r] / times[1][r]
+				lo, hi = min(lo, q), max(hi, q)
+			}
+			fmt.Printf("UNT %8d inverse=%v main %10.0f ns  wide %10.0f ns  main/wide %.3f [%.3f %.3f]\n", n, inv,
+				median(times[0]), median(times[1]), median(times[0])/median(times[1]), lo, hi)
+		}
+	}
+}

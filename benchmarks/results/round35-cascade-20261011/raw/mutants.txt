@@ -28,3 +28,7 @@ fft builds the frame plans narrow (wide=false)           caught  TestCsZnFrameHo
 frame stays off on every Intel CPU                       caught  TestZnFrameMaxAMD64, TestCsZnFrameHostRoute
 frame on for Intel without AVX-512 (Haswell)             caught  TestZnFrameMaxAMD64
 address table: the AVX-512 final kernels in one slot     caught  TestCsZn* (a first form of this mutant did not compile and proved nothing)
+
+The forward untangle's bound (UntangleWideMax):
+bound back to 16384                                      caught  TestCsUntangleWideMax
+clUntangleWide ignores its max argument                  caught  TestCsUntangleWideMax

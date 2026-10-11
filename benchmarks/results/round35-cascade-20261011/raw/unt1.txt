@@ -1,0 +1,13 @@
+# start 09:32:30 load 0.04 0.15 0.23 sha 6771a5c8c08317df : ./t16.test -test.run TestCsUntangleMax -cs.ab=15,200 -test.v
+=== RUN   TestCsUntangleMax
+UNT    65536 inverse=false main     216171 ns  wide     204227 ns  main/wide 1.058 [1.050 1.076]
+UNT    65536 inverse=true main     250603 ns  wide     253457 ns  main/wide 0.989 [0.973 1.020]
+UNT   131072 inverse=false main     521494 ns  wide     504929 ns  main/wide 1.033 [1.011 1.108]
+UNT   131072 inverse=true main     544400 ns  wide     548405 ns  main/wide 0.993 [0.970 1.027]
+UNT  1048576 inverse=false main    8087767 ns  wide    7989578 ns  main/wide 1.012 [0.922 1.069]
+UNT  1048576 inverse=true main   10140780 ns  wide   10009640 ns  main/wide 1.013 [0.980 1.057]
+UNT    32768 inverse=false main      80719 ns  wide      80584 ns  main/wide 1.002 [0.961 1.020]
+UNT    32768 inverse=true main      88438 ns  wide      88464 ns  main/wide 1.000 [0.985 1.061]
+--- PASS: TestCsUntangleMax (70.09s)
+PASS
+# end 09:33:40 load 0.70 0.33 0.29

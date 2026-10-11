@@ -440,7 +440,7 @@ func Untangle(dst, z, tw []complex128, m int) int {
 	// m-4q-1). The kernel is called with q = 0 too: it returns before its first AVX-512
 	// instruction, so no statement here runs only on an AVX-512 CPU (the
 	// coverage gate runs on CPUs without it).
-	q := clQuads(UseUntangleAVX512, pairs, m)
+	q := clQuads(UseUntangleAVX512, pairs, m, UntangleWideMax)
 	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
 	if rest := pairs - 2*q; rest > 0 {
 		smallUntangleAVX2(&dst[4*q], &z[4*q], &tw[4*q], &skFwd[0][0], m-8*q, rest)
@@ -461,7 +461,7 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	}
 	_, _, _ = z[m-1], x[m], tw[2*pairs+1]
 	hv := [4]float64{h, h, h, h}
-	q := clQuads(UseUntangleAVX512, pairs, m) // as in Untangle
+	q := clQuads(UseUntangleAVX512, pairs, m, RetangleWideMax) // as in Untangle
 	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
 	if rest := pairs - 2*q; rest > 0 {
 		smallRetangleAVX2(&z[4*q], &x[4*q], &tw[4*q], &skFwd[0][0], &hv, m-8*q, rest)
@@ -610,7 +610,7 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 
 // clUntangleWide reports whether an untangle of half-length m takes the
 // 512-bit kernel when UseUntangleAVX512 is on: a power of two from 256 to
-// 16384 points. From 256 the half transforms run the AVX-512 pass kernels
+// max points (UntangleWideMax, RetangleWideMax). From 256 the half transforms run the AVX-512 pass kernels
 // (the fft package's wide512). On Cascade Lake (Round 31, eleven to fifteen
 // rotated rounds) the 512-bit untangle alone ran 1.06–1.28× as fast as the
 // AVX2 one from m = 256 to 32768, and the whole RFFT 1.08–1.13×, IRFFT
@@ -619,13 +619,24 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 // transform on the AVX2 kernels it made the whole RFFT slower, not faster:
 // RFFT 256 (m = 128) 0.889, RFFT 1000 0.905, RFFT 1920 0.899 — the cost of
 // mixing widths Round 6 met, larger than the untangle's own gain.
-func clUntangleWide(m int) bool { return m >= 256 && m <= 1<<14 && m&(m-1) == 0 }
+func clUntangleWide(m, max int) bool { return m >= 256 && m <= max && m&(m-1) == 0 }
+
+// UntangleWideMax and RetangleWideMax are the longest half-lengths m whose
+// Untangle and Retangle take the 512-bit kernel (clUntangleWide). Variables
+// so the tests can move them. Round 31 stopped both at m = 16384 because
+// IRFFT did not gain beyond it; the forward one does (Round 35, Cascade
+// Lake, one process, fifteen rotated rounds, time bounded at 16384 ÷ time
+// unbounded): RFFT 65536 (m = 32768) 1.058, every round 1.050–1.076; RFFT
+// 131072 1.033 (1.011–1.108); RFFT 2^20 1.012 (0.922–1.069), within its
+// noise; IRFFT 0.99–1.01 at all three. So Untangle runs at 512 bits to m =
+// 65536, Retangle to 16384.
+var UntangleWideMax, RetangleWideMax = 1 << 16, 1 << 14
 
 // clQuads is how many four-bin steps the 512-bit untangle takes of pairs
 // two-bin steps at half-length m: half of them (rounded down) when on and
 // clUntangleWide(m), else none.
-func clQuads(on bool, pairs, m int) int {
-	if on && clUntangleWide(m) {
+func clQuads(on bool, pairs, m, max int) int {
+	if on && clUntangleWide(m, max) {
 		return pairs / 2
 	}
 	return 0
