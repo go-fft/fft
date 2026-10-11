@@ -1,0 +1,14 @@
+# start 16:22:35 load 0.35 0.27 0.13 sha ff10182603d5ff47 : ./cl3a.test -test.run ^TestCl3Scratch$ -cl3.ab=9,200 -cl3.shapes=512x512 -cl3.scav
+SCRATCH 512x512   factors [8 8 8] heap       cols   3018511 ns [  2530102   3137624] buf%2M=  80000
+SCRATCH 512x512   factors [8 8 8] pool       cols   3077078 ns [  2593655   3120894] buf%2M=  c0000
+SCRATCH 512x512   factors [8 8 8] 4K         cols   3072557 ns [  2023055   3135509] buf%2M=      0
+SCRATCH 512x512   factors [8 8 8] 2M+0       cols   3080091 ns [  2901927   3141225] buf%2M=      0
+SCRATCH 512x512   factors [8 8 8] 2M+64      cols   3099099 ns [  2949249   3215506] buf%2M=     40
+SCRATCH 512x512   factors [8 8 8] 2M+4096    cols   3097952 ns [  2724438   3186777] buf%2M=   1000
+SCRATCH 512x512   factors [8 8 8] 2M+8192    cols   3070151 ns [  2844525   3172973] buf%2M=   2000
+SCRATCH 512x512   factors [8 8 8] 2M+32768   cols   3114695 ns [  2920954   3205293] buf%2M=   8000
+SCRATCH 512x512   factors [8 8 8] 2M+65536   cols   3126011 ns [  2957569   3177385] buf%2M=  10000
+SCRATCH 512x512   factors [8 8 8] 2M+131072  cols   3098960 ns [  2718410   3162072] buf%2M=  20000
+SCRATCH 512x512   factors [8 8 8] 2M+262144  cols   3095903 ns [  1772576   3159375] buf%2M=  40000
+PASS
+# end 16:23:14 load 0.67 0.36 0.17

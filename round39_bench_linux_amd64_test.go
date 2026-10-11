@@ -2,9 +2,13 @@ package fft
 
 import (
 	"bufio"
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"math"
+	"math/rand/v2"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"slices"
@@ -558,6 +562,64 @@ func TestCl3StripVars(t *testing.T) {
 				fmt.Printf("STRIPVAR %-11s ax %d %-6s %9.0f ns [%9.0f %9.0f]  ref/this %.3f [%.3f %.3f]\n", s, ax, name, median(times[k]),
 					slices.Min(times[k]), slices.Max(times[k]), median(q), slices.Min(q), slices.Max(q))
 			}
+		}
+	}
+}
+
+var cl3Export = flag.String("cl3.export", "", "TestCl3Export: directory")
+
+// TestCl3Export writes, for N-D shapes this round changes, a random input
+// and go-fft's FFTN and IFFTN of it with this round's changes off ("old":
+// stripWidth, the rows off the frame) and on ("new"), and the same for
+// RealPlan2's RFFT, as raw little-endian float64, for numpy to check on the
+// same bytes (acc39.py).
+func TestCl3Export(t *testing.T) {
+	if *cl3Export == "" {
+		t.Skip("set -cl3.export=dir")
+	}
+	r := rand.New(rand.NewPCG(39, 2026))
+	write := func(name string, x []float64) {
+		b := make([]byte, 0, 8*len(x))
+		for _, v := range x {
+			b = binary.LittleEndian.AppendUint64(b, math.Float64bits(v))
+		}
+		if err := os.WriteFile(filepath.Join(*cl3Export, name), b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cplx := func(x []complex128) []float64 { return unsafe.Slice((*float64)(unsafe.Pointer(&x[0])), 2*len(x)) }
+	defer func(w, f bool) { cl3WideStrips, zmFrameRows = w, f }(cl3WideStrips, zmFrameRows)
+	set := func(on bool) { cl3WideStrips, zmFrameRows = on, on }
+	tags := map[bool]string{false: "old", true: "new"}
+	for _, s := range []string{"32x32", "64x64", "128x128", "256x256", "512x512", "1024x1024", "512x1024", "300x1000", "64x4096", "64x64x64", "8x64x64"} {
+		shape := cl3Shape(t, s)
+		size := shapeProduct(shape...)
+		x := make([]complex128, size)
+		for i := range x {
+			x[i] = complex(r.NormFloat64(), r.NormFloat64())
+		}
+		write("in_nd_"+s+".bin", cplx(x))
+		write("in_ind_"+s+".bin", cplx(x))
+		for _, on := range []bool{false, true} {
+			set(on)
+			p := NewPlanN(shape...)
+			write(fmt.Sprintf("%s_nd_%s.bin", tags[on], s), cplx(p.FFT(make([]complex128, size), x)))
+			write(fmt.Sprintf("%s_ind_%s.bin", tags[on], s), cplx(p.IFFT(make([]complex128, size), x)))
+			fmt.Printf("EXPORT %s %s widths %v\n", s, tags[on], p.sw)
+		}
+	}
+	for _, s := range []string{"512x1024", "1024x1024"} {
+		shape := cl3Shape(t, s)
+		x := make([]float64, shape[0]*shape[1])
+		for i := range x {
+			x[i] = r.NormFloat64()
+		}
+		write("in_r2_"+s+".bin", x)
+		for _, on := range []bool{false, true} {
+			set(on)
+			p := NewRealPlan2(shape[0], shape[1])
+			write(fmt.Sprintf("%s_r2_%s.bin", tags[on], s), cplx(p.RFFT(make([]complex128, shape[0]*(shape[1]/2+1)), x)))
+			fmt.Printf("EXPORT r2 %s %s widths %v\n", s, tags[on], p.col.sw)
 		}
 	}
 }

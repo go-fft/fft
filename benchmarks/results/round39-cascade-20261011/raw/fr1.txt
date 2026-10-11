@@ -1,0 +1,10 @@
+# start 16:42:57 load 0.50 0.54 0.38 sha 1440c12700507b95 : ./cl3a.test -test.run ^TestCl3FrameRows$ -cl3.ab=11,200 -cl3.shapes=32x32,64x64,128x128,256x256,512x512,16x16,8x64x64
+FRAMEROWS 32x32     off       4468 ns  on       3462 ns  off/on 1.291 [1.288 1.294]  rows zn=true
+FRAMEROWS 64x64     off      17811 ns  on      15614 ns  off/on 1.142 [1.138 1.144]  rows zn=true
+FRAMEROWS 128x128   off      81553 ns  on      76708 ns  off/on 1.064 [1.060 1.067]  rows zn=true
+FRAMEROWS 256x256   off     441564 ns  on     425675 ns  off/on 1.038 [1.028 1.043]  rows zn=true
+FRAMEROWS 512x512   off    2609517 ns  on    2495603 ns  off/on 1.035 [0.962 1.132]  rows zn=true
+FRAMEROWS 16x16     off       1518 ns  on       1002 ns  off/on 1.514 [1.509 1.520]  rows zn=true
+FRAMEROWS 8x64x64   off     515387 ns  on     499287 ns  off/on 1.031 [1.028 1.038]  rows zn=true
+PASS
+# end 16:43:38 load 0.77 0.60 0.42

@@ -1,0 +1,11 @@
+# start 16:16:41 load 0.00 0.00 0.00 sha 2d592566e153f14a : ./cl3a.test -test.run ^TestCl3Pages$ -cl3.ab=9,300 -cl3.shapes=512x512 -cl3.pairs=4
+PAGES 512x512   heap0        whole   2211994 ns [  2056839   2863195] cols   1338708 rows    597309  src huge   4096/  4096 KB dst huge     -1/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   heap1        whole   2064893 ns [  2009906   2392422] cols   1286389 rows    595942  src huge   2048/  4096 KB dst huge     -1/  4096 KB src%2M=  50000 dst%2M=  50000
+PAGES 512x512   heap2        whole   2264497 ns [  2163487   2729907] cols   1425277 rows    595858  src huge   2048/  4096 KB dst huge     -1/  4096 KB src%2M=  e0000 dst%2M=  e0000
+PAGES 512x512   heap3        whole   2259424 ns [  2121077   2580292] cols   1353998 rows    594576  src huge   2048/  4096 KB dst huge     -1/  4096 KB src%2M= 100000 dst%2M= 100000
+PAGES 512x512   4K/4K        whole   2667944 ns [  2357213   3221277] cols   1887391 rows    602961  src huge      0/  4096 KB dst huge      0/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   2M/2M        whole   2058171 ns [  1976893   2552750] cols   1293933 rows    598121  src huge   4096/  4096 KB dst huge   4096/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   src4K/dst2M  whole   2518930 ns [  2156578   3006464] cols   1348931 rows    590162  src huge      0/  4096 KB dst huge   4096/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   src2M/dst4K  whole   2420083 ns [  2271488   3012744] cols   1453724 rows    602940  src huge   4096/  4096 KB dst huge      0/  4096 KB src%2M=      0 dst%2M=      0
+PASS
+# end 16:17:22 load 0.53 0.14 0.05

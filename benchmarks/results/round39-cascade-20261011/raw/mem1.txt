@@ -1,0 +1,8 @@
+# start 16:27:03 load 0.21 0.39 0.23 sha f3df5c5955740229 : ./cl3a.test -test.run ^TestCl3Mem$ -cl3.ab=7,150
+MEM cols             3018789.78  [2435321 3099462 ns]
+MEM rows              624141.33  [617523 655279 ns]
+MEM chase ns/load        103.99  [6123345 6862609 ns]
+MEM seq GB/s               7.46  [8867124 9042508 ns]
+MEM colread           343157.66  [339413 376918 ns]
+PASS
+# end 16:27:13 load 0.33 0.41 0.24

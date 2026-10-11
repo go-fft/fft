@@ -1,0 +1,101 @@
+EXPORT 32x32 old widths [16 0]
+EXPORT 32x32 new widths [16 0]
+EXPORT 64x64 old widths [16 0]
+EXPORT 64x64 new widths [16 0]
+EXPORT 128x128 old widths [16 0]
+EXPORT 128x128 new widths [16 0]
+EXPORT 256x256 old widths [16 0]
+EXPORT 256x256 new widths [16 0]
+EXPORT 512x512 old widths [16 0]
+EXPORT 512x512 new widths [64 0]
+EXPORT 1024x1024 old widths [32 0]
+EXPORT 1024x1024 new widths [64 0]
+EXPORT 512x1024 old widths [16 0]
+EXPORT 512x1024 new widths [64 0]
+EXPORT 300x1000 old widths [16 0]
+EXPORT 300x1000 new widths [64 0]
+EXPORT 64x4096 old widths [16 0]
+EXPORT 64x4096 new widths [128 0]
+EXPORT 64x64x64 old widths [16 16 0]
+EXPORT 64x64x64 new widths [128 16 0]
+EXPORT 8x64x64 old widths [0 16 0]
+EXPORT 8x64x64 new widths [0 16 0]
+EXPORT r2 512x1024 old widths [16 0]
+EXPORT r2 512x1024 new widths [64 0]
+EXPORT r2 1024x1024 old widths [32 0]
+EXPORT r2 1024x1024 new widths [64 0]
+ind_1024x1024    old  rel-l2 5.998e-16  max-rel 6.991e-16
+ind_1024x1024    new  rel-l2 5.998e-16  max-rel 6.991e-16
+ind_128x128      old  rel-l2 4.339e-16  max-rel 5.337e-16
+ind_128x128      new  rel-l2 4.339e-16  max-rel 5.337e-16
+ind_256x256      old  rel-l2 5.059e-16  max-rel 5.852e-16
+ind_256x256      new  rel-l2 5.059e-16  max-rel 5.852e-16
+ind_300x1000     old  rel-l2 5.845e-16  max-rel 7.556e-16
+ind_300x1000     new  rel-l2 5.845e-16  max-rel 7.556e-16
+ind_32x32        old  rel-l2 3.122e-16  max-rel 3.412e-16
+ind_32x32        new  rel-l2 3.122e-16  max-rel 3.412e-16
+ind_512x1024     old  rel-l2 5.568e-16  max-rel 7.744e-16
+ind_512x1024     new  rel-l2 5.568e-16  max-rel 7.744e-16
+ind_512x512      old  rel-l2 5.188e-16  max-rel 6.711e-16
+ind_512x512      new  rel-l2 5.188e-16  max-rel 6.711e-16
+ind_64x4096      old  rel-l2 5.030e-16  max-rel 5.451e-16
+ind_64x4096      new  rel-l2 5.030e-16  max-rel 5.451e-16
+ind_64x64        old  rel-l2 3.546e-16  max-rel 3.484e-16
+ind_64x64        new  rel-l2 3.546e-16  max-rel 3.484e-16
+ind_64x64x64     old  rel-l2 4.547e-16  max-rel 5.245e-16
+ind_64x64x64     new  rel-l2 4.547e-16  max-rel 5.245e-16
+ind_8x64x64      old  rel-l2 3.796e-16  max-rel 3.962e-16
+ind_8x64x64      new  rel-l2 3.796e-16  max-rel 3.962e-16
+nd_1024x1024     old  rel-l2 5.993e-16  max-rel 6.517e-16
+nd_1024x1024     new  rel-l2 5.993e-16  max-rel 6.517e-16
+nd_128x128       old  rel-l2 4.350e-16  max-rel 5.337e-16
+nd_128x128       new  rel-l2 4.350e-16  max-rel 5.337e-16
+nd_256x256       old  rel-l2 5.043e-16  max-rel 6.099e-16
+nd_256x256       new  rel-l2 5.043e-16  max-rel 6.099e-16
+nd_300x1000      old  rel-l2 5.693e-16  max-rel 7.145e-16
+nd_300x1000      new  rel-l2 5.693e-16  max-rel 7.145e-16
+nd_32x32         old  rel-l2 3.107e-16  max-rel 4.665e-16
+nd_32x32         new  rel-l2 3.107e-16  max-rel 4.665e-16
+nd_512x1024      old  rel-l2 5.567e-16  max-rel 6.428e-16
+nd_512x1024      new  rel-l2 5.567e-16  max-rel 6.428e-16
+nd_512x512       old  rel-l2 5.181e-16  max-rel 6.329e-16
+nd_512x512       new  rel-l2 5.181e-16  max-rel 6.329e-16
+nd_64x4096       old  rel-l2 5.026e-16  max-rel 5.710e-16
+nd_64x4096       new  rel-l2 5.026e-16  max-rel 5.710e-16
+nd_64x64         old  rel-l2 3.603e-16  max-rel 4.509e-16
+nd_64x64         new  rel-l2 3.603e-16  max-rel 4.509e-16
+nd_64x64x64      old  rel-l2 4.540e-16  max-rel 5.249e-16
+nd_64x64x64      new  rel-l2 4.540e-16  max-rel 5.249e-16
+nd_8x64x64       old  rel-l2 3.826e-16  max-rel 4.429e-16
+nd_8x64x64       new  rel-l2 3.826e-16  max-rel 4.429e-16
+r2_1024x1024     old  rel-l2 4.992e-16  max-rel 5.826e-16
+r2_1024x1024     new  rel-l2 4.992e-16  max-rel 5.826e-16
+r2_512x1024      old  rel-l2 4.719e-16  max-rel 5.454e-16
+r2_512x1024      new  rel-l2 4.719e-16  max-rel 5.454e-16
+ind_1024x1024    old and new bit-identical: True
+ind_128x128      old and new bit-identical: True
+ind_256x256      old and new bit-identical: True
+ind_300x1000     old and new bit-identical: True
+ind_32x32        old and new bit-identical: True
+ind_512x1024     old and new bit-identical: True
+ind_512x512      old and new bit-identical: True
+ind_64x4096      old and new bit-identical: True
+ind_64x64        old and new bit-identical: True
+ind_64x64x64     old and new bit-identical: True
+ind_8x64x64      old and new bit-identical: True
+nd_1024x1024     old and new bit-identical: True
+nd_128x128       old and new bit-identical: True
+nd_256x256       old and new bit-identical: True
+nd_300x1000      old and new bit-identical: True
+nd_32x32         old and new bit-identical: True
+nd_512x1024      old and new bit-identical: True
+nd_512x512       old and new bit-identical: True
+nd_64x4096       old and new bit-identical: True
+nd_64x64         old and new bit-identical: True
+nd_64x64x64      old and new bit-identical: True
+nd_8x64x64       old and new bit-identical: True
+r2_1024x1024     old and new bit-identical: True
+r2_512x1024      old and new bit-identical: True
+worst max-rel 7.744e-16 (bound 1e-14): ok
+numpy 2.5.3
+planted byte in new_nd_512x512: max-rel 8.186e-04 -> caught
