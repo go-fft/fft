@@ -9,6 +9,11 @@ package kernels
 // scalar loop below. Bluestein's chirp and spectral products call it.
 func CMulTo(dst, a, b []complex128) {
 	n := len(dst)
+	if len(a) < n || len(b) < n {
+		// Slicing a[:n] would not catch it: a shorter slice with room in its
+		// capacity reslices without a panic, and the kernel trusts n.
+		panic("kernels: CMulTo operand shorter than dst")
+	}
 	a, b = a[:n], b[:n]
 	for i := zmCMulBulk(dst, a, b); i < n; i++ {
 		dst[i] = a[i] * b[i]

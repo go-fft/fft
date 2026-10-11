@@ -7,9 +7,13 @@ package fft
 // rotates every round (comp2Rotate).
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"math"
+	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -238,5 +242,57 @@ func TestZmAB(t *testing.T) {
 		}
 		fmt.Printf("ZMAB %-11s old %10.0f new %10.0f  old/new %.3f  range %.3f–%.3f\n", spec,
 			median(times[0]), median(times[1]), median(ratios), slices.Min(ratios), slices.Max(ratios))
+	}
+}
+
+var zmExport = flag.String("r36.export", "", "directory TestZmExport writes inputs and outputs to")
+
+// TestZmExport writes, for numpy to check (scripts/zm_accuracy.py), random
+// inputs and go-fft's outputs as raw little-endian float64: Bluestein's FFT
+// and IFFT, and FFT2 and IFFT2 of n×n plans whose rows run on the frame.
+func TestZmExport(t *testing.T) {
+	if *zmExport == "" {
+		t.Skip("set -r36.export=dir")
+	}
+	r := rand.New(rand.NewPCG(36, 2026))
+	sig := func(n int) []complex128 {
+		x := make([]complex128, n)
+		for i := range x {
+			x[i] = complex(r.NormFloat64(), r.NormFloat64())
+		}
+		return x
+	}
+	put := func(name string, x []complex128) {
+		b := make([]byte, 16*len(x))
+		for i, v := range x {
+			binary.LittleEndian.PutUint64(b[16*i:], math.Float64bits(real(v)))
+			binary.LittleEndian.PutUint64(b[16*i+8:], math.Float64bits(imag(v)))
+		}
+		if err := os.WriteFile(filepath.Join(*zmExport, name), b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var list strings.Builder
+	for _, n := range []int{23, 47, 59, 94, 4099, 10007, 30011} {
+		p := NewPlan(n)
+		if p.bluestein == nil {
+			t.Fatalf("%d is not Bluestein", n)
+		}
+		x := sig(n)
+		put(fmt.Sprintf("b%d.in", n), x)
+		put(fmt.Sprintf("b%d.fft", n), p.FFT(make([]complex128, n), x))
+		put(fmt.Sprintf("b%d.ifft", n), p.IFFT(make([]complex128, n), x))
+		fmt.Fprintf(&list, "b %d %d\n", n, p.bluestein.m)
+	}
+	for _, n := range []int{2, 3, 8, 12, 16, 20, 32, 48, 60, 64, 100, 128, 200, 256} {
+		p := NewPlanN(n, n)
+		x := sig(n * n)
+		put(fmt.Sprintf("d%d.in", n), x)
+		put(fmt.Sprintf("d%d.fft", n), p.FFT(make([]complex128, n*n), x))
+		put(fmt.Sprintf("d%d.ifft", n), p.IFFT(make([]complex128, n*n), x))
+		fmt.Fprintf(&list, "d %d %v\n", n, p.axes[1].sk != nil && p.axes[1].sk.zn != nil)
+	}
+	if err := os.WriteFile(filepath.Join(*zmExport, "list.txt"), []byte(list.String()), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
