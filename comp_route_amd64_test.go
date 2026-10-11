@@ -66,7 +66,8 @@ func TestCompFactorize(t *testing.T) {
 		t.Errorf("skFactorize(1296) without = %v, want %v", got, want)
 	}
 	comp2On = true
-	for n, want := range map[int][]int{1296: {3, 3, 12, 12}, 2000: {5, 20, 20}, 1000: {5, 10, 20}, 1008: skFactorizeOrder(1008, compOddFirst)} {
+	// 1000, 1296 and 2000 take zmCompTable's since Round 36 (TestZmCompTable).
+	for n, want := range map[int][]int{1080: {3, 3, 10, 12}, 1920: {8, 12, 20}, 6000: {5, 5, 12, 20}, 1008: skFactorizeOrder(1008, compOddFirst)} {
 		if got := skFactorize(n); !slices.Equal(got, want) {
 			t.Errorf("skFactorize(%d) with comp2On = %v, want %v", n, got, want)
 		}

@@ -64,3 +64,59 @@ func TestZmPow2Tail(t *testing.T) {
 		}
 	}
 }
+
+// TestZmCompTable: every entry multiplies back to its length, a composite
+// 2^e·3^a·5^b of at most 16384 points, with radices that have AVX2 kernels;
+// skFactorize takes it where comp2On says and skFactorizeOrder's without
+// comp2On or Intel's rule; it differs from comp2Factors; and each
+// transform agrees with the factorization it replaces.
+func TestZmCompTable(t *testing.T) {
+	defer func(c, h, r bool) { comp2On, hswCompOn, compRadix16On = c, h, r }(comp2On, hswCompOn, compRadix16On)
+	compRadix16On = false // nor Round 24's Intel rule
+	for n, f := range zmCompTable {
+		e, a, b := 0, 0, 0
+		m := n
+		for ; m%2 == 0; m /= 2 {
+			e++
+		}
+		for ; m%3 == 0; m /= 3 {
+			a++
+		}
+		for ; m%5 == 0; m /= 5 {
+			b++
+		}
+		if product(f) != n || m != 1 || e == 0 || a+b == 0 || n > 1<<14 {
+			t.Fatalf("%d: %v", n, f)
+		}
+		for _, r := range f {
+			if !slices.Contains([]int{2, 3, 4, 5, 8, 10, 12, 15, 16, 20}, r) {
+				t.Fatalf("%d: radix %d has no AVX2 kernel", n, r)
+			}
+		}
+		comp2On, hswCompOn = true, false
+		if got := skFactorize(n); !slices.Equal(got, f) {
+			t.Errorf("skFactorize(%d) = %v on AMD, want the table's %v", n, got, f)
+		}
+		if slices.Equal(f, comp2Factors(n, true)) {
+			t.Errorf("%d: the table repeats comp2Factors' %v", n, f)
+		}
+		comp2On = false
+		if got, want := skFactorize(n), skFactorizeOrder(n, compOddFirst); !slices.Equal(got, want) {
+			t.Errorf("skFactorize(%d) = %v with comp2On and hswCompOn off, want skFactorizeOrder's %v", n, got, want)
+		}
+		comp2On = true
+		x := cmplxSignal(n)
+		got := make([]complex128, n)
+		want := make([]complex128, n)
+		newSKPlanFactors(n, f).transform(got, x, false)
+		newSKPlanFactors(n, comp2Factors(n, true)).transform(want, x, false)
+		var d, mx float64
+		for i := range got {
+			d = max(d, cmplx.Abs(got[i]-want[i]))
+			mx = max(mx, cmplx.Abs(want[i]))
+		}
+		if d > 1e-13*mx {
+			t.Errorf("%d: largest difference %.3g of %.3g", n, d, mx)
+		}
+	}
+}
