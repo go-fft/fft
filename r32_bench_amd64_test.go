@@ -10,9 +10,13 @@ package fft
 // rotates.
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"math"
+	"math/rand/v2"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -259,5 +263,89 @@ func TestR32Passes(t *testing.T) {
 	r32Load("end")
 	for _, it := range items {
 		fmt.Printf("R32PASS %-48s %10.1f ns  spread %.3f\n", it.name, median(it.ns), slices.Max(it.ns)/slices.Min(it.ns))
+	}
+}
+
+var r32Export = flag.String("r32.export", "", "TestR32Export: directory for the accuracy check's bytes")
+
+// TestR32Export writes, for transforms whose plans take radix-32 passes
+// (through r32Table, so the exported Plan and RealPlan run them), a random
+// input and go-fft's FFT and IFFT (kind c), or RFFT and the IRFFT of that
+// RFFT (kind r), as raw little-endian float64, and list.txt, the format of
+// Round 36's zm_accuracy.py (scripts/r32_accuracy.py runs numpy on them).
+func TestR32Export(t *testing.T) {
+	if *r32Export == "" {
+		t.Skip("set -r32.export=dir")
+	}
+	r := rand.New(rand.NewPCG(38, 2026))
+	put := func(name string, x []complex128) {
+		b := make([]byte, 16*len(x))
+		for i, v := range x {
+			binary.LittleEndian.PutUint64(b[16*i:], math.Float64bits(real(v)))
+			binary.LittleEndian.PutUint64(b[16*i+8:], math.Float64bits(imag(v)))
+		}
+		if err := os.WriteFile(filepath.Join(*r32Export, name), b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	saved := r32Table
+	defer func() { r32Table = saved }()
+	var list strings.Builder
+	var used []int
+	forget := func(m int) { planMu.Lock(); delete(planCache, m); planMu.Unlock() }
+	// The plans built here take radix 32: none may stay in the cache.
+	defer func() {
+		for _, m := range used {
+			forget(m)
+		}
+	}()
+	use := func(m int, f []int) {
+		r32Table = map[int][]int{m: f}
+		forget(m)
+		used = append(used, m)
+	}
+	for _, f := range [][]int{{32}, {2, 32}, {4, 32}, {8, 32}, {32, 16}, {32, 32}, {2, 32, 32}, {4, 32, 32}, {3, 32}, {3, 5, 32}, {3, 32, 32}, {32, 5}} {
+		n := product(f)
+		use(n, f)
+		p := NewPlan(n)
+		if p.sk == nil || !slices.ContainsFunc(p.sk.stages, func(st skStage) bool { return st.r == 32 }) {
+			t.Fatalf("%v: the plan has no radix-32 pass", f)
+		}
+		x := make([]complex128, n)
+		for i := range x {
+			x[i] = complex(r.NormFloat64(), r.NormFloat64())
+		}
+		put(fmt.Sprintf("c%d.in", n), x)
+		put(fmt.Sprintf("c%d.fft", n), p.FFT(make([]complex128, n), x))
+		put(fmt.Sprintf("c%d.ifft", n), p.IFFT(make([]complex128, n), x))
+		fmt.Fprintf(&list, "c %d %s\n", n, factorName(f))
+	}
+	for _, f := range [][]int{{8, 32}, {32, 32}, {2, 32, 32}} {
+		m := product(f)
+		n := 2 * m
+		use(m, f)
+		p := NewRealPlan(n)
+		if !slices.ContainsFunc(p.half.sk.stages, func(st skStage) bool { return st.r == 32 }) {
+			t.Fatalf("RFFT %d: the half plan has no radix-32 pass", n)
+		}
+		x := make([]float64, n)
+		xc := make([]complex128, n)
+		for i := range x {
+			x[i] = r.NormFloat64()
+			xc[i] = complex(x[i], 0)
+		}
+		spec := p.RFFT(make([]complex128, m+1), x)
+		back := p.IRFFT(make([]float64, n), spec)
+		bc := make([]complex128, n)
+		for i, v := range back {
+			bc[i] = complex(v, 0)
+		}
+		put(fmt.Sprintf("r%d.in", n), xc)
+		put(fmt.Sprintf("r%d.rfft", n), spec)
+		put(fmt.Sprintf("r%d.irfft", n), bc)
+		fmt.Fprintf(&list, "r %d %s\n", n, factorName(f))
+	}
+	if err := os.WriteFile(filepath.Join(*r32Export, "list.txt"), []byte(list.String()), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
