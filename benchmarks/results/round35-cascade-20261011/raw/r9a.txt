@@ -1,0 +1,39 @@
+# start 09:03:14 load 0.07 0.26 0.38 sha abbb4ad49c54eb7a : ./t10.test -test.run TestCsOrders|TestR26Passes -cs.ab=9,200 -r26.ab=7,200 -r26.sets=1296:rule,9x12x12,12x12x9,12x9x12,16x9x9,9x9x16,9x16x9,9x9x4x4,4x4x9x9;1080:rule,9x12x10,8x9x15,9x8x15,12x9x10,9x10x12,3x9x8x5 -test.v
+=== RUN   TestR26Passes
+PASSES 1296 3x3x12x12          whole 4429 sum 4509 | r3/i432/s0 1059 r3/i144/s0 959 r12/i12/s0 1445 r12/i1/s0 1046
+PASSES 1296 9x12x12            whole 3969 sum 4018 | r9/i144/s0 1555 r12/i12/s0 1417 r12/i1/s0 1047
+PASSES 1296 12x12x9            whole 4220 sum 4318 | r12/i108/s0 1357 r12/i9/s0 1673 r9/i1/s0 1288
+PASSES 1296 12x9x12            whole 4015 sum 4027 | r12/i108/s0 1338 r9/i12/s0 1651 r12/i1/s0 1039
+PASSES 1296 16x9x9             whole 4842 sum 4848 | r16/i81/s0 1551 r9/i9/s0 2022 r9/i1/s0 1275
+PASSES 1296 9x9x16             whole 4357 sum 4444 | r9/i144/s0 1552 r9/i16/s0 1635 r16/i1/s0 1257
+PASSES 1296 9x16x9             whole 4449 sum 4409 | r9/i144/s0 1549 r16/i9/s0 1586 r9/i1/s0 1274
+PASSES 1296 9x9x4x4            whole 4860 sum 5020 | r9/i144/s0 1557 r9/i16/s0 1646 r4/i4/s4 980 r4/i1/s0 837
+PASSES 1296 4x4x9x9            whole 5180 sum 5261 | r4/i324/s4 884 r4/i81/s0 1091 r9/i9/s0 2000 r9/i1/s0 1285
+PASSES 1080 3x3x10x12          whole 3761 sum 3864 | r3/i360/s0 899 r3/i120/s0 790 r10/i12/s0 1301 r12/i1/s0 874
+PASSES 1080 9x12x10            whole 3360 sum 3405 | r9/i120/s0 1290 r12/i10/s0 1142 r10/i1/s0 973
+PASSES 1080 8x9x15             whole 3854 sum 3863 | r8/i135/s0 1126 r9/i15/s0 1606 r15/i1/s0 1131
+PASSES 1080 9x8x15             whole 3638 sum 3605 | r9/i120/s0 1303 r8/i15/s0 1168 r15/i1/s0 1134
+PASSES 1080 12x9x10            whole 3492 sum 3583 | r12/i90/s0 1203 r9/i10/s0 1394 r10/i1/s0 986
+PASSES 1080 9x10x12            whole 3530 sum 3539 | r9/i120/s0 1313 r10/i12/s0 1323 r12/i1/s0 904
+PASSES 1080 3x9x8x5            whole 4059 sum 4160 | r3/i360/s0 858 r9/i40/s0 1291 r8/i5/s0 1275 r5/i1/s0 735
+--- PASS: TestR26Passes (63.29s)
+=== RUN   TestCsOrders
+ORD 1296 3x3x12x12              t=0 b=0 pair=false split=0000 3.37 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 1296 9x12x12                t=0 b=0 pair=false split=000 3.06 ns/pt  first/this 1.101 [1.095 1.122]
+ORD 1296 12x12x9                t=0 b=0 pair=false split=000 3.25 ns/pt  first/this 1.038 [1.034 1.046]
+ORD 1296 12x9x12                t=0 b=0 pair=false split=000 3.09 ns/pt  first/this 1.092 [1.016 1.108]
+ORD 1296 16x9x9                 t=0 b=0 pair=false split=000 3.74 ns/pt  first/this 0.901 [0.882 0.917]
+ORD 1296 9x9x16                 t=0 b=0 pair=false split=000 3.38 ns/pt  first/this 0.999 [0.991 1.023]
+ORD 1296 9x16x9                 t=0 b=0 pair=false split=000 3.46 ns/pt  first/this 0.976 [0.963 0.992]
+ORD 1296 9x9x4x4                t=0 b=0 pair=false split=0040 3.76 ns/pt  first/this 0.897 [0.882 0.924]
+ORD 1296 4x4x9x9                t=0 b=0 pair=false split=4000 4.04 ns/pt  first/this 0.835 [0.819 0.848]
+ORD 1080 3x3x10x12              t=0 b=0 pair=false split=0000 3.52 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 1080 9x12x10                t=0 b=0 pair=false split=000 3.19 ns/pt  first/this 1.103 [1.085 1.115]
+ORD 1080 8x9x15                 t=0 b=0 pair=false split=000 3.60 ns/pt  first/this 0.978 [0.950 0.997]
+ORD 1080 9x8x15                 t=0 b=0 pair=false split=000 3.40 ns/pt  first/this 1.035 [1.027 1.055]
+ORD 1080 12x9x10                t=0 b=0 pair=false split=000 3.22 ns/pt  first/this 1.091 [1.060 1.118]
+ORD 1080 9x10x12                t=0 b=0 pair=false split=000 3.26 ns/pt  first/this 1.079 [1.006 1.098]
+ORD 1080 3x9x8x5                t=0 b=0 pair=false split=0000 3.82 ns/pt  first/this 0.919 [0.893 0.932]
+--- PASS: TestCsOrders (39.41s)
+PASS
+# end 09:04:56 load 0.84 0.48 0.45

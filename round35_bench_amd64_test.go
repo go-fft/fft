@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-fft/fft/internal/kernels"
+	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -400,4 +402,106 @@ func TestCsCascadeE2E(t *testing.T) {
 		fmt.Printf("E2E %-9s main %-16s %10.0f ns  branch %-16s %10.0f ns  main/branch %.3f [%.3f %.3f] per-round median %.3f\n",
 			row, names[0], median(times[0]), names[1], median(times[1]), median(times[0])/median(times[1]), lo, hi, median(qs))
 	}
+}
+
+// csPairW is cascadePair with the chunk width w.
+func (p *skPlan) csPairW(out, in, loc []complex128, w int) {
+	s0, s1 := &p.stages[0], &p.stages[1]
+	r0, r1, ido0, ido1 := s0.r, s1.r, s0.ido, s1.ido
+	lb := loc[:r0*r1*w]
+	for i0 := 0; i0 < ido1; i0 += w {
+		s0.cascadeStrided(lb, in[i0:], w, r1, ido0, ido1, r1*w, w, i0, ido1, false)
+		s1.cascadeStrided(out[i0:], lb, w, r0, w, r1*w, r0*ido1, ido1, i0, 0, false)
+	}
+}
+
+var csChunks = flag.String("cs.chunks", "32,64,128,256,512", "TestCsPairChunk: chunk widths")
+
+// TestCsPairChunk times the fused pair alone at each chunk width, checking
+// each gives the bits of the plan's own pair.
+func TestCsPairChunk(t *testing.T) {
+	rounds, ms := csRounds(t)
+	ns, sets := comp2Variants(t)
+	for _, n := range ns {
+		for _, f := range sets[n] {
+			p := newSKPlanFactors(n, f)
+			if !p.cascPair {
+				continue
+			}
+			src := benchComplex(n)
+			want, got := make([]complex128, n), make([]complex128, n)
+			loc := make([]complex128, 4*cascadeLocal)
+			p.cascadePair(want, src, loc, false)
+			var fns []func()
+			ws := csInts(t, *csChunks)
+			for _, w := range ws {
+				p.csPairW(got, src, loc, w)
+				for i := range got {
+					if got[i] != want[i] {
+						t.Fatalf("%d w=%d: [%d] differs", n, w, i)
+					}
+				}
+				fns = append(fns, func() { p.csPairW(got, src, loc, w) })
+			}
+			times := comp2Rotate(fns, rounds, ms)
+			var b strings.Builder
+			for k, w := range ws {
+				fmt.Fprintf(&b, " w%d %.3f", w, median(times[k])/float64(n))
+			}
+			fmt.Printf("PAIR %d %s ns/pt:%s\n", n, factorName(f), b.String())
+		}
+	}
+}
+
+var csCompMax = flag.Int("cs.compmax", 1<<14, "TestCsComp9: largest length")
+var csCompList = flag.String("cs.complist", "", "TestCsComp9: these lengths instead")
+
+// TestCsComp9 times, for every n = 2^e·3^a·5^b up to -cs.compmax (e >= 1)
+// whose Intel rule opens with two or more radix-3 passes, the rule without
+// radix 9 against csRadix9For's, in rotated rounds, and summarizes.
+func TestCsComp9(t *testing.T) {
+	rounds, ms := csRounds(t)
+	var qs []float64
+	var ns []int
+	for n := 2; n <= *csCompMax; n++ {
+		m := n
+		for _, p := range []int{2, 3, 5} {
+			for m%p == 0 {
+				m /= p
+			}
+		}
+		if m == 1 && n%2 == 0 {
+			ns = append(ns, n)
+		}
+	}
+	if *csCompList != "" {
+		ns = csInts(t, *csCompList)
+	}
+	for _, n := range ns {
+		f0 := csCompFactorize(n)
+		f1 := csRadix9For(f0, true)
+		if slices.Equal(f0, f1) {
+			continue
+		}
+		p0, p1 := newSKPlanFactors(n, f0), newSKPlanFactors(n, f1)
+		src, dst := benchComplex(n), make([]complex128, n)
+		times := comp2Rotate([]func(){
+			func() { p0.transform(dst, src, false) },
+			func() { p1.transform(dst, src, false) },
+		}, rounds, ms)
+		lo, hi := 1e300, 0.0
+		for r := range times[0] {
+			q := times[0][r] / times[1][r]
+			lo, hi = min(lo, q), max(hi, q)
+		}
+		q := median(times[0]) / median(times[1])
+		qs = append(qs, q)
+		fmt.Printf("COMP9 %6d %-18s %-18s %.3f [%.3f %.3f]\n", n, factorName(f0), factorName(f1), q, lo, hi)
+	}
+	g, mn, mx := 0.0, 1e300, 0.0
+	for _, q := range qs {
+		g += math.Log(q)
+		mn, mx = min(mn, q), max(mx, q)
+	}
+	fmt.Printf("COMP9 summary: %d lengths, geometric mean %.3f, min %.3f, max %.3f\n", len(qs), math.Exp(g/float64(len(qs))), mn, mx)
 }

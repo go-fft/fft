@@ -33,7 +33,7 @@ func TestZnPlanMatchesPasses(t *testing.T) {
 	if !UseStockhamAVX2 {
 		t.Skip("no AVX2")
 	}
-	radices := []int{2, 3, 4, 5, 8, 10, 12, 15, 16, 20}
+	radices := []int{2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20}
 	var shapes [][]int
 	for _, a := range radices {
 		for _, b := range radices {

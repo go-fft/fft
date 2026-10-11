@@ -36,7 +36,10 @@ var hswCompOn = kernels.UseStockhamAVX2 && kernels.IntelCPU
 // Intel hswComp2Factors; where those give none, on Intel a composite's
 // radix-12 passes, else its radix-16 tail; else skFactorizeOrder's
 // factorization.
-func compFactorize(n int) []int {
+func compFactorize(n int) []int { return csRadix9For(csCompFactorize(n), csRadix9On) }
+
+// csCompFactorize is compFactorize before csRadix9For.
+func csCompFactorize(n int) []int {
 	if f := hswE11Factors(n, hswE11On); f != nil {
 		return f
 	}
@@ -297,4 +300,30 @@ func hswE11Factors(n int, on bool) []int {
 		return []int{p, 8, 16, 16}
 	}
 	return nil
+}
+
+// csRadix9On enables csRadix9For: the AVX2 kernels on an Intel CPU with
+// AVX-512 (Cascade Lake, Round 35, where it was measured). A variable so the
+// tests can take the route on any machine.
+var csRadix9On = kernels.UseStockhamAVX2 && kernels.UseStockhamAVX512 && kernels.IntelCPU
+
+// csRadix9For merges the leading radix-3 passes of a factorization two by two
+// into radix-9 passes (radix9.go), first, a lone 3 after them; f is returned
+// unchanged when on is false or it opens with fewer than two radix-3 passes.
+func csRadix9For(f []int, on bool) []int {
+	c := 0
+	for c < len(f) && f[c] == 3 {
+		c++
+	}
+	if !on || c < 2 {
+		return f
+	}
+	var g []int
+	for range c / 2 {
+		g = append(g, 9)
+	}
+	if c%2 == 1 {
+		g = append(g, 3)
+	}
+	return append(g, f[c:]...)
 }

@@ -1,0 +1,8 @@
+# start 08:55:24 load 0.81 0.77 0.52 sha a60d50110dcc1e0b : ./l9.test -test.run TestCsPairChunk -cs.ab=9,200 -cs.chunks=32,64,128,256,512 -r26.sets=65536:8x8x4x4x8x8;1048576:8x8x8x8x8x4x8;524288:8x4x8x8x4x8x8 -test.v
+=== RUN   TestCsPairChunk
+PAIR 65536 8x8x4x4x8x8 ns/pt: w32 2.885 w64 3.099 w128 3.066 w256 3.015 w512 3.291
+PAIR 1048576 8x8x8x8x8x4x8 ns/pt: w32 12.254 w64 6.631 w128 6.279 w256 5.790 w512 6.182
+PAIR 524288 8x4x8x8x4x8x8 ns/pt: w32 10.459 w64 6.666 w128 8.024 w256 4.783 w512 4.863
+--- PASS: TestCsPairChunk (36.18s)
+PASS
+# end 08:56:00 load 0.91 0.80 0.55

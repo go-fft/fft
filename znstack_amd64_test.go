@@ -15,19 +15,19 @@ import (
 // composite rules) kernels.ZnPlanFor rightly refuses most plans; the tests
 // that hold the frame to the pool must build the plans it runs. The tables
 // computed at init (splitTable, radix16Table, hswSplitFloor) are replaced
-// too, not only the kernels' switches.
+// too, not only the kernels' switches, and so is Round 35's radix-9 rule.
 func znAVX2Route() func() {
 	k512, s512, s256, u512 := kernels.UseStockhamAVX512, kernels.UseStockhamSplit512, kernels.UseStockhamSplit, kernels.UseUntangleAVX512
 	st, r16, floor := splitTable, radix16Table, hswSplitFloor
-	c16, c2, hsw := compRadix16On, comp2On, hswCompOn
+	c16, c2, hsw, r9 := compRadix16On, comp2On, hswCompOn, csRadix9On
 	avx2 := kernels.UseStockhamAVX2
 	kernels.UseStockhamAVX512, kernels.UseStockhamSplit512, kernels.UseStockhamSplit, kernels.UseUntangleAVX512 = false, false, avx2, false
 	splitTable, radix16Table, hswSplitFloor = splitTableAMD64(avx2), radix16TableAMD64(avx2, false, false), 0
-	compRadix16On, comp2On, hswCompOn = false, avx2, false
+	compRadix16On, comp2On, hswCompOn, csRadix9On = false, avx2, false, false
 	return func() {
 		kernels.UseStockhamAVX512, kernels.UseStockhamSplit512, kernels.UseStockhamSplit, kernels.UseUntangleAVX512 = k512, s512, s256, u512
 		splitTable, radix16Table, hswSplitFloor = st, r16, floor
-		compRadix16On, comp2On, hswCompOn = c16, c2, hsw
+		compRadix16On, comp2On, hswCompOn, csRadix9On = c16, c2, hsw, r9
 	}
 }
 

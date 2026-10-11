@@ -56,7 +56,7 @@ func newSKConst512(inverse bool) *skConst512 {
 // rows [−ss, ss, −ss, ss] with ss = s·sin θ (s = −1 forward, +1 inverse).
 type skConst [skConstRows][4]float64
 
-const skConstRows = 17
+const skConstRows = 23
 
 var skFwd, skInv = newSKConst(false), newSKConst(true)
 
@@ -96,13 +96,18 @@ func newSKConst(inverse bool) *skConst {
 		ss(h),    // e = 2, 6
 		ss(c1),   // e = 3
 		ss(-s1),  // e = 9
+		// Radix 9 (Round 35, csBody9 in gen.go): W9^e = cos θ + s·i·sin θ,
+		// θ = 2π·e/9, for e = 1, 2, 4.
+		row(cs9C1), ss(cs9S1),
+		row(cs9C2), ss(cs9S2),
+		row(cs9C4), ss(cs9S4),
 	}
 }
 
 // stockhamSIMD reports whether a pass kernel exists for radix r.
 func stockhamSIMD(r int) bool {
 	switch r {
-	case 2, 3, 4, 5, 8, 10, 12, 15, 16, 20:
+	case 2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20:
 		return true
 	}
 	return false
@@ -191,8 +196,8 @@ type (
 
 // The kernels by radix, per width.
 var (
-	skPass256 = [21]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2, 10: skPass10AVX2, 12: skPass12AVX2, 15: skPass15AVX2, 16: skPass16AVX2, 20: skPass20AVX2}
-	skLast256 = [21]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2, 10: skLast10AVX2, 12: skLast12AVX2, 15: skLast15AVX2, 16: skLast16AVX2, 20: skLast20AVX2}
+	skPass256 = [21]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2, 10: skPass10AVX2, 12: skPass12AVX2, 15: skPass15AVX2, 16: skPass16AVX2, 20: skPass20AVX2, 9: csPass9AVX2}
+	skLast256 = [21]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2, 10: skLast10AVX2, 12: skLast12AVX2, 15: skLast15AVX2, 16: skLast16AVX2, 20: skLast20AVX2, 9: csLast9AVX2}
 	skPass512 = [21]skPassFn{2: skPass2AVX512, 4: skPass4AVX512, 8: skPass8AVX512}
 	skLast512 = [21]skLastFn{2: skLast2AVX512, 4: skLast4AVX512, 8: skLast8AVX512}
 )
@@ -521,7 +526,7 @@ func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int
 		// batch, is a layout the length check below cannot vouch for.
 		panic("kernels: StockhamBatchPass: need w >= 1, sIn and sOut >= w, ido and l1 >= 1")
 	}
-	if !UseStockhamBatchAVX2 || !stockhamSIMD(r) || r == 16 || r == 12 {
+	if !UseStockhamBatchAVX2 || r >= len(skBatch256) || skBatch256[r] == nil {
 		return false
 	}
 	n := r * ido * l1
