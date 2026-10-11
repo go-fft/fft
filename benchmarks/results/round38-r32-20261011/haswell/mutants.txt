@@ -1,0 +1,48 @@
+# Mutants: id|file|perl substitution|what (mut/mutants.txt), each built with mut/build.sh from 75780bd and run on Haswell (cfarm13) as -test.run 'R32|Radix16'; f1, f2, f5 also run on arm64 (Apple M4), where the kernels do not exist.
+g1|internal/kernels/asmgen/amd64/gen.go|s/return kR32Base \+ 64\*q, kR32Base \+ 64\*q \+ 32/return kR32Base + 64*q, kR32Base + 64*q + 96/|ss row of the next e
+g2|internal/kernels/asmgen/amd64/gen.go|s/\t\te.rot\(r, r\)\n\t\treturn/\t\treturn/|e = 8 rotation dropped
+g3|internal/kernels/asmgen/amd64/gen.go|s/"\(R8\)", "\(R8\)\(DX\*8\)", "\(R8\)\(R11\*1\)", "\(R8\)\(R13\*8\)"/"(R8)", "(R8)(R11*1)", "(R8)(DX*8)", "(R8)(R13*8)"/|stage-2 slots k2 = 1, 2 swapped
+g4|internal/kernels/asmgen/amd64/gen.go|s/\t\t\te.raw\("LEAQ \(SI\)\(CX\*8\), DI"\)\n\t\t\te.raw\("LEAQ \(DI\)\(CX\*8\), DI"\)/\t\t\te.raw("LEAQ (SI)(CX*8), DI")/|DI = SI + 8S instead of 16S
+g5|internal/kernels/asmgen/amd64/gen.go|s/\t\tRaw\("SUBQ CX, SI"\)\./\t\tRaw("SUBQ R12, SI")./|next block 29S instead of 31S
+g6|internal/kernels/asmgen/amd64/gen.go|s/in\[3\], t = held\[k1\], /in[3], t = held[(k1+1)%8], /|kept register of the next k1
+g7|internal/kernels/asmgen/amd64/gen.go|s/\t\t\tif n2 > 0 && k1 > 0 \{\n\t\t\t\ts := scratch\[k1%4\]/\t\t\tif n2 > 0 \&\& k1 > 1 {\n\t\t\t\ts := scratch[k1%4]/|internal twiddle of k1 = 1 skipped
+g8|internal/kernels/asmgen/amd64/gen.go|s/\tq0.r32Body\(a, true\)/\tq0.r32Body(a, false)/|first-pair blend dropped
+g9|internal/kernels/asmgen/amd64/gen.go|s/\t\tRaw\("TESTQ \$16, CX"\). \/\/ ido & 1\n\t\tRaw\("JZ knext"\)\n\tx.r32Body/\t\tRaw("TESTQ \$0, CX"). \/\/ ido & 1\n\t\tRaw("JZ knext")\n\tx.r32Body/|odd-ido tail skipped
+g10|internal/kernels/asmgen/amd64/gen.go|s/\tb.Raw\("ADDQ \$%d, AX", 32\*32\)\./\tb.Raw("ADDQ \$%d, AX", 32*31)./|final pass block-pair stride
+g11|internal/kernels/asmgen/amd64/gen.go|s/\t\tRaw\("TESTQ \$16, DX"\). \/\/ l1 odd\n\t\tRaw\("JZ done"\)\n\tx.r32Body/\t\tRaw("TESTQ \$0, DX"). \/\/ l1 odd\n\t\tRaw("JZ done")\n\tx.r32Body/|final pass odd-l1 tail skipped
+g12|internal/kernels/asmgen/amd64/gen.go|s/\tq0.twNext\(32\)\n\tb.Raw\("DECQ %d\(SP\)", r32Groups\).\n\t\tRaw\("JMP qloop"\)/\tq0.twNext(31)\n\tb.Raw("DECQ %d(SP)", r32Groups).\n\t\tRaw("JMP qloop")/|twiddle group advance one run short
+k1|internal/kernels/stockham_amd64.go|s/\t\tif r == 32 && &cc\[0\] == &ch\[0\] \{/\t\tif false \&\& r == 32 \&\& \&cc[0] == \&ch[0] {/|in-place guard dropped
+k2|internal/kernels/stockham_amd64.go|s/case 2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20, 32:\n\t\treturn true/case 2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20:\n\t\treturn true/|radix 32 not a SIMD radix
+k3|internal/kernels/stockham_amd64.go|s/t\[23\+2\*q\], t\[24\+2\*q\] = row\(c\), ss\(sn\)/t[23+2*q], t[24+2*q] = row(sn), ss(c)/|constants rows cos and sin swapped
+k4|internal/kernels/r32_amd64.go|s/return r32CosK\[32-e\]/return -r32CosK[32-e]/|kernel table: cos sign for e > 24
+f1|radix32.go|s/\t\treturn -r32CosK\[e-16\]/\t\treturn r32CosK[e-16]/|Go: cos sign for 16 < e <= 24
+f2|radix32.go|s/\t\t\t\tv \*= tw\[\(j-1\)\*m\+i-1\]/\t\t\t\tv *= tw[(j-1)*m+i]/|Go: twiddle index
+f3|stockham.go|s/\t\tcase 9, 10, 12, 15, 16, 20, 32:\n\t\t\treturn true/\t\tcase 9, 10, 12, 15, 16, 20:\n\t\t\treturn true/|compTakes16 without 32
+f4|stockham.go|s/\tif f := r32Table\[n\]; f != nil \{\n\t\treturn slices.Clone\(f\)\n\t\}\n//|r32Table not consulted
+f5|radix32.go|s/\tif e == 8 \{\n\t\treturn rotS\(a, s\)/\tif e == 9 {\n\t\treturn rotS(a, s)/|Go: rotS for e = 9
+
+# Results
+f1 KILLED --- FAIL: TestR32EachPassMatchesScalar
+f2 KILLED --- FAIL: TestR32EachPassMatchesScalar
+f3 KILLED --- FAIL: TestR32Columns
+f4 KILLED --- FAIL: TestR32Table
+f5 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g1 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g10 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g11 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g12 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g2 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g3 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g4 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g5 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g6 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g7 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g8 KILLED --- FAIL: TestR32EachPassMatchesScalar
+g9 KILLED --- FAIL: TestR32EachPassMatchesScalar
+k1 KILLED --- FAIL: TestR32TransformMatchesScalar
+k2 KILLED --- FAIL: TestR32EachPassMatchesScalar
+k3 KILLED --- FAIL: TestR32EachPassMatchesScalar
+k4 KILLED --- FAIL: TestR32EachPassMatchesScalar
+f1 arm64 --- FAIL: TestR32Trig (0.00s)
+f2 arm64 --- FAIL: TestR32AgainstNaive (0.00s)
+f5 arm64 --- FAIL: TestR32Butterfly (0.00s)

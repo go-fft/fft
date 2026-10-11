@@ -3,8 +3,8 @@ package fft
 // Radix-32 Stockham passes (Round 38). FFTW reaches 256 and 1024 points in
 // two passes with 32- and 64-point codelets (t2fv_32, n2fv_8; Round 36's
 // plans); go-fft's largest radix was 16. A radix-32 pass does the work of a
-// radix-4 and a radix-8 pass in one trip through memory. Where it is in the
-// factorization (r32Table, route_amd64.go) the amd64 AVX2 kernels run it
+// radix-4 and a radix-8 pass in one trip through memory. Where it is in a
+// factorization (r32Table) the amd64 AVX2 kernels run it
 // (genR32 in asmgen/amd64/gen.go); the Go pass below is their reference,
 // operation for operation, and their fallback.
 //
@@ -21,8 +21,14 @@ package fft
 // operations.
 
 // r32Table maps the lengths that take radix-32 passes to their
-// factorization; it is per-architecture (route_amd64.go; nil elsewhere).
-var r32Table = r32TableDefault()
+// factorization, ahead of every other rule (skFactorize). It is empty: no
+// length won with radix 32 on Zen 3 or Haswell (Round 38, BENCHMARKS.md).
+// Every factorization with a radix-32 pass of 64 to 4096 points and of nine
+// composites ran slower than the current one, in one process, rotated: the
+// twiddled radix-32 pass costs more per bit than the split radix-8 passes it
+// would replace, and passing 24 of its 32 values through memory (16 YMM
+// registers) is not why: timed without it, the pass was 0–12% faster.
+var r32Table map[int][]int
 
 // r32CosK is cos(k·π/16) for k = 0..8: every cos and sin of θ = 2π·e/32
 // is one of them up to its sign (r32Trig).

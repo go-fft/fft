@@ -413,13 +413,3 @@ func znFrameMaxAMD64(intel, avx512 bool, limit int) int {
 	}
 	return limit
 }
-
-// r32TableDefault is r32TableAMD64 for this machine.
-func r32TableDefault() map[int][]int {
-	return r32TableAMD64(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512, kernels.IntelCPU)
-}
-
-// r32TableAMD64 gives the lengths that take radix-32 passes (Round 38).
-func r32TableAMD64(avx2, avx512, intel bool) map[int][]int {
-	return nil
-}

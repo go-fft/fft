@@ -1,0 +1,26 @@
+R32CALM go after 0s: 2.31 2.66 3.36 3/1318 1069274
+R32AB host avx2=true avx512=false intel=false split=true rounds=7 target=2000000 ns
+R32LOAD start 2.31 2.66 3.36 3/1318 1069281
+R32LOAD end 2.31 2.66 3.36 3/1319 1069285
+R32AB c1024   cur        8s·8s·16                   1908.0 ns  first/this 1.000  range 1.000-1.000  spread 1.247
+R32AB c1024   32x32      32·32                      2372.7 ns  first/this 0.792  range 0.613-0.932  spread 1.358
+R32AB c1024   d32x32     32·32                      2342.1 ns  first/this 0.829  range 0.552-0.897  spread 1.464
+R32AB c256    cur        4s·8s·8+zn                  308.7 ns  first/this 1.000  range 1.000-1.000  spread 1.127
+R32AB c256    8x32       8s·32                       405.1 ns  first/this 0.770  range 0.697-0.851  spread 1.190
+R32AB c256    32x8       32·8                        522.6 ns  first/this 0.602  range 0.412-0.646  spread 1.753
+R32AB c256    d32x8      32·8                        511.1 ns  first/this 0.601  range 0.406-0.707  spread 1.877
+R32AB c512    cur        8s·8s·8+zn                  964.8 ns  first/this 1.000  range 1.000-1.000  spread 3.182
+R32AB c512    16x32      16·32                      1160.8 ns  first/this 0.834  range 0.430-1.072  spread 2.474
+R32AB c512    32x16      32·16                      1181.7 ns  first/this 0.815  range 0.695-1.620  spread 2.654
+R32AB r2048   cur        8s·8s·16                   2914.2 ns  first/this 1.000  range 1.000-1.000  spread 1.442
+R32AB r2048   32x32      32·32                      3031.8 ns  first/this 0.939  range 0.872-1.030  spread 1.354
+R32AB r4096   cur        8s·8s·8s·4                 7084.8 ns  first/this 1.000  range 1.000-1.000  spread 2.150
+R32AB r4096   2x32x32    2·32·32                    8289.8 ns  first/this 0.855  range 0.767-1.446  spread 2.046
+R32AB r4096   8x8x32     8s·8s·32                   7613.8 ns  first/this 0.905  range 0.814-1.837  spread 1.259
+R32AB r4096   4x16x32    4s·16·32                   7898.8 ns  first/this 0.937  range 0.773-1.741  spread 1.231
+R32AB r4096   32x8x8     32·8s·8                   10341.5 ns  first/this 0.666  range 0.617-1.249  spread 1.545
+R32AB c4096   cur        4s·8s·4s·8s·4             11757.8 ns  first/this 1.000  range 1.000-1.000  spread 3.288
+R32AB c4096   4x32x32    4s·32·32                  30947.2 ns  first/this 0.380  range 0.357-0.977  spread 1.207
+R32AB c1000   cur        5s·5s·5s·8                 2541.7 ns  first/this 1.000  range 1.000-1.000  spread 2.233
+R32AB r1024   cur        8s·8s·8+zn                 1206.5 ns  first/this 1.000  range 1.000-1.000  spread 1.215
+PASS

@@ -1,0 +1,186 @@
+diff --git a/internal/kernels/asmgen/amd64/gen.go b/internal/kernels/asmgen/amd64/gen.go
+index c8c5edc..cad3448 100644
+--- a/internal/kernels/asmgen/amd64/gen.go
++++ b/internal/kernels/asmgen/amd64/gen.go
+@@ -4318,6 +4318,8 @@ var r32Es = []int{1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 14, 15, 18, 21}
+ // go through memory.
+ const r32Keep = true
+ 
++var r32NoSpill bool // EXPERIMENT
++
+ // kR32Base is the offset of the radix-32 rows: after skConst's 23 rows,
+ // a row cos θ then a row [−ss, ss, −ss, ss] (ss = s·sin θ) for each e of
+ // r32Es, θ = 2π·e/32.
+@@ -4449,6 +4451,9 @@ func (e skEmit) r32Body(a *r32Addr, first bool) {
+ 			if n2 == 3 && r32Keep {
+ 				continue
+ 			}
++			if r32NoSpill {
++				continue // EXPERIMENT
++			}
+ 			e.st(y[k1], e.outAddr(k1+8*n2))
+ 		}
+ 		held = y
+@@ -4475,6 +4480,14 @@ func (e skEmit) r32Body(a *r32Addr, first bool) {
+ 			loads = 3
+ 		}
+ 		for n2 := 0; n2 < loads; n2++ {
++			if r32NoSpill { // EXPERIMENT: no dependence through memory
++				if e.last == 0 {
++					e.ld(in[n2], e.inAddr(4*n2))
++				} else {
++					e.ld(in[n2], fmt.Sprintf("%d(AX)", 32*n2))
++				}
++				continue
++			}
+ 			e.ld(in[n2], e.outAddr(k1+8*n2))
+ 		}
+ 		// The sums go back into the inputs' registers, dead by then.
+@@ -4498,17 +4511,17 @@ const (
+ 
+ // genR32Pass emits skPass32AVX2: the radix-32 pass, the loop of
+ // genStockhamAVX2 around r32Body.
+-func genR32Pass(f *emit.File) {
++func genR32Pass(f *emit.File, name string, dup bool) {
+ 	sig := amd64.Layout(
+ 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
+ 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+ 	)
+-	b := amd64.NewFunc("skPass32AVX2", sig, r32Frame)
++	b := amd64.NewFunc(name, sig, r32Frame)
+ 	a := &r32Addr{}
+-	q0 := skEmit{b: b, w: "Y", g: 4, addr: a.addr}
+-	q1 := skEmit{b: b, w: "Y", g: 4, half: 1, addr: a.addr}
+-	p := skEmit{b: b, w: "Y", g: 2, addr: a.addr}
+-	x := skEmit{b: b, w: "X", g: 1, addr: a.addr}
++	q0 := skEmit{b: b, w: "Y", g: 4, addr: a.addr, dup: dup}
++	q1 := skEmit{b: b, w: "Y", g: 4, half: 1, addr: a.addr, dup: dup}
++	p := skEmit{b: b, w: "Y", g: 2, addr: a.addr, dup: dup}
++	x := skEmit{b: b, w: "X", g: 1, addr: a.addr, dup: dup}
+ 	adv := func(bytes int) { b.Raw("ADDQ $%d, AX", bytes).Raw("ADDQ $%d, BX", bytes) }
+ 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").
+ 		LoadArg("ido", "CX").LoadArg("l1", "R8")
+@@ -4580,12 +4593,12 @@ func genR32Pass(f *emit.File) {
+ // genR32Last emits skLast32AVX2: the final radix-32 pass (ido == 1), two
+ // blocks per register as in genStockhamLastAVX2, an odd l1 finished by one
+ // 128-bit step.
+-func genR32Last(f *emit.File) {
++func genR32Last(f *emit.File, name string) {
+ 	sig := amd64.Layout(
+ 		[]string{"cc", "ch", "k", "l1"},
+ 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
+ 	)
+-	b := amd64.NewFunc("skLast32AVX2", sig, 0)
++	b := amd64.NewFunc(name, sig, 0)
+ 	a := &r32Addr{}
+ 	y := skEmit{b: b, w: "Y", last: 32, addr: a.addr}
+ 	x := skEmit{b: b, w: "X", last: 32, addr: a.addr}
+@@ -4617,7 +4630,12 @@ func genR32Last(f *emit.File) {
+ // genR32File writes r32_amd64.s.
+ func genR32File() {
+ 	f := emit.NewFile("amd64")
+-	genR32Pass(f)
+-	genR32Last(f)
++	genR32Pass(f, "skPass32AVX2", false)
++	genR32Pass(f, "r32PassDupAVX2", true) // EXPERIMENT
++	genR32Last(f, "skLast32AVX2")
++	r32NoSpill = true
++	genR32Pass(f, "r32PassNoSpillAVX2", false)
++	genR32Last(f, "r32LastNoSpillAVX2")
++	r32NoSpill = false
+ 	writeFile("r32_amd64.s", f.String())
+ }
+diff --git a/internal/kernels/r32_amd64.go b/internal/kernels/r32_amd64.go
+index 9b8755f..6a0f822 100644
+--- a/internal/kernels/r32_amd64.go
++++ b/internal/kernels/r32_amd64.go
+@@ -45,3 +45,40 @@ func r32Cos(e int) float64 {
+ 	}
+ 	return r32CosK[32-e]
+ }
++
++// EXPERIMENT: pre-duplicated twiddles for the radix-32 pass.
++var R32Dup bool
++
++//go:noescape
++func r32PassDupAVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
++
++func r32DupTwiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
++	n := len(root)
++	fwd = make([]complex128, 2*31*ido)
++	conj = make([]complex128, len(fwd))
++	at, i0 := 0, 0
++	for _, g := range twGroups(ido) {
++		for j := 1; j < 32; j++ {
++			for i := i0; i < i0+g; i++ {
++				w := root[(j*l1*i)%n]
++				fwd[at] = complex(real(w), real(w))
++				fwd[at+g] = complex(imag(w), imag(w))
++				conj[at] = complex(real(w), real(w))
++				conj[at+g] = complex(-imag(w), -imag(w))
++				at++
++			}
++			at += g
++		}
++		i0 += g
++	}
++	return fwd, conj
++}
++
++// EXPERIMENT: 1 runs the no-spill timing kernels (wrong results).
++var R32Kern int
++
++//go:noescape
++func r32PassNoSpillAVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
++
++//go:noescape
++func r32LastNoSpillAVX2(cc, ch *complex128, k *float64, l1 int)
+diff --git a/internal/kernels/stockham_amd64.go b/internal/kernels/stockham_amd64.go
+index cc19fc1..a55d14e 100644
+--- a/internal/kernels/stockham_amd64.go
++++ b/internal/kernels/stockham_amd64.go
+@@ -142,6 +142,9 @@ func StockhamTwiddles(r, ido, l1 int, root []complex128) (fwd, conj []complex128
+ 	if r == 16 {
+ 		return radix16Twiddles(ido, l1, root)
+ 	}
++	if r == 32 && R32Dup {
++		return r32DupTwiddles(ido, l1, root)
++	}
+ 	n := len(root)
+ 	fwd = make([]complex128, (r-1)*ido)
+ 	conj = make([]complex128, (r-1)*ido)
+@@ -262,10 +265,19 @@ func StockhamPass(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) b
+ 			// reads its block before it writes.
+ 			return false
+ 		}
++		if r == 32 && R32Kern == 1 {
++			last = r32LastNoSpillAVX2
++		}
+ 		last(&cc[0], &ch[0], k, l1)
+ 		return true
+ 	}
+ 	_ = tw[skTwLen(r, ido)-1]
++	if r == 32 && len(tw) == 2*31*ido {
++		pass = r32PassDupAVX2
++	}
++	if r == 32 && R32Kern == 1 {
++		pass = r32PassNoSpillAVX2
++	}
+ 	pass(&cc[0], &ch[0], &tw[0], k, ido, l1)
+ 	return true
+ }
+diff --git a/r32_bench_amd64_test.go b/r32_bench_amd64_test.go
+index 94c491f..9b2c4bf 100644
+--- a/r32_bench_amd64_test.go
++++ b/r32_bench_amd64_test.go
+@@ -138,7 +138,9 @@ func TestR32AB(t *testing.T) {
+ 		}
+ 		r := &row{name: head, vars: strings.Split(vs, ",")}
+ 		for _, v := range r.vars {
+-			fn, d := r32Variant(t, head[0], n, v)
++			kernels.R32Dup = strings.HasPrefix(v, "d")
++			fn, d := r32Variant(t, head[0], n, strings.TrimPrefix(v, "d"))
++			kernels.R32Dup = false
+ 			r.fns = append(r.fns, fn)
+ 			r.descs = append(r.descs, d)
+ 		}
