@@ -100,8 +100,9 @@ where two would hide which side of 1 or 1.05 a row is on:
     FFTW with it.
   - **Neoverse-N1.** v0.26.0 moved Bluestein's three pointwise products to
     `kernels.CMulTo` on every architecture; on arm64 that is the same scalar
-    loop behind one call (no kernel), and complex 10,007 has not been
-    re-measured on N1 since.
+    loop behind one call (no kernel). Round 40 re-took N1's parity at
+    v0.26.1: 24 of 24, faster on all 24, complex 10,007 0.69 (v0.26.1 runs it
+    2% faster than v0.25.0) and 1,009 0.45; the column above stays Round 37's.
 - **Haswell** (Xeon E5-2620 v3, no FFTW on the host, so no ratio): v0.21.0
   (Round 29) runs complex 512–2^18 1.03–1.21× faster than v0.19.1, the
   composites 1000–6000 1.07–1.21× faster and RFFT 1000 1.09× faster. v0.24.0
@@ -3105,6 +3106,36 @@ the ends). Main time ÷ branch time, fifteen rounds:
   (the naive sum's own error included).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
+
+### Round 40 — Neoverse-N1 parity at v0.26.1 (2026-10-11)
+
+Measurement only. v0.26.0 moved Bluestein's pointwise products to
+`kernels.CMulTo`, on arm64 the same scalar loop behind one more call, and N1's
+column above was Round 37's (the v0.24.0 branch). cfarm424 used by this round
+alone, `GOMAXPROCS=1 taskset -c 40`, the v0.26.1 tag cross-compiled with
+go1.27.1, stripped, sha256 checked on the host; `benchmarks/remote/run.sh`
+(cd to its own directory) twice back to back, each correct 24/24, load 0.04
+at the start and 1.09 at the end (one pinned core busy); table by
+`current-numbers-v0.26.0/partab.go.txt`, FFTW the median of the two runs.
+
+- **24 of 24 at or above FFTW, faster on all 24**, as in the docs. Complex
+  10,007 (Bluestein) **0.689** (0.72 in Round 37), 1,009 (Rader) 0.449
+  (0.45); the closest rows are still RFFT 256 (0.998) and RFFT 1,080 (0.994).
+  Against numpy.fft and scipy.fft: faster on all 24 rows in both runs.
+- **CMulTo costs nothing on arm64; 10,007 gains 2%.** Round 37's external
+  harness (exported API, four heap placements) built against v0.25.0 and
+  v0.26.1, nine rounds, binary order rotated, v0.26.1 ÷ v0.25.0: complex
+  10,007 **0.980** (0.972–0.988, every round below 1), 1,009 0.993 (no code
+  of its path changed), controls 1,024 and 1,080 1.002. Each tag's
+  benchmarks binary agrees, more noisily: 10,007 0.988.
+- **2-D 256² read 0.54** (0.50 in Round 37: go-fft 684 µs against 620–649).
+  Its code on arm64 is unchanged since v0.24.0, and in the A/B one binary
+  ran it anywhere from 610 to 705 µs between processes (v0.26.1 ÷ v0.25.0
+  1.003); likely allocation placement, not proved. FFTW's own 10,007 moved
+  5.9% between the two runs (586 and 620 µs).
+- Every other row is within 0.01 of Round 37's.
+
+Every row with both runs, the A/Bs and the scripts: [`benchmarks/results/round40-parity-n1-v0.26.1-20261011/`](benchmarks/results/round40-parity-n1-v0.26.1-20261011/) (`REPORT.md`).
 
 ### Round 37 — Haswell's RFFT across releases, its N-D rows and e = 11 composites; Neoverse-N1's last two rows behind FFTW (2026-10-11)
 
