@@ -32,6 +32,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/go-asmgen/asmgen/amd64"
@@ -4312,6 +4313,11 @@ func genZmCMulFile() {
 // order of their rows in the constants table (kernels.r32Es).
 var r32Es = []int{1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 14, 15, 18, 21}
 
+// r32Keep keeps stage 1's last butterfly, V[3][0..7], in registers through
+// stage 2 instead of passing it through the output: 24 of the 32 values
+// go through memory.
+const r32Keep = true
+
 // kR32Base is the offset of the radix-32 rows: after skConst's 23 rows,
 // a row cos θ then a row [−ss, ss, −ss, ss] (ss = s·sin θ) for each e of
 // r32Es, θ = 2π·e/32.
@@ -4413,6 +4419,7 @@ func (e skEmit) r32Twiddle(r, ex, ta, tb int) {
 // pass. a is the addressing the emitter's addr reads.
 func (e skEmit) r32Body(a *r32Addr, first bool) {
 	scratch := [][2]int{{5, 6}, {7, 9}, {11, 13}, {14, 15}}
+	var held [8]int // stage 1's last butterfly, V[3][k1], kept in registers
 	for n2 := 0; n2 < 4; n2++ {
 		a.stage2 = false
 		if e.last == 0 {
@@ -4429,16 +4436,22 @@ func (e skEmit) r32Body(a *r32Addr, first bool) {
 			e.raw("LEAQ (SI)(CX*8), DI")
 			e.raw("LEAQ (DI)(CX*8), DI")
 		}
-		e.raw("%s", [...]string{"MOVQ BX, R8", "LEAQ (BX)(DX*8), R8", "LEAQ (BX)(R11*1), R8", "LEAQ (BX)(R13*8), R8"}[n2])
-		e.raw("LEAQ (R8)(DX*4), R9")
+		if n2 < 3 || !r32Keep {
+			e.raw("%s", [...]string{"MOVQ BX, R8", "LEAQ (BX)(DX*8), R8", "LEAQ (BX)(R11*1), R8", "LEAQ (BX)(R13*8), R8"}[n2])
+			e.raw("LEAQ (R8)(DX*4), R9")
+		}
 		y := e.r32Bfly8(n2)
 		for k1 := 0; k1 < 8; k1++ {
 			if n2 > 0 && k1 > 0 {
 				s := scratch[k1%4]
 				e.r32Twiddle(y[k1], n2*k1, s[0], s[1])
 			}
+			if n2 == 3 && r32Keep {
+				continue
+			}
 			e.st(y[k1], e.outAddr(k1+8*n2))
 		}
+		held = y
 	}
 	a.stage2 = true
 	e.raw("MOVQ BX, R8")
@@ -4446,16 +4459,32 @@ func (e skEmit) r32Body(a *r32Addr, first bool) {
 		if k1 > 0 {
 			e.raw("ADDQ DX, R8")
 		}
-		for n2 := 0; n2 < 4; n2++ {
-			e.ld(n2, e.outAddr(k1+8*n2))
+		// The registers not holding V[3][k1..7]: three for the loaded
+		// values, four for the butterfly's and the products' scratch.
+		var free []int
+		for r := 0; r < 16; r++ {
+			if !r32Keep || !slices.Contains(held[k1:], r) {
+				free = append(free, r)
+			}
 		}
-		z := [4]int{8, 9, 10, 11}
-		e.bfly4r([4]int{0, 1, 2, 3}, [4]int{4, 5, 6, 7}, z)
+		in := [4]int{free[0], free[1], free[2], free[3]}
+		t := [4]int{free[4], free[5], free[6], free[7]}
+		loads := 4
+		if r32Keep {
+			in[3], t = held[k1], [4]int{free[3], free[4], free[5], free[6]}
+			loads = 3
+		}
+		for n2 := 0; n2 < loads; n2++ {
+			e.ld(in[n2], e.outAddr(k1+8*n2))
+		}
+		// The sums go back into the inputs' registers, dead by then.
+		z := in
+		e.bfly4r(in, t, z)
 		for k2 := 0; k2 < 4; k2++ {
 			if j := k1 + 8*k2; j == 0 {
 				e.st(z[0], e.outAddr(0))
 			} else {
-				e.twStore(z[k2], j, 12, 13, 14, 15, first)
+				e.twStore(z[k2], j, t[0], t[1], t[2], t[3], first)
 			}
 		}
 	}
