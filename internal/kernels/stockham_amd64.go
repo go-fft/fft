@@ -56,7 +56,7 @@ func newSKConst512(inverse bool) *skConst512 {
 // rows [−ss, ss, −ss, ss] with ss = s·sin θ (s = −1 forward, +1 inverse).
 type skConst [skConstRows][4]float64
 
-const skConstRows = 17
+const skConstRows = 23
 
 var skFwd, skInv = newSKConst(false), newSKConst(true)
 
@@ -96,13 +96,18 @@ func newSKConst(inverse bool) *skConst {
 		ss(h),    // e = 2, 6
 		ss(c1),   // e = 3
 		ss(-s1),  // e = 9
+		// Radix 9 (Round 35, csBody9 in gen.go): W9^e = cos θ + s·i·sin θ,
+		// θ = 2π·e/9, for e = 1, 2, 4.
+		row(cs9C1), ss(cs9S1),
+		row(cs9C2), ss(cs9S2),
+		row(cs9C4), ss(cs9S4),
 	}
 }
 
 // stockhamSIMD reports whether a pass kernel exists for radix r.
 func stockhamSIMD(r int) bool {
 	switch r {
-	case 2, 3, 4, 5, 8, 10, 12, 15, 16, 20:
+	case 2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20:
 		return true
 	}
 	return false
@@ -191,8 +196,8 @@ type (
 
 // The kernels by radix, per width.
 var (
-	skPass256 = [21]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2, 10: skPass10AVX2, 12: skPass12AVX2, 15: skPass15AVX2, 16: skPass16AVX2, 20: skPass20AVX2}
-	skLast256 = [21]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2, 10: skLast10AVX2, 12: skLast12AVX2, 15: skLast15AVX2, 16: skLast16AVX2, 20: skLast20AVX2}
+	skPass256 = [21]skPassFn{2: skPass2AVX2, 3: skPass3AVX2, 4: skPass4AVX2, 5: skPass5AVX2, 8: skPass8AVX2, 10: skPass10AVX2, 12: skPass12AVX2, 15: skPass15AVX2, 16: skPass16AVX2, 20: skPass20AVX2, 9: csPass9AVX2}
+	skLast256 = [21]skLastFn{2: skLast2AVX2, 3: skLast3AVX2, 4: skLast4AVX2, 5: skLast5AVX2, 8: skLast8AVX2, 10: skLast10AVX2, 12: skLast12AVX2, 15: skLast15AVX2, 16: skLast16AVX2, 20: skLast20AVX2, 9: csLast9AVX2}
 	skPass512 = [21]skPassFn{2: skPass2AVX512, 4: skPass4AVX512, 8: skPass8AVX512}
 	skLast512 = [21]skLastFn{2: skLast2AVX512, 4: skLast4AVX512, 8: skLast8AVX512}
 )
@@ -430,16 +435,14 @@ func Untangle(dst, z, tw []complex128, m int) int {
 		return 0
 	}
 	_, _, _ = dst[m], z[m-1], tw[2*pairs+1] // the kernel trusts these lengths
-	// Four bins per step on the 512-bit kernel; a pair left over goes to the
-	// AVX2 kernel, on the slices that start 4·q bins in (its mirror is then
-	// m-4q-1). The kernel is called with q = 0 too: it returns before its first AVX-512
-	// instruction, so no statement here runs only on an AVX-512 CPU (the
-	// coverage gate runs on CPUs without it).
-	q := clQuads(UseUntangleAVX512, pairs, m)
-	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q)
-	if rest := pairs - 2*q; rest > 0 {
-		smallUntangleAVX2(&dst[4*q], &z[4*q], &tw[4*q], &skFwd[0][0], m-8*q, rest)
-	}
+	// Four bins per step on the 512-bit kernel; the pairs left over go, by a
+	// tail jump inside it, to the AVX2 kernel, on the slices that start 4·q
+	// bins in (its mirror is then m-4q-1). With q = 0 it jumps there before
+	// its first AVX-512 instruction, so it serves every AVX2 CPU in one call
+	// and no statement here runs only on an AVX-512 CPU (the coverage gate
+	// runs on CPUs without it).
+	q := clQuads(UseUntangleAVX512, pairs, m, UntangleWideMax)
+	clUntangleAVX512(&dst[0], &z[0], &tw[0], &skFwd[0][0], m, q, pairs)
 	return 2 * pairs
 }
 
@@ -456,11 +459,8 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 	}
 	_, _, _ = z[m-1], x[m], tw[2*pairs+1]
 	hv := [4]float64{h, h, h, h}
-	q := clQuads(UseUntangleAVX512, pairs, m) // as in Untangle
-	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q)
-	if rest := pairs - 2*q; rest > 0 {
-		smallRetangleAVX2(&z[4*q], &x[4*q], &tw[4*q], &skFwd[0][0], &hv, m-8*q, rest)
-	}
+	q := clQuads(UseUntangleAVX512, pairs, m, RetangleWideMax) // as in Untangle
+	clRetangleAVX512(&z[0], &x[0], &tw[0], &skFwd[0][0], &hv, m, q, pairs)
 	return 2 * pairs
 }
 
@@ -521,7 +521,7 @@ func StockhamBatchPass(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int
 		// batch, is a layout the length check below cannot vouch for.
 		panic("kernels: StockhamBatchPass: need w >= 1, sIn and sOut >= w, ido and l1 >= 1")
 	}
-	if !UseStockhamBatchAVX2 || !stockhamSIMD(r) || r == 16 || r == 12 {
+	if !UseStockhamBatchAVX2 || r >= len(skBatch256) || skBatch256[r] == nil {
 		return false
 	}
 	n := r * ido * l1
@@ -605,7 +605,7 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 
 // clUntangleWide reports whether an untangle of half-length m takes the
 // 512-bit kernel when UseUntangleAVX512 is on: a power of two from 256 to
-// 16384 points. From 256 the half transforms run the AVX-512 pass kernels
+// max points (UntangleWideMax, RetangleWideMax). From 256 the half transforms run the AVX-512 pass kernels
 // (the fft package's wide512). On Cascade Lake (Round 31, eleven to fifteen
 // rotated rounds) the 512-bit untangle alone ran 1.06–1.28× as fast as the
 // AVX2 one from m = 256 to 32768, and the whole RFFT 1.08–1.13×, IRFFT
@@ -614,13 +614,24 @@ func radix16Twiddles(ido, l1 int, root []complex128) (fwd, conj []complex128) {
 // transform on the AVX2 kernels it made the whole RFFT slower, not faster:
 // RFFT 256 (m = 128) 0.889, RFFT 1000 0.905, RFFT 1920 0.899 — the cost of
 // mixing widths Round 6 met, larger than the untangle's own gain.
-func clUntangleWide(m int) bool { return m >= 256 && m <= 1<<14 && m&(m-1) == 0 }
+func clUntangleWide(m, max int) bool { return m >= 256 && m <= max && m&(m-1) == 0 }
+
+// UntangleWideMax and RetangleWideMax are the longest half-lengths m whose
+// Untangle and Retangle take the 512-bit kernel (clUntangleWide). Variables
+// so the tests can move them. Round 31 stopped both at m = 16384 because
+// IRFFT did not gain beyond it; the forward one does (Round 35, Cascade
+// Lake, one process, fifteen rotated rounds, time bounded at 16384 ÷ time
+// unbounded): RFFT 65536 (m = 32768) 1.058, every round 1.050–1.076; RFFT
+// 131072 1.033 (1.011–1.108); RFFT 2^20 1.012 (0.922–1.069), within its
+// noise; IRFFT 0.99–1.01 at all three. So Untangle runs at 512 bits to m =
+// 65536, Retangle to 16384.
+var UntangleWideMax, RetangleWideMax = 1 << 16, 1 << 14
 
 // clQuads is how many four-bin steps the 512-bit untangle takes of pairs
 // two-bin steps at half-length m: half of them (rounded down) when on and
 // clUntangleWide(m), else none.
-func clQuads(on bool, pairs, m int) int {
-	if on && clUntangleWide(m) {
+func clQuads(on bool, pairs, m, max int) int {
+	if on && clUntangleWide(m, max) {
 		return pairs / 2
 	}
 	return 0

@@ -1,0 +1,23 @@
+# start 08:46:06 load 0.40 0.50 0.31 sha a06525076cca7ad2 : ./l6.test -test.run TestCsOrders -cs.ab=9,200 -cs.cmins=-1,1024 -r26.sets=32768:rule,8x8x8x4x4x4,8x8x4x4x4x8,8x8x4x8x4x4,8x4x4x8x8x4;16384:rule,8x8x4x4x4x4,8x8x8x8x4,8x8x8x4x8 -test.v
+=== RUN   TestCsOrders
+ORD 32768 8x8x8x8x8              t=0 b=0 pair=false split=56670 5.95 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 32768 8x8x8x8x8              t=2 b=16 pair=true split=00000 5.94 ns/pt  first/this 1.002 [0.947 1.009]
+ORD 32768 8x8x8x4x4x4            t=0 b=0 pair=false split=566700 6.22 ns/pt  first/this 0.955 [0.951 0.982]
+ORD 32768 8x8x8x4x4x4            t=2 b=16 pair=true split=000000 6.65 ns/pt  first/this 0.894 [0.834 0.914]
+ORD 32768 8x8x4x4x4x8            t=0 b=0 pair=false split=566670 5.95 ns/pt  first/this 1.000 [0.994 1.009]
+ORD 32768 8x8x4x4x4x8            t=2 b=16 pair=true split=000000 6.31 ns/pt  first/this 0.942 [0.942 0.962]
+ORD 32768 8x8x4x8x4x4            t=0 b=0 pair=false split=566700 6.18 ns/pt  first/this 0.962 [0.959 0.977]
+ORD 32768 8x8x4x8x4x4            t=2 b=16 pair=true split=000000 6.56 ns/pt  first/this 0.906 [0.862 0.914]
+ORD 32768 8x4x4x8x8x4            t=0 b=0 pair=false split=566700 6.21 ns/pt  first/this 0.957 [0.949 0.968]
+ORD 32768 8x4x4x8x8x4            t=2 b=8 pair=true split=000000 6.64 ns/pt  first/this 0.895 [0.880 0.901]
+ORD 16384 4x8x8x8x8              t=0 b=0 pair=false split=56670 3.61 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 16384 4x8x8x8x8              t=2 b=16 pair=true split=00000 5.03 ns/pt  first/this 0.718 [0.712 0.730]
+ORD 16384 8x8x4x4x4x4            t=0 b=0 pair=false split=566700 4.07 ns/pt  first/this 0.888 [0.876 0.902]
+ORD 16384 8x8x4x4x4x4            t=1 b=4 pair=false split=000000 6.21 ns/pt  first/this 0.582 [0.564 0.591]
+ORD 16384 8x8x8x8x4              t=0 b=0 pair=false split=56700 3.88 ns/pt  first/this 0.931 [0.921 0.946]
+ORD 16384 8x8x8x8x4              t=1 b=4 pair=false split=00000 5.76 ns/pt  first/this 0.627 [0.617 0.636]
+ORD 16384 8x8x8x4x8              t=0 b=0 pair=false split=56670 3.79 ns/pt  first/this 0.952 [0.942 0.957]
+ORD 16384 8x8x8x4x8              t=1 b=4 pair=false split=00000 5.20 ns/pt  first/this 0.695 [0.686 0.702]
+--- PASS: TestCsOrders (41.97s)
+PASS
+# end 08:46:48 load 0.69 0.57 0.34

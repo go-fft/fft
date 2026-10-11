@@ -204,6 +204,13 @@ func TestStockhamBatchMatchesScalar(t *testing.T) {
 	if kernels.StockhamBatchPass(16, 1, 1, make([]complex128, 16), make([]complex128, 16), nil, 1, 1, 1, false) {
 		t.Fatal("radix 16 has no batched kernel")
 	}
+	// Every radix with a pass kernel but no batched one (Round 35's radix 9
+	// among them) is refused, not run through an empty table slot.
+	for _, r := range []int{9, 10, 12, 15, 20} {
+		if kernels.StockhamBatchPass(r, 1, 1, make([]complex128, r), make([]complex128, r), nil, 1, 1, 1, false) {
+			t.Fatalf("radix %d has no batched kernel", r)
+		}
+	}
 }
 
 // clUntangleWidths lists the untangle widths this CPU runs: the AVX2 kernel,

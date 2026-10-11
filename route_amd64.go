@@ -311,10 +311,41 @@ func hswSplitTable() map[int][]int {
 // candidate within 1% (8·4·8, 8·8·4·8, 8·8·4·8·8), so they keep theirs, as do
 // 512, 4096 and 32768, where theirs was the best. Radix 16 lost at every size once the
 // layout ran (intelRadix16Table512).
+//
+// It also holds csCascadeOrders: three lengths that run the blocked schedule
+// (cascade.go), not the split layout.
 func intelSplitTable512() map[int][]int {
-	return map[int][]int{
+	t := map[int][]int{
 		1024: {8, 4, 4, 8},
 		8192: {8, 8, 4, 4, 8},
+	}
+	for n, f := range csCascadeOrders() {
+		t[n] = f
+	}
+	return t
+}
+
+// csCascadeOrders gives the powers of two whose factorization changes where
+// the blocked schedule runs (cascadeMinAMD64: AVX-512 on Intel; Round 35,
+// Cascade Lake). The rule there was skFactorizeOrder's, radix 4 first
+// (65536: 4·4·8·8·8·8), so the passes over the whole array before the groups
+// were three in two sweeps: the fused pair, then one more pass. Taken apart
+// at 65536 (nine rotated rounds), those sweeps cost 4.0 ns per point of the
+// 7.0 the transform took; the groups 1.9 and the final runs 1.1. With radix-8
+// passes first, fewer passes run over the whole array: at 65536 the pair alone
+// (t = 2), at 2^19 and 2^20 the pair and one pass (t = 3, against 4).
+// Every ordering of radix-4 and -8 passes was timed at 2^16 … 2^20 (three
+// rounds), then the best few against the rule (eleven rounds, rule time ÷
+// this one, per-round range): 65536 → 8·8·4·4·8·8 1.083 (1.068–1.118);
+// 2^19 → 8·4·8·8·4·8·8 1.077 (1.014–1.124); 2^20 → 8·8·8·8·8·4·8 1.131
+// (1.082–1.178). 2^17 and 2^18 had nothing better (0.98–1.01), and 32768,
+// which runs breadth first, gained nothing from the schedule with any order
+// (0.89–1.00). Beyond 2^20, not timed.
+func csCascadeOrders() map[int][]int {
+	return map[int][]int{
+		1 << 16: {8, 8, 4, 4, 8, 8},
+		1 << 19: {8, 4, 8, 8, 4, 8, 8},
+		1 << 20: {8, 8, 8, 8, 8, 4, 8},
 	}
 }
 
@@ -356,15 +387,28 @@ func splitTableAMD64(on bool) map[int][]int {
 
 // znTwoPassMaxDefault and znThreePassMaxDefault are znFrameMaxAMD64 for this
 // machine.
-func znTwoPassMaxDefault() int   { return znFrameMaxAMD64(kernels.IntelCPU, kernels.ZnTwoPassMax) }
-func znThreePassMaxDefault() int { return znFrameMaxAMD64(kernels.IntelCPU, kernels.ZnThreePassMax) }
+func znTwoPassMaxDefault() int {
+	return znFrameMaxAMD64(kernels.IntelCPU, kernels.UseStockhamAVX512, kernels.ZnTwoPassMax)
+}
+
+func znThreePassMaxDefault() int {
+	return znFrameMaxAMD64(kernels.IntelCPU, kernels.UseStockhamAVX512, kernels.ZnThreePassMax)
+}
 
 // znFrameMaxAMD64 is the longest two- or three-pass transform that keeps its
 // buffers in the kernel's stack frame (kernels.ZnTwoPass, ZnThreePass;
-// Round 32): the kernel's limit on AMD, where it was measured (Zen 3), and 0
-// on Intel, where it was not.
-func znFrameMaxAMD64(intel bool, limit int) int {
-	if intel {
+// Round 32): the kernel's limit on AMD, where it was measured (Zen 3), and
+// on an Intel CPU with AVX-512 (Cascade Lake, Round 35); 0 on an Intel CPU
+// without it (Haswell), where it was not measured.
+//
+// On Cascade Lake the plans the frame kernels run (every AVX2 two- or
+// three-pass plan up to 512 points; not the powers of two from 256, whose
+// 512-bit split passes they do not run) ran, pool time ÷ frame time, eleven
+// rotated rounds, one process: complex 16 / 32 / 64 / 128 1.58 / 1.59 / 1.39 /
+// 1.18; 192, 240, 288, 324, 432 1.04–1.11; RFFT 128 and 256 1.16, IRFFT 256
+// 1.10; complex 256, 512 and RFFT 512, which keep the pool, 1.00.
+func znFrameMaxAMD64(intel, avx512 bool, limit int) int {
+	if intel && !avx512 {
 		return 0
 	}
 	return limit

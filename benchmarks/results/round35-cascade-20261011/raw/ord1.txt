@@ -1,0 +1,17 @@
+# start 08:38:29 load 0.34 0.33 0.15 sha c9f981708d34dce4 : ./l2.test -test.run TestCsOrders -cs.ab=7,200 -r26.sets=65536:rule,8x8x8x8x4x4,8x8x4x4x8x8,8x8x8x4x8x4,8x4x8x8x8x4,4x8x8x8x8x4;524288:rule,8x8x8x8x8x4x4,8x8x4x4x8x8x8;1048576:rule,8x8x8x8x8x8x4,8x8x4x8x8x8x8 -test.v
+=== RUN   TestCsOrders
+ORD 65536 4x4x8x8x8x8            t=3 b=16 pair=true split=000000 7.05 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 65536 8x8x8x8x4x4            t=2 b=8 pair=true split=000000 7.29 ns/pt  first/this 0.968 [0.963 0.986]
+ORD 65536 8x8x4x4x8x8            t=2 b=8 pair=true split=000000 6.52 ns/pt  first/this 1.081 [1.058 1.103]
+ORD 65536 8x8x8x4x8x4            t=2 b=8 pair=true split=000000 7.16 ns/pt  first/this 0.985 [0.975 1.006]
+ORD 65536 8x4x8x8x8x4            t=2 b=4 pair=true split=000000 7.45 ns/pt  first/this 0.947 [0.943 0.970]
+ORD 65536 4x8x8x8x8x4            t=2 b=4 pair=true split=000000 7.29 ns/pt  first/this 0.968 [0.961 0.991]
+ORD 524288 4x4x8x8x8x8x8          t=4 b=16 pair=true split=0000000 15.82 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 524288 8x8x8x8x8x4x4          t=3 b=8 pair=true split=0000000 14.82 ns/pt  first/this 1.068 [0.971 1.136]
+ORD 524288 8x8x4x4x8x8x8          t=3 b=4 pair=true split=0000000 15.94 ns/pt  first/this 0.992 [0.904 1.058]
+ORD 1048576 4x8x8x8x8x8x8          t=4 b=16 pair=true split=0000000 19.61 ns/pt  first/this 1.000 [1.000 1.000]
+ORD 1048576 8x8x8x8x8x8x4          t=3 b=4 pair=true split=0000000 18.08 ns/pt  first/this 1.085 [1.055 1.111]
+ORD 1048576 8x8x4x8x8x8x8          t=4 b=16 pair=true split=0000000 23.33 ns/pt  first/this 0.841 [0.813 0.855]
+--- PASS: TestCsOrders (23.54s)
+PASS
+# end 08:38:53 load 0.53 0.37 0.17

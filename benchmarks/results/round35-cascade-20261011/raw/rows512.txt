@@ -1,0 +1,12 @@
+# start 09:18:15 load 0.09 0.20 0.32 sha dec68b5e5757499c : ./t13.test -test.run TestR31Rows2D -r31.rows=9,8,512 -r31.rowvars=z:cur,w:cur,z:4x8x4x4,z:4x4x4x8,z:8x4x4x4,z:4x4x8x4,z:4x8x16 -test.v
+=== RUN   TestR31Rows2D
+R31 512x512 span 512 z:cur            cols   1631409 ns  rows    672376 ns (2.56 ns/pt)  first/this 1.000  range 1.000-1.000
+R31 512x512 span 512 w:cur            cols   1664566 ns  rows    699304 ns (2.67 ns/pt)  first/this 0.960  range 0.932-1.108
+R31 512x512 span 512 z:4x8x4x4        cols   1601505 ns  rows    684463 ns (2.61 ns/pt)  first/this 0.984  range 0.879-1.134
+R31 512x512 span 512 z:4x4x4x8        cols   1607229 ns  rows    637784 ns (2.43 ns/pt)  first/this 1.040  range 0.996-1.223
+R31 512x512 span 512 z:8x4x4x4        cols   1557233 ns  rows    686072 ns (2.62 ns/pt)  first/this 0.974  range 0.941-1.139
+R31 512x512 span 512 z:4x4x8x4        cols   1699762 ns  rows    686065 ns (2.62 ns/pt)  first/this 0.972  range 0.939-1.135
+R31 512x512 span 512 z:4x8x16         cols   1685417 ns  rows    753152 ns (2.87 ns/pt)  first/this 0.882  range 0.847-1.036
+--- PASS: TestR31Rows2D (1.20s)
+PASS
+# end 09:18:17 load 0.16 0.22 0.33

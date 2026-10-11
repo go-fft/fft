@@ -1,0 +1,33 @@
+# start 10:23:27 load 0.46 0.86 1.10 sha f3f18ca3b312df25 : ./ktj.test -test.run TestCsTailJumpAB -cs.tj=41 -test.v
+=== RUN   TestCsTailJumpAB
+TJR wide=false m=   64 untangle two/one per-round median 1.046 [1.022 1.067] | retangle 0.920 [0.886 1.189]
+TJ wide=false m=   64 untangle two     80.8 one     77.5 two/one 1.043 | retangle two     76.6 one     83.1 two/one 0.922
+TJR wide=false m=  128 untangle two/one per-round median 0.961 [0.921 1.024] | retangle 1.015 [0.980 1.058]
+TJ wide=false m=  128 untangle two    140.6 one    145.8 two/one 0.964 | retangle two    144.1 one    141.7 two/one 1.017
+TJR wide=false m=  256 untangle two/one per-round median 0.999 [0.949 1.058] | retangle 0.990 [0.917 1.031]
+TJ wide=false m=  256 untangle two    262.5 one    263.1 two/one 0.998 | retangle two    263.8 one    266.2 two/one 0.991
+TJR wide=false m=  512 untangle two/one per-round median 0.977 [0.941 1.033] | retangle 1.004 [0.981 1.039]
+TJ wide=false m=  512 untangle two    472.7 one    484.1 two/one 0.976 | retangle two    496.5 one    495.2 two/one 1.002
+TJR wide=false m= 1000 untangle two/one per-round median 1.000 [0.856 1.069] | retangle 1.005 [0.824 1.066]
+TJ wide=false m= 1000 untangle two    904.5 one    900.9 two/one 1.004 | retangle two    952.9 one    947.6 two/one 1.006
+TJR wide=false m= 1024 untangle two/one per-round median 1.000 [0.956 1.043] | retangle 1.003 [0.951 1.035]
+TJ wide=false m= 1024 untangle two    924.7 one    923.0 two/one 1.002 | retangle two    969.5 one    967.5 two/one 1.002
+TJR wide=false m=32768 untangle two/one per-round median 0.975 [0.952 1.012] | retangle 1.003 [0.990 1.113]
+TJ wide=false m=32768 untangle two  54355.0 one  55668.6 two/one 0.976 | retangle two  54811.4 one  54463.0 two/one 1.006
+TJR wide=true m=   64 untangle two/one per-round median 1.077 [1.021 1.121] | retangle 1.026 [0.979 1.071]
+TJ wide=true m=   64 untangle two     84.0 one     77.9 two/one 1.078 | retangle two     77.0 one     75.0 two/one 1.026
+TJR wide=true m=  128 untangle two/one per-round median 1.093 [1.035 1.141] | retangle 1.047 [0.975 1.104]
+TJ wide=true m=  128 untangle two    153.5 one    140.0 two/one 1.097 | retangle two    147.7 one    140.4 two/one 1.052
+TJR wide=true m=  256 untangle two/one per-round median 1.016 [1.008 1.028] | retangle 1.024 [1.017 1.031]
+TJ wide=true m=  256 untangle two    222.3 one    218.9 two/one 1.015 | retangle two    239.0 one    233.6 two/one 1.024
+TJR wide=true m=  512 untangle two/one per-round median 1.006 [0.838 1.015] | retangle 1.007 [0.944 1.240]
+TJ wide=true m=  512 untangle two    405.0 one    402.9 two/one 1.005 | retangle two    432.6 one    430.3 two/one 1.005
+TJR wide=true m= 1000 untangle two/one per-round median 1.016 [0.945 1.109] | retangle 1.007 [0.961 1.062]
+TJ wide=true m= 1000 untangle two    967.4 one    942.6 two/one 1.026 | retangle two   1002.7 one    987.9 two/one 1.015
+TJR wide=true m= 1024 untangle two/one per-round median 1.009 [0.942 1.113] | retangle 1.007 [0.845 1.093]
+TJ wide=true m= 1024 untangle two    798.5 one    791.4 two/one 1.009 | retangle two    845.4 one    840.0 two/one 1.006
+TJR wide=true m=32768 untangle two/one per-round median 0.999 [0.982 1.053] | retangle 1.002 [0.875 1.063]
+TJ wide=true m=32768 untangle two  60361.3 one  60384.1 two/one 1.000 | retangle two  54269.1 one  54293.2 two/one 1.000
+--- PASS: TestCsTailJumpAB (50.89s)
+PASS
+# end 10:24:18 load 0.77 0.88 1.10

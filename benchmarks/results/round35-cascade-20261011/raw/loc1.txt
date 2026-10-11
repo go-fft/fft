@@ -1,0 +1,27 @@
+# start 08:35:38 load 0.07 0.12 0.05 sha 8bd3abceeda698ec : ./l1.test -test.run TestCsCascadeParts|TestR26Overhead|TestR26Passes|TestR26Real -cs.ab=9,200 -r26.ab=9,200 -r26.sets=1296:rule;256:rule;1024:rule -r26.real=65536,1048576,256 -cs.sizes=65536,32768,524288,1048576 -test.v
+=== RUN   TestR26Passes
+PASSES 1296 3x3x12x12          whole 4452 sum 4497 | r3/i432/s0 1048 r3/i144/s0 959 r12/i12/s0 1454 r12/i1/s0 1035
+PASSES 256 4x8x8              whole 455 sum 422 | r4/i64/s5 113 r8/i8/s7 156 r8/i1/s0 153
+PASSES 1024 8x4x4x8            whole 2436 sum 2262 | r8/i128/s5 780 r4/i32/s6 453 r4/i8/s7 433 r8/i1/s0 596
+--- PASS: TestR26Passes (15.41s)
+=== RUN   TestR26Real
+REAL 65536 whole 223080 half(8x8x8x8x8) 182354 untangle 47403 half+untangle 230855
+REAL 1048576 whole 8450140 half(4x4x8x8x8x8x8) 7600696 untangle 1108554 half+untangle 9355813
+REAL 256 whole 396 half(16x8) 255 untangle 141 half+untangle 384
+--- PASS: TestR26Real (20.08s)
+=== RUN   TestR26Overhead
+OVER 64 8x8 FFT 157.4 transform 148.2 passes 134.1 pool 15.4
+OVER 128 16x8 FFT 256.1 transform 251.7 passes 232.0 pool 15.5
+OVER 256 4x8x8 FFT 465.7 transform 456.5 passes 427.8 pool 15.7
+OVER 512 8x8x8 FFT 895.3 transform 892.4 passes 875.0 pool 16.0
+OVER 1024 8x4x4x8 FFT 2474.5 transform 2456.4 passes 2358.3 pool 16.7
+OVER 1000 5x10x20 FFT 3169.1 transform 3145.9 passes 2988.8 pool 17.1
+--- PASS: TestR26Overhead (43.76s)
+=== RUN   TestCsCascadeParts
+CASC 65536 4x4x8x8x8x8 t=3 b=16 pair=true whole 7.0 ns/pt | breadth(split 566670) 8.7 | pair 4.02 groups 1.83 last 1.05
+CASC 32768 8x8x8x8x8 t=0 b=0 pair=false whole 5.9 ns/pt | breadth(split 56670) 5.9
+CASC 524288 4x4x8x8x8x8x8 t=4 b=16 pair=true whole 14.2 ns/pt | breadth(split 5666670) 15.0 | pair 9.21 groups 1.87 last 1.32
+CASC 1048576 4x8x8x8x8x8x8 t=4 b=16 pair=true whole 19.8 ns/pt | breadth(split 5666670) 23.1 | pair 11.66 groups 2.56 last 3.49
+--- PASS: TestCsCascadeParts (30.26s)
+PASS
+# end 08:37:27 load 0.85 0.39 0.16

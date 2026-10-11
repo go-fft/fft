@@ -1,0 +1,10 @@
+# start 08:39:22 load 0.32 0.34 0.17 sha aff643251d446ca8 : ./l3.test -test.run TestCsCascadeParts -cs.ab=9,200 -r26.sets=65536:rule,8x8x4x4x8x8;1048576:rule,8x8x8x8x8x8x4;524288:8x8x8x8x8x4x4 -test.v
+=== RUN   TestCsCascadeParts
+CASC 65536 4x4x8x8x8x8 t=3 b=16 pair=true whole 7.2 ns/pt | breadth(split 566670) 8.9 | pair 4.11 groups 1.88 last 1.08
+CASC 65536 8x8x4x4x8x8 t=2 b=8 pair=true whole 6.7 ns/pt | breadth(split 566670) 8.9 | pair 3.05 groups 2.33 last 1.07
+CASC 1048576 4x8x8x8x8x8x8 t=4 b=16 pair=true whole 19.9 ns/pt | breadth(split 5666670) 24.4 | pair 12.16 groups 3.19 last 3.38
+CASC 1048576 8x8x8x8x8x8x4 t=3 b=4 pair=true whole 17.8 ns/pt | breadth(split 5666700) 25.2 | pair 9.24 groups 3.20 last 4.74
+CASC 524288 8x8x8x8x8x4x4 t=3 b=8 pair=true whole 14.9 ns/pt | breadth(split 5666700) 16.8 | pair 7.51 groups 2.72 last 1.61
+--- PASS: TestCsCascadeParts (39.96s)
+PASS
+# end 08:40:03 load 0.65 0.42 0.20

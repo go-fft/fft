@@ -339,6 +339,7 @@ func main() {
 	genIntelSplit512File()
 	genSmallUntangleFile()
 	genZnTwoPassFile()
+	csGenRadix9File()
 }
 
 func writeFile(name, content string) {
@@ -3612,22 +3613,28 @@ func clUntangleStep512(j int, inverse bool) []string {
 // clRetangleAVX512: genSmallUntangle's kernels at 512 bits, smallUntangleSteps
 // steps of four bins per iteration while that many quads are left, then one
 // at a time, nothing at all for quads = 0. The last step reads tw[4·quads+1].re (the VMOVDDUP at tw+8),
-// which the Go wrappers bound-check.
+// which the Go wrappers bound-check. It then hands the pairs - 2·quads pairs
+// left to the AVX2 kernel (smallUntangleAVX2, smallRetangleAVX2) by a tail
+// jump, its own arguments rewritten into the AVX2 kernel's (the slices 4·quads
+// bins in, m - 8·quads, the pairs left), which share their layout: one call
+// from Go whatever the CPU (Round 37: on Haswell the second call, with quads
+// = 0, cost RFFT 256 about 2%). Round 35: when no pair is left it returns
+// instead, as the wrappers' `if rest > 0` did.
 func genClUntangle512(f *emit.File, inverse bool) {
 	name := "clUntangleAVX512"
-	names := []string{"dst", "z", "tw", "k", "m", "quads"}
-	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+	names := []string{"dst", "z", "tw", "k", "m", "quads", "pairs"}
+	types := []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64}
+	next := "smallUntangleAVX2"
 	if inverse {
-		name = "clRetangleAVX512"
-		names = []string{"z", "x", "tw", "k", "h", "m", "quads"}
-		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}
+		name, next = "clRetangleAVX512", "smallRetangleAVX2"
+		names = []string{"z", "x", "tw", "k", "h", "m", "quads", "pairs"}
+		types = []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64, amd64.Int64}
 	}
 	b := amd64.NewFunc(name, amd64.Layout(names, types, nil, nil), 0)
 	b.LoadArg(names[0], "DI").LoadArg(names[1], "SI").LoadArg("tw", "CX").LoadArg("k", "R14").
 		LoadArg("m", "DX").LoadArg("quads", "R8")
-	// No step: return at once, before the first AVX-512 instruction and
-	// without a VZEROUPPER, so the wrappers may call this on any CPU with
-	// quads = 0 for the price of a call.
+	// No step: on to the AVX2 kernel at once, before the first AVX-512
+	// instruction, so the wrappers may call this on any CPU with quads = 0.
 	b.Raw("TESTQ R8, R8").Raw("JZ none")
 	b.Raw("SHLQ $4, DX").
 		Raw("LEAQ 16(SI), AX").         // &in[1]
@@ -3678,8 +3685,28 @@ func genClUntangle512(f *emit.File, inverse bool) {
 		Raw("JMP tail").
 		Raw("done:").
 		Raw("VZEROUPPER").
+		Raw("none:")
+	// The AVX2 kernel's arguments, in this kernel's slots (the same layout,
+	// the last one unused): the three slices 4·quads bins (64·quads bytes)
+	// in, m - 8·quads, and pairs - 2·quads in the slot it reads its pair
+	// count from.
+	// No pair left (Round 35): return, as the Go wrappers did when they
+	// made the second call themselves.
+	b.LoadArg("quads", "R8").LoadArg("pairs", "AX").
+		Raw("SUBQ R8, AX").Raw("SUBQ R8, AX").
+		Raw("JNZ rest").
 		Ret()
-	b.Raw("none:").Ret()
+	b.Raw("rest:").
+		Raw("MOVQ R8, R11").Raw("SHLQ $6, R11")
+	for _, p := range names[:3] {
+		b.LoadArg(p, "AX").Raw("ADDQ R11, AX").Raw("MOVQ AX, %s+%d(FP)", p, 8*slicesIndex(names, p))
+	}
+	b.LoadArg("m", "AX").
+		Raw("MOVQ R8, R11").Raw("SHLQ $3, R11").
+		Raw("SUBQ R11, AX").Raw("MOVQ AX, m+%d(FP)", 8*slicesIndex(names, "m")).
+		LoadArg("pairs", "AX").
+		Raw("SUBQ R8, AX").Raw("SUBQ R8, AX").Raw("MOVQ AX, quads+%d(FP)", 8*slicesIndex(names, "quads")).
+		Raw("JMP ·%s(SB)", next)
 	f.Add(b.Func())
 }
 
@@ -3711,7 +3738,7 @@ func genClUntangle512(f *emit.File, inverse bool) {
 const znTwoPassMax = 256
 
 // znRadices are the radices with AVX2 pass and final-pass kernels.
-var znRadices = []int{2, 3, 4, 5, 8, 10, 12, 15, 16, 20}
+var znRadices = []int{2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20}
 
 // znSplitModes names the split kernels' layouts by mode (1..4).
 var znSplitModes = []string{1: "IS", 2: "SS", 3: "SI", 4: "II"}
@@ -3767,8 +3794,12 @@ func genZnKernelAddrs(f *emit.File) {
 		b.Raw("LEAQ ·%s(SB), AX", sym).Raw("MOVQ AX, %d(DI)", 8*slot)
 	}
 	for _, r := range znRadices {
-		put(fmt.Sprintf("skPass%dAVX2", r), r)
-		put(fmt.Sprintf("skLast%dAVX2", r), 21+r)
+		pre := "sk"
+		if r == 9 {
+			pre = "cs" // Round 35's kernels (csGenRadix9File)
+		}
+		put(fmt.Sprintf("%sPass%dAVX2", pre, r), r)
+		put(fmt.Sprintf("%sLast%dAVX2", pre, r), 21+r)
 	}
 	for d, dir := range []string{"Fwd", "Inv"} {
 		for _, r := range []int{4, 8} {
@@ -3776,6 +3807,19 @@ func genZnKernelAddrs(f *emit.File) {
 				put(fmt.Sprintf("skSplit%d%s%s", r, znSplitModes[m], dir), 42+(9*d+r)*5+m)
 			}
 		}
+	}
+	// Round 35: the 512-bit split kernels (Cascade Lake's powers of two from
+	// 256 points), at 132 + their 256-bit twins' offset, and the AVX-512
+	// final-pass kernels by radix from 222.
+	for d, dir := range []string{"Fwd", "Inv"} {
+		for _, r := range []int{4, 8} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("intelSplit512R%d%s%s", r, znSplitModes[m], dir), 132+(9*d+r)*5+m)
+			}
+		}
+	}
+	for _, r := range []int{2, 4, 8} {
+		put(fmt.Sprintf("skLast%dAVX512", r), 222+r)
 	}
 	b.Ret()
 	f.Add(b.Func())
@@ -3847,4 +3891,219 @@ func genZnThreePass(f *emit.File) {
 	b.LoadArg("p2", "AX").Raw("CALL AX")
 	b.Ret()
 	f.Add(b.Func())
+}
+
+// ---------------------------------------------------------------------------
+// Radix 9 (Round 35), into radix9_amd64.s: csPass9AVX2(cc, ch, tw *complex128,
+// k *float64, ido, l1 int) and csLast9AVX2(cc, ch *complex128, k *float64,
+// l1 int), the fft package's pass9 and pass9last operation for operation.
+// The butterfly is the 3×3 split (Cooley–Tukey with n = n2 + 3·n1, k = k1 +
+// 3·k2, as FFTW's n1_9 and t1_9 codelets): three bfly3 over n1, the internal
+// twiddles W9^(n2·k1) (e = 1, 2, 2, 4) as radix16Rot's four packed
+// operations, then three bfly3 over n2. Nine values stay in Y0..Y8 between
+// the stages and Y9..Y15 are scratch, so nothing spills. The loop is
+// genComp12's (stream 8 through R8 and R11); the block counter lives in the
+// frame. Composites only, so 256 bits only (they never run the AVX-512
+// kernels, see kernels.StockhamPass).
+
+const (
+	csK9C1 = 544 // cos(2π/9): e = 1
+	csK9S1 = 576 // ss = s·sin(2π/9)
+	csK9C2 = 608 // cos(4π/9): e = 2
+	csK9S2 = 640 // ss = s·sin(4π/9)
+	csK9C4 = 672 // cos(8π/9): e = 4
+	csK9S4 = 704 // ss = s·sin(8π/9)
+
+	cs9Blocks = 0 // blocks left (pass kernel), frame offset
+	cs9Frame  = 8
+)
+
+// csRot9 emits dst = src·W9^e for e in {1, 2, 4}: c·src + swap(src)·[−ss,
+// ss], radix16Rot's four operations. ta and tb are scratch.
+func (e skEmit) csRot9(dst, src, ex, ta, tb int) {
+	k := map[int][2]int{1: {csK9C1, csK9S1}, 2: {csK9C2, csK9S2}, 4: {csK9C4, csK9S4}}[ex]
+	e.mulk(ta, src, k[0])
+	e.perm("swap", src, tb)
+	e.mulk(tb, tb, k[1])
+	e.add(dst, ta, tb)
+}
+
+// csBody9 emits one radix-9 butterfly over the points the register width
+// holds, with the outer twiddles (twStore) unless this is a final pass.
+// Stage-1 value (n2, k1) is kept in register 3·n2 + k1.
+func (e skEmit) csBody9(first bool) {
+	for n2 := 0; n2 < 3; n2++ {
+		d := 3 * n2
+		e.in(9, n2)
+		e.in(10, n2+3)
+		e.in(11, n2+6)
+		e.add(12, 10, 11) // t1
+		e.sub(13, 10, 11) // t2
+		e.add(d, 9, 12)   // y0
+		e.mulk(14, 12, kHalf)
+		e.sub(14, 9, 14) // ca
+		e.mulk(15, 13, kSin120)
+		e.rot(15, 15) // cb
+		if n2 == 0 {
+			e.add(d+1, 14, 15)
+			e.sub(d+2, 14, 15)
+			continue
+		}
+		e.add(10, 14, 15)
+		e.sub(11, 14, 15)
+		e.csRot9(d+1, 10, n2, 12, 13)
+		e.csRot9(d+2, 11, 2*n2, 12, 13)
+	}
+	for k1 := 0; k1 < 3; k1++ {
+		e.add(12, 3+k1, 6+k1) // t1
+		e.sub(13, 3+k1, 6+k1) // t2
+		e.add(9, k1, 12)      // y0
+		e.mulk(14, 12, kHalf)
+		e.sub(14, k1, 14) // ca
+		e.mulk(15, 13, kSin120)
+		e.rot(15, 15) // cb
+		e.add(10, 14, 15)
+		e.sub(11, 14, 15)
+		if k1 == 0 {
+			e.st(9, skOut(0))
+		} else {
+			e.twStore(9, k1, 12, 13, 14, 15, first)
+		}
+		e.twStore(10, k1+3, 12, 13, 14, 15, first)
+		e.twStore(11, k1+6, 12, 13, 14, 15, first)
+	}
+}
+
+// csGenPass9 emits csPass9AVX2: the radix-9 pass, genComp12's loop around
+// csBody9.
+func csGenPass9(f *emit.File) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc("csPass9AVX2", sig, cs9Frame)
+	q0 := skEmit{b: b, w: "Y", g: 4}
+	q1 := skEmit{b: b, w: "Y", g: 4, half: 1}
+	p := skEmit{b: b, w: "Y", g: 2}
+	x := skEmit{b: b, w: "X", g: 1}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
+		LoadArg("ido", "CX").LoadArg("l1", "R8")
+	b.Raw("MOVQ CX, DX").
+		Raw("IMULQ R8, DX").
+		Raw("SHLQ $4, CX"). // S
+		Raw("SHLQ $4, DX"). // OS
+		Raw("LEAQ (CX)(CX*2), R12").
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("MOVQ R8, %d(SP)", cs9Blocks).
+		Raw("kloop:").
+		Raw("CMPQ %d(SP), $0", cs9Blocks).
+		Raw("JEQ done").
+		Raw("LEAQ (AX)(CX*4), SI").
+		Raw("LEAQ (AX)(CX*8), R8").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("LEAQ (BX)(DX*8), R11").
+		Raw("MOVQ R15, R10").
+		Raw("MOVQ CX, R9").
+		Raw("SHRQ $6, R9"). // four-point groups = ido/4
+		Raw("TESTQ R9, R9").
+		Raw("JZ firstpair")
+	q0.csBody9(true)
+	q0.comp12Advance(32)
+	q1.csBody9(false)
+	q1.comp12Advance(32)
+	q0.twNext(9)
+	b.Raw("DECQ R9").
+		Raw("qloop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ pair")
+	q0.csBody9(false)
+	q0.comp12Advance(32)
+	q1.csBody9(false)
+	q1.comp12Advance(32)
+	q0.twNext(9)
+	b.Raw("DECQ R9").
+		Raw("JMP qloop").
+		Raw("pair:").
+		Raw("TESTQ $32, CX"). // ido & 2
+		Raw("JZ single")
+	p.csBody9(false)
+	p.comp12Advance(32)
+	p.twNext(9)
+	b.Raw("JMP single").
+		Raw("firstpair:") // ido is 2 or 3: the first pair is the two-point group
+	p.csBody9(true)
+	p.comp12Advance(32)
+	p.twNext(9)
+	b.Raw("single:").
+		Raw("TESTQ $16, CX"). // ido & 1
+		Raw("JZ knext")
+	x.csBody9(false)
+	x.comp12Advance(16)
+	// P advanced by S over the block; the next block starts 9·S after this
+	// one. O advanced by S, which is the next block's output start.
+	b.Raw("knext:").
+		Raw("LEAQ (AX)(CX*8), AX").
+		Raw("DECQ %d(SP)", cs9Blocks).
+		Raw("JMP kloop").
+		Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// csGenLast9 emits csLast9AVX2: the final radix-9 pass (ido == 1), two
+// blocks per register as in genStockhamLastAVX2, an odd l1 finished by one
+// 128-bit step.
+func csGenLast9(f *emit.File) {
+	sig := amd64.Layout(
+		[]string{"cc", "ch", "k", "l1"},
+		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
+	)
+	b := amd64.NewFunc("csLast9AVX2", sig, 0)
+	y := skEmit{b: b, w: "Y", last: 9}
+	x := skEmit{b: b, w: "X", last: 9}
+	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
+	b.Raw("MOVQ DX, R9").
+		Raw("SHRQ $1, R9"). // block pairs
+		Raw("SHLQ $4, DX"). // OS
+		Raw("LEAQ (DX)(DX*2), R13").
+		Raw("LEAQ (BX)(DX*4), DI").
+		Raw("LEAQ (BX)(DX*8), R11").
+		Raw("loop:").
+		Raw("TESTQ R9, R9").
+		Raw("JZ tail")
+	y.csBody9(false)
+	b.Raw("ADDQ $%d, AX", 32*9)
+	for _, r := range []string{"BX", "DI", "R11"} {
+		b.Raw("ADDQ $32, %s", r)
+	}
+	b.Raw("DECQ R9").
+		Raw("JMP loop").
+		Raw("tail:").
+		Raw("TESTQ $16, DX"). // l1 odd
+		Raw("JZ done")
+	x.csBody9(false)
+	b.Raw("done:").
+		Raw("VZEROUPPER").
+		Ret()
+	f.Add(b.Func())
+}
+
+// csGenRadix9File writes radix9_amd64.s.
+func csGenRadix9File() {
+	f := emit.NewFile("amd64")
+	csGenPass9(f)
+	csGenLast9(f)
+	writeFile("radix9_amd64.s", f.String())
+}
+
+// slicesIndex is the position of s in names (Round 37's tail jump in
+// genClUntangle512).
+func slicesIndex(names []string, s string) int {
+	for i, n := range names {
+		if n == s {
+			return i
+		}
+	}
+	panic(s)
 }

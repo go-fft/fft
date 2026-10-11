@@ -81,7 +81,7 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 		st.twX, st.twXc = kernels.StockhamTwiddles(r, ido, l1, root)
 		switch r {
-		case 2, 3, 4, 5, 7, 8, 10, 12, 15, 16, 20:
+		case 2, 3, 4, 5, 7, 8, 9, 10, 12, 15, 16, 20:
 		default:
 			st.rt = make([]complex128, r)
 			st.rtc = make([]complex128, r)
@@ -165,12 +165,12 @@ func skFactorize(n int) []int {
 // per-architecture (comp_route_*.go).
 var compOddFirst = compOddFirstDefault()
 
-// compTakes16 reports whether skFactorize gives n radix-10, -12, -15, -16 or
-// -20 passes, which have no batched kernel for the strips of an N-D plan.
+// compTakes16 reports whether skFactorize gives n radix-9, -10, -12, -15, -16
+// or -20 passes, which have no batched kernel for the strips of an N-D plan.
 func compTakes16(n int) bool {
 	return slices.ContainsFunc(skFactorize(n), func(r int) bool {
 		switch r {
-		case 10, 12, 15, 16, 20:
+		case 9, 10, 12, 15, 16, 20:
 			return true
 		}
 		return false
@@ -438,6 +438,8 @@ func (st *skStage) passScalarL(ch, cc []complex128, l1 int, inverse bool) {
 		pass8(st.ido, l1, cc, ch, tw, inverse)
 	case 16:
 		pass16(st.ido, l1, cc, ch, tw, inverse)
+	case 9:
+		pass9(st.ido, l1, cc, ch, tw, inverse)
 	case 12:
 		pass12(st.ido, l1, cc, ch, tw, inverse)
 	case 10, 15, 20:

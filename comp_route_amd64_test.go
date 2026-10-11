@@ -51,10 +51,11 @@ func TestCompRadix16For(t *testing.T) {
 	}
 }
 
-// TestCompFactorize takes skFactorize through both routes of compRadix16On.
+// TestCompFactorize takes skFactorize through both routes of compRadix16On,
+// without csRadix9For (TestCsRadix9For).
 func TestCompFactorize(t *testing.T) {
-	defer func(v, w, x bool) { compRadix16On, comp2On, hswCompOn = v, w, x }(compRadix16On, comp2On, hswCompOn)
-	compRadix16On, comp2On, hswCompOn = true, false, false
+	defer func(v, w, x, y bool) { compRadix16On, comp2On, hswCompOn, csRadix9On = v, w, x, y }(compRadix16On, comp2On, hswCompOn, csRadix9On)
+	compRadix16On, comp2On, hswCompOn, csRadix9On = true, false, false, false
 	for n, want := range map[int][]int{1296: {3, 3, 12, 12}, 2000: {5, 5, 5, 16}, 1000: skFactorizeOrder(1000, compOddFirst)} {
 		if got := skFactorize(n); !slices.Equal(got, want) {
 			t.Errorf("skFactorize(%d) with the composite routes = %v, want %v", n, got, want)
@@ -242,6 +243,39 @@ func TestHswE11Default(t *testing.T) {
 	} {
 		if got := hswE11Default(c.avx2, c.intel, c.avx512); got != c.want {
 			t.Errorf("%+v: %v", c, got)
+		}
+	}
+}
+
+// TestCsRadix9For pins how csRadix9For merges leading radix-3 passes: two
+// by two into radix-9 passes, first, a lone 3 after them, nothing when off or
+// with fewer than two; and that compFactorize applies it exactly when
+// csRadix9On is set.
+func TestCsRadix9For(t *testing.T) {
+	for _, c := range []struct {
+		f, want []int
+		on      bool
+	}{
+		{[]int{3, 3, 12, 12}, []int{9, 12, 12}, true},
+		{[]int{3, 3, 3, 10, 12}, []int{9, 3, 10, 12}, true},
+		{[]int{3, 3, 3, 3, 8}, []int{9, 9, 8}, true},
+		{[]int{3, 12}, []int{3, 12}, true},
+		{[]int{5, 3, 3}, []int{5, 3, 3}, true},
+		{[]int{8, 8}, []int{8, 8}, true},
+		{nil, nil, true},
+		{[]int{3, 3, 12, 12}, []int{3, 3, 12, 12}, false},
+	} {
+		if got := csRadix9For(slices.Clone(c.f), c.on); !slices.Equal(got, c.want) {
+			t.Errorf("csRadix9For(%v, %v) = %v, want %v", c.f, c.on, got, c.want)
+		}
+	}
+	defer func(v bool) { csRadix9On = v }(csRadix9On)
+	for _, on := range []bool{false, true} {
+		csRadix9On = on
+		for _, n := range []int{1296, 1080, 81, 1008, 4096, 1000} {
+			if got, want := compFactorize(n), csRadix9For(csCompFactorize(n), on); !slices.Equal(got, want) {
+				t.Errorf("on=%v: compFactorize(%d) = %v, want %v", on, n, got, want)
+			}
 		}
 	}
 }

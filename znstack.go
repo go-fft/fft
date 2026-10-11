@@ -14,10 +14,10 @@ var znTwoPassMax, znThreePassMax = znTwoPassMaxDefault(), znThreePassMaxDefault(
 func znPlanFor(n int, st []skStage) *kernels.ZnPlan {
 	switch {
 	case len(st) == 2 && n <= znTwoPassMax:
-		return kernels.ZnPlanFor([]int{st[0].r, st[1].r}, []uint8{st[0].split, st[1].split}, st[0].twX, st[0].twXc, nil, nil)
+		return kernels.ZnPlanForWide([]int{st[0].r, st[1].r}, []uint8{st[0].split, st[1].split}, st[0].twX, st[0].twXc, nil, nil, st[0].wide)
 	case len(st) == 3 && n <= znThreePassMax:
-		return kernels.ZnPlanFor([]int{st[0].r, st[1].r, st[2].r}, []uint8{st[0].split, st[1].split, st[2].split},
-			st[0].twX, st[0].twXc, st[1].twX, st[1].twXc)
+		return kernels.ZnPlanForWide([]int{st[0].r, st[1].r, st[2].r}, []uint8{st[0].split, st[1].split, st[2].split},
+			st[0].twX, st[0].twXc, st[1].twX, st[1].twXc, st[0].wide)
 	}
 	return nil
 }

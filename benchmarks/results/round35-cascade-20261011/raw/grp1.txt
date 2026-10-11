@@ -1,0 +1,10 @@
+# start 08:44:39 load 0.35 0.49 0.29 sha 1b97314e27218c2c : ./l5.test -test.run TestCsSplitGroups -cs.ab=9,200 -r26.sets=65536:rule,8x8x4x4x8x8;524288:8x4x8x8x4x8x8;1048576:8x8x8x8x8x4x8,8x8x8x4x8x8x8 -test.v
+=== RUN   TestCsSplitGroups
+GROUPS 65536 4x4x8x8x8x8 modes [5 7]: interleaved 3.050 split 2.924 ns/pt (whole 7.19), inter/split 1.043
+GROUPS 65536 8x8x4x4x8x8 modes [5 6 7]: interleaved 3.538 split 3.494 ns/pt (whole 6.61), inter/split 1.012
+GROUPS 524288 8x4x8x8x4x8x8 modes [5 6 7]: interleaved 7.595 split 7.233 ns/pt (whole 15.43), inter/split 1.050
+GROUPS 1048576 8x8x8x8x8x4x8 modes [5 6 7]: interleaved 8.364 split 8.598 ns/pt (whole 17.38), inter/split 0.973
+GROUPS 1048576 8x8x8x4x8x8x8 modes [5 6 7]: interleaved 8.298 split 9.156 ns/pt (whole 17.13), inter/split 0.906
+--- PASS: TestCsSplitGroups (47.21s)
+PASS
+# end 08:45:27 load 0.78 0.58 0.33

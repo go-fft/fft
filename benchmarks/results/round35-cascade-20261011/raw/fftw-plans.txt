@@ -1,0 +1,71 @@
+# start 08:56:44 load 0.46 0.70 0.52 sha cff54e0ad6eaaef0 : ./csfftwplan c256 c1024 c1296 c65536 r256 r65536 r1048576
+FFTW c256 390.8 ns
+(dft-ct-dit/16
+  (dftw-direct-16/240 "t2fv_16_avx512")
+  (dft-direct-16-x16 "n2fv_16_avx2"))
+
+FFTW c1024 2088.1 ns
+(dft-ct-dit/32
+  (dftw-direct-32/32 "t3fv_32_avx512")
+  (dft-direct-32-x32 "n2fv_32_avx2"))
+
+FFTW c1296 3690.4 ns
+(dft-ct-dit/9
+  (dftw-direct-9/64 "t1fv_9_avx512")
+  (dft-vrank>=1-x9/1
+    (dft-ct-dit/12
+      (dftw-direct-12/88 "t1fv_12_avx512")
+      (dft-direct-12-x12 "n1fv_12_avx2"))))
+
+FFTW c65536 392461.5 ns
+(dft-ct-dit/32
+  (dftw-direct-32/32 "t3fv_32_avx512")
+  (dft-vrank>=1-x32/1
+    (dft-ct-dit/4
+      (dftw-direct-4/24 "t1fv_4_avx512")
+      (dft-vrank>=1-x4/1
+        (dft-ct-dit/64
+          (dftw-direct-64/1008 "t2fv_64_avx512")
+          (dft-direct-8-x64 "n1fv_8_avx"))))))
+
+FFTW r256 361.8 ns
+(rdft2-ct-dit/2
+  (hc2c-direct-2/4/1 "hc2cfdftv_2_avx2"
+    (rdft2-r2hc-direct-2 "r2cf_2")
+    (rdft2-r2hc01-direct-2 "r2cfII_2"))
+  (dft-ct-dit/16
+    (dftw-direct-16/240 "t2fv_16_avx512")
+    (dft-direct-8-x16 "n2fv_8_avx")))
+
+FFTW r65536 186561.2 ns
+(rdft2-ct-dit/2
+  (hc2c-direct-2/4/1 "hc2cfdftv_2_avx2"
+    (rdft2-r2hc-direct-2 "r2cf_2")
+    (rdft2-r2hc01-direct-2 "r2cfII_2"))
+  (dft-ct-dit/16
+    (dftw-direct-16/32 "t3fv_16_avx512")
+    (dft-vrank>=1-x16/1
+      (dft-ct-dit/8
+        (dftw-direct-8/24 "t3fv_8_avx512")
+        (dft-vrank>=1-x8/1
+          (dft-ct-dit/32
+            (dftw-direct-32/496 "t2fv_32_avx512")
+            (dft-direct-8-x32 "n1fv_8_avx")))))))
+
+FFTW r1048576 9207857.6 ns
+(rdft2-ct-dit/16
+  (hc2c-direct-16/30/0 "hc2cfdftv_16_avx2_128"
+    (rdft2-r2hc-direct-16 "r2cf_16")
+    (rdft2-r2hc01-direct-16 "r2cfII_16"))
+  (dft-vrank>=1-x8/1
+    (dft-ct-dit/32
+      (dftw-direct-32/32 "t3fv_32_avx512")
+      (dft-vrank>=1-x32/1
+        (dft-ct-dit/8
+          (dftw-direct-8/56 "t1fv_8_avx512")
+          (dft-vrank>=1-x8/1
+            (dft-ct-dit/32
+              (dftw-direct-32/496 "t2fv_32_avx512")
+              (dft-direct-8-x32 "n1fv_8_avx2"))))))))
+
+# end 08:57:30 load 0.77 0.75 0.55

@@ -1,0 +1,42 @@
+Round 35 mutants, each built (gen.go regenerated where it is the file mutated) and run on cfarm151
+with scripts/mrun.sh through ~/.local/bin/mutate, 2026-10-11. "caught" = the named tests failed.
+
+csRadix9For ignores on                                  caught  TestCsRadix9For
+csRadix9For drops the lone 3                            caught  TestCsRadix9For
+csRadix9For merges with c < 1 instead of c < 2          SURVIVED: equivalent (one 3 gives g = [3], the input)
+kernel e=2 rotation with cos(8pi/9)                     caught  TestCs9EachPassMatchesScalar
+kernel stage-2 outputs k1+3 and k1+6 swapped            caught  TestCs9EachPassMatchesScalar
+kernel ss row of e=1 negated (stockham_amd64.go)        caught  TestCs9EachPassMatchesScalar
+kernel constant cos(2pi/9) one ulp off                  caught  TestCs9EachPassMatchesScalar
+Go bfly9 e=4 with cos(4pi/9)                            caught  TestCs9* (AgainstNaive alone runs the kernel on AVX2 hosts and survived)
+Go sin(4pi/9) last digits truncated at 17 digits        SURVIVED: equivalent (same float64)
+Go sin(4pi/9) wrong in the 10th digit                   caught  TestCs9Constants
+batch guard back to the radix list (9 reaches nil slot) caught  TestStockhamBatchMatchesScalar
+frame address table without radix 9                     caught  TestZnKernelAddrs
+compTakes16 forgets radix 9                             SURVIVED the whole suite at first; TestCs9Columns added, now caught
+cascade table: 65536 order changed                      caught  TestIntelSplitTableAMD64
+cascade table not merged into intelSplitTable512        caught  TestIntelSplitTableAMD64, TestIntelStripOrderAMD64
+
+The frame kernels on Cascade Lake (ZnPlanForWide, znFrameMaxAMD64):
+wide final pass with the AVX2 constants table           caught  TestCsZnWideMatchesPasses
+512-bit split modes read the 256-bit kernels' slots      caught  TestCsZn*
+a chain mixing 256- and 512-bit split layouts allowed    caught  TestCsZnWideSelects
+Run ignores UseStockhamAVX512                            caught  TestCsZnWideSelects
+build ignores UseStockhamAVX512                          caught  TestCsZnWideSelects
+an interleaved pass ZnPlanForWide would run at 512 bits  caught  TestCsZnWideSelects
+fft builds the frame plans narrow (wide=false)           caught  TestCsZnFrameHostRoute (zn.Wide())
+frame stays off on every Intel CPU                       caught  TestZnFrameMaxAMD64, TestCsZnFrameHostRoute
+frame on for Intel without AVX-512 (Haswell)             caught  TestZnFrameMaxAMD64
+address table: the AVX-512 final kernels in one slot     caught  TestCsZn* (a first form of this mutant did not compile and proved nothing)
+
+The forward untangle's bound (UntangleWideMax):
+bound back to 16384                                      caught  TestCsUntangleWideMax
+clUntangleWide ignores its max argument                  caught  TestCsUntangleWideMax
+
+The untangle tail jump (Round 37's patch, verified and extended here). The first run of these
+three generator mutants did not rebuild untangle_amd64.s (mrun.sh copied only the radix-9 and
+frame files) and "survived" without testing anything; mrun.sh now copies it, and they were rerun:
+tail jump advances the slices 32 bytes per quad          caught  TestCsTailJumpMatchesTwoCalls
+tail jump does not reduce m                               caught  TestCsTailJumpMatchesTwoCalls
+Untangle passes 2q as pairs (drops the AVX2 tail)         caught  TestCsTailJumpMatchesTwoCalls
+early return when no pair is left removed                 SURVIVED: equivalent in bits (the AVX2 kernel does nothing with 0 pairs); a cost only

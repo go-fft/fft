@@ -1,0 +1,17 @@
+# start 08:48:49 load 0.09 0.37 0.30 sha 2280a35f0176f2a1 : ./l7.test -test.run TestCsCascadeE2E -cs.ab=11,300 -test.v -test.timeout 2h
+=== RUN   TestCsCascadeE2E
+E2E C65536    main 4x4x8x8x8x8          458877 ns  branch 8x8x4x4x8x8          426447 ns  main/branch 1.076 [1.070 1.082]
+E2E C524288   main 4x4x8x8x8x8x8       7399158 ns  branch 8x4x8x8x4x8x8       7379974 ns  main/branch 1.003 [0.906 1.069]
+E2E C1048576  main 4x8x8x8x8x8x8      21005757 ns  branch 8x8x8x8x8x4x8      19320562 ns  main/branch 1.087 [1.064 1.104]
+E2E R1048576  main 4x4x8x8x8x8x8       8585485 ns  branch 8x4x8x8x4x8x8       8188033 ns  main/branch 1.049 [0.998 1.104]
+E2E I1048576  main 4x4x8x8x8x8x8       9938817 ns  branch 8x4x8x8x4x8x8       9677763 ns  main/branch 1.027 [0.981 1.117]
+E2E R131072   main 4x4x8x8x8x8          543304 ns  branch 8x8x4x4x8x8          515057 ns  main/branch 1.055 [1.034 1.060]
+E2E C131072   main 4x8x8x8x8x8          947499 ns  branch 4x8x8x8x8x8          951500 ns  main/branch 0.996 [0.991 1.003]
+E2E C262144   main 8x8x8x8x8x8         2122593 ns  branch 8x8x8x8x8x8         2207870 ns  main/branch 0.961 [0.936 0.983]
+E2E C32768    main 8x8x8x8x8            193532 ns  branch 8x8x8x8x8            193759 ns  main/branch 0.999 [0.985 1.032]
+E2E C4096     main 8x8x8x8               11915 ns  branch 8x8x8x8               11963 ns  main/branch 0.996 [0.990 1.025]
+E2E R65536    main 8x8x8x8x8            221196 ns  branch 8x8x8x8x8            223970 ns  main/branch 0.988 [0.979 0.991]
+E2E C1024     main 8x4x4x8                2434 ns  branch 8x4x4x8                2460 ns  main/branch 0.989 [0.969 1.052]
+--- PASS: TestCsCascadeE2E (118.86s)
+PASS
+# end 08:50:48 load 0.88 0.59 0.39

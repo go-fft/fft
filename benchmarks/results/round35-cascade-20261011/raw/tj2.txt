@@ -1,0 +1,19 @@
+# start 10:21:30 load 0.18 1.02 1.19 sha 570ae95d34c20e55 : ./ktj.test -test.run TestCsTailJumpAB -cs.tj=21 -test.v
+=== RUN   TestCsTailJumpAB
+TJ wide=false m=   64 untangle two     71.9 one     63.8 two/one 1.127 | retangle two     82.8 one     70.7 two/one 1.171
+TJ wide=false m=  128 untangle two    120.0 one    141.5 two/one 0.848 | retangle two    143.7 one    129.6 two/one 1.109
+TJ wide=false m=  256 untangle two    226.6 one    217.8 two/one 1.041 | retangle two    252.4 one    242.0 two/one 1.043
+TJ wide=false m=  512 untangle two    423.6 one    447.4 two/one 0.947 | retangle two    508.3 one    445.8 two/one 1.140
+TJ wide=false m= 1000 untangle two    882.9 one    876.3 two/one 1.008 | retangle two    938.3 one    941.8 two/one 0.996
+TJ wide=false m= 1024 untangle two    925.4 one    919.8 two/one 1.006 | retangle two    990.9 one    992.0 two/one 0.999
+TJ wide=false m=32768 untangle two  47025.4 one  46970.6 two/one 1.001 | retangle two  47986.3 one  47923.5 two/one 1.001
+TJ wide=true m=   64 untangle two     80.9 one     65.8 two/one 1.229 | retangle two     76.6 one     70.7 two/one 1.082
+TJ wide=true m=  128 untangle two    142.8 one    134.9 two/one 1.059 | retangle two    138.3 one    127.5 two/one 1.084
+TJ wide=true m=  256 untangle two    176.6 one    172.3 two/one 1.025 | retangle two    201.1 one    195.8 two/one 1.027
+TJ wide=true m=  512 untangle two    325.5 one    319.9 two/one 1.017 | retangle two    367.1 one    361.1 two/one 1.017
+TJ wide=true m= 1000 untangle two    901.7 one    879.5 two/one 1.025 | retangle two    937.9 one    962.2 two/one 0.975
+TJ wide=true m= 1024 untangle two    825.8 one    820.4 two/one 1.007 | retangle two    856.6 one    853.3 two/one 1.004
+TJ wide=true m=32768 untangle two  52563.3 one  52415.4 two/one 1.003 | retangle two  48259.8 one  48644.5 two/one 0.992
+--- PASS: TestCsTailJumpAB (23.98s)
+PASS
+# end 10:21:54 load 0.46 1.02 1.18
