@@ -1,0 +1,55 @@
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+SHA-OK
+K1: --- FAIL: TestCMulToMatchesScalar (0.00s) --- FAIL: TestCMulToLengths (0.00s) FAIL 
+K2: --- FAIL: TestCMulToMatchesScalar (0.00s) --- FAIL: TestCMulToLengths (0.00s) FAIL 
+K3: --- FAIL: TestCMulToMatchesScalar (0.00s) FAIL 
+K4: --- FAIL: TestCMulToMatchesScalar (0.05s) panic: runtime error: index out of range [0] with length 0 [recovered, repanicked] panic({0x74af10?, 0x1af6908360a8?}) 
+K5: --- FAIL: TestCMulToLengths (0.00s) FAIL 
+K6: --- FAIL: TestCMulToLengths (0.00s) FAIL 
+K7: --- FAIL: TestZmCMulBulkGate (0.00s) FAIL 
+K8: --- FAIL: TestCMulToMatchesScalar (0.00s) --- FAIL: TestZmCMulBulkGate (0.00s) FAIL 
+F1: --- FAIL: TestZmRowsMatchRun (0.00s) FAIL 
+F2: PASS 
+F3: --- FAIL: TestZmRowsMatchRun (0.01s) panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked] panic({0x9d5f80?, 0xa257e0?}) 
+F4: --- FAIL: TestZmBluesteinMatchesLoops (0.00s) FAIL 
+F5: --- FAIL: TestZmBluesteinMatchesLoops (0.00s) FAIL 
+F6: --- FAIL: TestZmRowsMatchRun (0.03s) --- FAIL: TestZmBluesteinMatchesLoops (0.00s) FAIL 
+F2 (after adding out-of-place shapes): --- FAIL: TestZmRowsMatchRun FAIL
+SHA-OK
+P1: --- FAIL: TestZmPow2Tail (0.03s) FAIL 
+P2: --- FAIL: TestZmPow2Tail (0.02s) FAIL 
+P3: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
+P4: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
+P5: --- FAIL: TestZmPow2Tail (0.02s) FAIL 
+P6: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
+P7: --- FAIL: TestZmPow2Tail (0.00s) FAIL 
+P8: PASS 
+P8 (after the routing assertion): --- FAIL: TestZmPow2Tail FAIL
+40
+SHA-OK
+S1: --- FAIL: TestSplitEachPassMatchesScalar (0.06s) --- FAIL: TestSplitTransformMatchesScalar (0.01s) FAIL 
+S2: --- FAIL: TestSplitEachPassMatchesScalar (0.07s) --- FAIL: TestSplitTransformMatchesScalar (0.01s) FAIL 
+S4: --- FAIL: TestSplitEachPassMatchesScalar (0.09s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S5: --- FAIL: TestSplitEachPassMatchesScalar (0.07s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S6: --- FAIL: TestSplitEachPassMatchesScalar (0.07s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S7: --- FAIL: TestSplitEachPassMatchesScalar (0.05s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S8: --- FAIL: TestSplitEachPassMatchesScalar (0.06s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S9: --- FAIL: TestSplitEachPassMatchesScalar (0.08s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S12: --- FAIL: TestSplitEachPassMatchesScalar (0.05s) --- FAIL: TestSplitTransformMatchesScalar (0.00s) FAIL 
+S10: --- FAIL: TestClCompSplit256 (0.00s) --- FAIL: TestSplitModes (0.00s) FAIL 
+S11: --- FAIL: TestZnKernelAddrs (0.00s) FAIL 
+T1: --- FAIL: TestCompFactorize (0.00s) --- FAIL: TestZmCompTable (0.07s) FAIL 
+T3: --- FAIL: TestZmCompTable (0.07s) FAIL 

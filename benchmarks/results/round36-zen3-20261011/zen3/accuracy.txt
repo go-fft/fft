@@ -1,0 +1,13 @@
+PASS
+84 transforms, 168 checks, numpy 2.5.3
+  bfft   worst relative error 1.327e-15 at n=30011
+  bifft  worst relative error 1.134e-15 at n=10007
+  cfft   worst relative error 7.949e-16 at n=3240
+  cifft  worst relative error 8.092e-16 at n=5400
+  fft2   worst relative error 6.028e-16 at n=256
+  ifft2  worst relative error 6.674e-16 at n=100
+  irfft  worst relative error 4.677e-16 at n=2592
+  rfft   worst relative error 5.964e-16 at n=2592
+PASS
+  rfft   worst relative error 2.374e-01 at n=2592
+PLANTED: all caught

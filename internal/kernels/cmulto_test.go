@@ -47,8 +47,11 @@ func zmSame(x, y complex128) bool {
 // complex product point by point, for every length to 70 and a few long
 // ones, every pair of signals. Under GOAMD64=v3 the compiler fuses the
 // oracle's products into FMAs and this test fails on amd64, as the other Go
-// oracles of the package do.
-func TestCMulToMatchesScalar(t *testing.T) {
+// oracles of the package do. On amd64 TestZmCMulKernelMatchesScalar runs
+// it with the kernel on whatever the vendor.
+func TestCMulToMatchesScalar(t *testing.T) { zmCheckCMulTo(t) }
+
+func zmCheckCMulTo(t *testing.T) {
 	sizes := []int{1021, 4096, 20480}
 	for n := 0; n <= 70; n++ {
 		sizes = append(sizes, n)

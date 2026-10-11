@@ -1,0 +1,62 @@
+    10 cur 10             best 5x2              1.554 spread 1.350 KEEP
+    12 cur 12             best 3x4              1.509 spread 1.332 KEEP
+    20 cur 20             best 5x4              1.623 spread 1.425 KEEP
+    30 cur 3x10           best 2x15             1.108 spread 1.225 KEEP
+    40 cur 5x8            best 2x20             1.080 spread 1.319 KEEP
+    60 cur 5x12           best 3x5x4            1.025 spread 1.018 
+    80 cur 4x20           best 5x4x4            1.067 spread 1.029 KEEP
+   100 cur 5x20           best 5x5x4            1.018 spread 1.048 
+   120 cur 10x12          best 5x3x8            1.118 spread 1.019 KEEP
+   144 cur 12x12          best 3x4x12           0.965 spread 1.518 
+   180 cur 15x12          best 3x3x20           1.195 spread 1.038 KEEP
+   200 cur 10x20          best 5x5x8            1.102 spread 1.109 KEEP
+   240 cur 12x20          best 5x4x12           1.069 spread 1.151 KEEP
+   400 cur 20x20          best 5x4x20           1.261 spread 1.270 KEEP
+   432 cur 3x12x12        best 3x3x4x12         1.080 spread 1.114 KEEP
+   540 cur 3x15x12        best 3x3x5x12         1.174 spread 1.058 KEEP
+   576 cur 4x12x12        best 3x4x4x12         1.174 spread 1.699 KEEP
+   600 cur 5x10x12        best 3x5x5x8          1.071 spread 1.268 KEEP
+   720 cur 5x12x12        best 3x3x4x20         1.067 spread 1.209 KEEP
+   810 cur 3x3x3x3x10     best 3x3x3x2x15       1.012 spread 1.427 
+   900 cur 5x15x12        best 3x5x5x12         1.085 spread 1.276 KEEP
+   960 cur 4x12x20        best 5x3x4x16         1.027 spread 1.338 
+  1000 cur 5x10x20        best 5x5x5x8          1.045 spread 1.328 KEEP
+  1080 cur 3x3x10x12      best 3x3x3x5x8        1.048 spread 1.902 KEEP
+  1296 cur 3x3x12x12      best 3x3x3x4x12       1.063 spread 1.534 KEEP
+  1440 cur 10x12x12       best 3x3x8x20         1.081 spread 1.394 KEEP
+  1600 cur 4x20x20        best 5x5x4x16         1.081 spread 1.238 KEEP
+  1620 cur 3x3x15x12      best 3x3x3x5x12       1.104 spread 1.315 KEEP
+  1800 cur 15x10x12       best 5x3x3x5x8        1.044 spread 1.790 KEEP
+  2000 cur 5x20x20        best 5x5x4x20         1.063 spread 1.245 KEEP
+  2160 cur 15x12x12       best 3x5x12x12        1.075 spread 1.684 KEEP
+  2304 cur 4x4x12x12      best 3x8x8x12         1.200 spread 1.252 KEEP
+  2400 cur 10x12x20       best 5x5x8x12         1.161 spread 1.409 KEEP
+  2700 cur 3x5x15x12      best 5x5x3x3x3x4      0.988 spread 1.815 
+  3000 cur 5x5x10x12      best 5x5x5x3x8        1.062 spread 1.545 KEEP
+  3200 cur 8x20x20        best 5x5x8x16         1.058 spread 1.600 KEEP
+  3240 cur 3x3x3x10x12    best 5x3x3x3x3x8      1.061 spread 1.224 KEEP
+  3840 cur 4x4x12x20      best 5x8x8x12         1.083 spread 1.215 KEEP
+  4000 cur 10x20x20       best 5x5x8x20         1.088 spread 1.271 KEEP
+  4320 cur 3x10x12x12     best 3x3x5x8x12       1.135 spread 1.548 KEEP
+  4500 cur 5x5x15x12      best 3x5x5x5x12       1.112 spread 1.513 KEEP
+  4800 cur 12x20x20       best 3x5x5x8x8        1.050 spread 1.434 KEEP
+  4860 cur 3x3x3x15x12    best 3x3x3x3x3x20     1.085 spread 1.338 KEEP
+  5000 cur 5x5x10x20      best 5x5x5x2x20       0.995 spread 1.571 
+  5400 cur 3x15x10x12     best 5x3x3x5x3x8      1.139 spread 1.360 KEEP
+  6400 cur 4x4x20x20      best 5x8x8x20         1.066 spread 1.400 KEEP
+  6912 cur 4x12x12x12     best 3x3x8x8x12       1.116 spread 1.210 KEEP
+  7200 cur 5x10x12x12     best 3x3x5x8x20       1.025 spread 1.565 
+  8000 cur 20x20x20       best 5x5x5x8x8        1.076 spread 1.261 KEEP
+  8100 cur 3x3x5x15x12    best 5x3x3x5x3x3x4    1.039 spread 1.625 KEEP
+  9000 cur 5x15x10x12     best 3x5x5x3x5x8      1.123 spread 2.179 KEEP
+  9720 cur 3x3x3x3x10x12  best 3x5x3x3x3x3x8    1.068 spread 1.436 KEEP
+ 10000 cur 5x5x20x20      best 5x5x5x4x20       1.065 spread 1.405 KEEP
+ 10800 cur 5x15x12x12     best 5x5x3x3x3x16     1.026 spread 1.171 
+ 11520 cur 4x12x12x20     best 3x5x8x8x12       1.058 spread 1.435 KEEP
+ 12000 cur 5x10x12x20     best 5x5x5x8x12       1.108 spread 1.217 KEEP
+ 12960 cur 3x3x10x12x12   best 3x3x3x3x8x20     1.052 spread 1.090 KEEP
+ 14580 cur 3x3x3x3x15x12  best 3x3x3x3x3x5x12   1.067 spread 1.086 KEEP
+ 15000 cur 5x5x5x10x12    best 5x5x5x5x3x8      1.032 spread 1.324 KEEP
+ 15552 cur 3x3x12x12x12   best 3x3x3x3x4x4x12   1.008 spread 1.135 
+ 16000 cur 5x8x20x20      best 5x5x4x8x20       1.036 spread 1.176 KEEP
+ 16200 cur 3x3x15x10x12   best 3x5x5x3x3x3x8    1.077 spread 1.348 KEEP

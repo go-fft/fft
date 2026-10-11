@@ -1,0 +1,23 @@
+ 08:34:30 up 29 days, 16:59, 11 users,  load average: 1.26, 1.21, 1.17
+PASSES 64 8x8                whole 75 sum 84 | r8/i8/s4 48 r8/i1/s0 36
+PASSES 256 4x8x8              whole 300 sum 324 | r4/i64/s1 94 r8/i8/s3 128 r8/i1/s0 102
+PASSES 1024 8x8x16             whole 1755 sum 1683 | r8/i128/s1 544 r8/i16/s3 502 r16/i1/s0 637
+PASSES 1000 5x10x20            whole 2301 sum 2220 | r5/i200/s0 645 r10/i20/s0 886 r20/i1/s0 689
+PASSES 1080 3x3x10x12          whole 2779 sum 2583 | r3/i360/s0 534 r3/i120/s0 522 r10/i12/s0 945 r12/i1/s0 582
+PASSES 2048 8x8x8x4            whole 4613 sum 4689 | r8/i256/s1 1743 r8/i32/s2 1139 r8/i4/s3 1099 r4/i1/s0 708
+PASSES 960 4x12x20            whole 1942 sum 1913 | r4/i240/s4 446 r12/i20/s0 773 r20/i1/s0 693
+PASSES 20480 5x8x8x8x8          whole 80440 sum 80523 | r5/i4096/s0 19208 r8/i512/s1 18223 r8/i64/s2 13621 r8/i8/s3 12931 r8/i1/s0 16539
+PASSES 6144 3x4x8x8x8          whole 17969 sum 17782 | r3/i2048/s0 2933 r4/i512/s1 2966 r8/i64/s2 3779 r8/i8/s3 3510 r8/i1/s0 4593
+PASSES 10240 5x4x8x8x8          whole 36542 sum 34609 | r5/i2048/s0 9480 r4/i512/s1 5224 r8/i64/s2 6338 r8/i8/s3 5915 r8/i1/s0 7653
+PASSES 20250 3x3x3x3x5x5x5x2    whole 99136 sum 96389 | r3/i6750/s0 11619 r3/i2250/s0 10674 r3/i750/s0 10465 r3/i250/s0 11264 r5/i50/s0 14905 r5/i10/s0 14236 r5/i2/s0 14907 r2/i1/s0 8317
+PASS
+REAL 4096 whole 5904 half(8x8x8x4) 4554 untangle 1204 half+untangle 5711
+REAL 1920 whole 2492 half(4x12x20) 1945 untangle 568 half+untangle 2542
+REAL 256 whole 237 half(8x16) 156 untangle 82 half+untangle 236
+REAL 1024 whole 1035 half(8x8x8) 741 untangle 283 half+untangle 1054
+PASS
+BLUE 10007 m 20480 (5x8x8x8x8) whole 212516 chirp-in 14402 fft 83551 cmul 23157 ifft 81549 chirp-out 13244
+FFT2 64x64 whole 11704 axis0(strips true) 5157 axis1(rows) 6436 one-row-plan 76 (x64 = 4851)
+FFT2 128x128 whole 55272 axis0(strips true) 29826 axis1(rows) 24385 one-row-plan 154 (x128 = 19760)
+PASS
+ 08:34:52 up 29 days, 17:00, 11 users,  load average: 1.60, 1.29, 1.20

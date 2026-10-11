@@ -1,0 +1,26 @@
+ 08:55:36 up 29 days, 17:20, 10 users,  load average: 1.38, 1.43, 1.35
+AB 6144 3x4x8x8x8             17848.8 ns  first/this 1.000  spread 1.000
+AB 6144 3x4x4x4x8x4           16491.6 ns  first/this 1.092  spread 1.422
+AB 10240 5x4x8x8x8             34756.6 ns  first/this 1.000  spread 1.000
+AB 10240 5x4x4x4x8x4           32468.6 ns  first/this 1.067  spread 1.231
+AB 18432 3x3x4x8x8x8           70741.7 ns  first/this 1.000  spread 1.000
+AB 18432 3x3x4x4x4x8x4         67957.7 ns  first/this 1.043  spread 1.286
+AB 30720 3x5x4x8x8x8          135017.5 ns  first/this 1.000  spread 1.000
+AB 30720 3x5x4x4x4x8x4        131908.2 ns  first/this 1.020  spread 1.390
+AB 12288 3x8x8x8x8             42261.7 ns  first/this 1.000  spread 1.000
+AB 12288 3x4x4x4x4x4x4         39936.5 ns  first/this 1.081  spread 1.131
+AB 20480 5x8x8x8x8             79988.2 ns  first/this 1.000  spread 1.000
+AB 20480 5x4x4x4x4x4x4         75161.2 ns  first/this 1.058  spread 1.642
+AB 24576 3x4x4x8x8x8           97985.2 ns  first/this 1.000  spread 1.000
+AB 36864 3x3x8x8x8x8          160602.4 ns  first/this 1.000  spread 1.000
+AB 5120 5x8x8x16              12902.0 ns  first/this 1.000  spread 1.000
+AB 7680 5x4x4x8x12            22375.5 ns  first/this 1.000  spread 1.000
+PASS
+PASSES 6144 3x4x8x8x8          whole 18829 sum 17607 | r3/i2048/s0 3011 r4/i512/s1 3017 r8/i64/s2 3575 r8/i8/s3 3423 r8/i1/s0 4580
+PASSES 6144 3x4x4x4x8x4        whole 16074 sum 15557 | r3/i2048/s0 2941 r4/i512/s1 2855 r4/i128/s2 2267 r4/i32/s2 2222 r8/i4/s3 3268 r4/i1/s0 2004
+PASSES 10240 5x4x8x8x8          whole 34638 sum 34171 | r5/i2048/s0 9052 r4/i512/s1 5156 r8/i64/s2 6224 r8/i8/s3 5985 r8/i1/s0 7754
+PASSES 10240 5x4x4x4x8x4        whole 31546 sum 31135 | r5/i2048/s0 8931 r4/i512/s1 5105 r4/i128/s2 4037 r4/i32/s2 3982 r8/i4/s3 5665 r4/i1/s0 3415
+PASSES 12288 3x8x8x8x8          whole 41599 sum 40220 | r3/i4096/s0 6000 r8/i512/s1 10781 r8/i64/s2 7679 r8/i8/s3 6905 r8/i1/s0 8854
+PASSES 12288 3x4x4x4x4x4x4      whole 37697 sum 39559 | r3/i4096/s0 6641 r4/i1024/s1 6680 r4/i256/s2 6401 r4/i64/s2 5373 r4/i16/s2 4796 r4/i4/s3 5361 r4/i1/s0 4307
+PASS
+ 08:55:58 up 29 days, 17:21, 10 users,  load average: 1.77, 1.51, 1.38
