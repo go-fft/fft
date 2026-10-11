@@ -340,6 +340,7 @@ func main() {
 	genSmallUntangleFile()
 	genZnTwoPassFile()
 	csGenRadix9File()
+	genZmCMulFile()
 }
 
 func writeFile(name, content string) {
@@ -4106,4 +4107,60 @@ func slicesIndex(names []string, s string) int {
 		}
 	}
 	panic(s)
+}
+
+// genZmCMulFile writes zmcmul_amd64.s (Round 36): zmCMulAVX2(dst, a, b
+// *complex128, quads int) writes dst[i] = a[i]·b[i] for i < 4·quads, four
+// points (two YMM registers) per iteration. Bluestein's chirp products and
+// its spectral product run on it (kernels.CMulTo).
+//
+// Per register a = [ar0 ai0 ar1 ai1], b = [br0 bi0 br1 bi1]:
+//
+//	t = a·[br0 br0 br1 br1]          (VMOVDDUP)    = [ar·br, ai·br]
+//	u = [ai0 ar0 ai1 ar1]·[bi0 bi0 bi1 bi1] (VPERMILPD $5, $15) = [ai·bi, ar·bi]
+//	VADDSUBPD u, t                   = [ar·br − ai·bi, ai·br + ar·bi]
+//
+// the products and the sum or difference Go's complex multiply computes
+// (real ar·br − ai·bi, imaginary ar·bi + ai·br), each separately rounded (no
+// FMA), so the result is the GOAMD64=v1 scalar loop's, bit for bit; an
+// addition's operands commute exactly. dst may be a (in place) but must not
+// otherwise overlap a or b.
+func genZmCMulFile() {
+	f := emit.NewFile("amd64")
+	names := []string{"dst", "a", "b", "quads"}
+	b := amd64.NewFunc("zmCMulAVX2", amd64.Layout(names, []amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil), 0)
+	b.LoadArg("dst", "DI").LoadArg("a", "SI").LoadArg("b", "DX").LoadArg("quads", "CX")
+	b.Raw("TESTQ CX, CX").
+		Raw("JZ done").
+		Raw("loop:")
+	for _, s := range []string{
+		"VMOVUPD (SI), Y0",
+		"VMOVUPD 32(SI), Y1",
+		"VMOVDDUP (DX), Y4",
+		"VMOVDDUP 32(DX), Y5",
+		"VPERMILPD $15, (DX), Y2",
+		"VPERMILPD $15, 32(DX), Y3",
+		"VMULPD Y4, Y0, Y4",
+		"VMULPD Y5, Y1, Y5",
+		"VPERMILPD $5, Y0, Y0",
+		"VPERMILPD $5, Y1, Y1",
+		"VMULPD Y2, Y0, Y0",
+		"VMULPD Y3, Y1, Y1",
+		"VADDSUBPD Y0, Y4, Y4",
+		"VADDSUBPD Y1, Y5, Y5",
+		"VMOVUPD Y4, (DI)",
+		"VMOVUPD Y5, 32(DI)",
+		"ADDQ $64, SI",
+		"ADDQ $64, DX",
+		"ADDQ $64, DI",
+		"DECQ CX",
+		"JNZ loop",
+	} {
+		b.Raw("%s", s)
+	}
+	b.Raw("VZEROUPPER").
+		Raw("done:").
+		Ret()
+	f.Add(b.Func())
+	writeFile("zmcmul_amd64.s", f.String())
 }
