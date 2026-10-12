@@ -1,0 +1,18 @@
+433227aee80c443bd1d5aff447370e28f80db6e51b26f27f75a76748301131a3  r32exp.test
+R32CALM go after 0s: 2.45 3.22 3.26 4/1312 1268031
+R32SPILL 1024:32x32 pass 0 ido 32 kern 0              1164.5 ns spread 1.722
+R32SPILL 1024:32x32 pass 0 ido 32 kern 1              1141.7 ns spread 1.326
+R32SPILL 1024:32x32 pass 1 ido 1 kern 0                749.1 ns spread 1.490
+R32SPILL 1024:32x32 pass 1 ido 1 kern 1                753.7 ns spread 1.427
+R32SPILL 256:8x32 pass 1 ido 1 kern 0                  197.0 ns spread 1.657
+R32SPILL 256:8x32 pass 1 ido 1 kern 1                  190.1 ns spread 1.532
+R32SPILL 256:32x8 pass 0 ido 8 kern 0                  302.9 ns spread 1.647
+R32SPILL 256:32x8 pass 0 ido 8 kern 1                  284.0 ns spread 1.685
+R32SPILL 2048:2x32x32 pass 1 ido 32 kern 0            2421.7 ns spread 1.734
+R32SPILL 2048:2x32x32 pass 1 ido 32 kern 1            2278.4 ns spread 1.621
+R32SPILL 2048:2x32x32 pass 2 ido 1 kern 0             1912.7 ns spread 1.309
+R32SPILL 2048:2x32x32 pass 2 ido 1 kern 1             1674.1 ns spread 1.379
+R32SPILL 2048:8x8x32 pass 2 ido 1 kern 0              2076.6 ns spread 1.296
+R32SPILL 2048:8x8x32 pass 2 ido 1 kern 1              1670.2 ns spread 1.440
+PASS
+Q2DONE

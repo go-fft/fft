@@ -1,0 +1,12 @@
+# Zen 3 (cfarm420), branch 28c151f, bin/r32suite.sh (profiles merged as in haswell/suites.txt)
+# cfarm420 17:23:09 load 2.43 3.15 3.24
+fft exit 0
+PASS
+coverage: 97.6% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+kernels exit 0
+PASS
+coverage: 95.1% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+# end 17:23:26 load 2.60 3.14 3.23
+merged: 99.98% (5073 of 5074 statements)
+uncovered:
+github.com/go-fft/fft/internal/kernels/znpass_amd64.go:224.32,224.47 1 0

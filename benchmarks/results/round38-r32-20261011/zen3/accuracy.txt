@@ -1,0 +1,16 @@
+numpy 2.5.3
+15 transforms, 30 checks, numpy 2.5.3
+  cfft   worst relative error 4.416e-16 at n=3072
+  cifft  worst relative error 5.471e-16 at n=3072
+  irfft  worst relative error 4.503e-16 at n=4096
+  rfft   worst relative error 3.719e-16 at n=2048
+PASS
+exit 0
+15 transforms, 30 checks, numpy 2.5.3 (planted)
+  cfft   worst relative error 2.305e-01 at n=4096
+  cifft  worst relative error 1.434e-01 at n=256
+  irfft  worst relative error 1.408e-01 at n=4096
+  rfft   worst relative error 1.615e-01 at n=4096
+PLANTED: all caught
+plant exit 0
+Q3DONE

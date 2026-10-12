@@ -1,0 +1,100 @@
+//go:build amd64
+
+package fft
+
+import (
+	"fmt"
+	"slices"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/go-fft/fft/internal/kernels"
+)
+
+func TestR32ExpDup(t *testing.T) {
+	for _, f := range [][]int{{32, 32}, {32, 8}, {4, 32, 32}, {32, 3}, {32, 5, 3}} {
+		n := product(f)
+		p0 := newSKPlanFactors(n, f)
+		kernels.R32Dup = true
+		p1 := newSKPlanFactors(n, f)
+		kernels.R32Dup = false
+		x := benchComplex(n)
+		for _, inv := range []bool{false, true} {
+			a, b := make([]complex128, n), make([]complex128, n)
+			p0.transform(a, x, inv)
+			p1.transform(b, x, inv)
+			for i := range a {
+				if !sameBits(a[i], b[i]) {
+					t.Fatalf("%v inv=%v i=%d", f, inv, i)
+				}
+			}
+		}
+	}
+}
+
+func TestR32ExpSpill(t *testing.T) {
+	if *r32Pass == "" {
+		t.Skip()
+	}
+	var rounds, target int
+	fmt.Sscanf(*r32Pass, "%d,%d", &rounds, &target)
+	type item struct {
+		name  string
+		fn    func()
+		kern  int
+		iters int
+		ns    []float64
+	}
+	var items []*item
+	for _, spec := range strings.Split(*r32PNs, ";") {
+		head, fs, _ := strings.Cut(spec, ":")
+		n, _ := strconv.Atoi(head)
+		var f []int
+		for _, x := range strings.Split(fs, "x") {
+			r, _ := strconv.Atoi(x)
+			f = append(f, r)
+		}
+		p := newSKPlanFactors(n, f)
+		a := benchComplex(n)
+		buf := make([]complex128, n+setSpan)
+		b := offTheSets(buf, a, n)
+		for k := range p.stages {
+			st := &p.stages[k]
+			if st.r != 32 {
+				continue
+			}
+			for kern := 0; kern < 2; kern++ {
+				items = append(items, &item{name: fmt.Sprintf("%d:%s pass %d ido %d kern %d", n, fs, k, st.ido, kern), kern: kern,
+					fn: func() { st.pass(b, a, false) }})
+			}
+		}
+	}
+	for _, it := range items {
+		kernels.R32Kern = it.kern
+		it.fn()
+		t0 := time.Now()
+		k := 0
+		for time.Since(t0) < 10*time.Millisecond {
+			it.fn()
+			k++
+		}
+		it.iters = max(1, int(float64(target)/(float64(time.Since(t0).Nanoseconds())/float64(k))))
+	}
+	for round := range rounds {
+		for q := range items {
+			it := items[(q+round)%len(items)]
+			kernels.R32Kern = it.kern
+			t0 := time.Now()
+			for range it.iters {
+				it.fn()
+			}
+			it.ns = append(it.ns, float64(time.Since(t0).Nanoseconds())/float64(it.iters))
+		}
+	}
+	kernels.R32Kern = 0
+	for _, it := range items {
+		fmt.Printf("R32SPILL %-40s %10.1f ns spread %.3f\n", it.name, median(it.ns), slices.Max(it.ns)/slices.Min(it.ns))
+	}
+}

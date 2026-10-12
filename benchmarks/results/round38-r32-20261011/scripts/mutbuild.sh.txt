@@ -1,0 +1,17 @@
+#!/bin/sh
+# build.sh: one linux/amd64 test binary per mutant of mutants.txt (id|file|perl|what).
+set -u
+B=$(cd "$(dirname "$0")" && pwd)
+SRC=$B/../fft
+while IFS='|' read -r id file expr what; do
+  [ -z "$id" ] && continue
+  W=$B/tree-$id
+  mkdir "$W" || { echo "$id EXISTS"; continue; }
+  (cd "$SRC" && git archive HEAD) | tar -x -C "$W"
+  cp "$W/$file" "$W/$file.orig"
+  perl -0pi -e "$expr" "$W/$file"
+  if cmp -s "$W/$file" "$W/$file.orig"; then echo "$id NOCHANGE"; continue; fi
+  rm "$W/$file.orig"
+  case $file in *gen.go) (cd "$W/internal/kernels/asmgen/amd64" && GOFLAGS=-mod=mod go run gen.go >/dev/null && mv *.s ../../) || { echo "$id GENFAIL"; continue; };; esac
+  (cd "$W" && GOOS=linux GOARCH=amd64 go test -c -o "$B/m-$id.test" . 2>&1 | head -3) && echo "$id built: $what"
+done < "$B/mutants.txt"

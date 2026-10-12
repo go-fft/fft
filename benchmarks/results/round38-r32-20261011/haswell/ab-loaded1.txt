@@ -1,0 +1,57 @@
+23.21 20.47 15.04 21/503 3949239
+b13df4687d16eb1d8ad43905828c48f05145a564a1d0e537df47628ea37ace11  r32br.test
+R32AB host avx2=true avx512=false intel=true split=true rounds=9 target=2000000 ns
+R32LOAD start 23.21 20.47 15.04 21/502 3949255
+R32LOAD end 23.21 20.47 15.04 23/507 3949291
+R32AB c1024   cur        8s·8s·16                   4702.7 ns  first/this 1.000  range 1.000-1.000  spread 1.102
+R32AB c1024   32x32      32·32                      5370.8 ns  first/this 0.871  range 0.863-0.960  spread 1.032
+R32AB c1024   4x8x32     4s·8s·32                   4986.7 ns  first/this 0.939  range 0.912-1.029  spread 1.041
+R32AB c1024   8x4x32     8s·4s·32                   4887.9 ns  first/this 0.969  range 0.909-1.062  spread 1.074
+R32AB c1024   32x8x4     32·8s·4                    6129.4 ns  first/this 0.772  range 0.743-0.846  spread 1.048
+R32AB c256    cur        16·16                      1028.9 ns  first/this 1.000  range 1.000-1.000  spread 1.070
+R32AB c256    8x32       8·32                       1065.6 ns  first/this 0.954  range 0.928-1.039  spread 1.051
+R32AB c256    32x8       32·8                       1105.1 ns  first/this 0.931  range 0.866-0.987  spread 1.079
+R32AB c512    cur        8s·4s·16                   2223.0 ns  first/this 1.000  range 1.000-1.000  spread 1.059
+R32AB c512    16x32      16·32                      2274.0 ns  first/this 0.984  range 0.926-0.996  spread 1.056
+R32AB c512    32x16      32·16                      2304.6 ns  first/this 0.967  range 0.932-0.994  spread 1.020
+R32AB c2048   cur        8s·16·16                  11193.4 ns  first/this 1.000  range 1.000-1.000  spread 1.058
+R32AB c2048   2x32x32    2·32·32                   13711.9 ns  first/this 0.818  range 0.785-0.838  spread 1.017
+R32AB c2048   8x8x32     8s·8s·32                  10902.4 ns  first/this 1.024  range 0.949-1.055  spread 1.068
+R32AB c2048   4x16x32    4s·16·32                  12012.1 ns  first/this 0.928  range 0.838-0.946  spread 1.080
+R32AB c4096   cur        8s·8s·8s·8                26736.7 ns  first/this 1.000  range 1.000-1.000  spread 1.033
+R32AB c4096   4x32x32    4s·32·32                  39814.1 ns  first/this 0.667  range 0.654-0.687  spread 1.029
+R32AB c4096   8x16x32    8s·16·32                  35027.6 ns  first/this 0.766  range 0.754-0.786  spread 1.030
+R32AB c4096   16x8x32    16·8s·32                  38436.4 ns  first/this 0.695  range 0.682-0.704  spread 1.026
+R32AB r4096   cur        8s·16·16                  14859.5 ns  first/this 1.000  range 1.000-1.000  spread 1.045
+R32AB r4096   2x32x32    2·32·32                   17300.6 ns  first/this 0.858  range 0.817-0.879  spread 1.050
+R32AB r4096   8x8x32     8s·8s·32                  14458.9 ns  first/this 1.017  range 0.984-1.051  spread 1.058
+R32AB r4096   4x16x32    4s·16·32                  15554.0 ns  first/this 0.951  range 0.905-0.978  spread 1.060
+R32AB r2048   cur        8s·8s·16                   6225.0 ns  first/this 1.000  range 1.000-1.000  spread 1.034
+R32AB r2048   32x32      32·32                      6770.8 ns  first/this 0.918  range 0.898-0.949  spread 1.046
+R32AB r2048   8x4x32     8s·4s·32                   6364.0 ns  first/this 0.974  range 0.939-1.006  spread 1.052
+R32AB r512    cur        16·16                      1485.5 ns  first/this 1.000  range 1.000-1.000  spread 1.053
+R32AB r512    8x32       8·32                       1539.5 ns  first/this 0.973  range 0.931-0.991  spread 1.044
+R32AB r512    32x8       32·8                       1575.1 ns  first/this 0.950  range 0.913-0.965  spread 1.034
+R32AB c128    cur        16·8                        559.0 ns  first/this 1.000  range 1.000-1.000  spread 1.164
+R32AB c128    4x32       4·32                        583.8 ns  first/this 0.963  range 0.869-1.000  spread 1.106
+R32AB c128    32x4       32·4                        612.9 ns  first/this 0.910  range 0.847-0.969  spread 1.024
+R32AB c64     cur        8·8                         350.3 ns  first/this 1.000  range 1.000-1.000  spread 1.129
+R32AB c64     2x32       2·32                        366.7 ns  first/this 0.967  range 0.941-1.153  spread 1.347
+R32AB c64     32x2       32·2                        409.8 ns  first/this 0.878  range 0.828-0.905  spread 1.134
+R32AB c96     cur        8·12                        453.9 ns  first/this 1.000  range 1.000-1.000  spread 1.092
+R32AB c96     3x32       3·32                        538.9 ns  first/this 0.848  range 0.819-0.877  spread 1.109
+R32AB c96     32x3       32·3                        640.9 ns  first/this 0.718  range 0.693-0.727  spread 1.071
+R32AB c160    cur        8·20                        709.1 ns  first/this 1.000  range 1.000-1.000  spread 1.109
+R32AB c160    5x32       5·32                        797.6 ns  first/this 0.888  range 0.839-0.922  spread 1.094
+R32AB c480    cur        5·8·12                     2404.9 ns  first/this 1.000  range 1.000-1.000  spread 1.103
+R32AB c480    15x32      15·32                      2435.1 ns  first/this 0.989  range 0.962-1.009  spread 1.075
+R32AB c480    3x5x32     3·5·32                     2694.4 ns  first/this 0.892  range 0.878-0.904  spread 1.084
+R32AB c960    cur        4·12·20                    5077.5 ns  first/this 1.000  range 1.000-1.000  spread 1.070
+R32AB c960    3x10x32    3·10·32                    5576.2 ns  first/this 0.918  range 0.889-0.958  spread 1.071
+R32AB c960    15x2x32    15·2·32                    5689.3 ns  first/this 0.893  range 0.850-0.926  spread 1.116
+R32AB c1920   cur        8·12·20                   10724.6 ns  first/this 1.000  range 1.000-1.000  spread 1.256
+R32AB c1920   15x4x32    15·4·32                   12506.0 ns  first/this 0.862  range 0.822-1.053  spread 1.053
+R32AB c1920   3x5x4x32   3·5·4·32                  12340.2 ns  first/this 0.859  range 0.843-1.063  spread 1.065
+R32AB c1000   cur        5·10·20                    5889.1 ns  first/this 1.000  range 1.000-1.000  spread 1.088
+R32AB r1024   cur        8s·4s·16                   3062.0 ns  first/this 1.000  range 1.000-1.000  spread 1.097
+PASS

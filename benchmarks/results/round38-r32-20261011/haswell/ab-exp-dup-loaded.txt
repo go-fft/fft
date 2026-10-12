@@ -1,0 +1,22 @@
+# Haswell (cfarm13), 18:33 local, ungated (another user's jobs: load ~9),
+# GOMAXPROCS=1 taskset -c 10, the experiment binary of scripts/r32exp.diff.txt
+# (its dup-twiddle half: r32PassDupAVX2, variants prefixed d), built on 75780bd.
+# Copied from the terminal: this run's file was not kept on the host.
+$ ./r32exp.test -test.run TestR32AB$ -r32.ab=7,1000000 -r32.rows="c1024:cur,32x32,d32x32;c256:cur,8x32,32x8,d32x8;c512:cur,16x32,32x16,d32x16;r2048:cur,32x32,d32x32"
+R32AB host avx2=true avx512=false intel=true split=true rounds=7 target=1000000 ns
+R32LOAD start 8.92 9.26 7.42 9/481 3856652
+R32LOAD end 8.92 9.26 7.42 13/486 3856657
+R32AB c1024   cur        8s·8s·16                   4839.8 ns  first/this 1.000  range 1.000-1.000  spread 1.065
+R32AB c1024   32x32      32·32                      5328.6 ns  first/this 0.908  range 0.890-0.958  spread 1.031
+R32AB c1024   d32x32     32·32                      5325.0 ns  first/this 0.915  range 0.889-0.974  spread 1.030
+R32AB c256    cur        16·16                      1104.0 ns  first/this 1.000  range 1.000-1.000  spread 1.064
+R32AB c256    8x32       8·32                       1094.0 ns  first/this 0.994  range 0.956-1.011  spread 1.049
+R32AB c256    32x8       32·8                       1167.3 ns  first/this 0.942  range 0.908-0.956  spread 1.024
+R32AB c256    d32x8      32·8                       1102.0 ns  first/this 0.990  range 0.941-1.019  spread 1.104
+R32AB c512    cur        8s·4s·16                   2281.2 ns  first/this 1.000  range 1.000-1.000  spread 1.063
+R32AB c512    16x32      16·32                      2368.4 ns  first/this 0.963  range 0.890-1.013  spread 1.096
+R32AB c512    32x16      32·16                      2451.0 ns  first/this 0.927  range 0.860-0.999  spread 1.101
+R32AB c512    d32x16     32·16                      2480.2 ns  first/this 0.920  range 0.887-0.938  spread 1.090
+R32AB r2048   cur        8s·8s·16                   6546.0 ns  first/this 1.000  range 1.000-1.000  spread 1.015
+R32AB r2048   32x32      32·32                      7091.9 ns  first/this 0.922  range 0.911-0.935  spread 1.036
+R32AB r2048   d32x32     32·32                      7093.0 ns  first/this 0.919  range 0.886-0.939  spread 1.057
