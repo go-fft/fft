@@ -1,0 +1,27 @@
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft/benchmarks
+cpu: AMD EPYC 7773X 64-Core Processor               
+BenchmarkComplexPlan_GoFFT/256         	   31238	     11514 ns/op
+BenchmarkComplexPlan_GoFFT/1024        	    8654	     41291 ns/op
+BenchmarkComplexPlan_GoFFT/4096        	    2124	    165056 ns/op
+BenchmarkComplexPlan_GoFFT/65536       	     139	   2590696 ns/op
+BenchmarkComplexPlan_GoFFT/1048576     	       4	  76862485 ns/op
+BenchmarkComplexPlan_GoFFT/1000        	    7411	     43357 ns/op
+BenchmarkComplexPlan_GoFFT/1080        	    7927	     48749 ns/op
+BenchmarkComplexPlan_GoFFT/1920        	    4240	     79662 ns/op
+BenchmarkComplexPlan_GoFFT/1009        	    4378	     86192 ns/op
+BenchmarkComplexPlan_GoFFT/1296        	    6367	     55170 ns/op
+BenchmarkComplexPlan_GoFFT/10007       	     346	   1023067 ns/op
+BenchmarkComplexPlan_Gonum/256         	   49455	      7208 ns/op
+BenchmarkComplexPlan_Gonum/1024        	   12996	     28574 ns/op
+BenchmarkComplexPlan_Gonum/4096        	    3199	    118822 ns/op
+BenchmarkComplexPlan_Gonum/65536       	     219	   1652890 ns/op
+BenchmarkComplexPlan_Gonum/1048576     	       9	  33905242 ns/op
+BenchmarkComplexPlan_Gonum/1000        	   12702	     28439 ns/op
+BenchmarkComplexPlan_Gonum/1080        	    9241	     32772 ns/op
+BenchmarkComplexPlan_Gonum/1920        	    5683	     53903 ns/op
+BenchmarkComplexPlan_Gonum/1009        	   11583	     32927 ns/op
+BenchmarkComplexPlan_Gonum/1296        	    8828	     34747 ns/op
+BenchmarkComplexPlan_Gonum/10007       	    1038	    302165 ns/op
+PASS

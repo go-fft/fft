@@ -1,0 +1,6 @@
+# Haswell (cfarm13), branch 28c151f: both suites with -coverpkg of both packages (bin/r32suite.sh), profiles merged (a block is covered if either run covered it).
+fft: PASS, 97.6% alone; kernels: PASS, 95.1% alone; load 9.0-10.3 (another user's jobs)
+merged: 99.98% (5073 of 5074 statements)
+uncovered:
+github.com/go-fft/fft/internal/kernels/znpass_amd64.go:224.32,224.47 1 0
+(ZnPlan.Wide: true only where AVX-512 runs, as on main; Round 36)

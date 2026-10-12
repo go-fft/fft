@@ -3137,6 +3137,261 @@ at the start and 1.09 at the end (one pinned core busy); table by
 
 Every row with both runs, the A/Bs and the scripts: [`benchmarks/results/round40-parity-n1-v0.26.1-20261011/`](benchmarks/results/round40-parity-n1-v0.26.1-20261011/) (`REPORT.md`).
 
+### Round 38 — a radix-32 pass on amd64, bit-identical and not routed: its twiddled pass loses to split radix 8; Zen 3's RFFT rows against FFTW after the tail jump (2026-10-11)
+
+**The question.** Zen 3's worst rows against FFTW were complex 1,024 (1.13),
+complex 256 (1.10) and RFFT 4,096 (1.09), and on Cascade Lake complex 1,024
+(1.20). Round 36 found FFTW doing them in two passes with 32- and 64-point
+codelets (`t2fv_32` then `n2fv_8` at 256, 32·32 at 1,024, an r2c pass then
+32·64 for RFFT 4,096) where go-fft's largest radix is 16. This round built a
+radix-32 Stockham pass (a Go pass and generated AVX2 kernels, bit-identical),
+timed every factorization with it that could replace the current ones, and
+separately took Zen 3's RFFT rows against FFTW again, which v0.25.0's untangle
+tail jump changed and nobody had re-measured. Hosts: Zen 3 (cfarm420) and
+Haswell (cfarm13, AVX2 without AVX-512), one pinned core (`GOMAXPROCS=1
+taskset -c 40` / `-c 10`), go1.27.1, main = v0.26.1 (365a1e3). Nothing here
+runs on Cascade Lake or arm64.
+
+**Bibliography.**
+- **FFTW 3.3.10's codelets** (from the generated sources' headers, the
+  tarball checked against setup.sh's SHA-256). Non-FMA counts, then the FMA
+  build's:
+
+  | codelet | additions | multiplications | FMA build (add + mul + fma) |
+  |:--|--:|--:|:--|
+  | `n1_32` (scalar) | 372 | 84 | 236 + 0 + 136 |
+  | `n1_64` (scalar) | 912 | 248 | 520 + 0 + 392 |
+  | `t1_32` (scalar) | 434 | 208 | 236 + 62 + 198 |
+  | `n1fv_32` (SIMD) | 186 | 42 | 88 + 0 + 98 |
+  | `t1fv_32` / `t2fv_32` (SIMD) | 217 | 104 | 119 + 62 + 98 |
+  | `n1fv_64` / `t1fv_64` (SIMD) | 456 / 519 | 124 / 250 | 198 + 0 + 258 / 261 + 126 + 258 |
+
+  `n1_32`'s 456 operations and `n1_64`'s 1,160 are exactly the split-radix
+  count 4n·log2 n − 6n + 8: genfft (Frigo, PLDI 1999) reaches it for powers of
+  two by simplifying a Cooley–Tukey DAG, and schedules the DAG for register
+  pressure (its "cache-oblivious" schedule, which makes the spills, not their
+  count, the compiler's business). Per point and bit the twiddled SIMD
+  codelets cost the same at every size (`t1fv_8` 2.04 vector operations,
+  `t1fv_16` 2.02, `t1fv_32` 2.01, `t1fv_64` 2.00; Round 19 counted the first
+  two): a larger codelet saves passes, not arithmetic.
+- **Registers.** `n1fv_32` has 58 and `t1fv_32` 59 SIMD temporaries in
+  genfft's output; on AVX2 the compiler gets 16 YMM registers for them.
+  Round 19's radix-16 kernel already spilled 8 of its 16 stage-1 values.
+- **BENCHMARKS.md Rounds 19, 32, 34 and 36.** Round 19 measured radix 16 and
+  concluded that the gap at 256 and 1,024 is FFTW's fused twiddle products,
+  which bit identity closes to this library; Round 32 put the 2- and
+  3-pass transforms up to 512 points in the kernels' frame and left 256 as
+  4·8·8 (16·16 tied it); Round 34 has no section here, only its results directory (two Zen 3
+  parity runs of v0.23.0, ending at load 3.2 and 3.7, the run's own core
+  included); Round 36 timed eleven radix orders
+  of RFFT 4,096's half without a gain.
+
+**1. The pass (kept, not routed).** `radix32.go` holds the Go reference
+(`bfly32`, `pass32`, `pass32last`): the 8×4 split, four radix-8 butterflies
+(the existing `bfly8`) over the inputs n2 + 4·n1, the internal twiddles
+W32^(n2·k1) (e = 8 the exact `rotS`, the twenty others `radix16Rot` with
+cos and sin of πe/16 taken, sign and all, from a table of cos(kπ/16), k = 0..8),
+then eight radix-4 butterflies whose outputs k1 + 8·k2 take the pass's
+twiddles. go-asmgen v0.16.0 generates `skPass32AVX2` and `skLast32AVX2`
+(`genR32File`, `r32_amd64.s`); no go-asmgen change was needed.
+- **Where the values between the stages go.** 16 YMM registers hold one
+  radix-8 butterfly and its scratch, not 32 values. Stage 1 stores V[n2][k1]
+  in output slot k1 + 8·n2, and stage 2's butterfly k1 reads slots k1, k1+8,
+  k1+16, k1+24 and writes its four outputs back to the same slots, so the
+  kernels need no spill frame (16 bytes of loop counters, none in the final
+  pass), touch no cache line they do not write anyway, and are NOSPLIT
+  leaves. The last radix-8 butterfly's outputs, V[3][0..7], stay in
+  registers through stage 2 (`r32Keep`): 24 of the 32 values go through
+  memory. A Stockham pass is out of place, except the single pass of a
+  one-pass transform run in place (`skPlan.run`), so `StockhamPass` hands
+  that one (r = 32, `&cc[0] == &ch[0]`) to the Go pass, which reads its block
+  first; the first run of `TestR32TransformMatchesScalar` caught it (factors
+  [32] in place).
+- **Operations**, counted from the generated code per butterfly (32 points
+  in each of the two lanes): the twiddled pass 469 FP-port operations
+  (110 multiplications, 104 additions, 84 subtractions, 31 add-subtracts,
+  111 lane permutes, 29 sign flips; 1.47 per value and bit, against 1.52
+  for radix 8 and 1.36 for radix 16 in Round 19's table) plus 31 twiddle
+  loads; the final pass 314 (0.98 per value and bit; radix 8 0.79, radix 16
+  0.89) plus the 32 lane inserts that gather two blocks. Without the permutes and sign flips, which genfft does not count,
+  that is 329 additions and multiplications where `t1fv_32` has 321, and
+  236 where `n1fv_32` has 228: the butterfly's arithmetic is FFTW's
+  non-FMA codelet's. What FFTW then saves is the fused products (279
+  operations with FMA) and the interleaved layout's shuffles, which this
+  pass pays in full (111 permutes and 29 flips are 30% of its operations).
+- **Twiddles** are `StockhamTwiddles`' table, not radix 16's pre-duplicated
+  one: the duplicated table was built and timed on both hosts (in one
+  process, `zen3/ab-exp1.txt`, `haswell/ab-exp-dup-loaded.txt`,
+  `scripts/r32exp.diff.txt`, both at load 2.3 and 9); at 1,024 points it
+  changed nothing (Zen 3 0.83 against 0.79 of the current plan, Haswell 0.92
+  against 0.91, inside the runs' spreads), and it doubles a table
+  that is 15.5 KB at 1,024.
+
+**Bit identity and tests.** `TestR32EachPassMatchesScalar` runs the kernel
+itself (through `kernels.StockhamPass`, so that a pass falling back to Go
+cannot pass) against the Go pass, output for output, for l1 ∈ {1, 2, 3, 4, 5,
+9} and ido ∈ {1 … 9, 12, 13, 16, 17, 33}, both directions, on Round 19's
+seven signals (signed zeros, ±1, subnormals); `TestR32TransformMatchesScalar`
+21 whole factorizations (radix 32 first, last, between, beside 2, 3, 4, 5,
+7, 8, 9 and 16), in place and not; `TestR32AgainstNaive` and `TestR32GoPass`
+hold the transforms and the Go pass to an O(N²) DFT whose angles are reduced
+exactly (k·j mod n: the package's `naiveDFT` is off by 1e-9 at 4,096 points
+from its unreduced angles, which the first run of these tests tripped on);
+`TestR32Butterfly`, `TestR32Trig`, `TestR32Table` (r32Table is consulted first,
+as a copy) and `TestR32Columns` (an N-D plan's strided axes take the
+factorization without radix 32, `compTakes16`). All pass on Haswell and
+Zen 3. Twenty-one mutations, each built and run on Haswell
+(`haswell/mutants.txt`), all fail: in the generator, the ss row of the
+next exponent, the e = 8 rotation dropped, stage 2's slots swapped, the
+second input base 8·S instead of 16·S, the next block 29·S instead of 31·S,
+the register kept for the wrong k1, k1 = 1's internal twiddle skipped, the
+first pair's blend, the odd-ido and odd-l1 tails, the final pass's block
+stride, the twiddle group advance; in the kernels package the in-place
+guard, radix 32 left out of `stockhamSIMD`, the constant rows' cos and sin
+swapped, a sign in their table; in the fft package a sign in `r32Cos`, the
+twiddle index, `rotS` at e = 9 (these three also on arm64, where no kernel
+runs, by `TestR32Trig`, `TestR32AgainstNaive`, `TestR32Butterfly`),
+`compTakes16` without 32 and `r32Table` not consulted. One change has no
+test that can fail: leaving 32 out of `newSKPlanFactors`' list of radices
+with a butterfly of their own only builds the general pass's root table,
+which `pass32` never reads.
+
+**Accuracy against numpy on the exact bytes** (`TestR32Export`,
+`scripts/r32_accuracy.py` = Round 36's checker, numpy 2.5.3 on Zen 3,
+`zen3/accuracy.txt`): twelve complex transforms routed through radix-32
+plans (32, 64 … 4,096 and 96, 480, 3,072, 160) and three RFFT/IRFFT pairs whose
+half takes 8·32, 32·32 or 2·32·32: worst error relative to the largest
+output 4.4e-16 (FFT), 5.5e-16 (IFFT), 3.7e-16 (RFFT), 4.5e-16 (IRFFT),
+against a 1e-14 bound; one byte planted in each output fails every check.
+
+**2. Every factorization with radix 32, timed (none kept).** Whole
+transforms through the exported plans, each variant handed to
+`skFactorize` through `r32Table`, so that the plan is the one the library
+would build (split layouts, frame kernels and scratch gap included), nine
+rounds in one process, the variant order rotated, 2 ms per sample
+(`TestR32AB`, `r32_bench_amd64_test.go`). Current plan's time ÷ the
+variant's, median (per-round range); s marks a split pass, +zn the frame:
+
+| | Zen 3 (load 2.3 at start and end) | Haswell (load 15–23, see below) |
+|:--|:--|:--|
+| complex 1,024: current | 8s·8s·16, 1,770 ns | 8s·8s·16, 4,703 ns |
+| 32·32 / 4·8·32 / 8·4·32 / 32·8·4 | 0.854 / 0.921 / 0.894 / 0.748 | 0.871 / 0.939 / 0.969 / 0.772 |
+| complex 256: current | 4s·8s·8+zn, 313 ns | 16·16, 1,029 ns |
+| 8·32 / 32·8 | 0.808 / 0.643 | 0.954 / 0.931 |
+| complex 512: 16·32 / 32·16 | 0.792 / 0.743 | 0.984 / 0.967 |
+| complex 2,048: 2·32·32 / 8·8·32 / 4·16·32 | 0.850 / 0.860 / 0.821 | 0.818 / **1.024** (0.949–1.055) / 0.928 |
+| complex 4,096: 4·32·32 / 8·16·32 / 16·8·32 | 0.420 / 0.452 / 0.406 | 0.667 / 0.766 / 0.695 |
+| RFFT 4,096: 2·32·32 / 8·8·32 / 4·16·32 | 0.898 / 0.908 / 0.874 | 0.858 / **1.017** (0.984–1.051) / 0.951 |
+| RFFT 2,048: 32·32 / 8·4·32 | 0.908 / 0.985 | 0.918 / 0.974 |
+| RFFT 512: 8·32 / 32·8 | 0.792 / 0.720 | 0.973 / 0.950 |
+| complex 128: 4·32 / 32·4; 64: 2·32 / 32·2 | 0.764 / 0.682; 0.711 / 0.535 | 0.963 / 0.910; 0.967 / 0.878 |
+| complex 96: 3·32 / 32·3; 160: 5·32 | 0.603 / 0.525; 0.718 | 0.848 / 0.718; 0.888 |
+| complex 480: 15·32 / 3·5·32; 960: 3·10·32 / 15·2·32 | 0.819 / 0.849; 0.898 / 0.867 | 0.989 / 0.892; 0.918 / 0.893 |
+| complex 1,920: 15·4·32 / 3·5·4·32 | 0.724 / 0.939 | 0.862 / 0.859 |
+
+- **Zen 3**: every variant lost, by 1.5% (RFFT 2,048 as 8·4·32, a tie) to
+  2.5× (complex 4,096, where the 32 streams of a pass n/32 points apart fall
+  into the same L1 sets, Round 19's 4 KB conflict with twice the streams).
+  This VM's samples spread by up to 2× in this run (other users' load), but
+  every median is below 1; eleven of the 34 variants have a round above 1,
+  all of them variants whose median lost by 1.5–18%.
+- **Haswell**: the A/B was to wait for a one-minute load below 2, and that
+  never came: another user's compiler test suite kept it at 9–23 from 18:14
+  (the gated run waited from 18:43 to 20:01 and was stopped). The column
+  is one ungated run at load 15–23
+  (`haswell/ab-loaded1.txt`), its ratios taken in one process; two rows
+  read above 1, complex 2,048 and RFFT 4,096 as 8·8·32, by 2.4% and 1.7%
+  with per-round ranges across 1. Neither is a real margin, and neither was
+  confirmed on a calm host, so neither is routed.
+
+**3. Where it loses: the twiddled pass, not the spill.** Each pass alone
+on Zen 3 (`TestR32Passes`, nine rotated rounds, `zen3/passes1.txt`), ns per
+point and bit: the twiddled radix-32 pass at 1,024 points (ido 32) 0.255,
+against 0.179 and 0.166 for the split radix-8 passes it would replace
+(1.4–1.5×); the final radix-32 pass 0.155, the final radix-16 pass 0.157,
+the final radix-8 pass at 256 points 0.138. 32·32 so sums to 2,100 ns
+against 1,704 for 8·8·16's passes, and 8·32 at 256 points to 344 against
+330 for 4·8·8 (which then runs in the frame). The values passed through
+memory are not the cause: a timing-only kernel with the spill stores
+removed and stage 2 reading independent addresses instead
+(`scripts/r32exp.diff.txt`, wrong results, `zen3/spill1.txt`) ran the
+twiddled pass at 1,024 2% faster, at 2,048 6%, 256 = 32·8's 7%, and the
+final passes at 1,024 and 256 0–4% faster; only the final pass with l1 = 64
+(2,048 points) gained 14–24%, its 32 slots 1 KB apart, every fourth one in
+the same 4 KB set. So the 16-register limit costs a few percent, not the
+20–25% the pass is behind: the interleaved layout's shuffles (above) are,
+against passes that run split (Round 23).
+
+**What was not done.**
+- **A split-layout radix-32 pass.** It would remove most of the shuffles;
+  its butterfly needs two registers per pair of values, so twice the spills
+  measured above, and Round 23's split radix-8 passes are already what this
+  pass loses to. Not built.
+- **Radix 32 in the frame kernels** (`ZnPlanFor` refuses radices above 20):
+  the only frame candidates, 64 and 128 points and 256 as 8·32, lost by more
+  than the frame saves (Round 32: about 16 ns).
+- **AVX-512 and arm64**: no 512-bit or NEON radix-32 kernel; no length takes
+  radix 32 anywhere (`r32Table` is empty), so Cascade Lake and arm64 run
+  what they ran.
+- **FMA**: what FFTW's codelets save over this pass's arithmetic is fused
+  products, which the kernels' bit identity with the `GOAMD64=v1` Go passes
+  excludes (Round 19).
+
+**4. Zen 3's RFFT rows against FFTW at v0.26.1 (measurement; no change).**
+v0.25.0's untangle tail jump (Round 35 §6) makes `Untangle` and `Retangle`
+one call instead of two on every CPU without AVX-512, and Zen 3's RFFT rows
+had not been taken against FFTW since. The parity harness of v0.26.1
+(365a1e3), cross-compiled with go1.27.1 by Round 36's `pkgparity.sh`
+(`benchmarks/remote/run.sh` patched to run in its own directory), its two
+binaries checked by SHA-256 on the host before every run (`main.sha`), core
+40, five runs back to back by `parity38.sh`, each waiting for a one-minute
+load below 2.5 and flagged when it ended above 3.5 (the run's own core
+included). Runs 1–3 ended at 3.71, 3.89 and 4.21 and were rerun; runs 4 and
+5 started at 2.43 and 2.41 and ended at 3.16 and 3.07 (`zen3/parity/runs*.log`;
+24/24 correct in all five). go-fft from runs 4 and 5, FFTW the median of its
+five times, by `current-numbers-v0.26.0/partab.go.txt`
+(`zen3/parity/partab-par45.txt`; all five runs: `partab-all5.txt`):
+
+| | Round 36 (v0.23.1 + Round 36) | v0.26.1 | go-fft ns, Round 36 → now | FFTW ns, Round 36 → now |
+|:--|--:|--:|:--|:--|
+| RFFT 256 | 1.051 | 1.067 | 237 → 240 | 226 → 225 |
+| RFFT 1,024 | **1.047** | **1.040** | 1,009 → 1,024 | 964 → 985 |
+| RFFT 4,096 | 1.085 | **1.047** | 5,722 → 5,624 | 5,271 → 5,372 |
+| RFFT 65,536 | **0.890** | **0.956** | 138,438 → 149,569 | 155,626 → 156,471 |
+| RFFT 1,048,576 | **0.784** | **0.772** | 2,954,656 → 2,951,212 | 3,768,595 → 3,820,464 |
+| RFFT 1,000 | **0.892** | **0.950** | 1,159 → 1,203 | 1,300 → 1,267 |
+| RFFT 1,080 | 1.061 | **1.016** | 1,412 → 1,397 | 1,331 → 1,375 |
+| RFFT 1,920 | **0.991** | **1.034** | 2,423 → 2,470 | 2,445 → 2,388 |
+| untouched: complex 256 / 1,024 / 4,096 | 1.101 / 1.133 / 0.895 | 1.127 / 1.127 / 0.874 | 307 / 1,760 / 9,582 → 316 / 1,728 / 9,489 | |
+
+The RFFT rows moved by −4.2% to +7.4% in ratio, in both directions, and the
+complex rows the tail jump does not touch by −2.3% to +7.2% (1,920: 0.979 →
+1.049); go-fft's own two runs differ by up to 14% on one row (RFFT 65,536:
+159.3 and 139.8 µs). The tail jump's 1.5% (Round 37, Haswell) is inside this
+measurement's spread, so these runs neither confirm nor refute it on Zen 3.
+Within 5% of FFTW or faster: 20 of 24 rows (Round 36: 18), faster on 15
+(17); faster than numpy.fft and scipy.fft on 24 of 24 in both runs. Still
+behind by more than 5%: complex 256 (1.127), 1,024 (1.127), 1,080 (1.067),
+RFFT 256 (1.067).
+
+**Correctness of the branch.** Both packages' suites pass on Haswell and Zen
+3, every statement covered across their merged profiles but `ZnPlan.Wide`,
+true only where AVX-512 runs (as on main; `haswell/suites.txt`,
+`zen3/suites.txt`), and the race-enabled coverage gate of `ci.yml` reads
+100.0% on arm64 (Apple M4); gofmt clean; `go vet` clean for amd64 at
+`GOAMD64` v1 and v3 and for arm64. Every `.s` file regenerates: all but the
+new `r32_amd64.s` unchanged.
+
+**Which main.** v0.26.1 (365a1e3) for every measurement; the A/B binaries
+are the branch at 75780bd (`r32br.test`, SHA-256 in each file), whose
+`r32Table` was already empty, so their current plans are v0.26.1's. The
+branch was then rebased onto v0.26.2 (8bb6d09, Round 40: documentation and
+results only, no code).
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round38-r32-20261011/`](benchmarks/results/round38-r32-20261011/).
+
+*Coordinator's note (2026-10-12):* the radix-32 pass described here was **not merged**: no length is routed to it, so shipping it would add assembly to maintain and audit for nothing. The code stays on branch `perf-r32x-r38` (PR #71) for reference; this section and `benchmarks/results/round38-r32-20261011/` keep the measurements. The `FuzzPublicAPI` failure this round saw on CI was not a flake: it was the Intel AVX-512 N-D defect fixed in v0.26.3 (#73).
+
 ### Round 37 — Haswell's RFFT across releases, its N-D rows and e = 11 composites; Neoverse-N1's last two rows behind FFTW (2026-10-11)
 
 **The question.** Four items: (1) on Haswell, the RFFT and IRFFT rows Round 29

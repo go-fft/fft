@@ -1,0 +1,21 @@
+#!/bin/sh
+# parity38.sh CORE NAME...: the parity harness for each run NAME (each a copy of
+# parity-main.tgz, v0.26.1), pinned, back to back, each in a fresh directory
+# (run-remote.sh patched to run in its own directory), its binaries checked
+# against the SHA-256 recorded locally (main.sha) first. Each run starts only
+# when the 1-minute load is below 2.5 and is flagged when it ends above 3.5.
+C=$1; shift
+cd ~/r38par
+for d in "$@"; do
+  mkdir $d || exit 1
+  tar xzf parity-main.tgz -C $d 2>/dev/null
+  (cd $d/runpkg && sha256sum -c ../../main.sha) || exit 1
+  ~/r38/r32calm.sh 2.5 5400 true || exit 1
+  echo "# $d start $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg)"
+  GOV=go1.27.1 FFTW_DESC="3.3.10 built from source by setup.sh" taskset -c $C sh $d/runpkg/run-remote.sh amd64 "AMD EPYC 7773X (Zen 3), cfarm420" > $d/parity.log 2>&1
+  rc=$?
+  l=$(cut -d' ' -f1 /proc/loadavg)
+  echo "# $d exit $rc end $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg)"
+  if awk -v l="$l" 'BEGIN{exit !(l>3.5)}'; then echo "# $d LOADED at end: rerun"; fi
+done
+echo END

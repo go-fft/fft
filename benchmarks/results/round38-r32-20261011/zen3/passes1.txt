@@ -1,0 +1,28 @@
+R32CALM go after 195s: 2.45 3.22 3.26 3/1312 1267964
+R32LOAD start 2.45 3.22 3.26 3/1313 1267989
+R32LOAD end 2.45 3.22 3.26 3/1313 1268026
+R32PASS 1024:32x32 pass 0 (r32 ido 32 split 0)               1305.2 ns  spread 1.541
+R32PASS 1024:32x32 pass 1 (r32 ido 1 split 0)                 794.5 ns  spread 1.315
+R32PASS 1024:8x8x16 pass 0 (r8 ido 128 split 1)               551.1 ns  spread 1.367
+R32PASS 1024:8x8x16 pass 1 (r8 ido 16 split 3)                510.8 ns  spread 1.334
+R32PASS 1024:8x8x16 pass 2 (r16 ido 1 split 0)                641.7 ns  spread 1.351
+R32PASS 1024:4x8x32 pass 0 (r4 ido 256 split 1)               500.9 ns  spread 1.343
+R32PASS 1024:4x8x32 pass 1 (r8 ido 32 split 3)                513.5 ns  spread 1.351
+R32PASS 1024:4x8x32 pass 2 (r32 ido 1 split 0)                780.0 ns  spread 1.380
+R32PASS 256:8x32 pass 0 (r8 ido 32 split 4)                   153.5 ns  spread 1.388
+R32PASS 256:8x32 pass 1 (r32 ido 1 split 0)                   189.9 ns  spread 1.047
+R32PASS 256:32x8 pass 0 (r32 ido 8 split 0)                   291.9 ns  spread 1.092
+R32PASS 256:32x8 pass 1 (r8 ido 1 split 0)                    102.8 ns  spread 1.088
+R32PASS 256:4x8x8 pass 0 (r4 ido 64 split 1)                   95.3 ns  spread 1.079
+R32PASS 256:4x8x8 pass 1 (r8 ido 8 split 3)                   128.9 ns  spread 1.033
+R32PASS 256:4x8x8 pass 2 (r8 ido 1 split 0)                   106.1 ns  spread 1.070
+R32PASS 256:16x16 pass 0 (r16 ido 16 split 0)                 201.6 ns  spread 1.077
+R32PASS 256:16x16 pass 1 (r16 ido 1 split 0)                  156.3 ns  spread 1.035
+R32PASS 2048:8x8x32 pass 0 (r8 ido 256 split 1)              1535.2 ns  spread 1.382
+R32PASS 2048:8x8x32 pass 1 (r8 ido 32 split 3)               1223.0 ns  spread 1.313
+R32PASS 2048:8x8x32 pass 2 (r32 ido 1 split 0)               2125.5 ns  spread 1.320
+R32PASS 2048:8x8x8x4 pass 0 (r8 ido 256 split 1)             1531.7 ns  spread 1.275
+R32PASS 2048:8x8x8x4 pass 1 (r8 ido 32 split 2)              1119.3 ns  spread 1.305
+R32PASS 2048:8x8x8x4 pass 2 (r8 ido 4 split 3)               1157.6 ns  spread 1.390
+R32PASS 2048:8x8x8x4 pass 3 (r4 ido 1 split 0)                761.0 ns  spread 1.195
+PASS
