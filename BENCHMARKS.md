@@ -3364,6 +3364,12 @@ go-fft ÷ FFTW (go-fft's time, main → branch):
   explained. This VM has no PMU.
 - **Complex 1080, 1920 and 65,536 and RFFT 65,536** are unchanged (§4).
 
+**Rebased onto v0.26.3** (`5b7ff9c`). That release adds Round 40 (measurement only) and #73. #73 lets
+`initScratch` swap an axis plan only where `stockhamCovers(n)`. This round keeps that guard: the wide
+strips only change the width of axes that already run as strips. Every measurement above is on
+v0.26.1. After the rebase, both packages' suites pass on cfarm151 with the merged profile at
+100.0% there and on arm64. `go vet` is clean as above, and all 21 `.s` files regenerate unchanged.
+
 Raw data, scripts and per-row ratios: [`benchmarks/results/round39-cascade-20261011/`](benchmarks/results/round39-cascade-20261011/).
 
 ### Round 40 — Neoverse-N1 parity at v0.26.1 (2026-10-11)
