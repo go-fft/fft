@@ -335,18 +335,21 @@ what was tried and dropped:
 
 ### Remaining
 
-- **Small powers of two on amd64** (v0.26.0, BENCHMARKS.md "Current numbers"):
-  complex 256 1.10× FFTW on Zen 3 and 1.04× on Cascade Lake, complex 1,024
-  1.13× and 1.20×, and on Zen 3 RFFT 256 and 4,096 (1.051×, 1.09×). FFTW does
+- **Small powers of two on amd64** (v0.27.0, BENCHMARKS.md "Current numbers"):
+  complex 256 1.10× FFTW on Zen 3 and 1.052× on Cascade Lake, complex 1,024
+  1.13× and 1.19×, and on Zen 3 RFFT 256 and 4,096 (1.051×, 1.09×). FFTW does
   complex 256 and 1,024 and RFFT 4,096 in two passes with 32- and 64-point
-  codelets; go-fft has no radix-32 pass. Neoverse-N1 is faster than FFTW on all
-  24 rows since v0.24.0 (RFFT 256 0.991×, RFFT 1,080 0.995×).
-- **Zen 3:** complex and RFFT 1,080 (1.08×, 1.06×). Its RFFT rows have not been
-  re-measured against FFTW since v0.25.0's untangle tail jump.
-- **Cascade Lake:** the composites 1,000–1,920 (1.07–1.13×; complex 1,296 is
-  1.07× since v0.25.0's radix-9 passes), complex and RFFT 65,536 (1.07×,
-  1.11×) and 2-D 64² (1.19×). The 2-D 1024² regression of v0.19.0 is fixed in
-  v0.22.0 (Round 31).
+  codelets. Round 38 built a bit-identical radix-32 pass for amd64; it lost to
+  split radix 8 wherever it was timed and was not shipped. Neoverse-N1 is
+  faster than FFTW on all 24 rows since v0.24.0 (re-measured at v0.26.1:
+  RFFT 256 0.998×, RFFT 1,080 0.994×).
+- **Zen 3:** complex and RFFT 1,080 (1.08×, 1.06×). Round 38 re-measured its
+  RFFT rows against FFTW at v0.26.1, after v0.25.0's untangle tail jump: they
+  moved within that measurement's spread.
+- **Cascade Lake:** the composites 1,000–1,920 (1.10–1.13×), complex and RFFT
+  65,536 (1.08×, 1.09×). Every 2-D row is faster than FFTW since v0.27.0
+  (Round 39). The 2-D 1024² regression of v0.19.0 is fixed in v0.22.0
+  (Round 31).
 - **Haswell** (Intel AVX2-only) was measured in Rounds 29 and 37 (v0.21.0,
   v0.24.0), but it has no FFTW, so its ratio to FFTW is unknown; v0.25.0's
   untangle tail jump, which addresses the ~1.5% Round 37 measured on RFFT 256
