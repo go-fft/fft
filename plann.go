@@ -114,7 +114,13 @@ func (p *PlanN) initScratch() {
 	bl := lineBlock * (p.maxLen + linePad)
 	p.strips = make([][][2][]complex128, len(p.shape))
 	for ax, n := range p.shape {
-		if ax < len(p.shape)-1 && p.axes[ax] != nil && (compTakes16(n) || intelStripOrder[n]) {
+		// Only a length a Stockham plan covers is swapped: one with a prime
+		// factor no pass handles (9·19 = 171) runs Rader or Bluestein, and its
+		// factorization lists only the smooth part. On Intel with AVX-512,
+		// where Round 35 merges 3·3 into 9, compTakes16(171) became true and
+		// the axis got a "Stockham" plan of 9 points' factors for 171 points:
+		// 120 of the lengths up to 2000 transformed wrongly (v0.25.0–v0.26.2).
+		if ax < len(p.shape)-1 && p.axes[ax] != nil && stockhamCovers(n) && (compTakes16(n) || intelStripOrder[n]) {
 			p.axes[ax] = cachedPlanNo16(n)
 		}
 		if ax == len(p.shape)-1 && p.axes[ax] != nil {

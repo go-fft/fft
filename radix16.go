@@ -1,5 +1,7 @@
 package fft
 
+import "fmt"
+
 // Radix-16 Stockham passes (Round 19). A radix-16 pass does the work of two
 // radix-4 passes in one trip through memory, and its 16-point butterfly needs
 // fewer operations than the two passes it replaces: 15 twiddle products per 16
@@ -37,13 +39,32 @@ func cachedPlanNo16(n int) *Plan {
 	defer planMu.Unlock()
 	p, ok := planNo16Cache[n]
 	if !ok {
-		p = &Plan{n: n, sk: newSKPlanFactors(n, skFactorizeOrder(n, compOddFirst))}
+		f := skFactorizeOrder(n, compOddFirst)
+		if prod := factorProduct(f); prod != n {
+			// A plan whose passes do not multiply to n transforms the wrong
+			// length silently; refuse it loudly instead.
+			panic(fmt.Sprintf("fft: internal: no-16 factorization of %d multiplies to %d", n, prod))
+		}
+		p = &Plan{n: n, sk: newSKPlanFactors(n, f)}
 		planNo16Cache[n] = p
 	}
 	return p
 }
 
 var planNo16Cache = map[int]*Plan{}
+
+// stockhamCovers reports whether skFactorizeOrder's passes multiply to n,
+// that is whether a Stockham plan without radix 16 can transform n points.
+func stockhamCovers(n int) bool { return factorProduct(skFactorizeOrder(n, compOddFirst)) == n }
+
+// factorProduct is the product of a factorization's radices.
+func factorProduct(f []int) int {
+	p := 1
+	for _, r := range f {
+		p *= r
+	}
+	return p
+}
 
 // cos and sin of π/8, the radix-16 butterfly's constants (with hsqt2).
 const (
