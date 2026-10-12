@@ -53,6 +53,10 @@ func cachedPlanNo16(n int) *Plan {
 
 var planNo16Cache = map[int]*Plan{}
 
+// stockhamCovers reports whether skFactorizeOrder's passes multiply to n,
+// that is whether a Stockham plan without radix 16 can transform n points.
+func stockhamCovers(n int) bool { return factorProduct(skFactorizeOrder(n, compOddFirst)) == n }
+
 // factorProduct is the product of a factorization's radices.
 func factorProduct(f []int) int {
 	p := 1
