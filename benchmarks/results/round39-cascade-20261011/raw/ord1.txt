@@ -1,0 +1,47 @@
+# start 17:03:24 load 0.68 0.87 0.63 sha cc8a2b8c5c451c33 : ./br.test -test.run ^TestR26AB$ -r26.ab=9,100 -r26.sets=1080:rule,9x12x10,12x9x10,10x9x12,9x10x12,3x3x10x12,9x3x10x4,9x5x4x6,15x8x9,9x15x8,9x8x15,3x9x8x5,9x4x5x6,5x9x4x6,9x5x8x3,3x5x9x8,20x9x6,9x20x6,9x6x20,12x10x9,4x9x3x10,8x9x15;1920:rule,15x8x16,8x15x16,16x8x15,12x8x20,20x8x12,8x20x12,16x12x10,10x12x16,12x10x16,15x16x8,5x3x8x16,3x5x8x16,3x5x16x8,5x4x8x12,3x4x8x20,15x4x4x8,15x8x4x4,15x4x8x4,10x12x16,20x12x8,12x16x10
+AB 1080 9x10x12                3449.6 ns  first/this 1.000  spread 1.000
+AB 1080 9x12x10                3448.2 ns  first/this 1.000  spread 1.029
+AB 1080 12x9x10                3560.5 ns  first/this 0.984  spread 1.103
+AB 1080 10x9x12                3458.7 ns  first/this 0.994  spread 1.081
+AB 1080 9x10x12                3450.0 ns  first/this 1.001  spread 1.091
+AB 1080 3x3x10x12              3792.1 ns  first/this 0.910  spread 1.141
+AB 1080 9x3x10x4               4006.9 ns  first/this 0.861  spread 1.117
+AB 1080 9x5x4x6               25215.0 ns  first/this 0.136  spread 1.125
+AB 1080 15x8x9                 3777.5 ns  first/this 0.918  spread 1.156
+AB 1080 9x15x8                 3605.0 ns  first/this 0.966  spread 1.110
+AB 1080 9x8x15                 3635.7 ns  first/this 0.960  spread 1.126
+AB 1080 3x9x8x5                4116.7 ns  first/this 0.836  spread 1.127
+AB 1080 9x4x5x6               25641.2 ns  first/this 0.135  spread 1.095
+AB 1080 5x9x4x6               25312.1 ns  first/this 0.138  spread 1.066
+AB 1080 9x5x8x3                4282.6 ns  first/this 0.808  spread 1.111
+AB 1080 3x5x9x8                3863.5 ns  first/this 0.895  spread 1.114
+AB 1080 20x9x6                25001.1 ns  first/this 0.139  spread 1.111
+AB 1080 9x20x6                25117.4 ns  first/this 0.138  spread 1.086
+AB 1080 9x6x20                25622.4 ns  first/this 0.134  spread 1.052
+AB 1080 12x10x9                3817.6 ns  first/this 0.911  spread 1.061
+AB 1080 4x9x3x10               4027.1 ns  first/this 0.851  spread 1.046
+AB 1080 8x9x15                 3845.9 ns  first/this 0.897  spread 1.044
+AB 1920 8x12x20                5407.6 ns  first/this 1.000  spread 1.000
+AB 1920 15x8x16                6158.6 ns  first/this 0.877  spread 1.020
+AB 1920 8x15x16                5924.0 ns  first/this 0.916  spread 1.017
+AB 1920 16x8x15                6457.1 ns  first/this 0.838  spread 1.029
+AB 1920 12x8x20                5505.6 ns  first/this 0.982  spread 1.028
+AB 1920 20x8x12                5710.8 ns  first/this 0.946  spread 1.108
+AB 1920 8x20x12                5654.3 ns  first/this 0.965  spread 1.026
+AB 1920 16x12x10               5943.9 ns  first/this 0.918  spread 1.028
+AB 1920 10x12x16               5811.2 ns  first/this 0.931  spread 1.060
+AB 1920 12x10x16               5830.5 ns  first/this 0.927  spread 1.047
+AB 1920 15x16x8                6242.9 ns  first/this 0.867  spread 1.034
+AB 1920 5x3x8x16               6494.8 ns  first/this 0.833  spread 1.050
+AB 1920 3x5x8x16               6622.2 ns  first/this 0.820  spread 1.050
+AB 1920 3x5x16x8               6680.0 ns  first/this 0.818  spread 1.026
+AB 1920 5x4x8x12               6023.3 ns  first/this 0.894  spread 1.047
+AB 1920 3x4x8x20               6092.3 ns  first/this 0.890  spread 1.041
+AB 1920 15x4x4x8               6415.5 ns  first/this 0.840  spread 1.063
+AB 1920 15x8x4x4               6837.8 ns  first/this 0.790  spread 1.128
+AB 1920 15x4x8x4               6882.3 ns  first/this 0.786  spread 1.038
+AB 1920 10x12x16               5854.0 ns  first/this 0.932  spread 1.018
+AB 1920 20x12x8                5732.0 ns  first/this 0.941  spread 1.164
+AB 1920 12x16x10               5818.9 ns  first/this 0.932  spread 1.024
+PASS
+# end 17:05:07 load 0.94 0.91 0.67

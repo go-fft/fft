@@ -1,0 +1,11 @@
+==> covf.log <==
+PASS
+coverage: 98.9% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+
+==> covk.log <==
+PASS
+coverage: 95.2% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+b0df0b3e50d6a6c4122505583ce4dbaf776ca690340fc5ab4e283c0608e7a103  covf.test
+881f68d398f99edb439dba9602133d052753e5570c7154f74cbd0147918d0f48  covk.test
+ce6b947cd01b630b8ef5298253383cd2dcc7823adbcdcc755ea7ea2eb5298684  br2.test
+total:									(statements)			100.0%

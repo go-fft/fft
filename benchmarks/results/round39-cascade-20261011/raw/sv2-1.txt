@@ -1,0 +1,40 @@
+# start 16:37:10 load 0.43 0.30 0.26 sha 820c29f9455079f4 : ./cl3a.test -test.run ^TestCl3StripVars$ -cl3.ab=9,100 -cl3.vars=16,32,64,32g -cl3.shapes=512x512,512x1024,512x256,256x512,512x64,8x512x512
+STRIPVAR 512x512   16       3239280 ns [  3106603   3358344]  ref/this 1.000 [1.000 1.000]
+STRIPVAR 512x512   32       2411782 ns [  2258711   2629579]  ref/this 1.360 [1.224 1.434]
+STRIPVAR 512x512   64       1389709 ns [  1335314   1455232]  ref/this 2.355 [2.211 2.426]
+STRIPVAR 512x512   32g      2005613 ns [  1903800   2199059]  ref/this 1.616 [1.463 1.707]
+STRIPVAR 512x1024  16       6962341 ns [  6922127   6993574]  ref/this 1.000 [1.000 1.000]
+STRIPVAR 512x1024  32       5760331 ns [  5698514   5855802]  ref/this 1.209 [1.182 1.222]
+STRIPVAR 512x1024  64       3831502 ns [  3623049   3921574]  ref/this 1.824 [1.774 1.916]
+STRIPVAR 512x1024  32g      5799378 ns [  5653104   5916541]  ref/this 1.199 [1.173 1.232]
+STRIPVAR 512x256   16        634441 ns [   614612    668158]  ref/this 1.000 [1.000 1.000]
+STRIPVAR 512x256   32        620769 ns [   615107    641885]  ref/this 1.019 [0.994 1.063]
+STRIPVAR 512x256   64        671737 ns [   667074    678613]  ref/this 0.941 [0.914 1.002]
+STRIPVAR 512x256   32g       738284 ns [   732828    746128]  ref/this 0.860 [0.833 0.897]
+STRIPVAR 256x512   16        568703 ns [   558170    575342]  ref/this 1.000 [1.000 1.000]
+STRIPVAR 256x512   32        578599 ns [   570398    589166]  ref/this 0.981 [0.959 0.993]
+STRIPVAR 256x512   64        574071 ns [   571716    577727]  ref/this 0.987 [0.976 1.002]
+STRIPVAR 256x512   32g       699189 ns [   684246    716156]  ref/this 0.811 [0.803 0.822]
+STRIPVAR 512x64    16        151807 ns [   150634    154151]  ref/this 1.000 [1.000 1.000]
+STRIPVAR 512x64    32        143554 ns [   141701    146786]  ref/this 1.053 [1.044 1.081]
+STRIPVAR 512x64    64        166216 ns [   165149    168448]  ref/this 0.915 [0.897 0.927]
+STRIPVAR 512x64    32g       173779 ns [   173462    175433]  ref/this 0.874 [0.862 0.889]
+--- FAIL: TestCl3StripVars (23.94s)
+panic: runtime error: index out of range [0] with length 0 [recovered, repanicked]
+
+goroutine 7 [running]:
+testing.tRunner.func1.2({0xa47c70, 0x5f63e6c4210})
+	/usr/local/pkgs/go.dev/v1.27.1/src/testing/testing.go:2123 +0x232
+testing.tRunner.func1()
+	/usr/local/pkgs/go.dev/v1.27.1/src/testing/testing.go:2126 +0x329
+panic({0xa47c70?, 0x5f63e6c4210?})
+	/usr/local/pkgs/go.dev/v1.27.1/src/runtime/panic.go:859 +0x125
+github.com/go-fft/fft.(*PlanN).stripLines(0x766006?, {0x5f645640000, 0x200000, 0x200000}, {0x5f641640000, 0x200000, 0x200000}, 0x48d4dc?, 0x0, 0x4000, ...)
+	/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/agent-r39/fft/plann.go:309 +0x5bd
+github.com/go-fft/fft.TestCl3StripVars(0x5f63e760248)
+	/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/agent-r39/fft/round39_bench_linux_amd64_test.go:540 +0x565
+testing.tRunner(0x5f63e760248, 0xa59890)
+	/usr/local/pkgs/go.dev/v1.27.1/src/testing/testing.go:2193 +0xea
+created by testing.(*T).Run in goroutine 1
+	/usr/local/pkgs/go.dev/v1.27.1/src/testing/testing.go:2258 +0x4d4
+# end 16:37:34 load 0.63 0.36 0.28

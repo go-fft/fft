@@ -1,0 +1,9 @@
+# start 16:24:30 load 0.76 0.44 0.21 sha ff10182603d5ff47 : ./cl3a.test -test.run ^TestCl3Pages$ -cl3.ab=5,150 -cl3.shapes=512x512 -cl3.pairs=2
+PAGES 512x512   heap0        whole   4938141 ns [  4775539   4993180] cols   3714258 rows    686139  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M=  80000 dst%2M=  80000
+PAGES 512x512   heap1        whole   4160491 ns [  4095600   4315824] cols   3120237 rows    659687  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M=  d0000 dst%2M=  d0000
+PAGES 512x512   4K/4K        whole   5159925 ns [  5037293   5318532] cols   4172517 rows    690197  src huge      0/  4096 KB dst huge      0/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   2M/2M        whole   4029384 ns [  3876789   4223810] cols   3158275 rows    652806  src huge   4096/  4096 KB dst huge   4096/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   src4K/dst2M  whole   4477367 ns [  4155616   4658192] cols   3471495 rows    628292  src huge      0/  4096 KB dst huge   4096/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   src2M/dst4K  whole   4753606 ns [  4515169   4831268] cols   3951006 rows    727680  src huge   4096/  4096 KB dst huge      0/  4096 KB src%2M=      0 dst%2M=      0
+PASS
+# end 16:24:39 load 0.80 0.46 0.22

@@ -453,7 +453,14 @@ var zmCompTable = map[int][]int{
 	16200: {3, 5, 5, 3, 3, 3, 8},
 }
 
-// zmFrameRowsDefault is zmFrameRows on amd64: on where the CPU is not
-// Intel's (Round 36 measured Zen 3; the frame kernels also run on AVX-512
-// Intel since Round 35, whose N-D rows were not measured on them).
-func zmFrameRowsDefault() bool { return !kernels.IntelCPU }
+// zmFrameRowsDefault is zmFrameRows on amd64 (cl3FrameRows).
+func zmFrameRowsDefault() bool { return cl3FrameRows(kernels.IntelCPU, kernels.UseStockhamAVX512) }
+
+// cl3FrameRows is on wherever the frame kernels run (znFrameMaxAMD64): on
+// AMD (Round 36, Zen 3) and, since Round 39, on Intel with AVX-512. On
+// Cascade Lake, the N-D rows on the frame against the pooled buffer, one
+// process, eleven rotated rounds (TestCl3FrameRows), off ÷ on: 2-D 16²
+// 1.514, 32² 1.291, 64² 1.142, 128² 1.064, 256² 1.038, 512² 1.035
+// (0.962–1.132), 8×64×64 1.031; every round of the others within 1%.
+// Off on Intel without AVX-512 (Haswell), where the frame does not run.
+func cl3FrameRows(intel, avx512 bool) bool { return !intel || avx512 }

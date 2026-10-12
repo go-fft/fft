@@ -27,7 +27,9 @@ type PlanN struct {
 	// each pass's batchTwiddles, forward then conjugate; nil for an axis
 	// whose lines are transformed one by one.
 	strips [][][2][]complex128
-	bufs   sync.Pool
+	// sw[ax] is the strip width of a strip axis (cl3StripWidth).
+	sw   []int
+	bufs sync.Pool
 	// colsOf2 marks RealPlan2's column plan, one step of a transform whose
 	// rows fan out by parallelizeLines: its axis follows the same rule, not
 	// parallelizeAxis's, so both steps decide alike. (With arm64's higher
@@ -113,6 +115,7 @@ func NewPlanN(shape ...int) *PlanN {
 func (p *PlanN) initScratch() {
 	bl := lineBlock * (p.maxLen + linePad)
 	p.strips = make([][][2][]complex128, len(p.shape))
+	p.sw = make([]int, len(p.shape))
 	for ax, n := range p.shape {
 		// Only a length a Stockham plan covers is swapped: one with a prime
 		// factor no pass handles (9·19 = 171) runs Rader or Bluestein, and its
@@ -134,7 +137,8 @@ func (p *PlanN) initScratch() {
 			for k := range sts {
 				p.strips[ax][k][0], p.strips[ax][k][1] = sts[k].batchTwiddles()
 			}
-			bl = max(bl, 2*n*stripWidth(n))
+			p.sw[ax] = cl3StripWidth(n, p.stride[ax])
+			bl = max(bl, 2*n*p.sw[ax])
 		}
 	}
 	p.rot = nil
@@ -231,8 +235,7 @@ func (p *PlanN) transformAxis(dst, src []complex128, ax int, inverse bool) {
 		return
 	}
 	if p.strips[ax] != nil {
-		st, sw := p.stride[ax], stripWidth(n)
-		strips := p.size / (n * st) * ((st + sw - 1) / sw)
+		strips, sw := p.stripCount(ax), p.sw[ax]
 		if par {
 			parChunks(strips, sw*n, func(lo, hi int) { p.stripLines(dst, src, ax, lo, hi, inverse) })
 		} else {
@@ -252,8 +255,9 @@ func (p *PlanN) transformAxis(dst, src []complex128, ax int, inverse bool) {
 }
 
 // zmFrameRows lets contiguousLines run lines on their plan's frame kernel
-// (Round 36): per architecture (comp_route_*.go), off on Intel CPUs. A
-// variable so the tests can take both routes on any machine.
+// (Round 36): per architecture (comp_route_*.go), off on Intel CPUs without
+// AVX-512 (on with it since Round 39). A variable so the tests can take both
+// routes on any machine.
 var zmFrameRows = zmFrameRowsDefault()
 
 // contiguousLines transforms lines lo..hi-1 of the contiguous last axis. A
@@ -285,8 +289,9 @@ func (p *PlanN) contiguousLines(dst, src []complex128, ax, lo, hi int, inverse b
 }
 
 // stripLines transforms strips lo..hi-1 of the non-contiguous axis ax as
-// batched Stockham passes. Strip s covers up to stripWidth neighbouring lines
-// of one run along the axes after ax (those lines start one element apart):
+// batched Stockham passes. Strip s covers up to p.sw[ax] (cl3StripWidth)
+// neighbouring lines of one run along the axes after ax (those lines start
+// one element apart):
 // its first pass reads them out of src where they lie, the passes between
 // ping-pong in private scratch, and its last pass writes them into dst. Each
 // line gets exactly the arithmetic of its own 1-D transform.
@@ -297,7 +302,7 @@ func (p *PlanN) stripLines(dst, src []complex128, ax, lo, hi int, inverse bool) 
 	if inverse {
 		dir = 1
 	}
-	sw := stripWidth(n)
+	sw := p.sw[ax]
 	per := (st + sw - 1) / sw
 	bp := p.bufs.Get().(*[]complex128)
 	a, b := (*bp)[:n*sw], (*bp)[n*sw:2*n*sw]
@@ -389,4 +394,10 @@ func scatter8(out, buf []complex128, base, st, ld, n int) {
 		r[0], r[1], r[2], r[3] = l0[i], l1[i], l2[i], l3[i]
 		r[4], r[5], r[6], r[7] = l4[i], l5[i], l6[i], l7[i]
 	}
+}
+
+// stripCount is how many strips cover strip axis ax.
+func (p *PlanN) stripCount(ax int) int {
+	n, st, sw := p.shape[ax], p.stride[ax], p.sw[ax]
+	return p.size / (n * st) * ((st + sw - 1) / sw)
 }

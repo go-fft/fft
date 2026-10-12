@@ -1,0 +1,13 @@
+# start 16:18:34 load 0.16 0.11 0.04 sha ff8686b8f4d06c53 : ./cl3a.test -test.run ^TestCl3Pages$ -cl3.ab=9,300 -cl3.shapes=512x512 -cl3.pairs=6 -cl3.scav
+PAGES 512x512   heap0        whole   3444314 ns [  3185295   3935878] cols   2929312 rows    606694  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M= 190000 dst%2M= 190000
+PAGES 512x512   heap1        whole   3745105 ns [  3603080   4062013] cols   3343736 rows    612141  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M= 1e0000 dst%2M= 1e0000
+PAGES 512x512   heap2        whole   3714645 ns [  3331852   4019655] cols   3001903 rows    614012  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M=  70000 dst%2M=  70000
+PAGES 512x512   heap3        whole   3464684 ns [  3299569   3724262] cols   2907517 rows    609122  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M=  90000 dst%2M=  90000
+PAGES 512x512   heap4        whole   3881340 ns [  3406490   4024607] cols   3115583 rows    608821  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M=  f0000 dst%2M=  f0000
+PAGES 512x512   heap5        whole   4076085 ns [  3620612   4207713] cols   3377215 rows    607911  src huge   2048/  4096 KB dst huge   2048/  4096 KB src%2M= 190000 dst%2M= 190000
+PAGES 512x512   4K/4K        whole   4259686 ns [  3991754   4711916] cols   3920248 rows    617538  src huge      0/  4096 KB dst huge      0/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   2M/2M        whole   4250118 ns [  3798196   4366305] cols   3424880 rows    617680  src huge   4096/  4096 KB dst huge   4096/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   src4K/dst2M  whole   4089940 ns [  3723257   4332300] cols   3269297 rows    603184  src huge      0/  4096 KB dst huge   4096/  4096 KB src%2M=      0 dst%2M=      0
+PAGES 512x512   src2M/dst4K  whole   4261170 ns [  3760183   4564444] cols   3928694 rows    616524  src huge   4096/  4096 KB dst huge      0/  4096 KB src%2M=      0 dst%2M=      0
+PASS
+# end 16:20:03 load 0.82 0.34 0.13

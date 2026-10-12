@@ -1,0 +1,8 @@
+# start 17:02:54 load 0.83 0.91 0.64 sha cc8a2b8c5c451c33 : ./br.test -test.run ^TestR26(Passes|Real)$ -r26.ab=9,100 -r26.sets=1080:rule;1920:rule;65536:rule -r26.real=65536,1048576
+PASSES 1080 9x10x12            whole 3646 sum 3614 | r9/i120/s0 1341 r10/i12/s0 1370 r12/i1/s0 902
+PASSES 1920 8x12x20            whole 5495 sum 5647 | r8/i240/s4 1599 r12/i20/s0 2054 r20/i1/s0 1995
+PASSES 65536 8x8x4x4x8x8        whole 438385 sum 639989 | r8/i8192/s0 155502 r8/i1024/s0 110098 r4/i256/s0 94045 r4/i64/s0 95586 r8/i8/s0 94356 r8/i1/s0 90401
+REAL 65536 whole 213893 half(8x8x8x8x8) 194558 untangle 53263 half+untangle 245388
+REAL 1048576 whole 9977845 half(8x4x8x8x4x8x8) 8782186 untangle 1714772 half+untangle 10762615
+PASS
+# end 17:03:10 load 0.87 0.91 0.64

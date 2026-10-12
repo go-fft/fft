@@ -69,7 +69,7 @@ func BenchmarkR21Parts2D(b *testing.B) {
 			}
 		})
 		if ps.strips[0] != nil {
-			strips := (n + stripWidth(n) - 1) / stripWidth(n)
+			strips := ps.stripCount(0)
 			b.Run(name+"/strips", func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					ps.stripLines(dst, dst, 0, 0, strips, false)

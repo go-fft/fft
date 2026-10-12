@@ -3107,6 +3107,271 @@ the ends). Main time ÷ branch time, fifteen rounds:
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
 
+### Round 39 — Cascade Lake: 2-D 512² was not placement, wider column strips, the 2-D rows on the frame (2026-10-11)
+
+**The question.** On Cascade Lake, v0.26.0 still took more than 1.05× FFTW's
+time on these rows:
+
+| row | ratio |
+|:--|--:|
+| 2-D 64² | 1.19 |
+| 2-D 512² | 1.20 |
+| complex 1080 | 1.13 |
+| complex 1920 | 1.12 |
+| RFFT 65,536 | 1.11 |
+| complex 65,536 | 1.07 |
+
+RFFT 2^20 read 1.04 and 2-D 128² 1.03. Round 35 had put 2-D 512² down to
+allocation placement: one binary read 2.17 ms in one run and 3.62 in the next.
+Round 36 had moved Zen 3's 2-D rows onto the frame kernels (`zmFrameRows`),
+gated off on Intel.
+
+**Setup.** The host was cfarm151 (Cascade Lake, an 8-vCPU KVM guest with
+AVX-512 and a real L2 of 1 MB), used by this round alone, on one pinned core
+(`GOMAXPROCS=1 taskset -c 3`). Every timed run waited for a 1-minute load below
+1.5. The A/Bs ended at a load of 1.07 or below; each file gives its load.
+In-process A/Bs rotate the variant order every round. Between binaries,
+`scripts/ab.sh` alternates them. "Main" is v0.26.1 (`365a1e3`) throughout.
+
+**1. 2-D 512²: not placement.** `TestCl3Pages` was built to test Round 35's
+claim. It times the same plan on several kinds of buffer pairs, all in one
+process:
+- four Go-heap pairs, each allocation shifted;
+- buffers mapped outside the Go heap, 2 MB aligned, forced onto 4 KB pages
+  (`MADV_NOHUGEPAGE`) or 2 MB pages (`MADV_HUGEPAGE` + `MADV_COLLAPSE`), src
+  and dst independently.
+
+After the timing it reads how much of each Go-heap buffer the kernel held on
+huge pages (`/proc/self/smaps` of a VMA split off by `MADV_DONTDUMP`). THP is
+`always` on this host. Every Go-heap buffer had 2 of its 4 MB on huge pages.
+Column step (src to dst) and row step, ms:
+
+| | first process (`pages1`) | six later processes (`procs1`–`6`) |
+|:--|:--|:--|
+| Go heap, four placements | cols 1.29–1.43, rows 0.59–0.60 | cols 2.90–3.71 |
+| 2 MB / 2 MB pages | cols 1.29 | cols 3.04–3.52 |
+| 4 KB / 4 KB pages | cols 1.89 | cols 3.98–4.17 |
+| rows, every variant | 0.59–0.60 | 0.60–0.73 |
+
+- **Placement is not what moves.** Within one process, the four heap placements
+  stay within 10% of each other. The same 2 MB-page buffers, forced at the
+  same alignment, read 1.29 ms in the first process and 3.0–3.5 ms in every
+  process after it, and single rounds inside one process ran from 1.6 to
+  3.1 ms (`scr*`, `sv*`).
+- **The strip scratch** was moved to eleven offsets in a 2 MB page, onto 4 KB
+  pages, the heap and the pool (`TestCl3Scratch`): 2.91–3.04 ms for all of them.
+- **What placement does change** is the page size: 4 KB pages cost the columns
+  0.6 ms more than 2 MB pages in every process. The Go heap gives half of a
+  4 MB buffer huge pages here.
+- **The rows barely moved** (0.59–0.73 ms). The variation is in the
+  columns: the host's state over time, which the guest's load average does not
+  show. It reaches the columns and not the rows.
+
+**Located, pass by pass** (`TestCl3StripPasses`, 2 MB pages, `raw/sp1.txt`):
+the 512-point columns are 8·8·8 over strips of 16 columns. Of 2.95 ms:
+- the first pass, which reads 256 bytes of each 8 KB line, took 1.31 ms;
+- the middle pass, in scratch, took 0.32 ms;
+- the last pass, which writes 256 bytes of each line, took 1.32 ms.
+
+A probe that only reads those same 256-byte pieces of the 512² array, strip
+after strip, took 0.34 ms (`TestCl3Mem`). Two more probes stayed flat across
+processes: a pointer chase over 64 MB (98–105 ns per load) and a 64 MB
+sequential read (7.4–7.5 GB/s). So the passes do not wait for bandwidth. They
+wait for lines that the prefetchers do not bring.
+
+**2. Wider strips where the array is large (kept, Intel AVX-512).** The strip
+step alone, main's width against others, in one process (`TestCl3StripVars`,
+seven or nine rotated rounds). Main's time ÷ the variant's:
+
+| shape (axis) | 32 | 64 | 128 |
+|:--|--:|--:|--:|
+| 512×512 | 1.18–1.60 | **1.93–2.36** | 1.75 |
+| 512×1024 | 1.10–1.21 | **1.82–2.00** | |
+| 512×2048 | 1.11 | 2.01 | 2.01 |
+| 640² / 768² / 1000² | 1.48 / 1.37 / 1.25 | 2.16 / 1.49 / 1.51 | 2.07 / 1.52 / 1.51 |
+| 1024² (main: 32) | 1.00 | 1.26 | 1.37 |
+| 4096×256 | 1.25 | 1.45 | 1.34 |
+| 256×1024 | 1.02 | 1.14 | 1.11 |
+| 64×4096 / 128×4096 | 1.12 / 1.01 | 2.03 / 1.83 | **2.12 / 2.07** |
+| 32×8192 / 16×16384 | 1.19 / 1.07 | 1.34 / 1.15 | **1.40 / 1.36** |
+| 64³ (axis 0) / 128³ (axes 0, 1) | 0.93 / 1.08, 2.19 | 2.78 / 1.90, 2.35 | **2.97 / 2.25, 2.76** |
+| 256×256×64 (axes 0, 1) | 1.06, 1.03 | 1.82, 1.29 | **2.06, 1.30** |
+| 384×512, 256×768, 512×384 (3 MB) | 0.97–1.03 | 0.90–0.96 | 0.84–0.88 |
+| 512×256, 256×512 (2 MB) | 0.98–1.02 | 0.91–0.99 | |
+| 128², 256², 512×64 | 0.96–1.07 | 0.87–0.92 | 0.84–0.86 |
+| 1024×128, 2048×64, 4096×64 (lines 0.5–2 KB apart) | 0.88–0.98 | 0.78–1.01 | 0.81–0.99 |
+
+The 1024² row compares widths against 16; main runs 32 there, so main ÷ 64 is
+1.26 and main ÷ 128 is 1.37 (`sv3`).
+
+- **Two conditions.** Every axis whose strip spans at least 4 MB (n · stride ≥
+  2^18 elements) with lines at least 4 KB apart gained. Every axis below either
+  bound lost or tied. 128 lines won wherever n ≤ 256, and 64 lines won or tied
+  above it, except 1024² and 2048² (128 ahead of 64 by 5–9%).
+- **The change.** `cl3StripWidth(n, st)`: with `cl3WideStrips` (set where the
+  512-bit split layout runs, `kernels.UseStockhamSplit512`: Intel with AVX-512),
+  such an axis takes strips of 128 lines (n ≤ 256) or 64 (above). Every other
+  axis, and every other CPU, keeps `stripWidth(n)`.
+  - `PlanN` keeps each strip axis's width (`sw`) and sizes its scratch from it.
+    For 512² the scratch grows from 256 KB to 1 MB.
+  - `stripCount` replaces the three copies of the strip arithmetic.
+  - `PlanN32` is unchanged.
+- **The copy-in variants were dropped.** Copying the strip into scratch before
+  the first pass (`16g`, `32g`), or out after the last (`…s`), gained less than
+  a wider strip at 512² and lost 13–46% on every smaller shape.
+
+**3. The 2-D rows on the frame kernels (kept, Intel AVX-512).** Round 35 runs
+the frame kernels on AVX-512 Intel (`znFrameMaxAMD64`), but Round 36 gated its
+rows on them off for every Intel CPU. In one process, eleven rotated rounds
+(`TestCl3FrameRowsAB`, `raw/fr1.txt`), off ÷ on:
+
+| shape | off ÷ on | per-round range |
+|:--|--:|:--|
+| 16² | 1.514 | |
+| 32² | 1.291 | |
+| 64² | **1.142** | 1.138–1.144 |
+| 128² | 1.064 | |
+| 256² | 1.038 | |
+| 512² | 1.035 | 0.962–1.132 |
+| 8×64×64 | 1.031 | |
+
+Every round of the rows not given a range fell within 1% of its median.
+`zmFrameRowsDefault` is now `cl3FrameRows(IntelCPU, UseStockhamAVX512)`: on
+wherever the frame runs, off on Intel without AVX-512 (Haswell, where it does
+not run).
+
+**End to end against main**, the binaries alternated nine rounds, four heap
+placements each (`TestZmPlace`, Round 36's harness with exported API only,
+`raw/ab1.txt`). Main ÷ branch, median of the per-round ratios (range):
+
+| row | main | branch | main ÷ branch |
+|:--|--:|--:|:--|
+| 2-D 512² | 2.46 ms | 2.02 ms | **1.219** (1.123–1.919) |
+| 2-D 1024² | 16.69 ms | 14.06 ms | **1.183** (1.172–1.202) |
+| 2-D 32² / 64² / 128² / 256² | | | 1.308 / **1.129** / 1.057 / 1.035 |
+| untouched: complex 65,536 / 1080 / 1920 | | | 1.005 / 1.003 / 1.001 |
+| untouched: RFFT 65,536 | | | 0.993 (0.974–1.013) |
+| untouched: RFFT 2^20 | | | 1.021 (0.980–1.093) |
+
+Per round, the branch's 512² read 2.00–2.17 ms and main's 2.26–4.06.
+
+**4. The other rows: located, not changed.**
+- **Complex 1080** (9·10·12, 3.45 µs) and **1920** (8·12·20, 5.41 µs): the
+  passes are 1.34 / 1.37 / 0.90 µs and 1.60 / 2.05 / 2.00 µs (`raw/loc1.txt`).
+  - Twenty other factorizations of each, built from the radices with kernels
+    (3, 4, 5, 8, 9, 10, 12, 15, 16, 20), nine rotated rounds (`raw/ord1.txt`):
+    none beat the rule. For 1080, 9·12·10 tied (1.000) and 10·9·12 read 0.994.
+    For 1920, 12·8·20 read 0.982 and the rest 0.79–0.97.
+  - FFTW's 15·6·12 and its radix-32 and -64 codelets need passes go-fft does
+    not have. Radix 32 is Round 38's.
+- **RFFT 65,536**: half transform (32,768 = 8^5, breadth first) 194.6 µs, and
+  untangle 53.3 µs; the whole RFFT took 213.9 µs. **Complex 65,536**: the blocked
+  schedule, 438 µs. Neither has a routing change left that Round 35 did not
+  try. Both changes here leave them alone (A/B 0.993 and 1.005).
+
+**Bit identity and tests.**
+- `TestCl3WideStripsMatch` holds plans with the wide strips to the same plans
+  with `stripWidth`'s, bit for bit:
+  - forward and inverse, in place and not;
+  - 512², 300×1000 (a last strip of 40 lines), 64×4096 (128 lines), 64³ and
+    2×256×1024;
+  - RealPlan2 512×1024, whose columns are 513 apart.
+- `TestCl3StripWidth` pins the rule at both bounds (2^18 elements exactly, and
+  one line short; 256 elements apart, and 255), and with the flag off.
+- `TestCl3WideStripsPlans` pins the widths, the strip counts and the scratch
+  size of 512² and 64³.
+- `TestCl3FrameRows` pins `cl3FrameRows` for the four vendor and AVX-512
+  combinations. It also checks that `zmFrameRows` and `cl3WideStrips` follow
+  this CPU's flags. The route tests force their inputs.
+- **A route test that depended on the CPU.** `TestZmCompTable` (Round 36)
+  failed on cfarm151 on main. Round 35's radix-9 merge (`csRadix9On`) rewrites
+  12960, 16200, 9000 and 11520 there, and the test did not turn it off. It does
+  now.
+- **Mutations** (`raw/mutants.txt`): 14 were built and each ran against the
+  whole suite on cfarm151. 13 were caught:
+  - each bound of the rule, either width, the flag dropped from the rule, the
+    flag not set;
+  - the scratch sized by `stripWidth`, `stripLines` reading `stripWidth`, the
+    strip count without its last partial strip, the widths not stored;
+  - `cl3FrameRows` as `!intel` or `!intel && avx512`.
+
+  The survivor gives `parChunks` `stripWidth(n)` lines as its grain instead of
+  `sw`. It is equivalent: only how strips are spread over goroutines changes,
+  not what each one computes.
+- **Suites.** Both packages' suites pass on cfarm151. The merged `-coverpkg`
+  profile reads 100.0% there and on arm64 (darwin, Apple M4). `go vet` is clean
+  for amd64 (also `GOAMD64=v3`), arm64, riscv64, ppc64le, s390x and loong64.
+  Every `.s` file regenerates from `gen.go` unchanged (21 of 21). The round
+  adds no kernel.
+
+**Accuracy.** `TestCl3Export` wrote random inputs and go-fft's outputs with this
+round's changes off ("old") and on ("new"):
+- FFTN and IFFTN of 32² … 1024², 512×1024, 300×1000, 64×4096, 64³ and 8×64×64;
+- RFFT2 of 512×1024 and 1024².
+
+`scripts/acc39.py` ran numpy 2.5.3 on those bytes (`raw/accuracy.txt`). The
+largest error relative to the largest output was 7.7·10⁻¹⁶, against a bound of
+1e-14. Old and new are bit-identical on all 24 outputs. A byte planted in the
+new 512² output reads 8.2·10⁻⁴.
+
+**Against FFTW.**
+
+The harness ran `benchmarks/remote/`, its `run-remote.sh` patched to `cd` to its
+own directory (`scripts/mkpkg.sh`). It ran four times back to back on core 3:
+main, branch, branch, main, from 17:26 to 18:08 UTC (`parity/`). The loads at
+the starts and ends were 0.26–1.02.
+- Before every run, each binary was checked against its SHA-256 on the host.
+  Main is v0.26.1; the branch is this round's code (`caddc57`).
+- The correctness gate passed 24/24 in every run.
+- go-fft's time is the mean of its two runs. FFTW's is the median of all four.
+  Both come from `current-numbers-v0.26.0/partab.go.txt` (`parity/ratios-main.txt`,
+  `ratios-branch.txt`).
+
+go-fft ÷ FFTW (go-fft's time, main → branch):
+
+| row | main | branch | go-fft main → branch | FFTW (median) |
+|:--|--:|--:|:--|--:|
+| 2-D 64² | 1.061 | **0.937** | 18.06 → 15.95 µs | 17.03 µs |
+| 2-D 128² | 0.981 | **0.946** | 79.5 → 76.6 µs | 81.0 µs |
+| 2-D 256² | 0.998 | **0.949** | 471 → 448 µs | 472 µs |
+| 2-D 512² | 1.003 | **0.883** | runs 2.09, 2.68 → 2.11, 2.09 ms | 2.38 ms |
+| 2-D 1024² | 1.025 | **0.834** | runs 18.8, 16.2 → 14.0, 14.4 ms | 17.1 ms |
+| complex 65,536 | 1.089 | 1.076 | 442 → 437 µs | 406 µs |
+| complex 1,080 / 1,920 | 1.138 / 1.119 | 1.130 / 1.112 | | |
+| RFFT 65,536 | 1.108 | 1.094 | 208 → 205 µs | 187 µs |
+| RFFT 2^20 | 1.033 | 1.092 | runs 8.61, 8.86 → 7.97, 10.49 ms | 8.45 ms |
+| complex 256 / 1,024 / 1,000 / 1,296 | 1.07 / 1.18 / 1.10 / 1.10 | 1.05 / 1.19 / 1.10 / 1.10 | | |
+
+- **Count.** At or below 1.05: 14 of 24 rows on main, 15 on the branch.
+  Faster than FFTW: 10 on main, **14** on the branch.
+- **All five 2-D rows are now faster than FFTW.** The branch's 512² read
+  2.11 and 2.09 ms in its two runs; main's read 2.09 and 2.68.
+- **Rows this round does not touch moved** by up to ±2%, which is this
+  measurement's spread. RFFT 2^20 is the exception: one branch run read
+  7.97 ms and the other 10.49, and FFTW's own four runs read 6.6–9.3 ms.
+- **FFTW's 2-D times** moved by up to 47% between its four runs (1024²:
+  15.9–23.3 ms).
+
+**Not done.**
+- **Zen 3, Haswell, arm64 and float32** keep their strip widths. The wide
+  strips were measured on Cascade Lake only, behind
+  `kernels.UseStockhamSplit512`. Zen 3's L3 and prefetchers differ; the
+  candidate is the same flag tested there.
+- **1024² and 2048² at 128 lines** would gain 5–9% more than 64, but scratch
+  would double, to 4–8 MB. Not taken.
+- **What the host does to the columns over time** was located (the first and
+  last strip passes, not bandwidth, not latency to DRAM, not placement), not
+  explained. This VM has no PMU.
+- **Complex 1080, 1920 and 65,536 and RFFT 65,536** are unchanged (§4).
+
+**Rebased onto v0.26.3** (`5b7ff9c`). That release adds Round 40 (measurement only) and #73. #73 lets
+`initScratch` swap an axis plan only where `stockhamCovers(n)`. This round keeps that guard: the wide
+strips only change the width of axes that already run as strips. Every measurement above is on
+v0.26.1. After the rebase, both packages' suites pass on cfarm151 with the merged profile at
+100.0% there and on arm64. `go vet` is clean as above, and all 21 `.s` files regenerate unchanged.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round39-cascade-20261011/`](benchmarks/results/round39-cascade-20261011/).
+
 ### Round 40 — Neoverse-N1 parity at v0.26.1 (2026-10-11)
 
 Measurement only. v0.26.0 moved Bluestein's pointwise products to

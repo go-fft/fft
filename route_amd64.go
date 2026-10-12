@@ -196,6 +196,7 @@ func init() {
 	intelStripOrder = intelStripOrderAMD64(kernels.UseStockhamSplit512, hsw)
 	hswSplitFloor = hswSplitFloorAMD64(hsw)
 	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, hsw)
+	cl3WideStrips = kernels.UseStockhamSplit512
 }
 
 // clRowOrderAMD64 is clRowOrder: with the 512-bit split layout, the rows of

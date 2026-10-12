@@ -89,7 +89,7 @@ func BenchmarkR25Parts2D32(b *testing.B) {
 			}
 		})
 		if p64.strips[0] != nil {
-			strips := (n + stripWidth(n) - 1) / stripWidth(n)
+			strips := p64.stripCount(0)
 			b.Run(name+"/f64-strips", func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p64.stripLines(d64, d64, 0, 0, strips, false)

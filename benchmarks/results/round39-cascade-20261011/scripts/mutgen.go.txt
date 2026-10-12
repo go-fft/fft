@@ -1,0 +1,66 @@
+// mutgen SRC OUTDIR: for each mutant (a literal replacement in one file),
+// copy SRC, apply it (exactly one occurrence required), and build a
+// linux/amd64 test binary OUTDIR/<id>.test.
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+)
+
+type mutant struct{ id, file, from, to string }
+
+var mutants = []mutant{
+	{"M1", "split.go", "n*st >= 1<<18", "n*st > 1<<18"},
+	{"M2", "split.go", "st >= 256 {", "st > 256 {"},
+	{"M3", "split.go", "if n <= 256 {\n\t\t\treturn 128", "if n < 256 {\n\t\t\treturn 128"},
+	{"M4", "split.go", "\t\treturn 64\n\t}\n\treturn stripWidth(n)", "\t\treturn 32\n\t}\n\treturn stripWidth(n)"},
+	{"M5", "split.go", "\t\t\treturn 128\n", "\t\t\treturn 64\n"},
+	{"M6", "split.go", "if cl3WideStrips && n*st", "if n*st"},
+	{"M7", "route_amd64.go", "\tcl3WideStrips = kernels.UseStockhamSplit512\n", "\n"},
+	{"M8", "plann.go", "bl = max(bl, 2*n*p.sw[ax])", "bl = max(bl, 2*n*stripWidth(n))"},
+	{"M9", "plann.go", "\tsw := p.sw[ax]\n\tper", "\tsw := stripWidth(n)\n\tper"},
+	{"M10", "plann.go", "return p.size / (n * st) * ((st + sw - 1) / sw)", "return p.size / (n * st) * (st / sw)"},
+	{"M11", "comp_route_amd64.go", "return !intel || avx512 }", "return !intel }"},
+	{"M12", "comp_route_amd64.go", "return !intel || avx512 }", "return !intel && avx512 }"},
+	{"M13", "plann.go", "strips, sw := p.stripCount(ax), p.sw[ax]", "strips, sw := p.stripCount(ax), stripWidth(n)"},
+	{"M14", "plann.go", "\t\t\tp.sw[ax] = cl3StripWidth(n, p.stride[ax])\n", "\t\t\tp.sw[ax] = stripWidth(n)\n"},
+}
+
+func main() {
+	src, out := os.Args[1], os.Args[2]
+	for _, m := range mutants {
+		tmp, err := os.MkdirTemp(out, "tree")
+		if err != nil {
+			panic(err)
+		}
+		if err := exec.Command("cp", "-R", src+"/.", tmp).Run(); err != nil {
+			panic(err)
+		}
+		p := filepath.Join(tmp, m.file)
+		b, err := os.ReadFile(p)
+		if err != nil {
+			panic(err)
+		}
+		if c := strings.Count(string(b), m.from); c != 1 {
+			fmt.Printf("%s: %d matches\n", m.id, c)
+			os.RemoveAll(tmp)
+			continue
+		}
+		if err := os.WriteFile(p, []byte(strings.Replace(string(b), m.from, m.to, 1)), 0o644); err != nil {
+			panic(err)
+		}
+		cmd := exec.Command("go", "test", "-c", "-o", filepath.Join(out, m.id+".test"), ".")
+		cmd.Dir = tmp
+		cmd.Env = append(os.Environ(), "GOOS=linux", "GOARCH=amd64")
+		if o, err := cmd.CombinedOutput(); err != nil {
+			fmt.Printf("%s: build failed: %s\n", m.id, o)
+		} else {
+			fmt.Printf("%s built (%s: %q -> %q)\n", m.id, m.file, m.from, m.to)
+		}
+		os.RemoveAll(tmp)
+	}
+}

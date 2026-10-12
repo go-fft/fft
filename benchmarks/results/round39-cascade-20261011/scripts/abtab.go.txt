@@ -1,0 +1,65 @@
+// abtab FILE: per row of an ab.sh run of TestZmPlace, main ÷ branch per round
+// (each binary's median over placements), the median and range of those
+// ratios, and each binary's median time.
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"slices"
+	"strconv"
+	"strings"
+)
+
+func med(x []float64) float64 {
+	y := slices.Clone(x)
+	slices.Sort(y)
+	n := len(y)
+	if n%2 == 1 {
+		return y[n/2]
+	}
+	return (y[n/2-1] + y[n/2]) / 2
+}
+
+func main() {
+	f, err := os.Open(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+	t := map[string]map[string]map[string]float64{} // row -> round -> bin -> median
+	var rows []string
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		fs := strings.Fields(sc.Text())
+		// R0 main ROW D512 median 123 min ...
+		if len(fs) < 6 || fs[2] != "ROW" {
+			continue
+		}
+		v, _ := strconv.ParseFloat(fs[5], 64)
+		row := fs[3]
+		if t[row] == nil {
+			t[row] = map[string]map[string]float64{}
+			rows = append(rows, row)
+		}
+		if t[row][fs[0]] == nil {
+			t[row][fs[0]] = map[string]float64{}
+		}
+		t[row][fs[0]][fs[1]] = v
+	}
+	fmt.Printf("%-10s %12s %12s %8s %s\n", "row", "main ns", "branch ns", "main/br", "per-round range")
+	for _, row := range rows {
+		var q, m, b []float64
+		for _, rb := range t[row] {
+			if rb["main"] > 0 && rb["br"] > 0 {
+				q = append(q, rb["main"]/rb["br"])
+				m = append(m, rb["main"])
+				b = append(b, rb["br"])
+			}
+		}
+		if len(q) == 0 {
+			continue
+		}
+		fmt.Printf("%-10s %12.0f %12.0f %8.3f [%.3f %.3f] n=%d\n", row, med(m), med(b), med(q), slices.Min(q), slices.Max(q), len(q))
+	}
+}
