@@ -396,6 +396,15 @@ func genFMAFiles() {
 		genComp2(f, q)
 	}
 	csGenPass9(f)
+	// The final passes whose butterflies have a constant product that the
+	// FMA kernels fuse (radix 8: √2/2; 16 and 9: their internal twiddles).
+	// The other radices' final passes are the default kernels.
+	genStockhamLastAVX2(f, 8)
+	genStockhamLastAVX512(f, 8)
+	genStockham16Last(f)
+	csGenLast9(f)
+	genStockhamLastRun(f, 8, false)
+	genStockhamLastRun(f, 8, true)
 	writeFile("fma_amd64.s", f.String())
 
 	fs := emit.NewFile("amd64")
@@ -622,6 +631,20 @@ func (e skEmit) mulk(dst, a int, off int) {
 	e.raw("VMULPD %d(R14), %s, %s", e.k(off), e.v(a), e.v(dst))
 }
 
+// hpm is radix 8's a ± h·s, h = √2/2: plus = a + s, a = a − s for the
+// default kernels, which scaled s by h before, and the fused products for
+// the FMA kernels (genFMA): plus = fma(h, s, a), a = fma(−h, s, a).
+func (e skEmit) hpm(plus, a, s int) {
+	if !genFMA {
+		e.add(plus, a, s)
+		e.sub(a, a, s)
+		return
+	}
+	e.raw("VMOVAPD %s, %s", e.v(a), e.v(plus))
+	e.raw("VFMADD231PD %d(R14), %s, %s", e.k(kH), e.v(s), e.v(plus))
+	e.raw("VFNMADD231PD %d(R14), %s, %s", e.k(kH), e.v(s), e.v(a))
+}
+
 // rot: dst = rotS(src) — swap re/im, then flip the sign the direction selects.
 func (e skEmit) rot(dst, src int) {
 	e.perm("swap", src, dst)
@@ -831,10 +854,14 @@ func (e skEmit) body(r int, first bool) {
 		e.sub(9, 9, 11) // a5, a7 = a5+a7, a5-a7
 		e.rot(11, 8)
 		e.add(8, 8, 11)
-		e.mulk(8, 8, kH) // a5 = h·(a5 + rotS(a5))
+		if !genFMA {
+			e.mulk(8, 8, kH) // a5 = h·(a5 + rotS(a5))
+		}
 		e.rot(11, 9)
 		e.sub(9, 11, 9)
-		e.mulk(9, 9, kH) // a7 = h·(rotS(a7) - a7)
+		if !genFMA {
+			e.mulk(9, 9, kH) // a7 = h·(rotS(a7) - a7)
+		}
 		e.in(0, 0)
 		e.in(4, 4)
 		e.add(1, 0, 4) // a0
@@ -854,10 +881,8 @@ func (e skEmit) body(r int, first bool) {
 		e.sub(0, 0, 12)  // y4
 		e.add(12, 1, 10) // y2
 		e.sub(1, 1, 10)  // y6
-		e.add(10, 3, 8)  // y1
-		e.sub(3, 3, 8)   // y5
-		e.add(8, 2, 9)   // y3
-		e.sub(2, 2, 9)   // y7
+		e.hpm(10, 3, 8)  // y1, y5
+		e.hpm(8, 2, 9)   // y3, y7
 		for _, yj := range [][2]int{{10, 1}, {12, 2}, {8, 3}, {0, 4}, {3, 5}, {1, 6}, {2, 7}} {
 			e.twStore(yj[0], yj[1], 13, 14, 15, 4, first)
 		}
@@ -957,7 +982,7 @@ func genStockhamLastAVX2(f *emit.File, r int) {
 		[]string{"cc", "ch", "k", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX2", r), sig, 0)
+	b := amd64.NewFunc(fmaName(fmt.Sprintf("skLast%dAVX2", r)), sig, 0)
 	y, x := skEmit{b: b, w: "Y", last: r}, skEmit{b: b, w: "X", last: r}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
 	b.Raw("MOVQ DX, R9").
@@ -1074,7 +1099,7 @@ func genStockhamLastAVX512(f *emit.File, r int) {
 		[]string{"cc", "ch", "k", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc(fmt.Sprintf("skLast%dAVX512", r), sig, 0)
+	b := amd64.NewFunc(fmaName(fmt.Sprintf("skLast%dAVX512", r)), sig, 0)
 	z, y, x := skEmit{b: b, w: "Z", last: r, wide: true}, skEmit{b: b, w: "Y", last: r, wide: true}, skEmit{b: b, w: "X", last: r, wide: true}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
 	b.Raw("MOVQ DX, R9").
@@ -1130,7 +1155,7 @@ func genStockhamLastRun(f *emit.File, r int, wide bool) {
 	if wide {
 		name, step, w = fmt.Sprintf("skLastRun%dAVX512", r), 4, "Z"
 	}
-	b := amd64.NewFunc(name, sig, 0)
+	b := amd64.NewFunc(fmaName(name), sig, 0)
 	e := skEmit{b: b, w: w, last: r, wide: wide}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("os", "DX").
 		LoadArg("runs", "R8").LoadArg("run", "R10").LoadArg("gap", "R11")
@@ -1408,9 +1433,24 @@ func (e skEmit) rot16(dst, src, ex, ta, tb int) {
 		6: {kR16NH, kR16SSH},
 		9: {kR16NC1, kR16SSN1},
 	}[ex]
-	e.mulk(ta, src, k[0])
+	e.rotC(dst, src, k[0], k[1], ta, tb)
+}
+
+// rotC emits dst = c·src + swap(src)·[−ss, ss] with c and the ss row at
+// constants offsets kc and ks: radix16Rot's four operations, or, in an FMA
+// kernel (genFMA), the swap, one multiply and one fused multiply-add,
+// fma(c, src, swap(src)·[−ss, ss]) (radix16RotFMA).
+func (e skEmit) rotC(dst, src, kc, ks, ta, tb int) {
+	if genFMA {
+		e.perm("swap", src, tb)
+		e.mulk(tb, tb, ks)
+		e.raw("VFMADD231PD %d(R14), %s, %s", e.k(kc), e.v(src), e.v(tb))
+		e.raw("VMOVAPD %s, %s", e.v(tb), e.v(dst))
+		return
+	}
+	e.mulk(ta, src, kc)
 	e.perm("swap", src, tb)
-	e.mulk(tb, tb, k[1])
+	e.mulk(tb, tb, ks)
 	e.add(dst, ta, tb)
 }
 
@@ -1582,7 +1622,7 @@ func genStockham16Last(f *emit.File) {
 		[]string{"cc", "ch", "k", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc("skLast16AVX2", sig, radix16Spill)
+	b := amd64.NewFunc(fmaName("skLast16AVX2"), sig, radix16Spill)
 	y := skEmit{b: b, w: "Y", last: 16}
 	x := skEmit{b: b, w: "X", last: 16}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")
@@ -2327,6 +2367,14 @@ const splitFrame8 = 128
 // h8 multiplies a register by √2/2 in place.
 func (e splitEmit) h8(r int) { e.raw("VMULPD %d(R14), %s, %s", splitKH, y(r), y(r)) }
 
+// hpm is the FMA kernels' (genFMA) a ± h·s, h = √2/2, with the product
+// fused: plus = fma(h, s, a), then a = fma(−h, s, a) in place (VFNMADD).
+func (e splitEmit) hpm(plus, a, s int) {
+	e.raw("VMOVAPD %s, %s", y(a), y(plus))
+	e.raw("VFMADD231PD %d(R14), %s, %s", splitKH, y(s), y(plus))
+	e.raw("VFNMADD231PD %d(R14), %s, %s", splitKH, y(s), y(a))
+}
+
 // neg flips a register's signs in place: −x, exactly.
 func (e splitEmit) neg(r int) { e.raw("VXORPD %d(R14), %s, %s", splitKNeg, y(r), y(r)) }
 
@@ -2370,10 +2418,12 @@ func (e splitEmit) body8(first bool) {
 		e.sub(6, 1, 0)
 		e.raw("VMOVAPD %s, %s", y(2), y(0))
 	}
-	e.h8(3)
-	e.h8(5)
-	e.h8(6)
-	e.h8(0) // a5 (3,5), a7 (6,0)
+	if !genFMA {
+		e.h8(3)
+		e.h8(5)
+		e.h8(6)
+		e.h8(0) // a5 (3,5), a7 (6,0)
+	}
 	// Even half. x0 (1,2), x4 (4,7), then x2 (7,9), x6 (10,11).
 	e.load(0, 1, 2, 13, 14)
 	e.load(4, 4, 7, 13, 14)
@@ -2394,18 +2444,28 @@ func (e splitEmit) body8(first bool) {
 	e.rotAdd(10, 13, 1, 2, 1, 2, 7, 9) // a4, a6 = a4 ± rotS(a6): a4 (10,13), a6 (1,2)
 	t := [4]int{3, 5, 14, 15}
 	// y1, y5 = a4 ± a5.
-	e.add(7, 10, 3)
-	e.sub(10, 10, 3)
-	e.add(9, 13, 5)
-	e.sub(13, 13, 5)
+	if genFMA {
+		e.hpm(7, 10, 3)
+		e.hpm(9, 13, 5)
+	} else {
+		e.add(7, 10, 3)
+		e.sub(10, 10, 3)
+		e.add(9, 13, 5)
+		e.sub(13, 13, 5)
+	}
 	e.twStore(7, 9, 1, t, first)
 	e.twStore(10, 13, 5, t, first)
 	// y3, y7 = a6 ± a7.
 	t = [4]int{3, 5, 10, 13}
-	e.add(7, 1, 6)
-	e.sub(1, 1, 6)
-	e.add(9, 2, 0)
-	e.sub(2, 2, 0)
+	if genFMA {
+		e.hpm(7, 1, 6)
+		e.hpm(9, 2, 0)
+	} else {
+		e.add(7, 1, 6)
+		e.sub(1, 1, 6)
+		e.add(9, 2, 0)
+		e.sub(2, 2, 0)
+	}
 	e.twStore(7, 9, 3, t, first)
 	e.twStore(1, 2, 7, t, first)
 	// y0, y4 = a0 ± a1.
@@ -3374,6 +3434,20 @@ func (e intelSplit512Emit) twStore(re, im, j int, t [4]int, first bool) {
 	e.store(j, t[2], t[0], t[1], t[3])
 }
 
+// pm is a ± h·s, h = √2/2: plus = a + s, a = a − s for the default
+// kernels, which scaled s by h before, and splitEmit.hpm's fused products
+// for the FMA kernels (genFMA).
+func (e intelSplit512Emit) pm(plus, a, s int) {
+	if !genFMA {
+		e.add(plus, a, s)
+		e.sub(a, a, s)
+		return
+	}
+	e.raw("VMOVAPD %s, %s", intelZ(a), intelZ(plus))
+	e.raw("VFMADD231PD.BCST %d(R14), %s, %s", splitKH, intelZ(s), intelZ(plus))
+	e.raw("VFNMADD231PD.BCST %d(R14), %s, %s", splitKH, intelZ(s), intelZ(a))
+}
+
 // rotAdd is splitEmit.rotAdd: pr, pi = a + rotS(b); mr, mi = a − rotS(b).
 func (e intelSplit512Emit) rotAdd(pr, pi, mr, mi, ar, ai, br, bi int) {
 	if !e.inverse {
@@ -3460,9 +3534,11 @@ func (e intelSplit512Emit) body8(first bool) {
 		e.sub(6, 1, 0)
 		e.raw("VMOVAPD %s, %s", intelZ(2), intelZ(0))
 	}
-	for _, r := range []int{3, 5, 6, 0} {
-		e.raw("VMULPD.BCST %d(R14), %s, %s", splitKH, intelZ(r), intelZ(r))
-	} // a5 (3,5), a7 (6,0)
+	if !genFMA {
+		for _, r := range []int{3, 5, 6, 0} {
+			e.raw("VMULPD.BCST %d(R14), %s, %s", splitKH, intelZ(r), intelZ(r))
+		} // a5 (3,5), a7 (6,0)
+	}
 	// Even half.
 	e.load(0, 1, 2, 13, 14)
 	e.load(4, 4, 7, 13, 14)
@@ -3483,18 +3559,14 @@ func (e intelSplit512Emit) body8(first bool) {
 	e.rotAdd(10, 13, 1, 2, 1, 2, 7, 9) // a4, a6 = a4 ± rotS(a6): a4 (10,13), a6 (1,2)
 	t := [4]int{3, 5, 14, 15}
 	// y1, y5 = a4 ± a5.
-	e.add(7, 10, 3)
-	e.sub(10, 10, 3)
-	e.add(9, 13, 5)
-	e.sub(13, 13, 5)
+	e.pm(7, 10, 3)
+	e.pm(9, 13, 5)
 	e.twStore(7, 9, 1, t, first)
 	e.twStore(10, 13, 5, t, first)
 	// y3, y7 = a6 ± a7.
 	t = [4]int{3, 5, 10, 13}
-	e.add(7, 1, 6)
-	e.sub(1, 1, 6)
-	e.add(9, 2, 0)
-	e.sub(2, 2, 0)
+	e.pm(7, 1, 6)
+	e.pm(9, 2, 0)
 	e.twStore(7, 9, 3, t, first)
 	e.twStore(1, 2, 7, t, first)
 	// y0, y4 = a0 ± a1.
@@ -4075,17 +4147,30 @@ func genZnKernelAddrs(f *emit.File) {
 	for _, r := range []int{2, 4, 8} {
 		put(fmt.Sprintf("skLast%dAVX512", r), 222+r)
 	}
-	// Round 41: the FMA twins of the pass kernels (genFMAFiles), each at
-	// 243 + its default twin's slot: interleaved at 243 + r, the 256-bit
-	// split kernels at 243 + 42 + …, the 512-bit ones at 243 + 132 + …. The
-	// final passes have no twiddles and no twins.
+	// Round 41: the kernels of the FMA plans (genFMAFiles), each at 243 +
+	// its default twin's slot, the same layout again. A final pass with no
+	// product to fuse (every radix but 8, 9 and 16) has no twin: its slot
+	// holds the default kernel, which the FMA plans run.
 	const fmaAt = 243
+	fused := map[int]bool{8: true, 9: true, 16: true}
 	for _, r := range znRadices {
 		pre := "sk"
 		if r == 9 {
 			pre = "cs"
 		}
 		put(fmt.Sprintf("%sPass%dAVX2FMA", pre, r), fmaAt+r)
+		last := fmt.Sprintf("%sLast%dAVX2", pre, r)
+		if fused[r] {
+			last += "FMA"
+		}
+		put(last, fmaAt+21+r)
+	}
+	for _, r := range []int{2, 4, 8} {
+		last := fmt.Sprintf("skLast%dAVX512", r)
+		if fused[r] {
+			last += "FMA"
+		}
+		put(last, fmaAt+222+r)
 	}
 	for d, dir := range []string{"Fwd", "Inv"} {
 		for _, r := range []int{4, 8, 3, 5} {
@@ -4200,10 +4285,7 @@ const (
 // ss], radix16Rot's four operations. ta and tb are scratch.
 func (e skEmit) csRot9(dst, src, ex, ta, tb int) {
 	k := map[int][2]int{1: {csK9C1, csK9S1}, 2: {csK9C2, csK9S2}, 4: {csK9C4, csK9S4}}[ex]
-	e.mulk(ta, src, k[0])
-	e.perm("swap", src, tb)
-	e.mulk(tb, tb, k[1])
-	e.add(dst, ta, tb)
+	e.rotC(dst, src, k[0], k[1], ta, tb)
 }
 
 // csBody9 emits one radix-9 butterfly over the points the register width
@@ -4337,7 +4419,7 @@ func csGenLast9(f *emit.File) {
 		[]string{"cc", "ch", "k", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc("csLast9AVX2", sig, 0)
+	b := amd64.NewFunc(fmaName("csLast9AVX2"), sig, 0)
 	y := skEmit{b: b, w: "Y", last: 9}
 	x := skEmit{b: b, w: "X", last: 9}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("k", "R14").LoadArg("l1", "DX")

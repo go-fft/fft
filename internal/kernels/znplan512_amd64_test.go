@@ -147,16 +147,16 @@ func TestCsZnWideSelects(t *testing.T) {
 			if inv {
 				want = &sk512Inv[0][0]
 			}
-			if a, k := znLast(r, inv, true); a == 0 || a != znAddrs[csZnLast512At+r] || k != want {
+			if a, k := znLast(r, inv, true, false); a == 0 || a != znAddrs[csZnLast512At+r] || k != want {
 				t.Errorf("znLast(%d, %v, wide): %#x", r, inv, a)
 			}
 			_ = d
 		}
-		if a, k := znLast(r, false, false); a != znAddrs[21+r] || k != &skFwd[0][0] {
+		if a, k := znLast(r, false, false, false); a != znAddrs[21+r] || k != &skFwd[0][0] {
 			t.Errorf("znLast(%d) narrow", r)
 		}
 	}
-	if a, _ := znLast(16, false, true); a != znAddrs[21+16] {
+	if a, _ := znLast(16, false, true, false); a != znAddrs[21+16] {
 		t.Error("radix 16 has no AVX-512 final pass: want the AVX2 one")
 	}
 	intelHasAVX512 = false

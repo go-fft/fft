@@ -87,15 +87,11 @@ func (st *skStage) passFMA(ch, cc, twX []complex128, inverse bool) {
 }
 
 // passScalarFMA is the Go pass of a stage that fuses its products over l1
-// blocks: the butterfly the default pass runs (bflyAny), then cmulFMA for
-// every output j >= 1 of every point i >= 1. It is the FMA kernels'
-// reference, operation for operation, and their fallback. The final pass
-// has no product and is the default one.
+// blocks: the butterfly of an FMA plan (bflyAnyFMA), then cmulFMA for every
+// output j >= 1 of every point i >= 1 (a final pass, ido == 1, has none).
+// It is the FMA kernels' reference, operation for operation, and their
+// fallback.
 func (st *skStage) passScalarFMA(ch, cc []complex128, l1 int, inverse bool) {
-	if st.ido == 1 {
-		st.passScalarL(ch, cc, l1, inverse)
-		return
-	}
 	tw := st.tw
 	if inverse {
 		tw = st.twc
@@ -107,7 +103,7 @@ func (st *skStage) passScalarFMA(ch, cc []complex128, l1 int, inverse bool) {
 			for j := 0; j < r; j++ {
 				x[j] = cc[i+ido*(j+r*k)]
 			}
-			bflyAny(&y, &x, r, s)
+			bflyAnyFMA(&y, &x, r, s)
 			for j := 0; j < r; j++ {
 				v := y[j]
 				if i > 0 && j > 0 {
@@ -119,19 +115,21 @@ func (st *skStage) passScalarFMA(ch, cc []complex128, l1 int, inverse bool) {
 	}
 }
 
-// bflyAny is the size-r DFT of x[:r] into y[:r] for a radix fmaRadix
-// accepts: the butterfly the default pass of that radix runs.
-func bflyAny(y, x *[20]complex128, r int, s float64) {
+// bflyAnyFMA is the size-r DFT of x[:r] into y[:r] in an FMA plan, for a
+// radix fmaRadix accepts: the default pass's butterfly, except for radix 8,
+// 9 and 16, whose constant products the FMA kernels fuse (bfly8FMA,
+// bfly9FMA, bfly16FMA).
+func bflyAnyFMA(y, x *[20]complex128, r int, s float64) {
 	switch r {
 	case 2, 3, 4, 5, 8:
 		var a, b [8]complex128
 		copy(a[:r], x[:r])
-		bflyR(&b, &a, r, s)
+		bflyRFMA(&b, &a, r, s)
 		copy(y[:r], b[:r])
 	case 9:
 		var a, b [9]complex128
 		copy(a[:], x[:9])
-		bfly9(&b, &a, s)
+		bfly9FMA(&b, &a, s)
 		copy(y[:9], b[:])
 	case 12:
 		var a, b [12]complex128
@@ -141,10 +139,92 @@ func bflyAny(y, x *[20]complex128, r int, s float64) {
 	case 16:
 		var a, b [16]complex128
 		copy(a[:], x[:16])
-		bfly16(&b, &a, s)
+		bfly16FMA(&b, &a, s)
 		copy(y[:16], b[:])
 	default: // 10, 15, 20
 		comp2Bfly(y, x, comp2Maps[r], s)
+	}
+}
+
+// bflyRFMA is bflyR in an FMA plan: radix 8 is bfly8FMA.
+func bflyRFMA(y, x *[8]complex128, r int, s float64) {
+	if r == 8 {
+		bfly8FMA(y, x, s)
+		return
+	}
+	bflyR(y, x, r, s)
+}
+
+// fmaPM returns a + h·v and a − h·v, each component with one rounding: the
+// FMA kernels' fused √2/2 products (hpm in gen.go).
+func fmaPM(a, v complex128, h float64) (complex128, complex128) {
+	return complex(math.FMA(h, real(v), real(a)), math.FMA(h, imag(v), imag(a))),
+		complex(math.FMA(-h, real(v), real(a)), math.FMA(-h, imag(v), imag(a)))
+}
+
+// bfly8FMA is bfly8 with its ±45° and ±135° rotations fused into the sums
+// that follow them: a5 and a7 keep their unscaled form, a5 + rotS(a5) and
+// rotS(a7) − a7, and y1, y5 = a4 ± h·a5, y3, y7 = a6 ± h·a7 are fused
+// multiply-adds, as FFTW's FMA codelets do (genfft -fma).
+func bfly8FMA(y, x *[8]complex128, s float64) {
+	a1, a5 := x[1]+x[5], x[1]-x[5]
+	a3, a7 := x[3]+x[7], x[3]-x[7]
+	a1, a3 = a1+a3, a1-a3
+	a3 = rotS(a3, s)
+	a7 = rotS(a7, s)
+	a5, a7 = a5+a7, a5-a7
+	a5 = complex(real(a5)-s*imag(a5), imag(a5)+s*real(a5))
+	a7 = complex(-s*imag(a7)-real(a7), s*real(a7)-imag(a7))
+	a0, a4 := x[0]+x[4], x[0]-x[4]
+	a2, a6 := x[2]+x[6], x[2]-x[6]
+	a0, a2 = a0+a2, a0-a2
+	a6 = rotS(a6, s)
+	a4, a6 = a4+a6, a4-a6
+	y[0], y[4] = a0+a1, a0-a1
+	y[2], y[6] = a2+a3, a2-a3
+	y[1], y[5] = fmaPM(a4, a5, hsqt2)
+	y[3], y[7] = fmaPM(a6, a7, hsqt2)
+}
+
+// radix16RotFMA is radix16Rot with the product by c fused into the sum:
+// fma(c, a, swap(a)·(−ss, ss)), the FMA kernels' rotC.
+func radix16RotFMA(a complex128, c, ss float64) complex128 {
+	return complex(math.FMA(c, real(a), float64(-ss*imag(a))), math.FMA(c, imag(a), float64(ss*real(a))))
+}
+
+// bfly16FMA is bfly16 with radix16RotFMA for its internal twiddles.
+func bfly16FMA(y, x *[16]complex128, s float64) {
+	var v [4][4]complex128
+	for n2 := 0; n2 < 4; n2++ {
+		y0, y1, y2, y3 := bfly4(x[n2], x[n2+4], x[n2+8], x[n2+12], s)
+		v[n2] = [4]complex128{y0, y1, y2, y3}
+	}
+	v[1][1] = radix16RotFMA(v[1][1], r16C1, s*r16S1)
+	v[1][2] = radix16RotFMA(v[1][2], hsqt2, s*hsqt2)
+	v[1][3] = radix16RotFMA(v[1][3], r16S1, s*r16C1)
+	v[2][1] = radix16RotFMA(v[2][1], hsqt2, s*hsqt2)
+	v[2][2] = rotS(v[2][2], s)
+	v[2][3] = radix16RotFMA(v[2][3], -hsqt2, s*hsqt2)
+	v[3][1] = radix16RotFMA(v[3][1], r16S1, s*r16C1)
+	v[3][2] = radix16RotFMA(v[3][2], -hsqt2, s*hsqt2)
+	v[3][3] = radix16RotFMA(v[3][3], -r16C1, s*-r16S1)
+	for k1 := 0; k1 < 4; k1++ {
+		y[k1], y[k1+4], y[k1+8], y[k1+12] = bfly4(v[0][k1], v[1][k1], v[2][k1], v[3][k1], s)
+	}
+}
+
+// bfly9FMA is bfly9 with radix16RotFMA for its internal twiddles.
+func bfly9FMA(y, x *[9]complex128, s float64) {
+	var v [3][3]complex128
+	for n2 := 0; n2 < 3; n2++ {
+		v[n2][0], v[n2][1], v[n2][2] = bfly3(x[n2], x[n2+3], x[n2+6], s)
+	}
+	v[1][1] = radix16RotFMA(v[1][1], r9C1, s*r9S1)
+	v[1][2] = radix16RotFMA(v[1][2], r9C2, s*r9S2)
+	v[2][1] = radix16RotFMA(v[2][1], r9C2, s*r9S2)
+	v[2][2] = radix16RotFMA(v[2][2], r9C4, s*r9S4)
+	for k1 := 0; k1 < 3; k1++ {
+		y[k1], y[k1+3], y[k1+6] = bfly3(v[0][k1], v[1][k1], v[2][k1], s)
 	}
 }
 
@@ -155,7 +235,7 @@ func (st *skStage) passBatchFMA(ch, cc, tw []complex128, w, sIn, sOut int, inver
 	}
 }
 
-// passBatchScalarFMA is passBatchScalar with cmulFMA: every value of the
+// passBatchScalarFMA is passBatchScalar in an FMA plan: every value of the
 // batch gets passScalarFMA's arithmetic, so a strip is bit-identical to its
 // lines transformed one by one.
 func (st *skStage) passBatchScalarFMA(ch, cc, tw []complex128, w, sIn, sOut int, inverse bool) {
@@ -168,7 +248,7 @@ func (st *skStage) passBatchScalarFMA(ch, cc, tw []complex128, w, sIn, sOut int,
 				for j := 0; j < r; j++ {
 					x[j] = cc[(i+ido*(j+r*k))*sIn+c]
 				}
-				bflyR(&y, &x, r, s)
+				bflyRFMA(&y, &x, r, s)
 				for j := 0; j < r; j++ {
 					v := y[j]
 					if i > 0 && j > 0 {
