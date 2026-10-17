@@ -500,3 +500,56 @@ func TestFMARowsAndRotations(t *testing.T) {
 		t.Fatal("armrealPassL of an FMA stage differs from its Go pass")
 	}
 }
+
+// TestFMASubPlansAreFMA: an FMA plan's convolution (Rader, Bluestein), and
+// the strip axes that take a factorization of their own (intelStripOrder,
+// cachedPlanNo16F), run on FMA plans when they transform, not only when they
+// are built.
+func TestFMASubPlansAreFMA(t *testing.T) {
+	forceFMA(t)
+	for _, n := range []int{1009, 10007} {
+		p := newPlanF(n, true)
+		q := n - 1
+		if p.bluestein != nil {
+			q = p.bluestein.m
+		}
+		forgetFMAPlans()
+		p.FFT(make([]complex128, n), fmaSignal(n, 1))
+		planMu.Lock()
+		_, ok := planCacheFMA[q]
+		planMu.Unlock()
+		if !ok {
+			t.Fatalf("n=%d: the transform did not run the FMA convolution plan of %d points", n, q)
+		}
+	}
+	defer func(m map[int]bool) { intelStripOrder = m }(intelStripOrder)
+	intelStripOrder = map[int]bool{48: true}
+	if a := newPlanNF([]int{48, 8}, true).axes[0]; a == cachedPlanF(48, true) || a.sk == nil || !a.sk.fma {
+		t.Fatal("a strip axis of its own factorization is not an FMA plan")
+	}
+}
+
+// TestFMARealAndSubsetComposition: RFFTNWith and FFTNWith over a subset of
+// axes are, bit for bit, the FMA plans they are built from.
+func TestFMARealAndSubsetComposition(t *testing.T) {
+	forceFMA(t)
+	sh := []int{12, 20}
+	r := fmaReal(240, 21)
+	half := halfShape(sh, 1)
+	want := make([]complex128, 12*half[1])
+	realAxisForward(want, r, sh, half, 1, true)
+	newPlanNAxes(half, []int{0}, true).transform(want, want, false)
+	if !sameAll(RFFTNWith(r, sh, Options{FMA: true}), want) {
+		t.Fatal("RFFTNWith is not its FMA plans' composition")
+	}
+	x := fmaSignal(240, 22)
+	sub := make([]complex128, 240)
+	pa := newPlanNAxes(sh, []int{1}, true)
+	if pa.axes[1] != cachedPlanF(20, true) || pa.axes[0] != nil {
+		t.Fatal("a plan over a subset of axes does not take the FMA axis plan")
+	}
+	pa.transform(sub, x, false)
+	if !sameAll(FFTNWith(x, sh, Options{Axes: []int{1}, FMA: true}), sub) {
+		t.Fatal("FFTNWith over a subset of axes is not the FMA plan")
+	}
+}
