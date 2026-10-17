@@ -44,7 +44,21 @@ const maxRadix = 13
 // NewPlan returns a transform plan for length n, precomputing all twiddle
 // factors. n may be any non-negative integer; n == 0 and n == 1 produce a
 // trivial plan. The same plan serves both the forward FFT and the inverse IFFT.
-func NewPlan(n int) *Plan {
+func NewPlan(n int) *Plan { return newPlanF(n, false) }
+
+// NewPlanWith is NewPlan with options: o.FMA asks for an FMA plan (see
+// Options.FMA), which is built where the CPU has FMA3 and is otherwise the
+// plan NewPlan builds. The other fields of Options have no meaning for a
+// plan and must be zero: the length is n, and the plan's methods take a
+// Norm each (FFTNorm, IFFTNorm). NewPlanWith(n, Options{}) is NewPlan(n).
+func NewPlanWith(n int, o Options) *Plan {
+	return newPlanF(n, o.checkPlan("NewPlanWith"))
+}
+
+// newPlanF is NewPlan, an FMA plan when fma is set (already resolved by
+// fmaOn): its Stockham plan, or the convolution plans of Rader and
+// Bluestein, fuse their twiddle products.
+func newPlanF(n int, fma bool) *Plan {
 	p := &Plan{n: n}
 	if n <= 1 {
 		return p
@@ -63,7 +77,7 @@ func NewPlan(n int) *Plan {
 		// Smooth length: the iterative Stockham passes (stockham.go) replaced the
 		// recursive Cooley–Tukey engine here, 1.5–1.9× faster at N=1000…1920 on
 		// the benchmark host; mixedradix.go stays as an independent test oracle.
-		p.sk = newSKPlan(n)
+		p.sk = newSKPlanOpt(n, fma)
 		return p
 	}
 	// A prime whose n-1 is 7-smooth goes to Rader (a cyclic convolution at
@@ -73,11 +87,11 @@ func NewPlan(n int) *Plan {
 	// engine in all but a handful of cases — see rader.go.
 	if isPrime(n) {
 		if _, ok := convCost(n - 1); ok {
-			p.rader = newRaderPlan(n)
+			p.rader = newRaderPlanOpt(n, fma)
 			return p
 		}
 	}
-	p.bluestein = newBluesteinPlan(n)
+	p.bluestein = newBluesteinPlanOpt(n, fma)
 	return p
 }
 
@@ -287,6 +301,8 @@ func factorize(n int) []int {
 var (
 	planMu    sync.Mutex
 	planCache = map[int]*Plan{}
+	// planCacheFMA holds the FMA plans (cachedPlanF).
+	planCacheFMA = map[int]*Plan{}
 )
 
 // cachedPlan returns a shared plan for length n, building and memoizing it on
@@ -305,19 +321,35 @@ func cachedPlan(n int) *Plan { return cachedPlanWith(n, NewPlan) }
 // on purpose (TestCachedPlanKeepsTheFirstStored). Left to concurrent tests,
 // that branch was covered on some runs and not others, and the 100% gate
 // passed or failed by chance.
-func cachedPlanWith(n int, build func(int) *Plan) *Plan {
+func cachedPlanWith(n int, build func(int) *Plan) *Plan { return cachedPlanIn(planCache, n, build) }
+
+// cachedPlanF is cachedPlan for an FMA plan when fma is set (already
+// resolved by fmaOn): FMA plans have a cache of their own, planCacheFMA, so
+// that a length never gets the other kind of plan.
+func cachedPlanF(n int, fma bool) *Plan {
+	if !fma {
+		return cachedPlan(n)
+	}
+	return cachedPlanIn(planCacheFMA, n, newPlanFMA)
+}
+
+// newPlanFMA builds an FMA plan.
+func newPlanFMA(n int) *Plan { return newPlanF(n, true) }
+
+// cachedPlanIn is cachedPlanWith on the cache given.
+func cachedPlanIn(cache map[int]*Plan, n int, build func(int) *Plan) *Plan {
 	planMu.Lock()
-	p, ok := planCache[n]
+	p, ok := cache[n]
 	planMu.Unlock()
 	if ok {
 		return p
 	}
 	p = build(n)
 	planMu.Lock()
-	if existing, ok := planCache[n]; ok {
+	if existing, ok := cache[n]; ok {
 		p = existing
 	} else {
-		planCache[n] = p
+		cache[n] = p
 	}
 	planMu.Unlock()
 	return p

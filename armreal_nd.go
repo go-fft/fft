@@ -86,6 +86,12 @@ func (st *skStage) armrealPassL(ch, cc []complex128, l1 int, inverse bool) {
 	if inverse {
 		twX = st.twXc
 	}
+	if st.fma {
+		if !kernels.StockhamPassLayoutFMA(st.split, st.r, st.ido, l1, cc, ch, twX, inverse, st.wide) {
+			st.passScalarFMA(ch, cc, l1, inverse)
+		}
+		return
+	}
 	if kernels.StockhamPassLayout(st.split, st.r, st.ido, l1, cc, ch, twX, inverse, st.wide) {
 		return
 	}

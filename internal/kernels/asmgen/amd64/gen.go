@@ -31,6 +31,9 @@ var k = &fft.Kernels{
 	SplitK: fft.SplitConsts{H: 0, Neg: 32, Half: 64, Sin120: 96, C51: 128, C52: 160, S51: 192, S52: 224},
 }
 
+// kf builds the FMA twins (Round 41): k's kernels with the products fused.
+var kf = &fft.Kernels{K: k.K, SplitK: k.SplitK, FMA: true}
+
 func main() {
 	fc := emit.NewFile("amd64")
 	fft.CMulSSE2(fc, "cmulSSE2")
@@ -92,6 +95,11 @@ func main() {
 	// AMD (the radix rule, see the fft package's route_amd64.go); go-asmgen
 	// v0.12.0. Never for correctness: the kernels' results do not depend on it.
 	fp.Add(amd64.VendorProbe("isGenuineIntel", "GenuineIntel"))
+	// FMA3 (Round 41): a leaf-1 bit of its own, which a hypervisor can mask
+	// apart from AVX2; go-asmgen v0.16.0's probe also checks that the OS
+	// saves YMM state. It gates the FMA kernels below, which only plans built
+	// with the fft package's Options.FMA run.
+	fp.Add(amd64.FeatureProbe("supportsFMA", amd64.FMA))
 	writeFile("cpu_amd64.s", fp.String())
 
 	// The float32 pass kernels.
@@ -172,6 +180,66 @@ func main() {
 	f = emit.NewFile("amd64")
 	fft.CMulAVX2(f, "zmCMulAVX2")
 	writeFile("zmcmul_amd64.s", f.String())
+
+	genFMAFiles()
+}
+
+// genFMAFiles writes the FMA kernels (Round 41): fma_amd64.s (interleaved:
+// the AVX2, AVX-512, strided, batched, radix-9, -12, -16 and prime-factor
+// pass kernels), fmasplit_amd64.s and fmasplit512_amd64.s (the split
+// layouts). Every pass kernel that multiplies by twiddles is generated a
+// second time with the products fused (fft.Kernels.FMA); the butterflies,
+// the loops, the layouts and the blends are the default kernels' own, so
+// each FMA kernel differs from its twin in the products alone, and its
+// reference is the fft package's pass with cmulFMA in place of the complex
+// product. The names are the default kernels' with "FMA" appended.
+func genFMAFiles() {
+	f := emit.NewFile("amd64")
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		kf.Pass(f, fmt.Sprintf("skPass%dAVX2FMA", r), r)
+	}
+	for _, r := range []int{2, 4, 8} {
+		kf.Pass512(f, fmt.Sprintf("skPass%dAVX512FMA", r), r)
+	}
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		kf.Batch(f, fmt.Sprintf("skBatch%dAVX2FMA", r), r)
+	}
+	kf.Pass(f, "skPass16AVX2FMA", 16)
+	kf.Pass(f, "skPass12AVX2FMA", 12)
+	for _, r := range []int{4, 8} {
+		kf.Strided(f, fmt.Sprintf("skStrided%dAVX2FMA", r), r)
+		kf.Strided512(f, fmt.Sprintf("skStrided%dAVX512FMA", r), r)
+	}
+	for _, r := range []int{10, 15, 20} {
+		kf.Pass(f, fmt.Sprintf("skPass%dAVX2FMA", r), r)
+	}
+	kf.Pass(f, "csPass9AVX2FMA", 9)
+	// The final passes whose butterflies have a constant product that the
+	// FMA kernels fuse (radix 8: √2/2; 16 and 9: their internal twiddles).
+	// The other radices' final passes are the default kernels.
+	kf.Last(f, "skLast8AVX2FMA", 8)
+	kf.Last512(f, "skLast8AVX512FMA", 8)
+	kf.Last(f, "skLast16AVX2FMA", 16)
+	kf.Last(f, "csLast9AVX2FMA", 9)
+	kf.LastRun(f, "skLastRun8AVX2FMA", 8)
+	kf.LastRun512(f, "skLastRun8AVX512FMA", 8)
+	writeFile("fma_amd64.s", f.String())
+
+	f = emit.NewFile("amd64")
+	for _, r := range []int{4, 8, 3, 5} {
+		forSplits(func(inS, outS, inverse bool) {
+			kf.Split(f, splitName("skSplit", r, inS, outS, inverse)+"FMA", r, inS, outS, inverse)
+		})
+	}
+	writeFile("fmasplit_amd64.s", f.String())
+
+	f = emit.NewFile("amd64")
+	for _, r := range []int{4, 8} {
+		forSplits(func(inS, outS, inverse bool) {
+			kf.Split512(f, splitName("intelSplit512R", r, inS, outS, inverse)+"FMA", r, inS, outS, inverse)
+		})
+	}
+	writeFile("fmasplit512_amd64.s", f.String())
 }
 
 // znTwoPassMax and znThreePassMax are the largest transforms the two- and
@@ -222,6 +290,43 @@ func znAddrs() []fft.Addr {
 	}
 	for _, r := range []int{2, 4, 8} {
 		put(fmt.Sprintf("skLast%dAVX512", r), 222+r)
+	}
+	// Round 41: the kernels of the FMA plans (genFMAFiles), each at 243 +
+	// its default twin's slot, the same layout again. A final pass with no
+	// product to fuse (every radix but 8, 9 and 16) has no twin: its slot
+	// holds the default kernel, which the FMA plans run.
+	const fmaAt = 243
+	fused := map[int]bool{8: true, 9: true, 16: true}
+	for _, r := range znRadices {
+		pre := "sk"
+		if r == 9 {
+			pre = "cs"
+		}
+		put(fmt.Sprintf("%sPass%dAVX2FMA", pre, r), fmaAt+r)
+		last := fmt.Sprintf("%sLast%dAVX2", pre, r)
+		if fused[r] {
+			last += "FMA"
+		}
+		put(last, fmaAt+21+r)
+	}
+	for _, r := range []int{2, 4, 8} {
+		last := fmt.Sprintf("skLast%dAVX512", r)
+		if fused[r] {
+			last += "FMA"
+		}
+		put(last, fmaAt+222+r)
+	}
+	for d, dir := range []string{"Fwd", "Inv"} {
+		for _, r := range []int{4, 8, 3, 5} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("skSplit%d%s%sFMA", r, znSplitModes[m], dir), fmaAt+42+(9*d+r)*5+m)
+			}
+		}
+		for _, r := range []int{4, 8} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("intelSplit512R%d%s%sFMA", r, znSplitModes[m], dir), fmaAt+132+(9*d+r)*5+m)
+			}
+		}
 	}
 	return t
 }
