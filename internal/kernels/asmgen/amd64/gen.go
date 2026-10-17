@@ -330,6 +330,11 @@ func main() {
 	// AMD (the radix rule, see the fft package's route_amd64.go); go-asmgen
 	// v0.12.0. Never for correctness: the kernels' results do not depend on it.
 	fp.Add(amd64.VendorProbe("isGenuineIntel", "GenuineIntel"))
+	// FMA3 (Round 41): a leaf-1 bit of its own, which a hypervisor can mask
+	// apart from AVX2; go-asmgen v0.16.0's probe also checks that the OS
+	// saves YMM state. It gates the FMA kernels below, which only plans built
+	// with the fft package's Options.FMA run.
+	fp.Add(amd64.FeatureProbe("supportsFMA", amd64.FMA))
 	writeFile("cpu_amd64.s", fp.String())
 
 	genF32StockhamFile()
@@ -341,6 +346,77 @@ func main() {
 	genZnTwoPassFile()
 	csGenRadix9File()
 	genZmCMulFile()
+	genFMAFiles()
+}
+
+// ---------------------------------------------------------------------------
+// The FMA kernels (Round 41): every pass kernel that multiplies by twiddles,
+// generated a second time with the twiddle product fused (skEmit.fmaProduct,
+// splitEmit.twStore, intelSplit512Emit.twStore). The butterflies, the
+// loops, the layouts and the blends are the default kernels' own, so each
+// FMA kernel differs from its twin in the product alone, and its reference
+// is the fft package's pass with cmulFMA in place of the complex product.
+// The final passes have no twiddles and are shared. The names are the
+// default kernels' with "FMA" appended (fmaName).
+
+// genFMA makes the generators above emit the FMA twins.
+var genFMA bool
+
+// fmaName is a kernel's symbol: name, or name+"FMA" while genFMA is set.
+func fmaName(name string) string {
+	if genFMA {
+		return name + "FMA"
+	}
+	return name
+}
+
+// genFMAFiles writes fma_amd64.s (interleaved: the AVX2, AVX-512, strided,
+// batched, radix-9, -12, -16 and prime-factor pass kernels),
+// fmasplit_amd64.s and fmasplit512_amd64.s (the split layouts).
+func genFMAFiles() {
+	genFMA = true
+	defer func() { genFMA = false }()
+	f := emit.NewFile("amd64")
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		genStockhamAVX2(f, r)
+	}
+	for _, r := range []int{2, 4, 8} {
+		genStockhamAVX512(f, r)
+	}
+	for _, r := range []int{2, 3, 4, 5, 8} {
+		genStockhamBatchAVX2(f, r)
+	}
+	genStockham16(f)
+	genComp12(f)
+	for _, r := range []int{4, 8} {
+		genStockhamStrided(f, r, false)
+		genStockhamStrided(f, r, true)
+	}
+	for _, q := range []int{2, 3, 4} {
+		genComp2(f, q)
+	}
+	csGenPass9(f)
+	writeFile("fma_amd64.s", f.String())
+
+	fs := emit.NewFile("amd64")
+	for _, r := range []int{4, 8, 3, 5} {
+		for _, inverse := range []bool{false, true} {
+			for _, io := range [][2]bool{{false, true}, {true, true}, {true, false}, {false, false}} {
+				genStockhamSplit(fs, r, io[0], io[1], inverse)
+			}
+		}
+	}
+	writeFile("fmasplit_amd64.s", fs.String())
+
+	fz := emit.NewFile("amd64")
+	for _, r := range []int{4, 8} {
+		for _, inverse := range []bool{false, true} {
+			for _, io := range [][2]bool{{false, true}, {true, true}, {true, false}, {false, false}} {
+				genIntelSplit512(fz, r, io[0], io[1], inverse)
+			}
+		}
+	}
+	writeFile("fmasplit512_amd64.s", fz.String())
 }
 
 func writeFile(name, content string) {
@@ -583,20 +659,36 @@ func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 		e.raw("%s %d(R10), %s", ld, (j-1)*16, e.v(t1))
 		e.raw("%s %d(R10), %s", ld, (j-1)*16+8, e.v(t2))
 		e.perm("swap", y, t3)
+		if genFMA {
+			e.fmaProduct(y, e.v(t1), e.v(t2), t3, dst)
+			e.st(dst, e.outAddr(j))
+			return
+		}
 		e.raw("VMULPD %s, %s, %s", e.v(y), e.v(t1), e.v(t1))
 		e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
 		e.raw("VADDSUBPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
 		e.st(dst, e.outAddr(j))
 		return
 	}
-	if e.dup {
+	switch {
+	case genFMA && e.dup:
+		wr, wi := e.twDup(j)
+		e.perm("swap", y, t3)
+		e.fmaProduct(y, wr, wi, t3, dst)
+	case genFMA:
+		hi := map[string]string{"X": "$3", "Y": "$15", "Z": "$0xFF"}[e.w]
+		e.raw("VMOVDDUP %s, %s", e.tw(j), e.v(t1))
+		e.raw("VPERMILPD %s, %s, %s", hi, e.tw(j), e.v(t2))
+		e.perm("swap", y, t3)
+		e.fmaProduct(y, e.v(t1), e.v(t2), t3, dst)
+	case e.dup:
 		// The halves come pre-duplicated: each product takes its twiddle
 		// half as a memory operand, and swapping y is the only shuffle.
 		wr, wi := e.twDup(j)
 		e.perm("swap", y, t3)
 		e.raw("VMULPD %s, %s, %s", wr, e.v(y), e.v(t1))
 		e.raw("VMULPD %s, %s, %s", wi, e.v(t3), e.v(t2))
-	} else {
+	default:
 		hi := map[string]string{"X": "$3", "Y": "$15", "Z": "$0xFF"}[e.w]
 		e.raw("VMOVDDUP %s, %s", e.tw(j), e.v(t1))
 		e.raw("VPERMILPD %s, %s, %s", hi, e.tw(j), e.v(t2))
@@ -604,12 +696,15 @@ func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 		e.raw("VMULPD %s, %s, %s", e.v(y), e.v(t1), e.v(t1))
 		e.raw("VMULPD %s, %s, %s", e.v(t3), e.v(t2), e.v(t2))
 	}
-	if e.w == "Z" {
+	switch {
+	case genFMA:
+		// fmaProduct left the product in dst.
+	case e.w == "Z":
 		// No 512-bit VADDSUBPD: flip the real lanes' sign, then add.
 		// x + (-y) is x - y exactly, so the rounding is VADDSUBPD's.
 		e.xork(kAddSub, t2)
 		e.raw("VADDPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
-	} else {
+	default:
 		e.raw("VADDSUBPD %s, %s, %s", e.v(t2), e.v(t1), e.v(dst))
 	}
 	if first {
@@ -621,6 +716,23 @@ func (e skEmit) twStore(y, j, t1, t2, t3, dst int, first bool) {
 		}
 	}
 	e.st(dst, e.outAddr(j))
+}
+
+// fmaProduct is the fused twiddle product of an FMA kernel (genFMA) on
+// interleaved registers: dst = y·w with w's real part duplicated in wr and its
+// imaginary part in wi (registers or memory operands), sw holding y with its
+// halves swapped. One multiply, (yi·wi, yr·wi), then VFMADDSUB231PD, which
+// subtracts it from yr·wr in the real lane and adds it to yi·wr in the
+// imaginary lane, each with one rounding:
+//
+//	re = fma(yr, wr, −(yi·wi)),  im = fma(yi, wr, yr·wi)
+//
+// the fft package's cmulFMA, the product every FMA kernel and its Go
+// reference compute. VFMADDSUB231PD exists at 512 bits (AVX512F), so the
+// AVX-512 kernels need no sign flip where VADDSUBPD has no 512-bit form.
+func (e skEmit) fmaProduct(y int, wr, wi string, sw, dst int) {
+	e.raw("VMULPD %s, %s, %s", wi, e.v(sw), e.v(dst))
+	e.raw("VFMADDSUB231PD %s, %s, %s", wr, e.v(y), e.v(dst))
 }
 
 func (e skEmit) body(r int, first bool) {
@@ -763,7 +875,7 @@ func genStockhamAVX2(f *emit.File, r int) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX2", r), sig, 0)
+	b := amd64.NewFunc(fmaName(fmt.Sprintf("skPass%dAVX2", r)), sig, 0)
 	// A four-point twiddle group is walked as two pairs (q0, q1); then come a
 	// two-point group (p) and a one-point group (x) for ido mod 4.
 	q0 := skEmit{b: b, w: "Y", g: 4}
@@ -900,7 +1012,7 @@ func genStockhamAVX512(f *emit.File, r int) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX512", r), sig, 0)
+	b := amd64.NewFunc(fmaName(fmt.Sprintf("skPass%dAVX512", r)), sig, 0)
 	z := skEmit{b: b, w: "Z", wide: true, g: 4}
 	y := skEmit{b: b, w: "Y", wide: true, g: 2}
 	x := skEmit{b: b, w: "X", wide: true, g: 1}
@@ -1090,7 +1202,7 @@ func genStockhamStrided(f *emit.File, r int, wide bool) {
 	if wide {
 		name = fmt.Sprintf("skStrided%dAVX512", r)
 	}
-	b := amd64.NewFunc(name, sig, 0)
+	b := amd64.NewFunc(fmaName(name), sig, 0)
 	// One four-point group: a ZMM register, or two YMM pairs.
 	group := func(first bool) {
 		if wide {
@@ -1186,7 +1298,7 @@ func genStockhamBatchAVX2(f *emit.File, r int) {
 		}
 		panic(name)
 	}
-	b := amd64.NewFunc(fmt.Sprintf("skBatch%dAVX2", r), sig, 0)
+	b := amd64.NewFunc(fmaName(fmt.Sprintf("skBatch%dAVX2", r)), sig, 0)
 	y0, x0 := skEmit{b: b, w: "Y", notw: true}, skEmit{b: b, w: "X", notw: true}
 	yt, xt := skEmit{b: b, w: "Y", bcast: true}, skEmit{b: b, w: "X", bcast: true}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
@@ -1387,7 +1499,7 @@ func genStockham16(f *emit.File) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc("skPass16AVX2", sig, radix16Frame)
+	b := amd64.NewFunc(fmaName("skPass16AVX2"), sig, radix16Frame)
 	q0 := skEmit{b: b, w: "Y", g: 4, dup: true}
 	q1 := skEmit{b: b, w: "Y", g: 4, half: 1, dup: true}
 	p := skEmit{b: b, w: "Y", g: 2, dup: true}
@@ -2034,6 +2146,19 @@ func (e splitEmit) twStore(re, im, j int, t [4]int, first bool) {
 	off := (j - 1) * 64
 	e.raw("VMOVUPD %d(R10), %s", off, y(t[0]))    // wr
 	e.raw("VMOVUPD %d(R10), %s", off+32, y(t[1])) // wi
+	if genFMA {
+		// re = fma(yr, wr, −(yi·wi)), im = fma(yi, wr, yr·wi): cmulFMA.
+		e.raw("VMULPD %s, %s, %s", y(t[1]), y(im), y(t[2]))
+		e.raw("VFMSUB231PD %s, %s, %s", y(t[0]), y(re), y(t[2]))
+		e.raw("VMULPD %s, %s, %s", y(t[1]), y(re), y(t[3]))
+		e.raw("VFMADD231PD %s, %s, %s", y(t[0]), y(im), y(t[3]))
+		if first {
+			e.raw("VBLENDPD $1, %s, %s, %s", y(re), y(t[2]), y(t[2]))
+			e.raw("VBLENDPD $1, %s, %s, %s", y(im), y(t[3]), y(t[3]))
+		}
+		e.store(j, t[2], t[3], t[0], t[1])
+		return
+	}
 	e.raw("VMULPD %s, %s, %s", y(t[0]), y(re), y(t[2]))
 	e.raw("VMULPD %s, %s, %s", y(t[1]), y(im), y(t[3]))
 	e.sub(t[2], t[2], t[3]) // yr·wr − yi·wi
@@ -2332,7 +2457,7 @@ func genStockhamSplit(f *emit.File, r int, inS, outS, inverse bool) {
 	if r == 8 {
 		frame = splitFrame8
 	}
-	b := amd64.NewFunc(splitName(r, inS, outS, inverse), sig, frame)
+	b := amd64.NewFunc(fmaName(splitName(r, inS, outS, inverse)), sig, frame)
 	e := splitEmit{b: b, r: r, inS: inS, outS: outS, inverse: inverse}
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
 		LoadArg("ido", "CX").LoadArg("l1", "R8")
@@ -2487,7 +2612,7 @@ func genComp12(f *emit.File) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc("skPass12AVX2", sig, comp12Frame)
+	b := amd64.NewFunc(fmaName("skPass12AVX2"), sig, comp12Frame)
 	q0 := skEmit{b: b, w: "Y", g: 4}
 	q1 := skEmit{b: b, w: "Y", g: 4, half: 1}
 	p := skEmit{b: b, w: "Y", g: 2}
@@ -3012,7 +3137,7 @@ func genComp2(f *emit.File, q int) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc(fmt.Sprintf("skPass%dAVX2", r), sig, spill+16)
+	b := amd64.NewFunc(fmaName(fmt.Sprintf("skPass%dAVX2", r)), sig, spill+16)
 	q0 := skEmit{b: b, w: "Y", g: 4, addr: comp2Addr}
 	q1 := skEmit{b: b, w: "Y", g: 4, half: 1, addr: comp2Addr}
 	p := skEmit{b: b, w: "Y", g: 2, addr: comp2Addr}
@@ -3222,6 +3347,19 @@ func (e intelSplit512Emit) twStore(re, im, j int, t [4]int, first bool) {
 	off := (j - 1) * 128
 	e.raw("VMOVUPD %d(R10), %s", off, intelZ(t[0]))    // wr
 	e.raw("VMOVUPD %d(R10), %s", off+64, intelZ(t[1])) // wi
+	if genFMA {
+		// splitEmit.twStore's fused product at 512 bits.
+		e.raw("VMULPD %s, %s, %s", intelZ(t[1]), intelZ(im), intelZ(t[2]))
+		e.raw("VFMSUB231PD %s, %s, %s", intelZ(t[0]), intelZ(re), intelZ(t[2]))
+		e.raw("VMULPD %s, %s, %s", intelZ(t[1]), intelZ(re), intelZ(t[3]))
+		e.raw("VFMADD231PD %s, %s, %s", intelZ(t[0]), intelZ(im), intelZ(t[3]))
+		if first {
+			e.raw("VBLENDMPD %s, %s, K1, %s", intelZ(re), intelZ(t[2]), intelZ(t[2]))
+			e.raw("VBLENDMPD %s, %s, K1, %s", intelZ(im), intelZ(t[3]), intelZ(t[3]))
+		}
+		e.store(j, t[2], t[3], t[0], t[1])
+		return
+	}
 	e.raw("VMULPD %s, %s, %s", intelZ(t[0]), intelZ(re), intelZ(t[2]))
 	e.raw("VMULPD %s, %s, %s", intelZ(t[1]), intelZ(im), intelZ(t[3]))
 	e.sub(t[2], t[2], t[3]) // yr·wr − yi·wi
@@ -3414,7 +3552,7 @@ func genIntelSplit512(f *emit.File, r int, inS, outS, inverse bool) {
 	if r == 8 {
 		frame = intelSplit512Frame
 	}
-	b := amd64.NewFunc(intelSplit512Name(r, inS, outS, inverse), sig, frame)
+	b := amd64.NewFunc(fmaName(intelSplit512Name(r, inS, outS, inverse)), sig, frame)
 	e := intelSplit512Emit{b: b, r: r, inS: inS, outS: outS, inverse: inverse}
 	b.Raw("MOVQ $1, R9").Raw("KMOVB R9, K1") // lane 0: the i = 0 point
 	b.LoadArg("cc", "AX").LoadArg("ch", "BX").LoadArg("tw", "R15").LoadArg("k", "R14").
@@ -3937,6 +4075,30 @@ func genZnKernelAddrs(f *emit.File) {
 	for _, r := range []int{2, 4, 8} {
 		put(fmt.Sprintf("skLast%dAVX512", r), 222+r)
 	}
+	// Round 41: the FMA twins of the pass kernels (genFMAFiles), each at
+	// 243 + its default twin's slot: interleaved at 243 + r, the 256-bit
+	// split kernels at 243 + 42 + …, the 512-bit ones at 243 + 132 + …. The
+	// final passes have no twiddles and no twins.
+	const fmaAt = 243
+	for _, r := range znRadices {
+		pre := "sk"
+		if r == 9 {
+			pre = "cs"
+		}
+		put(fmt.Sprintf("%sPass%dAVX2FMA", pre, r), fmaAt+r)
+	}
+	for d, dir := range []string{"Fwd", "Inv"} {
+		for _, r := range []int{4, 8, 3, 5} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("skSplit%d%s%sFMA", r, znSplitModes[m], dir), fmaAt+42+(9*d+r)*5+m)
+			}
+		}
+		for _, r := range []int{4, 8} {
+			for m := 1; m <= 4; m++ {
+				put(fmt.Sprintf("intelSplit512R%d%s%sFMA", r, znSplitModes[m], dir), fmaAt+132+(9*d+r)*5+m)
+			}
+		}
+	}
 	b.Ret()
 	f.Add(b.Func())
 }
@@ -4097,7 +4259,7 @@ func csGenPass9(f *emit.File) {
 		[]string{"cc", "ch", "tw", "k", "ido", "l1"},
 		[]amd64.Type{amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Ptr, amd64.Int64, amd64.Int64}, nil, nil,
 	)
-	b := amd64.NewFunc("csPass9AVX2", sig, cs9Frame)
+	b := amd64.NewFunc(fmaName("csPass9AVX2"), sig, cs9Frame)
 	q0 := skEmit{b: b, w: "Y", g: 4}
 	q1 := skEmit{b: b, w: "Y", g: 4, half: 1}
 	p := skEmit{b: b, w: "Y", g: 2}

@@ -35,7 +35,7 @@ func complexWith(name string, x []complex128, o Options, inverse bool) []complex
 	out := make([]complex128, n)
 	copy(out, x) // truncates to n, or leaves the zero padding past len(x)
 	if n > 1 {
-		cachedPlan(n).execute(out, out, inverse)
+		cachedPlanF(n, o.fma()).execute(out, out, inverse)
 	}
 	scaleComplex(out, f)
 	return out
@@ -48,12 +48,12 @@ func complexWith(name string, x []complex128, o Options, inverse bool) []complex
 // must be nil.
 func RFFTWith(x []float64, o Options) []complex128 {
 	n := o.check1D("RFFTWith", len(x))
-	return rfftScaled(x, n, o.Norm.scale(n, false))
+	return rfftScaled(x, n, o.Norm.scale(n, false), o.fma())
 }
 
 // rfftScaled is the real forward transform of x truncated or zero-padded to n
 // points, multiplied by f.
-func rfftScaled(x []float64, n int, f float64) []complex128 {
+func rfftScaled(x []float64, n int, f float64, fma bool) []complex128 {
 	if n == 0 {
 		return []complex128{}
 	}
@@ -62,7 +62,7 @@ func rfftScaled(x []float64, n int, f float64) []complex128 {
 		in = make([]float64, n)
 		copy(in, x)
 	}
-	out := cachedRealPlan(n).RFFT(make([]complex128, n/2+1), in)
+	out := cachedRealPlanF(n, fma).RFFT(make([]complex128, n/2+1), in)
 	scaleComplex(out, f)
 	return out
 }
@@ -83,7 +83,7 @@ func rfftScaled(x []float64, n int, f float64) []complex128 {
 func IRFFTWith(spectrum []complex128, o Options) []float64 {
 	n := o.check1D("IRFFTWith", 2*(len(spectrum)-1))
 	f := unitInverseRescale(o.Norm.scale(n, true), n)
-	out := IRFFT(spectrum, n)
+	out := irfftF(spectrum, n, o.fma())
 	scaleReal(out, f)
 	return out
 }
@@ -123,7 +123,7 @@ func HFFTWith(x []complex128, o Options) []float64 {
 	for i := range c {
 		c[i] = complexConj(x[i])
 	}
-	out := IRFFT(c, n) // normalized by 1/n: undo it into f
+	out := irfftF(c, n, o.fma()) // normalized by 1/n: undo it into f
 	scaleReal(out, unitInverseRescale(f, n))
 	return out
 }
@@ -146,7 +146,7 @@ func IHFFT(x []float64) []complex128 {
 // every o.Norm. o.Axes must be nil.
 func IHFFTWith(x []float64, o Options) []complex128 {
 	n := o.check1D("IHFFTWith", len(x))
-	out := rfftScaled(x, n, o.Norm.scale(n, true))
+	out := rfftScaled(x, n, o.Norm.scale(n, true), o.fma())
 	for i, v := range out {
 		out[i] = complexConj(v)
 	}
