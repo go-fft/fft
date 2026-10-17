@@ -68,3 +68,19 @@ TEXT ·isGenuineIntel(SB), NOSPLIT, $0-1
 isGenuineIntel_other:
 	RET
 
+TEXT ·supportsFMA(SB), NOSPLIT, $0-1
+	MOVB $0, ret+0(FP)
+	MOVL $1, AX
+	CPUID
+	ANDL $0x18001000, CX // FMA, AVX and OSXSAVE
+	CMPL CX, $0x18001000
+	JNE supportsFMA_unsupported
+	XORL CX, CX
+	XGETBV
+	ANDL $6, AX // XMM and YMM state enabled in XCR0
+	CMPL AX, $6
+	JNE supportsFMA_unsupported
+	MOVB $1, ret+0(FP)
+supportsFMA_unsupported:
+	RET
+

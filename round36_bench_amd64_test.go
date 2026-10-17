@@ -61,8 +61,8 @@ func zmBluesteinM(n, m int) *bluesteinPlan {
 		p.wF[j] = complex(math.Cos(-ang), math.Sin(-ang))
 		p.wI[j] = complex(math.Cos(ang), math.Sin(ang))
 	}
-	p.bF = buildKernelSpectrum(p.wF, n, m)
-	p.bI = buildKernelSpectrum(p.wI, n, m)
+	p.bF = buildKernelSpectrum(p.wF, n, m, false)
+	p.bI = buildKernelSpectrum(p.wI, n, m, false)
 	p.scratch.New = func() any { b := make([]complex128, m); return &b }
 	return p
 }

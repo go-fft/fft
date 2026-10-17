@@ -136,7 +136,7 @@ func TestRotateWhen(t *testing.T) {
 	// An axis left out of the transform keeps the rows-and-columns path.
 	defer func(v bool) { armrealRotateND = v }(armrealRotateND)
 	armrealRotateND = true
-	if p := newPlanNAxes([]int{12, 10}, []int{0}); p.rot != nil {
+	if p := newPlanNAxes([]int{12, 10}, []int{0}, false); p.rot != nil {
 		t.Error("an axis left out: rotating")
 	}
 }

@@ -42,7 +42,32 @@ type Options struct {
 	// listed, as numpy.fft.rfftn does. Axes must be nil for the 1-D
 	// transforms.
 	Axes []int
+
+	// FMA lets the transform fuse its twiddle products with fused
+	// multiply-add instructions, which is faster and, measured against
+	// numpy.fft, as accurate (see the FMA section of the package
+	// documentation), but NOT bit-identical to the default: the results
+	// differ from FFT's in the last bits. The default (false) keeps every
+	// amd64 kernel bit-identical to the package's Go reference. FMA is a
+	// request: it takes effect on amd64 CPUs with FMA3, and elsewhere the
+	// transform is the default one, bit for bit. The float32 transforms
+	// ignore it. NewPlanWith, NewRealPlanWith, NewPlanNWith and
+	// NewRealPlan2With take it for plans.
+	FMA bool
 }
+
+// checkPlan validates o for a plan constructor called name, where only FMA
+// has a meaning, and reports whether the plan is an FMA plan (fmaOn). It
+// panics before anything is allocated.
+func (o Options) checkPlan(name string) bool {
+	if o.N != 0 || o.Norm != NormBackward || o.Axes != nil {
+		panic("fft: " + name + ": only Options.FMA applies to a plan")
+	}
+	return fmaOn(o.FMA, fmaAvailable)
+}
+
+// fma reports whether a transform called with o runs on an FMA plan.
+func (o Options) fma() bool { return fmaOn(o.FMA, fmaAvailable) }
 
 // check1D validates o for a 1-D transform called name and returns the number
 // of points it transforms: o.N, or def when o.N is zero. It panics before

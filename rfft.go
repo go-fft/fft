@@ -40,28 +40,41 @@ func RFFT(x []float64) []complex128 {
 // The output has n values whatever the spectrum's length, so n sets the
 // allocation, as it would for make: bound it when it comes from untrusted
 // input (see SECURITY.md).
-func IRFFT(spectrum []complex128, n int) []float64 {
+func IRFFT(spectrum []complex128, n int) []float64 { return irfftF(spectrum, n, false) }
+
+// irfftF is IRFFT on an FMA plan when fma is set (already resolved by fmaOn).
+func irfftF(spectrum []complex128, n int, fma bool) []float64 {
 	if n <= 0 {
 		return []float64{}
 	}
 	dst := make([]float64, n)
-	return cachedRealPlan(n).IRFFT(dst, spectrum)
+	return cachedRealPlanF(n, fma).IRFFT(dst, spectrum)
 }
 
 // realPlanCache memoizes RealPlans by length so RFFT/IRFFT reuse twiddle tables.
 var (
 	realPlanMu    sync.Mutex
 	realPlanCache = map[int]*RealPlan{}
+	// realPlanCacheFMA holds the FMA plans (cachedRealPlanF).
+	realPlanCacheFMA = map[int]*RealPlan{}
 )
 
 // cachedRealPlan returns a shared real-input plan for length n, building and
 // memoizing it on first use.
-func cachedRealPlan(n int) *RealPlan {
+func cachedRealPlan(n int) *RealPlan { return cachedRealPlanF(n, false) }
+
+// cachedRealPlanF is cachedRealPlan for an FMA plan when fma is set
+// (already resolved by fmaOn), from a cache of its own.
+func cachedRealPlanF(n int, fma bool) *RealPlan {
+	cache := realPlanCache
+	if fma {
+		cache = realPlanCacheFMA
+	}
 	realPlanMu.Lock()
-	p, ok := realPlanCache[n]
+	p, ok := cache[n]
 	if !ok {
-		p = NewRealPlan(n)
-		realPlanCache[n] = p
+		p = newRealPlanF(n, fma)
+		cache[n] = p
 	}
 	realPlanMu.Unlock()
 	return p
