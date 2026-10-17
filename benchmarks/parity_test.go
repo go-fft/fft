@@ -16,12 +16,17 @@
 package benchmarks
 
 import (
+	"os"
 	"strconv"
 	"testing"
 
 	gofft "github.com/go-fft/fft"
 	"gonum.org/v1/gonum/dsp/fourier"
 )
+
+// fmaOpt is what the go-fft rows are built with: GOFFT_FMA=1 times the
+// opt-in FMA plans (Options.FMA, Round 41), unset the default ones.
+var fmaOpt = gofft.Options{FMA: os.Getenv("GOFFT_FMA") == "1"}
 
 // Size taxonomy — mirrors fft_reference.py.
 // Powers of two up to 1M, mixed-radix / highly-composite, and a prime.
@@ -53,7 +58,7 @@ func realv(n int) []float64 {
 func BenchmarkComplex_GoFFT(b *testing.B) {
 	for _, n := range complexSizes {
 		x := cmplx(n)
-		p := gofft.NewPlan(n)
+		p := gofft.NewPlanWith(n, fmaOpt)
 		dst := make([]complex128, n)
 		b.Run(strconv.Itoa(n), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -81,7 +86,7 @@ func BenchmarkComplex_Gonum(b *testing.B) {
 func BenchmarkReal_GoFFT(b *testing.B) {
 	for _, n := range realSizes {
 		x := realv(n)
-		p := gofft.NewRealPlan(n)
+		p := gofft.NewRealPlanWith(n, fmaOpt)
 		dst := make([]complex128, n/2+1)
 		b.Run(strconv.Itoa(n), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -107,7 +112,7 @@ func halfSpectrum(n int) []complex128 {
 func BenchmarkCReal_GoFFT(b *testing.B) {
 	for _, n := range realSizes {
 		spec := halfSpectrum(n)
-		p := gofft.NewRealPlan(n)
+		p := gofft.NewRealPlanWith(n, fmaOpt)
 		dst := make([]float64, n)
 		b.Run(strconv.Itoa(n), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -137,7 +142,7 @@ func BenchmarkFFT2_GoFFT(b *testing.B) {
 		x := cmplx(s[0] * s[1])
 		b.Run(strconv.Itoa(s[0])+"x"+strconv.Itoa(s[1]), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_ = gofft.FFT2(x, s)
+				_ = gofft.FFT2With(x, s, fmaOpt)
 			}
 		})
 	}
@@ -150,7 +155,7 @@ func BenchmarkFFT2_GoFFT(b *testing.B) {
 func BenchmarkFFT2Plan_GoFFT(b *testing.B) {
 	for _, s := range shapes {
 		x := cmplx(s[0] * s[1])
-		p := gofft.NewPlanN(s[0], s[1])
+		p := gofft.NewPlanNWith([]int{s[0], s[1]}, fmaOpt)
 		dst := make([]complex128, len(x))
 		b.Run(strconv.Itoa(s[0])+"x"+strconv.Itoa(s[1]), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
