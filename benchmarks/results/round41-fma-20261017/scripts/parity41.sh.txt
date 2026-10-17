@@ -1,0 +1,20 @@
+#!/bin/sh
+# parity41.sh CORE MAXSTART MAXEND "MACHINE" V...: the parity package once per
+# variant (def: GOFFT_FMA unset, fma: GOFFT_FMA=1), pinned, back to back, each
+# run waiting for a one-minute load below MAXSTART and flagged above MAXEND.
+C=$1; LS=$2; LE=$3; M=$4; shift 4
+D=$(cd "$(dirname "$0")" && pwd)
+cd "$D" && sha256sum -c r41.sha || exit 1
+i=0
+for v in "$@"; do
+  i=$((i+1))
+  while awk -v m="$LS" '{exit !($1 >= m)}' /proc/loadavg; do sleep 30; done
+  echo "# run $i $v start $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg)"
+  if [ "$v" = fma ]; then F=1; else F=; fi
+  GOFFT_FMA=$F GOV=go1.27.1 FFTW_DESC="3.3.10 built from source by setup.sh" taskset -c "$C" sh runpkg/run-remote.sh amd64 "$M" > "run$i-$v.log" 2>&1
+  mkdir -p "out$i-$v" && cp runpkg/benchmarks/go_bench.txt runpkg/benchmarks/fftw.json runpkg/benchmarks/ref.json runpkg/benchmarks/REPORT.md "out$i-$v/" 2>/dev/null
+  end=$(cut -d' ' -f1 /proc/loadavg)
+  flag=""; awk -v m="$LE" -v e="$end" 'BEGIN{exit !(e > m)}' && flag=" ABOVE $LE: rerun"
+  echo "# run $i $v end $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg)$flag"
+done
+echo END
