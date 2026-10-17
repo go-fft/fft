@@ -11,12 +11,11 @@ package kernels
 // path runs it. UseFMA is not consulted here: it decided whether the plan was
 // built for FMA at all.
 
-// StockhamPassFMA is StockhamPass for a pass of an FMA plan. The final pass
-// (ido == 1) has no twiddles and runs StockhamPass's kernel.
+// StockhamPassFMA is StockhamPass for a pass of an FMA plan. A final pass
+// (ido == 1) has no twiddles: it runs the FMA twin of its kernel where the
+// butterfly has a product to fuse (stockhamLastFMAKernel), the default
+// kernel otherwise.
 func StockhamPassFMA(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
-	if ido == 1 {
-		return StockhamPass(r, ido, l1, cc, ch, tw, inverse, wide)
-	}
 	w := stockhamWidth(r, ido, UseStockhamAVX2, UseStockhamAVX512 && wide)
 	if w == 0 {
 		return false
@@ -26,8 +25,12 @@ func StockhamPassFMA(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool
 	}
 	n := r * ido * l1
 	_, _ = cc[n-1], ch[n-1] // the kernels trust these lengths
-	_ = tw[skTwLen(r, ido)-1]
 	k, _, _ := stockhamKernels(r, w, inverse)
+	if ido == 1 {
+		stockhamLastFMAKernel(r, w)(&cc[0], &ch[0], k, l1)
+		return true
+	}
+	_ = tw[skTwLen(r, ido)-1]
 	stockhamPassFMAKernel(r, w)(&cc[0], &ch[0], &tw[0], k, ido, l1)
 	return true
 }
@@ -40,6 +43,21 @@ func stockhamPassFMAKernel(r, w int) skPassFn {
 		return skPass512FMA[r]
 	}
 	return skPass256FMA[r]
+}
+
+// stockhamLastFMAKernel returns the final-pass kernel of an FMA plan for
+// radix r at a width stockhamWidth chose: the FMA twin where there is one,
+// the default kernel otherwise. A pure function, tested for both widths on
+// any machine.
+func stockhamLastFMAKernel(r, w int) skLastFn {
+	fused, plain := skLast256FMA[r], skLast256[r]
+	if w == 512 {
+		fused, plain = skLast512FMA[r], skLast512[r]
+	}
+	if fused != nil {
+		return fused
+	}
+	return plain
 }
 
 // StockhamPassLayoutFMA is StockhamPassLayout for a pass of an FMA plan.
@@ -74,12 +92,10 @@ func intelSplitKernelFMA(mode uint8, r int, inverse bool) skPassFn {
 	return skSplitFwdFMA[r][mode]
 }
 
-// StockhamBatchPassFMA is StockhamBatchPass for a pass of an FMA plan; a
-// final pass (ido == 1) runs StockhamBatchPass's kernel.
+// StockhamBatchPassFMA is StockhamBatchPass for a pass of an FMA plan: the
+// FMA twins of the batched kernels, which fuse radix 8's √2/2 products in
+// the final pass too.
 func StockhamBatchPassFMA(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut int, inverse bool) bool {
-	if ido == 1 {
-		return StockhamBatchPass(r, ido, l1, cc, ch, tw, w, sIn, sOut, inverse)
-	}
 	if w < 1 || sIn < w || sOut < w || ido < 1 || l1 < 1 {
 		panic("kernels: StockhamBatchPass: need w >= 1, sIn and sOut >= w, ido and l1 >= 1")
 	}
@@ -92,8 +108,12 @@ func StockhamBatchPassFMA(r, ido, l1 int, cc, ch, tw []complex128, w, sIn, sOut 
 	if inverse {
 		t = &skInv[0][0]
 	}
-	_ = tw[(ido-1)*(r-1)-1]
-	skBatch256FMA[r](&cc[0], &ch[0], &tw[0], t, ido, l1, w/2, w&1, 16*ido*sIn, 16*l1*ido*sOut, 16*(sIn-w), 16*(sOut-w))
+	tp := (*complex128)(nil)
+	if ido > 1 {
+		_ = tw[(ido-1)*(r-1)-1]
+		tp = &tw[0]
+	}
+	skBatch256FMA[r](&cc[0], &ch[0], tp, t, ido, l1, w/2, w&1, 16*ido*sIn, 16*l1*ido*sOut, 16*(sIn-w), 16*(sOut-w))
 	return true
 }
 
@@ -120,4 +140,33 @@ func stockhamStridedFMAKernel(r, w int) skStridedFn {
 		return skStrided512FMA[r]
 	}
 	return skStrided256FMA[r]
+}
+
+// StockhamLastRunFMA is StockhamLastRun for the final pass of an FMA plan:
+// the FMA twin of the kernel for radix 8, the default kernel otherwise.
+func StockhamLastRunFMA(r int, cc, ch []complex128, os, runs, run, gap int, inverse, wide bool) bool {
+	if os < 0 || gap < 0 {
+		panic("kernels: StockhamLastRun: os and gap must be >= 0")
+	}
+	if !UseStockhamAVX2 || runs < 1 || run < 4 || run%4 != 0 || skLastRun256[r] == nil {
+		return false
+	}
+	_, _ = cc[runs*run*r-1], ch[(runs-1)*gap+run-1+(r-1)*os] // the kernels trust these lengths
+	w := stockhamWidth(r, 1, true, UseStockhamAVX512 && wide)
+	k, _, _ := stockhamKernels(r, w, inverse)
+	stockhamLastRunFMAKernel(r, w)(&cc[0], &ch[0], k, os, runs, run, gap)
+	return true
+}
+
+// stockhamLastRunFMAKernel is stockhamLastRunKernel for an FMA plan: the
+// FMA twin where there is one, the default kernel otherwise.
+func stockhamLastRunFMAKernel(r, w int) skLastRunFn {
+	fused, plain := skLastRun256FMA[r], skLastRun256[r]
+	if w == 512 {
+		fused, plain = skLastRun512FMA[r], skLastRun512[r]
+	}
+	if fused != nil {
+		return fused
+	}
+	return plain
 }

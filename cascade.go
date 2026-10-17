@@ -202,7 +202,11 @@ func (st *skStage) cascadeStridedGo(ch, cc []complex128, cnt, nb, sin, bin, sout
 			for j := range r {
 				x[j] = cc[b*bin+i+j*sin]
 			}
-			bflyR(&y, &x, r, s)
+			if st.fma {
+				bflyRFMA(&y, &x, r, s)
+			} else {
+				bflyR(&y, &x, r, s)
+			}
 			g := i0 + b*bi + i
 			for j := range r {
 				v := y[j]
@@ -241,7 +245,11 @@ func (st *skStage) cascadePass(ch, cc []complex128, l1 int, inverse bool) {
 // cascadeLast runs the final pass (ido == 1) over the blocks of cc, writing
 // output j of block q·run + c to dst[q·gap + c + j·os].
 func (st *skStage) cascadeLast(dst, cc []complex128, os, run, gap int, inverse bool) {
-	if !kernels.StockhamLastRun(st.r, cc, dst, os, len(cc)/(st.r*run), run, gap, inverse, st.wide) {
+	lastRun := kernels.StockhamLastRun
+	if st.fma {
+		lastRun = kernels.StockhamLastRunFMA
+	}
+	if !lastRun(st.r, cc, dst, os, len(cc)/(st.r*run), run, gap, inverse, st.wide) {
 		st.cascadeLastGo(dst, cc, os, run, gap, inverse)
 	}
 }
@@ -253,7 +261,11 @@ func (st *skStage) cascadeLastGo(dst, cc []complex128, os, run, gap int, inverse
 	var x, y [8]complex128
 	for k := range len(cc) / r {
 		copy(x[:r], cc[r*k:r*k+r])
-		bflyR(&y, &x, r, s)
+		if st.fma {
+			bflyRFMA(&y, &x, r, s)
+		} else {
+			bflyR(&y, &x, r, s)
+		}
 		o := k%run + gap*(k/run)
 		for j := range r {
 			dst[o+j*os] = y[j]

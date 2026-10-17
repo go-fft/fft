@@ -30,3 +30,8 @@ func StockhamStridedFMA(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout,
 func ZnPlanForWideFMA(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *ZnPlan {
 	return nil
 }
+
+// StockhamLastRunFMA reports false: the fft package runs its Go pass.
+func StockhamLastRunFMA(r int, cc, ch []complex128, os, runs, run, gap int, inverse, wide bool) bool {
+	return false
+}

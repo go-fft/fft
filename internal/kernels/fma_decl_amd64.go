@@ -279,3 +279,31 @@ func intelSplit512R8SIInvFMA(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
 func intelSplit512R8IIInvFMA(cc, ch, tw *complex128, k *float64, ido, l1 int)
+
+// The FMA twins of the final-pass kernels whose butterflies multiply by a
+// constant that the FMA kernels fuse: radix 8 (√2/2), 16 and 9 (their
+// internal twiddles). The other final passes are the default kernels.
+var (
+	skLast256FMA    = [21]skLastFn{8: skLast8AVX2FMA, 9: csLast9AVX2FMA, 16: skLast16AVX2FMA}
+	skLast512FMA    = [21]skLastFn{8: skLast8AVX512FMA}
+	skLastRun256FMA = [9]skLastRunFn{8: skLastRun8AVX2FMA}
+	skLastRun512FMA = [9]skLastRunFn{8: skLastRun8AVX512FMA}
+)
+
+//go:noescape
+func skLast8AVX2FMA(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func skLast8AVX512FMA(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func skLast16AVX2FMA(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func csLast9AVX2FMA(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func skLastRun8AVX2FMA(cc, ch *complex128, k *float64, os, runs, run, gap int)
+
+//go:noescape
+func skLastRun8AVX512FMA(cc, ch *complex128, k *float64, os, runs, run, gap int)
