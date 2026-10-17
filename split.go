@@ -58,13 +58,10 @@ var clRowOrder map[int][]int
 // Haswell (Round 37: route_amd64.go).
 var clRowMin int
 
-// clRowPlan returns the plan the last axis of an N-D plan of size elements
+// clRowPlanF returns the plan the last axis of an N-D plan of size elements
 // takes for lines of length n: clRowOrder's when the plan is large enough
-// and the length is in the table, else nil.
-func clRowPlan(n, size int) *Plan { return clRowPlanF(n, size, false) }
-
-// clRowPlanF is clRowPlan for an FMA plan when fma is set, from a cache of
-// its own.
+// and the length is in the table, else nil; an FMA plan when fma is set,
+// from a cache of its own.
 func clRowPlanF(n, size int, fma bool) *Plan {
 	f := clRowOrder[n]
 	if f == nil || size < clRowMin {

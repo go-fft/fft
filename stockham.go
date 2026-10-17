@@ -110,7 +110,10 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	for k, st := range p.stages {
 		rs[k], idos[k], l1s[k] = st.r, st.ido, st.l1
 	}
-	if hswSplitKept(n) {
+	// An FMA plan keeps the split layout only where its split passes have FMA
+	// kernels (fmaSplit): elsewhere its Go passes, which read interleaved
+	// data, run them.
+	if hswSplitKept(n) && (!fma || fmaSplit) {
 		for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
 			p.stages[k].split = m
 		}
@@ -140,7 +143,7 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
 	if fma {
 		p.fma = true
-		p.markFMA(fmaSplit)
+		p.markFMA()
 	}
 	p.zn = znPlanFor(n, p.stages, p.fma) // at most 512 points: never a blocked schedule
 	return p

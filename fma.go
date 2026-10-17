@@ -63,19 +63,19 @@ func fmaRadix(r int) bool {
 	return false
 }
 
-// fmaSplit says whether a split pass (mode != 0) of an FMA plan fuses its
-// product: on amd64 every split kernel has an FMA twin; arm64's split
-// kernels have none, and a split pass there keeps its kernel, whose Go
-// fallback would not read the split layout.
+// fmaSplit says whether an FMA plan keeps the split layout between its
+// passes: on amd64 every split kernel has an FMA twin; arm64's NEON split
+// kernels have none, so an FMA plan there (built only by the tests) runs
+// interleaved, every pass on its Go reference.
 var fmaSplit = fmaSplitDefault()
 
-// markFMA sets the stages of an FMA plan that fuse their twiddle products
-// (fmaRadix, fmaSplit). The final pass (ido == 1) has no twiddles: marking it
-// changes nothing but the entry point, which then runs the default kernel.
-func (p *skPlan) markFMA(split bool) {
+// markFMA sets the stages of an FMA plan that fuse their products
+// (fmaRadix): every one whose radix has FMA kernels, the final pass
+// included, whose butterfly may have a constant product to fuse.
+func (p *skPlan) markFMA() {
 	for k := range p.stages {
 		st := &p.stages[k]
-		st.fma = fmaRadix(st.r) && (st.split == 0 || split)
+		st.fma = fmaRadix(st.r)
 	}
 }
 
