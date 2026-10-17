@@ -14,13 +14,13 @@ const ZnThreePassMax = 512
 // znAddrSlots is the size of znKernelAddrs' table: 21 interleaved pass
 // kernels by radix, 21 final-pass kernels, then 2·9·5 split kernels by
 // direction, radix and mode, the same for the 512-bit split kernels (Round
-// 35), 21 AVX-512 final-pass kernels by radix, then the FMA twins of the
-// pass kernels (Round 41, znFMAAt).
-const znAddrSlots = znFMAAt + 42 + 4*9*5
+// 35), and 21 AVX-512 final-pass kernels by radix; then the same for the
+// FMA plans (Round 41, znFMAAt).
+const znAddrSlots = 2 * znFMAAt
 
-// znFMAAt is where znKernelAddrs puts the FMA twins of the pass kernels
-// (Round 41), each at znFMAAt + its default twin's slot. The final passes
-// have no twiddles and no twins.
+// znFMAAt is where znKernelAddrs puts the kernels of the FMA plans (Round
+// 41): each at znFMAAt + its default twin's slot, the default final-pass
+// kernel where a radix has no FMA twin of it.
 const znFMAAt = 42 + 4*9*5 + 21
 
 // Where znKernelAddrs puts the 512-bit split kernels and the AVX-512
@@ -85,19 +85,23 @@ func znPass(r, ido int, mode uint8, inverse, wide, fma bool) (addr uintptr, k *f
 // znLast selects the final-pass kernel of radix r (entry point 0 when there
 // is none) and its constants table, at the width StockhamPass would run it
 // (wide as there); r is 2 to 20.
-func znLast(r int, inverse, wide bool) (addr uintptr, k *float64) {
+func znLast(r int, inverse, wide, fma bool) (addr uintptr, k *float64) {
+	at := 0
+	if fma {
+		at = znFMAAt
+	}
 	if stockhamWidth(r, 1, true, wide) == 512 {
 		k = &sk512Fwd[0][0]
 		if inverse {
 			k = &sk512Inv[0][0]
 		}
-		return znAddrs[csZnLast512At+r], k
+		return znAddrs[at+csZnLast512At+r], k
 	}
 	k = &skFwd[0][0]
 	if inverse {
 		k = &skInv[0][0]
 	}
-	return znAddrs[21+r], k
+	return znAddrs[at+21+r], k
 }
 
 // znSplitOut and znSplitIn report whether a pass of layout mode writes or
@@ -207,7 +211,7 @@ func znPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide, f
 			z.addr[d][i], z.k[d][i], z.tw[d][i] = a, k, &tws[d][i][0]
 			l1 *= r[i]
 		}
-		a, k := znLast(r[s-1], d == 1, wide)
+		a, k := znLast(r[s-1], d == 1, wide, fma)
 		if a == 0 {
 			return nil
 		}
