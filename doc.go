@@ -33,4 +33,23 @@
 // (numpy.fft.rfft) and IRFFT inverts it back to a real signal of a
 // caller-specified length (numpy.fft.irfft). See docs/plan-fft.md for the
 // roadmap.
+//
+// # Fused multiply-add (Options.FMA)
+//
+// By default every amd64 kernel is bit-identical to the package's Go passes
+// compiled without fused multiply-add, so a result does not depend on which
+// kernel ran. Options{FMA: true} (FFTWith and the other ...With functions,
+// NewPlanWith, NewRealPlanWith, NewPlanNWith, NewRealPlan2With) gives that up
+// for speed on amd64 CPUs with FMA3: every twiddle product between passes,
+// the √2/2 products of the radix-8 butterfly and the internal twiddles of
+// the radix-9 and radix-16 butterflies are fused, as FFTW's FMA codelets
+// fuse them. The results then differ from the default's in the last bits,
+// and are as accurate: against scipy.fft in long double on the same inputs,
+// the relative RMS error of 96 transforms (complex 16 to 2^20, composites,
+// Rader and Bluestein primes, real, inverse and 2-D) was 0.90 to 1.04 times
+// the default's, 1.1e-15 at most (BENCHMARKS.md, Round 41). The
+// float32 transforms ignore the option; elsewhere than amd64 with FMA3 it
+// builds the default plans. Each FMA kernel is bit-identical to a Go
+// reference written with math.FMA, and FMA plans are cached apart from the
+// default ones.
 package fft

@@ -45,7 +45,7 @@ type Options struct {
 
 	// FMA lets the transform fuse its twiddle products with fused
 	// multiply-add instructions, which is faster and, measured against
-	// numpy.fft, as accurate (see the FMA section of the package
+	// numpy.fft, as accurate (see "Fused multiply-add" in the package
 	// documentation), but NOT bit-identical to the default: the results
 	// differ from FFT's in the last bits. The default (false) keeps every
 	// amd64 kernel bit-identical to the package's Go reference. FMA is a
