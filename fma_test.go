@@ -403,6 +403,21 @@ func TestFMAEveryRadix(t *testing.T) {
 				t.Fatalf("%v: stage of radix %d marked %v", f, st.r, st.fma)
 			}
 		}
+		// Each interleaved stage alone: its kernel (or Go pass) against
+		// passScalarFMA, the reference, which every radix then runs here.
+		for k := range p.stages {
+			st := &p.stages[k]
+			if st.split != 0 || !st.fma {
+				continue
+			}
+			in := fmaSignal(n, uint64(k)+5)
+			a, b := make([]complex128, n), make([]complex128, n)
+			st.pass(a, in, true)
+			st.passScalarFMA(b, in, st.l1, true)
+			if !sameAll(a, b) {
+				t.Fatalf("%v stage %d: the pass differs from passScalarFMA", f, k)
+			}
+		}
 		x := fmaSignal(n, uint64(n)+3)
 		want := fmaNaive(x)
 		for _, inverse := range []bool{false, true} {
