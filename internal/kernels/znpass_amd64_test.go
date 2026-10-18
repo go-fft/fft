@@ -74,11 +74,29 @@ func TestZnKernelAddrs(t *testing.T) {
 			}
 		}
 	}
+	// Each kernel once in the default half; the FMA half (Round 41) has the
+	// same layout, an FMA twin where the default has a kernel, except for the
+	// final passes without one, whose slot repeats the default kernel.
+	fused := map[int]bool{21 + 8: true, 21 + 9: true, 21 + 16: true, csZnLast512At + 8: true}
 	seen := map[uintptr]bool{}
-	for _, a := range znAddrs {
+	for i, a := range znAddrs[:znFMAAt] {
 		if a != 0 && seen[a] {
 			t.Errorf("entry point %#x twice", a)
 		}
 		seen[a] = true
+		f := znAddrs[znFMAAt+i]
+		last := i >= 21 && i < 42 || i >= csZnLast512At
+		switch {
+		case (a == 0) != (f == 0):
+			t.Errorf("slot %d: default %#x, FMA %#x", i, a, f)
+		case a == 0:
+		case last && !fused[i] && f != a:
+			t.Errorf("slot %d: a final pass without an FMA twin has another kernel %#x", i, f)
+		case (!last || fused[i]) && (f == a || seen[f]):
+			t.Errorf("slot %d: no FMA twin of %#x (%#x)", i, a, f)
+		}
+		if f != a {
+			seen[f] = true
+		}
 	}
 }

@@ -111,3 +111,54 @@ func TestFMAPassMatchesReference(t *testing.T) {
 		})
 	}
 }
+
+// TestFMABatchMatchesReference holds the FMA batched kernels (the strips of
+// an N-D FMA plan) to passBatchScalarFMA, pass by pass: every batched
+// radix, the final pass (radix 8 fuses its √2/2 products there too) and
+// twiddled ones, batches of 1 to 9 lines, forward and inverse.
+func TestFMABatchMatchesReference(t *testing.T) {
+	fmaKernelsHere(t)
+	defer func(b bool) { kernels.UseStockhamBatchAVX2 = b }(kernels.UseStockhamBatchAVX2)
+	for _, f := range [][]int{{8, 8}, {2, 8, 4}, {3, 8}, {5, 8}, {4, 4, 8}, {8, 3, 5}} {
+		n := factorProduct(f)
+		p := newSKPlanFactorsOpt(n, f, true)
+		for k := range p.stages {
+			st := &p.stages[k]
+			tf, tc := st.batchTwiddles()
+			for _, w := range []int{1, 2, 7, 9} {
+				x := fmaSignal(n*w, uint64(31*n+w))
+				for _, inverse := range []bool{false, true} {
+					tw := tf
+					if inverse {
+						tw = tc
+					}
+					kernels.UseStockhamBatchAVX2 = true
+					got := make([]complex128, n*w)
+					st.passBatch(got, x, tw, w, w, w, inverse)
+					kernels.UseStockhamBatchAVX2 = false
+					want := make([]complex128, n*w)
+					st.passBatch(want, x, tw, w, w, w, inverse)
+					if !sameAll(got, want) {
+						t.Fatalf("%v stage %d (radix %d, ido %d) w=%d inverse=%v: FMA batched kernel differs from its reference", f, k, st.r, st.ido, w, inverse)
+					}
+				}
+			}
+		}
+	}
+}
+
+// TestFMARotatingPassFallback: arm64's rotating passes on an FMA stage fall
+// back to its Go reference when the kernels are off, and agree with them.
+func TestFMARotatingPassFallback(t *testing.T) {
+	fmaKernelsHere(t)
+	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
+	st := &newSKPlanFactorsOpt(32, []int{4, 8}, true).stages[0]
+	in := fmaSignal(32*6, 17)
+	a, b := make([]complex128, len(in)), make([]complex128, len(in))
+	st.armrealPassL(a, in, 6*st.l1, false)
+	kernels.UseStockhamAVX2 = false
+	st.armrealPassL(b, in, 6*st.l1, false)
+	if !sameAll(a, b) {
+		t.Fatal("armrealPassL: the FMA kernel and its Go reference differ")
+	}
+}
