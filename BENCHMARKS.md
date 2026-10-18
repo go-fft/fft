@@ -3335,8 +3335,8 @@ generator, as Round 38's radix-32 pass did.
 - Haswell, Neoverse-N1 (arm64's kernels already reproduce the compiler's
   fusion; FMA plans there run interleaved Go reference passes and are built
   only by the tests) and float32 FMA: not built, not measured.
-- The race detector: the suites ran with `-race` only on arm64 (CI runs it
-  on its amd64 runners).
+- The race detector ran only in CI (macOS arm64, ubuntu and windows amd64,
+  green on both PRs); a local `-race` run timed out at a host load of 95.
 - Whether FMA would pay with FFTW's larger codelets (radix 32 and 64 with
   fused butterflies): not built.
 
