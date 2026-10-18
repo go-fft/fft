@@ -1,0 +1,16 @@
+#!/bin/sh
+S=/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/r41tmp
+cd /private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/agent-r41/fft || exit 1
+T='|'
+$S/kmut-run.sh > $S/kmut-control.log 2>&1 || { echo "CONTROL FAILED"; exit 1; }
+echo "control: passes unmutated"
+run() { # file from to name
+  if ~/.local/bin/mutate -file "$1" -from "$2" -to "$3" -name "$4" -- $S/kmut-run.sh > $S/kmut-last.log 2>&1; then echo "caught: $4"; else echo "SURVIVED: $4"; tail -5 $S/kmut-last.log; fi
+}
+while IFS="$T" read -r f from to name; do run "$f" "$from" "$to" "$name"; done < $S/kmut4.txt
+run internal/kernels/znpass_amd64.go "$(printf '\tat := 0\n\tif fma {\n\t\tat = znFMAAt\n\t}\n\tif mode == 0')" "$(printf '\tat := 0\n\tif fma {\n\t\tat = 0\n\t}\n\tif mode == 0')" "frame plans default pass kernels"
+run cascade.go "$(printf '\n\t\t\t\tbflyRFMA(&y, &x, r, s)')" "$(printf '\n\t\t\t\tbflyR(&y, &x, r, s)')" "cascade strided Go default butterfly"
+# restore the generated assembly
+(cd internal/kernels/asmgen/amd64 && GOWORK=off go run . > /dev/null && mv ./*.s ../../)
+git status --short
+echo KMUT-END

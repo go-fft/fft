@@ -141,6 +141,10 @@ where two would hide which side of 1 or 1.05 a row is on:
   radix-32 pass for amd64, but it lost to split radix 8 wherever it was timed,
   so it was not shipped (v0.26.4 records the measurements). Also open: complex
   and RFFT 1,080, and RFFT 256.
+- **FMA is not what keeps complex 1,024 behind** (Round 41): an opt-in FMA
+  mode, as accurate as the default, moved complex 1,024 by 0–1% against FFTW
+  on both hosts; it closed complex 256 on Cascade Lake (1.09 → 0.96). Its
+  code is on branch `fma-opt-in-r41`, not in a release.
 - **FFTW's variance:** over each round's runs FFTW's own time on one row moved
   by up to 47% on Cascade Lake (2-D 1024²: 15.9–23.3 ms; go-fft's 0.83 there
   is against the median, and 0.90 against FFTW's fastest run), 37% on Zen 3
@@ -3125,6 +3129,218 @@ the ends). Main time ÷ branch time, fifteen rounds:
   (the naive sum's own error included).
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
+
+### Round 41 — opt-in FMA: built, bit-identical to a `math.FMA` reference, as accurate, and it does not close complex 1,024 (2026-10-17)
+
+**The question.** Round 38 attributed FFTW's remaining lead on amd64
+(complex 1,024 at 1.13–1.19×, complex 256, RFFT 4,096) to fused
+multiply-adds, which bit identity with the Go passes excludes from every
+amd64 kernel. This round built an opt-in FMA mode and measured whether it
+closes that lead. Hosts: Zen 3 (cfarm420, core 40, load gate 2.5, rerun
+above 3.5 at the end) and Cascade Lake (cfarm151, core 3, load 0–1),
+`GOMAXPROCS=1`, go1.27.1, main = v0.27.1 (a9e3a80).
+
+**Bibliography.**
+- **FFTW 3.3.10** (the tarball checked against setup.sh's SHA-256). genfft
+  `-fma` emits a second body per codelet, used under
+  `ARCH_PREFERS_FMA || ISA_EXTENSION_PREFERS_FMA`. Counts, plain (add + mul)
+  against FMA (add + mul + fma): `t1fv_8` 33 + 16 = 49 → 23 + 14 + 10 = 47
+  (−4%), `t1fv_16` 129 → 117 (−9%), `t2fv_32` 321 → 279 (−13%), `n1fv_16`
+  84 → 72 (−14%), `n2fv_8` 28 → 26. The AVX2 and AVX-512 headers' twiddle
+  product `VZMUL` is always `fmaddsub(sr, dupl(tx), mul(flip(sr),
+  duph(tx)))`, one multiply and one VFMADDSUB, the form used here.
+  FFTW's ChangeLog (a71f3dd, 2017-07-05) disabled
+  `ISA_EXTENSION_PREFERS_FMA`: "Ryzen is faster with the non-FMA version.
+  Haswell prefers the FMA version". The hosts' FFTW is built with
+  `--enable-fma` (benchmarks/remote/README.md): `objdump -d libfftw3.a`
+  counts 23,055 VFMADD/VFMSUB/VFNMADD (besides 3,233 VFMADDSUB) against
+  24,021 VADDPD on Cascade Lake, 17,529 against 20,092 on Zen 3.
+- **Error.** Higham (Accuracy and Stability of Numerical Algorithms, §24.1):
+  the FFT's normwise error grows as log2 n · η with η = μ + γ4(√2 + μ),
+  for any complex product of O(u) normwise error. FMA changes a constant,
+  not the growth: the classical product is bounded by √5·u (Brent,
+  Percival, Zimmermann 2007), the FMA one (re = fma(a, c, −bd)) by 2u
+  (Jeannerod, Kornerup, Louvet, Muller 2017).
+- **Go.** `math.FMA` rounds once and is intrinsified on amd64 (run-time
+  check, or direct at GOAMD64=v3) and arm64; the spec lets the compiler
+  fuse x·y + z itself unless an explicit conversion forbids it, which gc
+  does on arm64 always and on amd64 only at v3. The reference writes
+  `math.FMA` and `float64()` explicitly, so it is the same bits everywhere.
+- **go-asmgen v0.16.0** needed no change: its Builder emits Plan 9
+  mnemonics, cmd/asm encodes VFMADD231PD, VFNMADD231PD, VFMSUB231PD and
+  VFMADDSUB231PD at 128/256/512 bits (with `.BCST`), and its
+  `FeatureProbe(FMA)` (leaf 1 ECX bit 12, OSXSAVE, XCR0 YMM) is the gate.
+
+**API.** One field and four plan constructors:
+`Options{FMA: true}` for every complex128/float64 `...With` function, and
+`NewPlanWith`, `NewRealPlanWith`, `NewPlanNWith`, `NewRealPlan2With`, which
+accept only `FMA` (N, Norm and Axes panic, as Options' unknown fields do).
+FMA is a request: it builds an FMA plan only where `kernels.UseFMA` (AVX2 and
+FMA3) is true, and the default plan bit for bit everywhere else; the float32
+transforms ignore it. FMA plans have their own caches at every level (1-D,
+no-16, row, real, real 2-D, N-D, N-D subset), so the two kinds never mix.
+Real transforms (their half plan), Rader and Bluestein (their convolution,
+kernel spectra included), N-D axes (strips and gathered lines alike) and the
+blocked schedule all honour it.
+
+**Kernels.** `genFMAFiles` in gen.go generates a twin of every twiddled pass
+kernel (interleaved AVX2 and AVX-512, split at 256 and 512 bits, batched,
+strided, radix 9, 10, 12, 15, 16, 20) and of the final passes of radix 8, 9
+and 16, into `fma_amd64.s`, `fmasplit_amd64.s`, `fmasplit512_amd64.s`; the
+frame trampolines' address table gains the same layout again at slot 243.
+Each twin differs from its default kernel in two places only:
+- **The twiddle product**, re = fma(xr, wr, −(xi·wi)), im = fma(xi, wr,
+  xr·wi): VMULPD then VFMADDSUB231PD interleaved (no 512-bit VADDSUBPD
+  workaround needed), VMULPD then VFMSUB231PD/VFMADD231PD split.
+- **The butterflies' constant products**: radix 8's √2/2 folded into
+  y1, y5 = a4 ± h·a5 and y3, y7 = a6 ± h·a7 (VFMADD231PD/VFNMADD231PD with
+  the constant as a memory operand), and radix 9 and 16's internal twiddles
+  as fma(c, a, swap(a)·(−ss, ss)).
+The kernels keep their default twins' frames (NOSPLIT leaves, Round 32).
+Their Go reference is `passScalarFMA` (`cmulFMA`, `bfly8FMA`, `bfly9FMA`,
+`bfly16FMA`).
+
+**Correctness.** `TestFMAPassMatchesReference` runs every smooth length to
+2,100 and 4,096 … 65,536 through FMA plans with the kernels on and off, under
+every layout the machine runs (AVX2 interleaved and split; AVX-512
+interleaved and 512-bit split on Cascade Lake), in place and not, on the
+signed-zero and infinite signals: the same bits on both hosts. The default
+kernels' bit-identity tests pass unchanged. Further tests on every
+architecture (routes forced, never the runner's CPU): FMA unavailable gives
+the default plan bit for bit; the caches never share an entry; every `...With`
+function and plan constructor is its FMA plans' composition bit for bit; FMA
+strips equal FMA lines for every length to 600 and 153, 171, 207, 1000,
+1024, 1080; every length to 2000 is correct as an FMA strip axis
+(`TestNDStripAxisEveryLength` with the option on); Rader 1009 and Bluestein
+10007 transform on FMA convolution plans; 46 lengths over every engine and a
+prime factor no pass handles (68, 171, 20014) agree with an O(n²) DFT within
+2× the default's error. Both packages' suites pass on Cascade Lake and Zen 3
+(the binaries cross-compiled with coverage); the merged profile reads 100.0%
+on Cascade Lake and on arm64 (macOS), 99.7% on Zen 3, whose route never takes
+the AVX-512 frame flag or Go radix-9 FMA fallback. gofmt and `go vet` clean,
+also for GOAMD64=v3 and arm64; every `.s` regenerates.
+**Mutations**, every one built and run: 31 in the fft package on arm64, of
+which 7 survived there and were equivalent there (gc fuses the default Go
+passes on arm64, so an unfused FMA reference is the same bits, or the route
+has no such kernel); with 23 more in the generator and the kernels package
+they were run on Cascade Lake (`cascade/mutants-kernels.txt`,
+`scripts/kmut-*`), after a control run on the unmutated tree passed: all are
+caught, one (the batched Go reference's butterfly) only after
+`TestFMABatchMatchesReference` was added. A first batch reported every
+mutant caught in two minutes: its copy step failed for each one (an `scp`
+option), and only the control exposed it.
+
+**Accuracy against numpy and long double on the exact bytes**
+(`TestR41Export`, `scripts/r41_accuracy.py`, numpy 2.5.3 and scipy 1.18.1 in
+long double on Zen 3, `zen3/accuracy.txt`): relative RMS error of 90
+transforms, complex 16 to 2^20, composites to 720,720, Rader and Bluestein
+primes to 1,000,003, RFFT and IRFFT to 2^20, 2-D to 1024².
+
+| transform | default vs numpy | FMA vs numpy | default vs long double | FMA vs long double | FMA ÷ default |
+|:--|--:|--:|--:|--:|--:|
+| complex 256 | 3.08e-16 | 2.99e-16 | 2.63e-16 | 2.56e-16 | 0.970 |
+| complex 1,024 | 3.54e-16 | 3.46e-16 | 2.83e-16 | 2.73e-16 | 0.966 |
+| complex 2^20 | 5.82e-16 | 5.82e-16 | 5.35e-16 | 5.24e-16 | 0.979 |
+| complex 1,009 (Rader) | 8.22e-16 | 8.11e-16 | 6.82e-16 | 6.76e-16 | 0.991 |
+| complex 10,007 (Bluestein) | 1.09e-15 | 1.09e-15 | 9.07e-16 | 9.05e-16 | 0.998 |
+| complex 1,000,003 (Bluestein) | 1.32e-15 | 1.31e-15 | 1.10e-15 | 1.08e-15 | 0.987 |
+| RFFT 4,096 | 4.15e-16 | 4.07e-16 | 3.49e-16 | 3.42e-16 | 0.981 |
+| RFFT / IRFFT 2^20 | 6.14e-16 / 6.13e-16 | 6.05e-16 / 6.05e-16 | 5.30e-16 / 5.30e-16 | 5.20e-16 / 5.20e-16 | 0.982 / 0.981 |
+| 2-D 1024² | 5.68e-16 | 5.60e-16 | 4.75e-16 | 4.65e-16 | 0.980 |
+| all 90 | | | | | 0.897–1.043 |
+
+The bound set for shipping was FMA within 1.5× the default's error; the
+worst is 1.043 (IRFFT 256). FMA is the more accurate on 80 of the 90, equal
+on 3 (the odd lengths 1001 and 16, whose passes have nothing to fuse or round
+alike).
+
+**In-process A/B** (`TestR41AB`, default and FMA plans built at four heap
+placements each, seven rounds, order rotated per round and placement;
+`*/ab2-placements-4-final.txt`), default time ÷ FMA time, median (range):
+
+| row | Zen 3 | Cascade Lake |
+|:--|:--|:--|
+| complex 256 | **1.077** (1.048–1.141) | **1.067** (1.061–1.080) |
+| complex 1,024 | 1.007 (0.993–1.016) | 1.016 (1.013–1.021) |
+| complex 4,096 | 0.999 (0.952–1.054) | 0.978 (0.974–0.984) |
+| complex 65,536 | 1.003 | **1.054** (1.048–1.058) |
+| complex 2^20 | 0.982 | 1.037 |
+| complex 1,000 / 1,080 / 1,920 / 1,296 | 1.031 / 1.028 / 1.019 / 1.007 | 1.010 / 1.026 / 1.025 / **1.047** |
+| complex 1,009 / 10,007 | 1.022 / 1.031 | 1.017 / 0.992 |
+| RFFT 256 / 1,024 / 4,096 | 0.981 / 1.018 / **1.040** | **1.064** / **1.058** / 0.984 |
+| RFFT 65,536 / 2^20 | 1.024 / 1.007 | 0.996 / 1.029 |
+| RFFT 1,000 / 1,080 / 1,920 | 0.988 / 1.028 / 0.999 | 1.024 / 1.003 / 0.982 |
+| 2-D 64² … 1024² | 1.052, 1.013, 1.007, 1.015, 1.045 | 1.049, 1.037, 1.024, 1.016, 1.011 |
+
+- **The placements matter.** A first A/B with one placement read Zen 3's
+  complex 1,024 at 1.082 (`zen3/ab1-noplacement-twiddle-only.txt`); with four
+  placements the same kernels read 0.997. That 8% was the default plan's
+  allocation, not FMA.
+- **The butterfly constants matter more than the twiddles.** Fusing the
+  twiddle products alone gave Zen 3 0.997 at 1,024, 1.003 at 2,048 and 1.004
+  for RFFT 4,096; fusing radix 8's √2/2 products as well gave 1.025, 1.044 and
+  1.036 (`zen3/ab-twiddle-only-vs-split-h8.txt`, the 256-bit split kernels
+  only, four placements).
+- **Where it loses**: Cascade Lake complex 4,096 (0.978), RFFT 4,096 (0.984)
+  and RFFT 1,920 (0.982); Zen 3 RFFT 256 (0.981) and 1,000 (0.988).
+
+**Against FFTW, with FMA on.** The parity package of the branch (its binaries
+checked by SHA-256 on each host, `*/parity/r41.sha`) gains `GOFFT_FMA=1`,
+which builds its go-fft rows, and its correctness gate, from FMA plans. Runs
+default, FMA, FMA, default (Zen 3: one more default, below), 24/24 correct
+each time; go-fft is the mean of
+the two runs of each variant, FFTW the median of every run
+(`current-numbers-v0.27.0/partab.go.txt`; `*/parity/partab-def*.txt`,
+`partab-fma.txt`). go-fft time ÷ FFTW time:
+
+| row | Zen 3 default | Zen 3 FMA | Cascade Lake default | Cascade Lake FMA |
+|:--|--:|--:|--:|--:|
+| complex 256 | 1.109 | 1.074 | 1.091 | **0.963** |
+| complex 1,024 | 1.104 | 1.090 | 1.168 | 1.166 |
+| complex 4,096 | **0.896** | **0.886** | **0.936** | **0.968** |
+| complex 65,536 | **0.855** | **0.847** | 1.064 | **1.026** |
+| complex 1,080 / 1,296 | 1.082 / **0.878** | 1.097 / **0.872** | 1.160 / 1.094 | 1.140 / 1.076 |
+| complex 1,920 | **0.988** | **1.019** | 1.112 | 1.109 |
+| RFFT 256 | 1.074 | 1.064 | **0.954** | **0.921** |
+| RFFT 1,024 | 1.063 | **0.984** | **0.803** | **0.746** |
+| RFFT 4,096 | 1.116 | **1.044** | **1.033** | 1.061 |
+| RFFT 1,080 / 1,920 | **1.010** / **1.049** | **1.008** / **1.006** | **1.041** / **0.999** | **1.012** / **0.967** |
+| 2-D 64² … 1024² | all ≤ 0.997 | all ≤ 0.941 | 0.774–1.082 | 0.720–1.034 |
+| rows ≤ 1.05 (of 24) | 18 | 20 | 16 | 18 |
+
+- **Zen 3's runs**: the second default run ended at load 3.61 and its first
+  rerun at 4.27, above the 3.5 gate; both are kept (`*-loaded`) and left out.
+  The default column is runs 1 and 6 (ended at 3.29 and 3.31), FMA runs 2
+  and 3 (3.44, 3.21); FFTW the median of those four.
+- **What FMA closes**: complex 256 (Cascade Lake 1.091 → 0.963; Zen 3
+  1.109 → 1.074), complex 65,536 on Cascade Lake (1.064 → 1.026), RFFT 4,096
+  on Zen 3 (1.116 → 1.044), RFFT 1,024 and 1,920 on Zen 3 (1.063 → 0.984,
+  1.049 → 1.006).
+- **What it does not**: complex 1,024, the row this round was for, moves
+  by 1% on Zen 3 (1.104 → 1.090) and not at all on Cascade Lake (1.168 →
+  1.166), matching the in-process A/B. The composites 1,080 and 1,920 do not
+  move either.
+- **RFFT 2^20 on Cascade Lake** (0.835 → 1.006) is this host's RFFT 2^20
+  noise again: the two FMA runs read 6.85 and 11.90 ms, FFTW 6.1–10.4 ms.
+
+**Conclusion.** FFTW's hosts do run FMA codelets, and the same kind of fusion
+here is as accurate as the default. But at complex 1,024 it buys 0.7–1.6%
+in process and 0–1% against FFTW, so FMA is not what keeps that row behind
+FFTW. It is worth 6–8% at 256 points and up to 5% on a few other rows, and it
+loses up to 2% on others. **This round ships the measurements only**: the
+code stays on branch `fma-opt-in-r41` for reference, with its tests and
+generator, as Round 38's radix-32 pass did.
+
+**What is not verified.**
+- Haswell, Neoverse-N1 (arm64's kernels already reproduce the compiler's
+  fusion; FMA plans there run interleaved Go reference passes and are built
+  only by the tests) and float32 FMA: not built, not measured.
+- The race detector: the suites ran with `-race` only on arm64 (CI runs it
+  on its amd64 runners).
+- Whether FMA would pay with FFTW's larger codelets (radix 32 and 64 with
+  fused butterflies): not built.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round41-fma-20261017/`](benchmarks/results/round41-fma-20261017/).
 
 ### Round 39 — Cascade Lake: 2-D 512² was not placement, wider column strips, the 2-D rows on the frame (2026-10-11)
 
