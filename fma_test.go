@@ -148,7 +148,7 @@ func TestFMAPlansCachedApart(t *testing.T) {
 			t.Fatalf("n=%d: Bluestein fma flags", n)
 		}
 	}
-	if cachedRealPlanF(512, true) == cachedRealPlan(512) || !cachedRealPlanF(512, true).half.sk.fma || cachedRealPlan(512).half.sk.fma {
+	if cachedRealPlanF(1000, true) == cachedRealPlan(1000) || !cachedRealPlanF(1000, true).half.sk.fma || cachedRealPlan(1000).half.sk.fma {
 		t.Fatal("real plans: FMA and default mixed")
 	}
 	if cachedRealPlan2F(8, 16, true) == cachedRealPlan2(8, 16) || !cachedRealPlan2F(8, 16, true).col.fma {
