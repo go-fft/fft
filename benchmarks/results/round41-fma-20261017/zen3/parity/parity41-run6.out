@@ -1,0 +1,5 @@
+runpkg/verify.amd64: OK
+runpkg/bench.amd64: OK
+# run 1 def start 07:03:24 load 2.44 3.49 3.10
+# run 1 def end 07:13:10 load 3.31 3.34 3.24
+END

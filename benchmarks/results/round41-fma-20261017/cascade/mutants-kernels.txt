@@ -1,0 +1,30 @@
+control: passes unmutated
+caught: interleaved product addsub swapped
+caught: interleaved product unswapped
+caught: split product real sign
+caught: split h8 minus side sign
+caught: interleaved h8 minus side sign
+caught: rotC cosine row
+caught: 512 split h8 minus side
+caught: 512 split product imag sign
+caught: frame table: radix-8 final default
+caught: final pass FMA twin not selected
+caught: split forward default kernel
+caught: batched default kernel
+caught: strided default kernel
+caught: last-run default kernel
+caught: AVX-512 final twin not selected
+caught: cmulFMA imag unfused
+caught: bfly16FMA unfused rotation
+caught: bfly9FMA unfused rotation
+SURVIVED: batch Go default butterfly
+mutate: batch Go default butterfly — THE SUITE SURVIVED IT. Nothing covers this.
+    PASS
+caught: pass ignores fma on final
+caught: cascade last ignores fma
+caught: split i=0 imag blend dropped
+caught: frame plans default pass kernels
+caught: cascade strided Go default butterfly
+KMUT-END
+# after TestFMABatchMatchesReference was added:
+caught: batch Go default butterfly

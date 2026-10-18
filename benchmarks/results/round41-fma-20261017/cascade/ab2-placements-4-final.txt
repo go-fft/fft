@@ -1,0 +1,30 @@
+X11 forwarding request failed on channel 0
+start 0.00 0.00 0.00 1/189 11457
+    round41_bench_test.go:144: fmaAvailable=true rounds=7 ms=60 placements=4
+    round41_bench_test.go:179: c256         default       382.5 ns  fma       358.9 ns  default/fma 1.067  (1.061–1.080)  rounds 1.067 1.066 1.061 1.080 1.067 1.063 1.067
+    round41_bench_test.go:179: c1024        default      2431.8 ns  fma      2393.6 ns  default/fma 1.016  (1.013–1.021)  rounds 1.016 1.016 1.016 1.013 1.013 1.021 1.021
+    round41_bench_test.go:179: c4096        default     11953.3 ns  fma     12222.7 ns  default/fma 0.978  (0.974–0.984)  rounds 0.975 0.975 0.974 0.978 0.979 0.984 0.982
+    round41_bench_test.go:179: c65536       default    423069.2 ns  fma    400927.8 ns  default/fma 1.054  (1.048–1.058)  rounds 1.053 1.054 1.053 1.058 1.056 1.055 1.048
+    round41_bench_test.go:179: c1048576     default  16781700.0 ns  fma  16138745.2 ns  default/fma 1.037  (1.027–1.053)  rounds 1.030 1.027 1.037 1.049 1.053 1.049 1.028
+    round41_bench_test.go:179: c1000        default      3100.3 ns  fma      3062.3 ns  default/fma 1.010  (1.002–1.013)  rounds 1.012 1.013 1.002 1.008 1.010 1.012 1.010
+    round41_bench_test.go:179: c1080        default      3444.4 ns  fma      3355.7 ns  default/fma 1.026  (1.025–1.030)  rounds 1.026 1.025 1.025 1.030 1.026 1.026 1.026
+    round41_bench_test.go:179: c1920        default      5516.4 ns  fma      5383.7 ns  default/fma 1.025  (1.019–1.031)  rounds 1.023 1.019 1.031 1.025 1.024 1.025 1.027
+    round41_bench_test.go:179: c1009        default     18161.4 ns  fma     17858.7 ns  default/fma 1.017  (1.016–1.026)  rounds 1.017 1.017 1.019 1.026 1.016 1.017 1.017
+    round41_bench_test.go:179: c1296        default      3935.8 ns  fma      3759.1 ns  default/fma 1.047  (1.040–1.057)  rounds 1.046 1.040 1.057 1.047 1.048 1.047 1.047
+    round41_bench_test.go:179: c10007       default    329293.0 ns  fma    331636.5 ns  default/fma 0.992  (0.978–0.995)  rounds 0.995 0.978 0.992 0.991 0.989 0.993 0.994
+    round41_bench_test.go:179: r256         default       353.0 ns  fma       332.0 ns  default/fma 1.064  (1.051–1.070)  rounds 1.057 1.065 1.051 1.061 1.067 1.064 1.070
+    round41_bench_test.go:179: r1024        default      1189.5 ns  fma      1126.0 ns  default/fma 1.058  (1.053–1.066)  rounds 1.057 1.053 1.066 1.059 1.058 1.061 1.056
+    round41_bench_test.go:179: r4096        default      7639.4 ns  fma      7751.9 ns  default/fma 0.984  (0.955–0.988)  rounds 0.984 0.987 0.986 0.955 0.984 0.988 0.983
+    round41_bench_test.go:179: r65536       default    206370.8 ns  fma    207747.5 ns  default/fma 0.996  (0.993–0.997)  rounds 0.996 0.997 0.996 0.993 0.996 0.996 0.997
+    round41_bench_test.go:179: r1048576     default   7305041.5 ns  fma   6820310.5 ns  default/fma 1.029  (0.992–1.083)  rounds 1.023 0.992 1.044 1.010 1.029 1.083 1.066
+    round41_bench_test.go:179: r1000        default      1796.8 ns  fma      1756.2 ns  default/fma 1.024  (1.003–1.038)  rounds 1.038 1.003 1.017 1.024 1.031 1.017 1.029
+    round41_bench_test.go:179: r1080        default      2041.2 ns  fma      2035.6 ns  default/fma 1.003  (0.998–1.013)  rounds 1.013 1.007 1.000 0.998 1.003 1.002 1.003
+    round41_bench_test.go:179: r1920        default      3334.4 ns  fma      3393.1 ns  default/fma 0.982  (0.968–0.983)  rounds 0.983 0.973 0.968 0.979 0.983 0.982 0.983
+    round41_bench_test.go:179: n64x64       default     15303.4 ns  fma     14610.8 ns  default/fma 1.049  (1.042–1.050)  rounds 1.049 1.042 1.042 1.049 1.048 1.050 1.050
+    round41_bench_test.go:179: n128x128     default     76293.7 ns  fma     73596.9 ns  default/fma 1.037  (1.032–1.046)  rounds 1.037 1.033 1.034 1.046 1.037 1.042 1.032
+    round41_bench_test.go:179: n256x256     default    424285.5 ns  fma    412707.0 ns  default/fma 1.024  (1.022–1.030)  rounds 1.023 1.024 1.024 1.024 1.030 1.022 1.027
+    round41_bench_test.go:179: n512x512     default   1956239.0 ns  fma   1926065.8 ns  default/fma 1.016  (1.014–1.022)  rounds 1.018 1.014 1.015 1.016 1.017 1.022 1.014
+    round41_bench_test.go:179: n1024x1024   default  12971497.5 ns  fma  13075304.5 ns  default/fma 1.011  (0.975–1.034)  rounds 1.034 0.998 0.975 1.011 0.989 1.014 1.021
+--- PASS: TestR41AB (89.64s)
+PASS
+end 0.78 0.26 0.10 1/188 11492

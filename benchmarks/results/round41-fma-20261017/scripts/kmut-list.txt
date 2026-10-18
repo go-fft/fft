@@ -1,0 +1,22 @@
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFMADDSUB231PD %s, %s, %s", wr, e.v(y), e.v(dst))|e.raw("VFMSUBADD231PD %s, %s, %s", wr, e.v(y), e.v(dst))|interleaved product addsub swapped
+internal/kernels/asmgen/amd64/gen.go|e.raw("VMULPD %s, %s, %s", wi, e.v(sw), e.v(dst))|e.raw("VMULPD %s, %s, %s", wi, e.v(y), e.v(dst))|interleaved product unswapped
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFMSUB231PD %s, %s, %s", y(t[0]), y(re), y(t[2]))|e.raw("VFNMADD231PD %s, %s, %s", y(t[0]), y(re), y(t[2]))|split product real sign
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFNMADD231PD %d(R14), %s, %s", splitKH, y(s), y(a))|e.raw("VFMADD231PD %d(R14), %s, %s", splitKH, y(s), y(a))|split h8 minus side sign
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFNMADD231PD %d(R14), %s, %s", e.k(kH), e.v(s), e.v(a))|e.raw("VFMADD231PD %d(R14), %s, %s", e.k(kH), e.v(s), e.v(a))|interleaved h8 minus side sign
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFMADD231PD %d(R14), %s, %s", e.k(kc), e.v(src), e.v(tb))|e.raw("VFMADD231PD %d(R14), %s, %s", e.k(ks), e.v(src), e.v(tb))|rotC cosine row
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFNMADD231PD.BCST %d(R14), %s, %s", splitKH, intelZ(s), intelZ(a))|e.raw("VFMADD231PD.BCST %d(R14), %s, %s", splitKH, intelZ(s), intelZ(a))|512 split h8 minus side
+internal/kernels/asmgen/amd64/gen.go|e.raw("VFMADD231PD %s, %s, %s", intelZ(t[0]), intelZ(im), intelZ(t[3]))|e.raw("VFMSUB231PD %s, %s, %s", intelZ(t[0]), intelZ(im), intelZ(t[3]))|512 split product imag sign
+internal/kernels/asmgen/amd64/gen.go|fused := map[int]bool{8: true, 9: true, 16: true}|fused := map[int]bool{9: true, 16: true}|frame table: radix-8 final default
+internal/kernels/fma_amd64.go|fused, plain := skLast256FMA[r], skLast256[r]|fused, plain := skLast256[r], skLast256[r]|final pass FMA twin not selected
+internal/kernels/fma_amd64.go|return skSplitFwdFMA[r][mode]|return skSplitFwd[r][mode]|split forward default kernel
+internal/kernels/fma_amd64.go|skBatch256FMA[r](&cc[0]|skBatch256[r](&cc[0]|batched default kernel
+internal/kernels/fma_amd64.go|stockhamStridedFMAKernel(r, w)(&cc[0]|stockhamStridedKernel(r, w)(&cc[0]|strided default kernel
+internal/kernels/fma_amd64.go|stockhamLastRunFMAKernel(r, w)(&cc[0]|stockhamLastRunKernel(r, w)(&cc[0]|last-run default kernel
+internal/kernels/fma_amd64.go|fused, plain = skLast512FMA[r], skLast512[r]|fused, plain = skLast512[r], skLast512[r]|AVX-512 final twin not selected
+fma.go|math.FMA(xi, wr, float64(xr*wi))|xi*wr + float64(xr*wi)|cmulFMA imag unfused
+fma.go|v[1][1] = radix16RotFMA(v[1][1], r16C1, s*r16S1)|v[1][1] = radix16Rot(v[1][1], r16C1, s*r16S1)|bfly16FMA unfused rotation
+fma.go|v[2][2] = radix16RotFMA(v[2][2], r9C4, s*r9S4)|v[2][2] = radix16Rot(v[2][2], r9C4, s*r9S4)|bfly9FMA unfused rotation
+fma.go|bflyRFMA(&y, &x, r, s)|bflyR(&y, &x, r, s)|batch Go default butterfly
+stockham.go|case st.fma:|case st.fma && st.ido > 1:|pass ignores fma on final
+cascade.go|lastRun = kernels.StockhamLastRunFMA|lastRun = kernels.StockhamLastRun|cascade last ignores fma
+internal/kernels/asmgen/amd64/gen.go|e.raw("VBLENDPD $1, %s, %s, %s", y(im), y(t[3]), y(t[3]))|_ = im|split i=0 imag blend dropped

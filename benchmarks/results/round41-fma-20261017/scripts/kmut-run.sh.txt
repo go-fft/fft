@@ -1,0 +1,12 @@
+#!/bin/sh
+# kmut-run.sh: regenerate the assembly from the (mutated) generator, build the
+# fft test binary for linux/amd64, run the FMA tests on cfarm151. Exit status
+# is the tests'. Run from the repository root.
+set -e
+R=$(pwd)
+S=/private/tmp/claude-501/-Users-david-delavennat-Documents-VCS-GIT-localhost/d368f442-d9da-4154-83cf-8b6b883bac13/scratchpad/r41tmp
+(cd internal/kernels/asmgen/amd64 && GOWORK=off go run . > /dev/null && mv ./*.s "$R/internal/kernels/")
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go test -c -o "$S/kmut.test" . 
+O="-o UserKnownHostsFile=/Users/david_delavennat/.config/gofft-bench/cfarm_known_hosts -o StrictHostKeyChecking=yes -o UpdateHostKeys=no -o BatchMode=yes -o ConnectTimeout=20"
+scp -q $O "$S/kmut.test" delavennat@cfarm151.cfarm.net:r41/kmut.test
+ssh -n -x $O delavennat@cfarm151.cfarm.net "cd r41 && taskset -c 5 ./kmut.test -test.run 'FMA' -test.count=1 > kmut.log 2>&1; s=\$?; tail -3 kmut.log; exit \$s"

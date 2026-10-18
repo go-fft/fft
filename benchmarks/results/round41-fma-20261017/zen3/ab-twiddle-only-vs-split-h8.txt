@@ -1,0 +1,20 @@
+# Zen 3 (cfarm420), core 40, TestR41AB -r41.ab=7,60,4 (4 placements), load 2.18 at start, 2.73 at end.
+# fft-tw.test: FMA kernels with the twiddle product fused only (commit 7359263's kernels).
+# fft-h8.test: plus the split radix-8 kernels' √2/2 products fused (prototype; interleaved and final passes not yet).
+fft-tw.test
+    c256         default       301.4 ns  fma       290.3 ns  default/fma 1.038  (1.004–1.042)  rounds 1.042 1.039 1.032 1.038 1.004 1.038 1.041
+    c512         default       683.1 ns  fma       659.6 ns  default/fma 1.030  (1.016–1.050)  rounds 1.022 1.030 1.050 1.016 1.041 1.044 1.028
+    c1024        default      1644.8 ns  fma      1653.2 ns  default/fma 0.997  (0.995–1.022)  rounds 1.018 0.997 0.995 1.022 0.997 0.996 1.008
+    c2048        default      4289.3 ns  fma      4327.3 ns  default/fma 1.003  (0.987–1.013)  rounds 1.013 0.987 1.001 1.007 1.000 1.003 1.004
+    r4096        default      5549.2 ns  fma      5518.6 ns  default/fma 1.004  (1.000–1.023)  rounds 1.018 1.000 1.002 1.005 1.004 1.000 1.023
+    r2048        default      2255.4 ns  fma      2208.8 ns  default/fma 1.019  (1.014–1.040)  rounds 1.019 1.019 1.021 1.015 1.014 1.040 1.022
+    r256         default       232.9 ns  fma       230.9 ns  default/fma 1.009  (1.008–1.013)  rounds 1.013 1.008 1.009 1.011 1.013 1.008 1.008
+fft-h8.test
+    c256         default       301.1 ns  fma       288.7 ns  default/fma 1.044  (0.978–1.073)  rounds 0.978 1.044 1.047 1.073 1.041 1.044 1.022
+    c512         default       690.2 ns  fma       660.0 ns  default/fma 1.045  (1.026–1.068)  rounds 1.039 1.026 1.051 1.043 1.050 1.068 1.045
+    c1024        default      1694.2 ns  fma      1642.7 ns  default/fma 1.025  (1.016–1.072)  rounds 1.023 1.016 1.025 1.072 1.032 1.066 1.023
+    c2048        default      4378.0 ns  fma      4184.9 ns  default/fma 1.044  (0.992–1.182)  rounds 1.044 1.053 1.044 1.063 1.182 0.992 1.029
+    r4096        default      5535.0 ns  fma      5325.5 ns  default/fma 1.036  (1.030–1.077)  rounds 1.037 1.030 1.034 1.032 1.055 1.077 1.036
+    r2048        default      2236.4 ns  fma      2202.7 ns  default/fma 1.010  (1.004–1.029)  rounds 1.005 1.016 1.004 1.006 1.010 1.020 1.029
+    r256         default       231.3 ns  fma       231.1 ns  default/fma 1.000  (0.990–1.018)  rounds 1.018 0.998 0.990 1.009 0.999 1.000 1.000
+end 2.73 2.50 2.43
