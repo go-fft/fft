@@ -201,6 +201,19 @@ func genR32Files() {
 	kf.LastR32(f, "skLast32AVX2FMA", false)
 	kf.LastR32(f, "skLast32AVX512FMA", true)
 	writeFile("r32fma_amd64.s", f.String())
+
+	// The same split kernels with the values between their stages in their
+	// own frame, for the passes whose output streams are 1 KB apart or more
+	// (the kernels package's r32InFrame); a 2 KB (4 KB) frame, so these are
+	// not NOSPLIT and the file includes funcdata.h.
+	f = emit.NewFile("amd64")
+	forSplits(func(inS, outS, inverse bool) {
+		kf.SplitR32InFrame(f, splitName("skSplit", 32, inS, outS, inverse)+"FMAF", false, inS, outS, inverse)
+	})
+	forSplits(func(inS, outS, inverse bool) {
+		kf.SplitR32InFrame(f, splitName("intelSplit512R", 32, inS, outS, inverse)+"FMAF", true, inS, outS, inverse)
+	})
+	writeFile("r32frame_amd64.s", fft.Funcdata(f.String()))
 }
 
 // genFMAFiles writes the FMA kernels (Round 41): fma_amd64.s (interleaved:

@@ -30,13 +30,16 @@ func TestR42R32MatchesReference(t *testing.T) {
 	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
 	for _, l := range r41Layouts() {
 		withLayout(l.avx512, l.split, l.sp512, func() {
-			split32 := 0
+			split32, inFrame := 0, 0
 			for _, f := range r42R32Factors {
 				n := factorProduct(f)
 				p := newSKPlanFactorsOpt(n, f, true)
 				for _, st := range p.stages {
 					if st.r == 32 && st.split != 0 {
 						split32++
+						if st.l1*st.ido >= 64 {
+							inFrame++
+						}
 					}
 				}
 				for s, x := range simdSignals(n) {
@@ -58,10 +61,8 @@ func TestR42R32MatchesReference(t *testing.T) {
 					}
 				}
 			}
-			if l.split || l.sp512 {
-				if split32 == 0 {
-					t.Fatalf("%s: no split radix-32 pass was built", l.name)
-				}
+			if (l.split || l.sp512) && (inFrame == 0 || inFrame == split32) {
+				t.Fatalf("%s: %d split radix-32 passes, %d of them in-frame: both kernels must run", l.name, split32, inFrame)
 			}
 		})
 	}

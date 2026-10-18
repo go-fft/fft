@@ -465,10 +465,15 @@ func TestFMACascade(t *testing.T) {
 		}
 		for k := range blocked.stages {
 			st := &blocked.stages[k]
-			// The Go paths of the stage's pieces, against its whole Go pass.
+			// The Go paths of the stage's pieces, against its whole Go pass
+			// (an FMA plan's stage may not fuse: fmaTable).
 			x := fmaSignal(n, 5)
 			want := make([]complex128, n)
-			st.passScalarFMA(want, x, st.l1, false)
+			if st.fma {
+				st.passScalarFMA(want, x, st.l1, false)
+			} else {
+				st.passScalarL(want, x, st.l1, false)
+			}
 			got := make([]complex128, n)
 			if st.ido > 1 {
 				st.cascadeStridedGo(got, x, st.ido, st.l1, st.ido, st.r*st.ido, st.l1*st.ido, st.ido, 0, 0, false)

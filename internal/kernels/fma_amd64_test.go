@@ -56,8 +56,13 @@ func TestFMAKernelSelection(t *testing.T) {
 		t.Error("stockhamStridedFMAKernel")
 	}
 	b := uint8(intelSplit512Base)
-	if !same(intelSplitKernelFMA(b+splitBoth, 8, true), intelSplit512R8SSInvFMA) || !same(intelSplitKernelFMA(b+splitOut, 4, false), intelSplit512R4ISFwdFMA) ||
-		!same(intelSplitKernelFMA(splitIn, 8, true), skSplit8SIInvFMA) || !same(intelSplitKernelFMA(splitNone, 3, false), skSplit3IIFwdFMA) {
+	if !same(intelSplitKernelFMA(b+splitBoth, 8, 8, 1, true), intelSplit512R8SSInvFMA) || !same(intelSplitKernelFMA(b+splitOut, 4, 8, 1, false), intelSplit512R4ISFwdFMA) ||
+		!same(intelSplitKernelFMA(splitIn, 8, 4, 1, true), skSplit8SIInvFMA) || !same(intelSplitKernelFMA(splitNone, 3, 4, 1, false), skSplit3IIFwdFMA) {
 		t.Error("intelSplitKernelFMA")
+	}
+	// Radix 32 (Round 42): the in-frame kernels from l1·ido = 64.
+	if !same(intelSplitKernelFMA(splitOut, 32, 32, 1, false), skSplit32ISFwdFMA) || !same(intelSplitKernelFMA(splitOut, 32, 64, 1, false), skSplit32ISFwdFMAF) ||
+		!same(intelSplitKernelFMA(b+splitIn, 32, 8, 4, true), intelSplit512R32SIInvFMA) || !same(intelSplitKernelFMA(b+splitNone, 32, 8, 8, true), intelSplit512R32IIInvFMAF) {
+		t.Error("intelSplitKernelFMA, radix 32")
 	}
 }

@@ -77,14 +77,14 @@ func StockhamPassLayoutFMA(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, 
 	if !UseStockhamAVX2 {
 		return false
 	}
-	intelSplitKernelFMA(mode, r, inverse)(&cc[0], &ch[0], &tw[0], &splitK[0][0], ido, l1)
+	intelSplitKernelFMA(mode, r, ido, l1, inverse)(&cc[0], &ch[0], &tw[0], &splitK[0][0], ido, l1)
 	return true
 }
 
 // intelSplitKernelFMA is intelSplitKernel's FMA twin.
-func intelSplitKernelFMA(mode uint8, r int, inverse bool) skPassFn {
+func intelSplitKernelFMA(mode uint8, r, ido, l1 int, inverse bool) skPassFn {
 	if r == 32 {
-		return r32SplitKernel(mode, inverse)
+		return r32SplitKernel(mode, ido, l1, inverse)
 	}
 	if mode > splitNone {
 		if inverse {

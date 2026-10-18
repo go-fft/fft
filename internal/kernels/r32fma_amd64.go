@@ -19,11 +19,19 @@ var (
 )
 
 // r32SplitKernel returns the radix-32 split kernel of a mode
-// intelSplitModeOK accepted (a 512-bit mode above splitNone).
-func r32SplitKernel(mode uint8, inverse bool) skPassFn {
+// intelSplitModeOK accepted (a 512-bit mode above splitNone) for a pass of
+// ido points per block and l1 blocks: the in-frame kernel where r32InFrame
+// says so.
+func r32SplitKernel(mode uint8, ido, l1 int, inverse bool) skPassFn {
 	d := 0
 	if inverse {
 		d = 1
+	}
+	if r32InFrame(ido, l1) {
+		if mode > splitNone {
+			return intelSplit512R32FMAF[d][mode-intelSplit512Base]
+		}
+		return skSplit32FMAF[d][mode]
 	}
 	if mode > splitNone {
 		return intelSplit512R32FMA[d][mode-intelSplit512Base]
