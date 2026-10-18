@@ -11,11 +11,17 @@ var znTwoPassMax, znThreePassMax = znTwoPassMaxDefault(), znThreePassMaxDefault(
 // znPlanFor returns the kernels.ZnPlan that runs a plan of these stages, or
 // nil: more than znTwoPassMax or znThreePassMax points for its pass count,
 // or a plan the frame kernels cannot run. An FMA plan (fma) binds the FMA
-// twins of its pass kernels.
+// twins of the kernels of its stages that fuse (skStage.fma).
 func znPlanFor(n int, st []skStage, fma bool) *kernels.ZnPlan {
 	bind := kernels.ZnPlanForWide
 	if fma {
-		bind = kernels.ZnPlanForWideFMA
+		f := make([]bool, len(st))
+		for i := range st {
+			f[i] = st[i].fma
+		}
+		bind = func(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *kernels.ZnPlan {
+			return kernels.ZnPlanForWideFMA(r, mode, tw0, tw0c, tw1, tw1c, wide, f)
+		}
 	}
 	switch {
 	case len(st) == 2 && n <= znTwoPassMax:

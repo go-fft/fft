@@ -27,7 +27,7 @@ func StockhamStridedFMA(r int, cc, ch, tw []complex128, cnt, nb, sin, bin, sout,
 }
 
 // ZnPlanForWideFMA returns nil: there is no frame kernel here.
-func ZnPlanForWideFMA(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *ZnPlan {
+func ZnPlanForWideFMA(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool, fma []bool) *ZnPlan {
 	return nil
 }
 

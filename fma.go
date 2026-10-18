@@ -57,7 +57,7 @@ func fmaOn(fma, available bool) bool { return fma && available }
 // there as the default one.
 func fmaRadix(r int) bool {
 	switch r {
-	case 2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20:
+	case 2, 3, 4, 5, 8, 9, 10, 12, 15, 16, 20, 32:
 		return true
 	}
 	return false
@@ -97,7 +97,7 @@ func (st *skStage) passScalarFMA(ch, cc []complex128, l1 int, inverse bool) {
 		tw = st.twc
 	}
 	r, ido, m, s := st.r, st.ido, st.ido-1, dirSign(inverse)
-	var x, y [20]complex128
+	var x, y [32]complex128
 	for k := 0; k < l1; k++ {
 		for i := 0; i < ido; i++ {
 			for j := 0; j < r; j++ {
@@ -118,9 +118,12 @@ func (st *skStage) passScalarFMA(ch, cc []complex128, l1 int, inverse bool) {
 // bflyAnyFMA is the size-r DFT of x[:r] into y[:r] in an FMA plan, for a
 // radix fmaRadix accepts: the default pass's butterfly, except for radix 8,
 // 9 and 16, whose constant products the FMA kernels fuse (bfly8FMA,
-// bfly9FMA, bfly16FMA).
-func bflyAnyFMA(y, x *[20]complex128, r int, s float64) {
+// bfly9FMA, bfly16FMA), and radix 32, which only FMA plans have
+// (bfly32FMA).
+func bflyAnyFMA(y, x *[32]complex128, r int, s float64) {
 	switch r {
+	case 32:
+		bfly32FMA(y, x, s)
 	case 2, 3, 4, 5, 8:
 		var a, b [8]complex128
 		copy(a[:r], x[:r])
@@ -142,7 +145,10 @@ func bflyAnyFMA(y, x *[20]complex128, r int, s float64) {
 		bfly16FMA(&b, &a, s)
 		copy(y[:16], b[:])
 	default: // 10, 15, 20
-		comp2Bfly(y, x, comp2Maps[r], s)
+		var a, b [20]complex128
+		copy(a[:], x[:20])
+		comp2Bfly(&b, &a, comp2Maps[r], s)
+		copy(y[:20], b[:])
 	}
 }
 

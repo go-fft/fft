@@ -16,6 +16,9 @@ package kernels
 // butterfly has a product to fuse (stockhamLastFMAKernel), the default
 // kernel otherwise.
 func StockhamPassFMA(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
+	if r == 32 {
+		return stockhamPass32FMA(ido, l1, cc, ch, inverse)
+	}
 	w := stockhamWidth(r, ido, UseStockhamAVX2, UseStockhamAVX512 && wide)
 	if w == 0 {
 		return false
@@ -80,6 +83,9 @@ func StockhamPassLayoutFMA(mode uint8, r, ido, l1 int, cc, ch, tw []complex128, 
 
 // intelSplitKernelFMA is intelSplitKernel's FMA twin.
 func intelSplitKernelFMA(mode uint8, r int, inverse bool) skPassFn {
+	if r == 32 {
+		return r32SplitKernel(mode, inverse)
+	}
 	if mode > splitNone {
 		if inverse {
 			return intelSplit512InvFMA[r][mode-intelSplit512Base]

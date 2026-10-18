@@ -27,8 +27,9 @@ var k = &fft.Kernels{
 		R16C1:  288, R16S1: 320, R16NH: 352, R16NC1: 384,
 		R16SS1: 416, R16SSH: 448, R16SSC1: 480, R16SSN1: 512,
 		R9C1: 544, R9S1: 576, R9C2: 608, R9S2: 640, R9C4: 672, R9S4: 704,
+		R32: 736,
 	},
-	SplitK: fft.SplitConsts{H: 0, Neg: 32, Half: 64, Sin120: 96, C51: 128, C52: 160, S51: 192, S52: 224},
+	SplitK: fft.SplitConsts{H: 0, Neg: 32, Half: 64, Sin120: 96, C51: 128, C52: 160, S51: 192, S52: 224, R32: 256},
 }
 
 // kf builds the FMA twins (Round 41): k's kernels with the products fused.
@@ -182,6 +183,23 @@ func main() {
 	writeFile("zmcmul_amd64.s", f.String())
 
 	genFMAFiles()
+	genR32Files()
+}
+
+// genR32Files writes r32fma_amd64.s (Round 42): the radix-32 pass kernels
+// of the FMA plans, which only they run. The split-layout pass at 256 and
+// 512 bits, every pair of layouts, both directions; the final pass,
+// interleaved, at 256 bits.
+func genR32Files() {
+	f := emit.NewFile("amd64")
+	forSplits(func(inS, outS, inverse bool) {
+		kf.SplitR32(f, splitName("skSplit", 32, inS, outS, inverse)+"FMA", false, inS, outS, inverse)
+	})
+	forSplits(func(inS, outS, inverse bool) {
+		kf.SplitR32(f, splitName("intelSplit512R", 32, inS, outS, inverse)+"FMA", true, inS, outS, inverse)
+	})
+	kf.LastR32(f, "skLast32AVX2FMA")
+	writeFile("r32fma_amd64.s", f.String())
 }
 
 // genFMAFiles writes the FMA kernels (Round 41): fma_amd64.s (interleaved:

@@ -56,7 +56,7 @@ func newSKConst512(inverse bool) *skConst512 {
 // rows [−ss, ss, −ss, ss] with ss = s·sin θ (s = −1 forward, +1 inverse).
 type skConst [skConstRows][4]float64
 
-const skConstRows = 23
+const skConstRows = 23 + 2*len(r32Es)
 
 var skFwd, skInv = newSKConst(false), newSKConst(true)
 
@@ -78,7 +78,7 @@ func newSKConst(inverse bool) *skConst {
 		s1 = 0.38268343236508977172845998403039886676134456248563 // sin(π/8)
 		h  = 0.707106781186547524400844362104849                  // √2/2
 	)
-	return &skConst{
+	t := skConst{
 		sign,
 		row(0.5),
 		row(0.8660254037844386467637231707529361834714026269051903140279), // sin(2π/3)
@@ -102,6 +102,13 @@ func newSKConst(inverse bool) *skConst {
 		row(cs9C2), ss(cs9S2),
 		row(cs9C4), ss(cs9S4),
 	}
+	// Radix 32 (Round 42, LastR32 in go-asmgen): for each e of r32Es, W32^e
+	// = cos θ + s·i·sin θ, θ = 2π·e/32, as a row cos θ and a row [−ss, ss].
+	for q, e := range r32Es {
+		c, sn := R32Trig(e)
+		t[23+2*q], t[24+2*q] = row(c), ss(sn)
+	}
+	return &t
 }
 
 // stockhamSIMD reports whether a pass kernel exists for radix r.

@@ -113,7 +113,9 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	// An FMA plan keeps the split layout only where its split passes have FMA
 	// kernels (fmaSplit): elsewhere its Go passes, which read interleaved
 	// data, run them.
-	if hswSplitKept(n) && (!fma || fmaSplit) {
+	// Radix 32's kernels are FMA kernels: a default plan given a radix-32
+	// pass (the tests) runs interleaved, on the Go passes.
+	if hswSplitKept(n) && (!fma || fmaSplit) && (fma || !slices.Contains(factors, 32)) {
 		for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
 			p.stages[k].split = m
 		}

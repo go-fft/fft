@@ -163,19 +163,24 @@ func ZnPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128) *ZnPlan
 // interleaved pass other than the last that StockhamPass would run at 512
 // bits has no entry point: such a plan gets nil.
 func ZnPlanForWide(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *ZnPlan {
-	return znPlanFor(r, mode, tw0, tw0c, tw1, tw1c, wide, false)
+	return znPlanFor(r, mode, tw0, tw0c, tw1, tw1c, wide, nil)
 }
 
 // ZnPlanForWideFMA is ZnPlanForWide for the passes of an FMA plan (Round
-// 41): its passes before the last run the FMA twins of the kernels
-// ZnPlanForWide binds, the ones StockhamPassLayoutFMA and StockhamPassFMA
-// run; the final pass is the same.
-func ZnPlanForWideFMA(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *ZnPlan {
-	return znPlanFor(r, mode, tw0, tw0c, tw1, tw1c, wide, true)
+// 41): pass i runs the FMA twin of the kernel ZnPlanForWide binds (the one
+// StockhamPassLayoutFMA or StockhamPassFMA runs) where fma[i] is set, the
+// default kernel where it is not (Round 42: an FMA plan fuses only the
+// passes where that pays). fma has one entry per pass.
+func ZnPlanForWideFMA(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool, fma []bool) *ZnPlan {
+	if len(fma) != len(r) {
+		return nil
+	}
+	return znPlanFor(r, mode, tw0, tw0c, tw1, tw1c, wide, fma)
 }
 
-// znPlanFor is ZnPlanForWide, with the FMA kernels when fma is set.
-func znPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide, fma bool) *ZnPlan {
+// znPlanFor is ZnPlanForWide, pass i with the FMA kernels where fma[i] is
+// set (fma nil: none).
+func znPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool, fma []bool) *ZnPlan {
 	s := len(r)
 	if !UseStockhamAVX2 || (s != 2 && s != 3) || len(mode) != s || mode[s-1] != 0 || znSplitIn(mode[0]) || znSplitOut(mode[s-2]) {
 		return nil
@@ -204,14 +209,14 @@ func znPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide, f
 	for d := range 2 {
 		l1 := 1
 		for i := 0; i < s-1; i++ {
-			a, k, tl := znPass(r[i], n/(l1*r[i]), mode[i], d == 1, wide, fma)
+			a, k, tl := znPass(r[i], n/(l1*r[i]), mode[i], d == 1, wide, fma != nil && fma[i])
 			if a == 0 || len(tws[d][i]) < tl {
 				return nil
 			}
 			z.addr[d][i], z.k[d][i], z.tw[d][i] = a, k, &tws[d][i][0]
 			l1 *= r[i]
 		}
-		a, k := znLast(r[s-1], d == 1, wide, fma)
+		a, k := znLast(r[s-1], d == 1, wide, fma != nil && fma[s-1])
 		if a == 0 {
 			return nil
 		}
