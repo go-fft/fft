@@ -189,7 +189,7 @@ func main() {
 // genR32Files writes r32fma_amd64.s (Round 42): the radix-32 pass kernels
 // of the FMA plans, which only they run. The split-layout pass at 256 and
 // 512 bits, every pair of layouts, both directions; the final pass,
-// interleaved, at 256 bits.
+// interleaved, at 256 and 512 bits.
 func genR32Files() {
 	f := emit.NewFile("amd64")
 	forSplits(func(inS, outS, inverse bool) {
@@ -198,7 +198,8 @@ func genR32Files() {
 	forSplits(func(inS, outS, inverse bool) {
 		kf.SplitR32(f, splitName("intelSplit512R", 32, inS, outS, inverse)+"FMA", true, inS, outS, inverse)
 	})
-	kf.LastR32(f, "skLast32AVX2FMA")
+	kf.LastR32(f, "skLast32AVX2FMA", false)
+	kf.LastR32(f, "skLast32AVX512FMA", true)
 	writeFile("r32fma_amd64.s", f.String())
 }
 

@@ -17,7 +17,7 @@ package kernels
 // kernel otherwise.
 func StockhamPassFMA(r, ido, l1 int, cc, ch, tw []complex128, inverse, wide bool) bool {
 	if r == 32 {
-		return stockhamPass32FMA(ido, l1, cc, ch, inverse)
+		return stockhamPass32FMA(ido, l1, cc, ch, inverse, wide)
 	}
 	w := stockhamWidth(r, ido, UseStockhamAVX2, UseStockhamAVX512 && wide)
 	if w == 0 {

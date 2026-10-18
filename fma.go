@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"slices"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
@@ -69,13 +70,57 @@ func fmaRadix(r int) bool {
 // interleaved, every pass on its Go reference.
 var fmaSplit = fmaSplitDefault()
 
-// markFMA sets the stages of an FMA plan that fuse their products
-// (fmaRadix): every one whose radix has FMA kernels, the final pass
-// included, whose butterfly may have a constant product to fuse.
-func (p *skPlan) markFMA() {
+// fmaChoice is what an FMA plan of one length runs (Round 42, fmaTable): its
+// factorization (nil: skFactorize's) and the passes that fuse their
+// products (bit k for pass k; the others run the default kernels). A
+// radix-32 pass always fuses: its kernels are FMA kernels.
+type fmaChoice struct {
+	factors []int
+	fuse    uint32
+}
+
+// fmaAll fuses every pass.
+const fmaAll = ^uint32(0)
+
+// fmaTable gives, per length, the factorization and the fused passes of its
+// FMA plan where they differ from skFactorize's with every pass fused: set
+// per CPU from measurements (route_amd64.go; nil elsewhere). An FMA plan
+// built with other factors (an N-D strip's, a row plan's) fuses every pass.
+var fmaTable = fmaTableDefault()
+
+// fmaFactors is the factorization of an FMA plan of n points.
+func fmaFactors(n int) []int {
+	if c, ok := fmaTable[n]; ok && c.factors != nil {
+		return slices.Clone(c.factors)
+	}
+	return skFactorize(n)
+}
+
+// fmaFuse is the fuse mask of an FMA plan of n points with these factors:
+// fmaTable's when the factors are its plan's, else every pass.
+func fmaFuse(n int, factors []int) uint32 {
+	c, ok := fmaTable[n]
+	if !ok {
+		return fmaAll
+	}
+	want := c.factors
+	if want == nil {
+		want = skFactorize(n)
+	}
+	if !slices.Equal(want, factors) {
+		return fmaAll
+	}
+	return c.fuse
+}
+
+// markFMA sets the stages of an FMA plan that fuse their products: those
+// whose radix has FMA kernels (fmaRadix), the final pass included, whose
+// butterfly may have a constant product to fuse, where the mask fuse sets
+// their bit, and every radix-32 pass.
+func (p *skPlan) markFMA(fuse uint32) {
 	for k := range p.stages {
 		st := &p.stages[k]
-		st.fma = fmaRadix(st.r)
+		st.fma = fmaRadix(st.r) && (fuse>>k&1 == 1 || st.r == 32)
 	}
 }
 

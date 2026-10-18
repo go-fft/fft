@@ -64,7 +64,13 @@ type skPlan struct {
 func newSKPlan(n int) *skPlan { return newSKPlanOpt(n, false) }
 
 // newSKPlanOpt is newSKPlan, an FMA plan when fma is set (fma.go).
-func newSKPlanOpt(n int, fma bool) *skPlan { return newSKPlanFactorsOpt(n, skFactorize(n), fma) }
+// Its factorization is fmaFactors' (fmaTable).
+func newSKPlanOpt(n int, fma bool) *skPlan {
+	if fma {
+		return newSKPlanFactorsOpt(n, fmaFactors(n), true)
+	}
+	return newSKPlanFactorsOpt(n, skFactorize(n), false)
+}
 
 // newSKPlanFactors builds the plan for the given ordered radices, whose
 // product must be n.
@@ -74,6 +80,9 @@ func newSKPlanFactors(n int, factors []int) *skPlan { return newSKPlanFactorsOpt
 // same passes, layouts and schedule, its twiddled passes marked to fuse
 // their products (markFMA).
 func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
+	if !fma && slices.Contains(factors, 32) {
+		panic("fft: radix-32 passes are built into FMA plans only")
+	}
 	root := twiddleTable(n)
 	p := &skPlan{n: n}
 	l1 := 1
@@ -113,9 +122,7 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	// An FMA plan keeps the split layout only where its split passes have FMA
 	// kernels (fmaSplit): elsewhere its Go passes, which read interleaved
 	// data, run them.
-	// Radix 32's kernels are FMA kernels: a default plan given a radix-32
-	// pass (the tests) runs interleaved, on the Go passes.
-	if hswSplitKept(n) && (!fma || fmaSplit) && (fma || !slices.Contains(factors, 32)) {
+	if hswSplitKept(n) && (!fma || fmaSplit) {
 		for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
 			p.stages[k].split = m
 		}
@@ -145,7 +152,7 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
 	if fma {
 		p.fma = true
-		p.markFMA()
+		p.markFMA(fmaFuse(n, factors))
 	}
 	p.zn = znPlanFor(n, p.stages, p.fma) // at most 512 points: never a blocked schedule
 	return p

@@ -32,12 +32,14 @@ func r32SplitKernel(mode uint8, inverse bool) skPassFn {
 }
 
 // stockhamPass32FMA runs a radix-32 pass of an FMA plan that is not split:
-// the final pass (ido == 1) on skLast32AVX2FMA; any other reports false
+// the final pass (ido == 1) on skLast32AVX512FMA where StockhamPass would
+// run the AVX-512 kernels (wide), skLast32AVX2FMA elsewhere; any other
+// reports false
 // (there is no interleaved radix-32 pass kernel), and the fft package runs
 // its Go pass. So does a final pass in place (cc and ch the same: the one
 // pass of a 32-point transform run in place), since the kernel keeps its
 // values between stages in its output.
-func stockhamPass32FMA(ido, l1 int, cc, ch []complex128, inverse bool) bool {
+func stockhamPass32FMA(ido, l1 int, cc, ch []complex128, inverse, wide bool) bool {
 	if !UseStockhamAVX2 || ido != 1 || &cc[0] == &ch[0] {
 		return false
 	}
@@ -45,6 +47,14 @@ func stockhamPass32FMA(ido, l1 int, cc, ch []complex128, inverse bool) bool {
 		panic("kernels: StockhamPass: ido and l1 must be at least 1")
 	}
 	_, _ = cc[32*l1-1], ch[32*l1-1] // the kernel trusts these lengths
+	if UseStockhamAVX512 && wide {
+		k := &sk512Fwd[0][0]
+		if inverse {
+			k = &sk512Inv[0][0]
+		}
+		skLast32AVX512FMA(&cc[0], &ch[0], k, l1)
+		return true
+	}
 	k := &skFwd[0][0]
 	if inverse {
 		k = &skInv[0][0]
@@ -103,3 +113,6 @@ func intelSplit512R32IIInvFMA(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
 func skLast32AVX2FMA(cc, ch *complex128, k *float64, l1 int)
+
+//go:noescape
+func skLast32AVX512FMA(cc, ch *complex128, k *float64, l1 int)
