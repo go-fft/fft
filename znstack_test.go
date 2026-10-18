@@ -59,7 +59,7 @@ func TestZnFrameMatchesPool(t *testing.T) {
 			continue
 		}
 		s := len(p.sk.stages)
-		if want := znPlanFor(n, p.sk.stages) != nil; (p.sk.zn != nil) != want || p0.sk.zn != nil {
+		if want := znPlanFor(n, p.sk.stages, false) != nil; (p.sk.zn != nil) != want || p0.sk.zn != nil {
 			t.Fatalf("n=%d: zn %v, off %v, znPlanFor %v", n, p.sk.zn != nil, p0.sk.zn != nil, want)
 		}
 		if s != 2 && s != 3 || s == 2 && n > 256 {

@@ -9,8 +9,8 @@
 package asmgen
 
 import (
-	_ "github.com/go-asmgen/asmgen/arm64"
 	_ "github.com/go-asmgen/asmgen/emit"
-	_ "github.com/go-asmgen/asmgen/riscv64"
-	_ "github.com/go-asmgen/asmgen/s390x"
+	_ "github.com/go-asmgen/asmgen/fft/arm64"
+	_ "github.com/go-asmgen/asmgen/fft/riscv64"
+	_ "github.com/go-asmgen/asmgen/fft/s390x"
 )

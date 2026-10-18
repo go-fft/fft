@@ -39,6 +39,8 @@ type PlanN struct {
 	// rot, when not nil, runs the whole transform as these rotating passes
 	// (armrealRotate).
 	rot []armrealPass
+	// fma: every axis plan is an FMA plan (Options.FMA).
+	fma bool
 }
 
 // stripAxes makes NewPlanN run a non-contiguous axis as batched Stockham
@@ -90,8 +92,20 @@ func blockWidth(n int) int {
 // NewPlanN returns a plan for arrays of the given row-major shape. Every
 // length must be positive; NewPlanN panics otherwise. An empty shape is the
 // single-element (scalar) array.
-func NewPlanN(shape ...int) *PlanN {
-	p := &PlanN{shape: append([]int(nil), shape...)}
+func NewPlanN(shape ...int) *PlanN { return newPlanNF(shape, false) }
+
+// NewPlanNWith is NewPlanN with options: o.FMA asks for an FMA plan (see
+// Options.FMA), whose every axis, the ones transformed as strips of
+// batched passes included, runs on FMA plans. The other fields must be zero,
+// as for NewPlanWith. NewPlanNWith(shape, Options{}) is NewPlanN(shape...).
+func NewPlanNWith(shape []int, o Options) *PlanN {
+	return newPlanNF(shape, o.checkPlan("NewPlanNWith"))
+}
+
+// newPlanNF is NewPlanN on FMA axis plans when fma is set (already resolved
+// by fmaOn).
+func newPlanNF(shape []int, fma bool) *PlanN {
+	p := &PlanN{shape: append([]int(nil), shape...), fma: fma}
 	p.size = shapeProduct(shape...)
 	p.stride = make([]int, len(shape))
 	acc := 1
@@ -102,7 +116,7 @@ func NewPlanN(shape ...int) *PlanN {
 	p.axes = make([]*Plan, len(shape))
 	for ax, n := range shape {
 		if n > 1 {
-			p.axes[ax] = cachedPlan(n)
+			p.axes[ax] = cachedPlanF(n, fma)
 		}
 		p.maxLen = max(p.maxLen, n)
 	}
@@ -124,10 +138,10 @@ func (p *PlanN) initScratch() {
 		// the axis got a "Stockham" plan of 9 points' factors for 171 points:
 		// 120 of the lengths up to 2000 transformed wrongly (v0.25.0–v0.26.2).
 		if ax < len(p.shape)-1 && p.axes[ax] != nil && stockhamCovers(n) && (compTakes16(n) || intelStripOrder[n]) {
-			p.axes[ax] = cachedPlanNo16(n)
+			p.axes[ax] = cachedPlanNo16F(n, p.fma)
 		}
 		if ax == len(p.shape)-1 && p.axes[ax] != nil {
-			if rp := clRowPlan(n, p.size); rp != nil {
+			if rp := clRowPlanF(n, p.size, p.fma); rp != nil {
 				p.axes[ax] = rp
 			}
 		}

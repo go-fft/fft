@@ -34,10 +34,18 @@ var radix16Table = radix16TableDefault()
 // Haswell, was 0.89 at 128, 1.18 at 256, 0.99 at 1024 and 1.07 at 2048, and
 // on Zen 3 every 2-D row from 128 to 1024 lost 9–15% with it; so the
 // kernel was dropped. The lengths of intelStripOrder take it too (Round 28).
-func cachedPlanNo16(n int) *Plan {
+func cachedPlanNo16(n int) *Plan { return cachedPlanNo16F(n, false) }
+
+// cachedPlanNo16F is cachedPlanNo16 for an FMA plan when fma is set, from a
+// cache of its own.
+func cachedPlanNo16F(n int, fma bool) *Plan {
+	cache := planNo16Cache
+	if fma {
+		cache = planNo16CacheFMA
+	}
 	planMu.Lock()
 	defer planMu.Unlock()
-	p, ok := planNo16Cache[n]
+	p, ok := cache[n]
 	if !ok {
 		f := skFactorizeOrder(n, compOddFirst)
 		if prod := factorProduct(f); prod != n {
@@ -45,13 +53,13 @@ func cachedPlanNo16(n int) *Plan {
 			// length silently; refuse it loudly instead.
 			panic(fmt.Sprintf("fft: internal: no-16 factorization of %d multiplies to %d", n, prod))
 		}
-		p = &Plan{n: n, sk: newSKPlanFactors(n, f)}
-		planNo16Cache[n] = p
+		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, fma)}
+		cache[n] = p
 	}
 	return p
 }
 
-var planNo16Cache = map[int]*Plan{}
+var planNo16Cache, planNo16CacheFMA = map[int]*Plan{}, map[int]*Plan{}
 
 // stockhamCovers reports whether skFactorizeOrder's passes multiply to n,
 // that is whether a Stockham plan without radix 16 can transform n points.

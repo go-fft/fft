@@ -21,12 +21,15 @@ import "sync"
 //
 // shape lengths must be positive and shape[0]*shape[1] must equal len(data);
 // RFFT2 panics otherwise. The input is not modified.
-func RFFT2(data []float64, shape [2]int) []complex128 {
+func RFFT2(data []float64, shape [2]int) []complex128 { return rfft2F(data, shape, false) }
+
+// rfft2F is RFFT2 on an FMA plan when fma is set (already resolved by fmaOn).
+func rfft2F(data []float64, shape [2]int, fma bool) []complex128 {
 	rows, cols := shape[0], shape[1]
 	if shapeProduct(rows, cols) != len(data) {
 		panic("fft: shape product does not match len(data)")
 	}
-	p := cachedRealPlan2(rows, cols)
+	p := cachedRealPlan2F(rows, cols, fma)
 	return p.RFFT(make([]complex128, p.SpectrumLen()), data)
 }
 
@@ -43,10 +46,13 @@ func RFFT2(data []float64, shape [2]int) []complex128 {
 // is not modified. The output has shape[0]*shape[1] values whatever the
 // spectrum's length: bound the shape when it comes from untrusted input (see
 // SECURITY.md).
-func IRFFT2(data []complex128, shape [2]int) []float64 {
+func IRFFT2(data []complex128, shape [2]int) []float64 { return irfft2F(data, shape, false) }
+
+// irfft2F is IRFFT2 on an FMA plan when fma is set.
+func irfft2F(data []complex128, shape [2]int, fma bool) []float64 {
 	rows, cols := shape[0], shape[1]
 	shapeProduct(rows, cols)
-	p := cachedRealPlan2(rows, cols)
+	p := cachedRealPlan2F(rows, cols, fma)
 	spec := data
 	if len(spec) != p.SpectrumLen() {
 		// Fewer bins than the layout holds read as zeros, extra bins are
@@ -61,18 +67,28 @@ func IRFFT2(data []complex128, shape [2]int) []float64 {
 var (
 	realPlan2Mu    sync.Mutex
 	realPlan2Cache = map[[2]int]*RealPlan2{}
+	// realPlan2CacheFMA holds the FMA plans (cachedRealPlan2F).
+	realPlan2CacheFMA = map[[2]int]*RealPlan2{}
 )
 
 // cachedRealPlan2 returns the shared plan for rows×cols, building it on first
 // use under the lock (NewRealPlan2 takes only the 1-D caches' own mutexes).
-func cachedRealPlan2(rows, cols int) *RealPlan2 {
+func cachedRealPlan2(rows, cols int) *RealPlan2 { return cachedRealPlan2F(rows, cols, false) }
+
+// cachedRealPlan2F is cachedRealPlan2 for an FMA plan when fma is set, from
+// a cache of its own.
+func cachedRealPlan2F(rows, cols int, fma bool) *RealPlan2 {
+	cache := realPlan2Cache
+	if fma {
+		cache = realPlan2CacheFMA
+	}
 	realPlan2Mu.Lock()
 	defer realPlan2Mu.Unlock()
 	key := [2]int{rows, cols}
-	p, ok := realPlan2Cache[key]
+	p, ok := cache[key]
 	if !ok {
-		p = NewRealPlan2(rows, cols)
-		realPlan2Cache[key] = p
+		p = newRealPlan2F(rows, cols, fma)
+		cache[key] = p
 	}
 	return p
 }

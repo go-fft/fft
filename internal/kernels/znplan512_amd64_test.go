@@ -125,20 +125,20 @@ func TestCsZnWideSelects(t *testing.T) {
 		{8, 8, b + splitNone, false, csZnSplit512At + 8*5 + splitNone},
 		{8, 64, splitOut, false, 42 + 8*5 + splitOut},
 	} {
-		a, k, tl := znPass(c.r, c.ido, c.mode, c.inv, true)
+		a, k, tl := znPass(c.r, c.ido, c.mode, c.inv, true, false)
 		if a == 0 || a != znAddrs[c.slot] || k != &splitK[0][0] || tl != (c.r-1)*c.ido {
 			t.Errorf("znPass(%d, %d, %d): %#x %v %d, want slot %d", c.r, c.ido, c.mode, a, k == &splitK[0][0], tl, c.slot)
 		}
 	}
 	// No 512-bit interleaved pass in the table; a 512-bit split pass needs
 	// AVX-512 and ido a multiple of eight.
-	if a, _, _ := znPass(8, 64, 0, false, true); a != 0 {
+	if a, _, _ := znPass(8, 64, 0, false, true, false); a != 0 {
 		t.Error("an interleaved 512-bit pass got an entry point")
 	}
-	if a, _, _ := znPass(8, 2, 0, false, true); a != znAddrs[8] {
+	if a, _, _ := znPass(8, 2, 0, false, true, false); a != znAddrs[8] {
 		t.Error("ido 2 does not run at 512 bits: want the AVX2 kernel")
 	}
-	if a, _, _ := znPass(8, 12, b+splitOut, false, true); a != 0 {
+	if a, _, _ := znPass(8, 12, b+splitOut, false, true, false); a != 0 {
 		t.Error("512-bit split with ido 12")
 	}
 	for _, r := range []int{2, 4, 8} {
@@ -147,20 +147,20 @@ func TestCsZnWideSelects(t *testing.T) {
 			if inv {
 				want = &sk512Inv[0][0]
 			}
-			if a, k := znLast(r, inv, true); a == 0 || a != znAddrs[csZnLast512At+r] || k != want {
+			if a, k := znLast(r, inv, true, false); a == 0 || a != znAddrs[csZnLast512At+r] || k != want {
 				t.Errorf("znLast(%d, %v, wide): %#x", r, inv, a)
 			}
 			_ = d
 		}
-		if a, k := znLast(r, false, false); a != znAddrs[21+r] || k != &skFwd[0][0] {
+		if a, k := znLast(r, false, false, false); a != znAddrs[21+r] || k != &skFwd[0][0] {
 			t.Errorf("znLast(%d) narrow", r)
 		}
 	}
-	if a, _ := znLast(16, false, true); a != znAddrs[21+16] {
+	if a, _ := znLast(16, false, true, false); a != znAddrs[21+16] {
 		t.Error("radix 16 has no AVX-512 final pass: want the AVX2 one")
 	}
 	intelHasAVX512 = false
-	if a, _, _ := znPass(8, 64, b+splitOut, false, true); a != 0 {
+	if a, _, _ := znPass(8, 64, b+splitOut, false, true, false); a != 0 {
 		t.Error("512-bit split without AVX-512")
 	}
 	intelHasAVX512 = true

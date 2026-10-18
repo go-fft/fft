@@ -923,11 +923,11 @@ func TestOptionsValidation(t *testing.T) {
 // TestPlanNForSharesPlans: the all-axes plan is FFTN's own cached plan, and a
 // subset plan is built once per shape and axes and plans no unlisted axis.
 func TestPlanNForSharesPlans(t *testing.T) {
-	if planNFor([]int{3, 5}, []int{1, 0}) != cachedPlanN([]int{3, 5}) {
+	if planNFor([]int{3, 5}, []int{1, 0}, false) != cachedPlanN([]int{3, 5}) {
 		t.Fatal("the all-axes plan is not FFTN's cached plan")
 	}
-	p := planNFor([]int{1000003, 4}, []int{1})
-	if p != planNFor([]int{1000003, 4}, []int{1}) {
+	p := planNFor([]int{1000003, 4}, []int{1}, false)
+	if p != planNFor([]int{1000003, 4}, []int{1}, false) {
 		t.Fatal("a subset plan was rebuilt")
 	}
 	if p.axes[0] != nil || p.axes[1] == nil {

@@ -51,6 +51,8 @@ func toPairs(z []complex128) []pair {
 }
 
 func main() {
+	// GOFFT_FMA=1 checks the opt-in FMA plans (Options.FMA, Round 41).
+	opt := fft.Options{FMA: os.Getenv("GOFFT_FMA") == "1"}
 	sizes := []int{256, 1024, 4096, 1000, 1080, 1920, 1009, 1296, 10007}
 	out := map[string]any{}
 
@@ -58,16 +60,16 @@ func main() {
 	rfft := map[string][]pair{}
 	irfft := map[string][]float64{}
 	for _, n := range sizes {
-		cplx[itoa(n)] = toPairs(fft.FFT(cmplx(n)))
+		cplx[itoa(n)] = toPairs(fft.FFTWith(cmplx(n), opt))
 	}
 	for _, n := range []int{256, 1024, 4096, 1000, 1080, 1920} {
-		rfft[itoa(n)] = toPairs(fft.RFFT(realv(n)))
-		irfft[itoa(n)] = fft.IRFFT(halfSpectrum(n), n)
+		rfft[itoa(n)] = toPairs(fft.RFFTWith(realv(n), opt))
+		irfft[itoa(n)] = fft.IRFFTWith(halfSpectrum(n), fft.Options{N: n, FMA: opt.FMA})
 	}
 	// 2-D
 	fft2 := map[string][]pair{}
 	for _, s := range [][2]int{{64, 64}, {128, 128}, {256, 256}} {
-		fft2[itoa(s[0])+"x"+itoa(s[1])] = toPairs(fft.FFT2(cmplx(s[0]*s[1]), s))
+		fft2[itoa(s[0])+"x"+itoa(s[1])] = toPairs(fft.FFT2With(cmplx(s[0]*s[1]), s, opt))
 	}
 	out["complex"] = cplx
 	out["real"] = rfft
