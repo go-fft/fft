@@ -45,7 +45,7 @@
 // the radix-9 and radix-16 butterflies are fused, as FFTW's FMA codelets
 // fuse them. The results then differ from the default's in the last bits,
 // and are as accurate: against scipy.fft in long double on the same inputs,
-// the relative RMS error of 96 transforms (complex 16 to 2^20, composites,
+// the relative RMS error of 90 transforms (complex 16 to 2^20, composites,
 // Rader and Bluestein primes, real, inverse and 2-D) was 0.90 to 1.04 times
 // the default's, 1.1e-15 at most (BENCHMARKS.md, Round 41). The
 // float32 transforms ignore the option; elsewhere than amd64 with FMA3 it
