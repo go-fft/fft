@@ -162,3 +162,22 @@ func TestFMARotatingPassFallback(t *testing.T) {
 		t.Fatal("armrealPassL: the FMA kernel and its Go reference differ")
 	}
 }
+
+// TestFMACascadeGoPasses: an FMA plan on the blocked schedule with the
+// kernels off (its Go passes over l1 blocks, strided pieces and final runs)
+// is its kernels' bits.
+func TestFMACascadeGoPasses(t *testing.T) {
+	fmaKernelsHere(t)
+	defer func(a int, b bool) { cascadeMin, kernels.UseStockhamAVX2 = a, b }(cascadeMin, kernels.UseStockhamAVX2)
+	cascadeMin = 1
+	n := 1 << 14
+	p := newSKPlanFactorsOpt(n, skFactorize(n), true)
+	x := fmaSignal(n, 3)
+	a, b := make([]complex128, n), make([]complex128, n)
+	p.transform(a, x, false)
+	kernels.UseStockhamAVX2 = false
+	p.transform(b, x, false)
+	if p.cascT == 0 || !sameAll(a, b) {
+		t.Fatal("an FMA blocked schedule's Go passes differ from its kernels")
+	}
+}
