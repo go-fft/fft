@@ -52,4 +52,12 @@
 // builds the default plans. Each FMA kernel is bit-identical to a Go
 // reference written with math.FMA, and FMA plans are cached apart from the
 // default ones.
+//
+// An FMA plan fuses only where fusing was measured to pay (Round 42): on
+// Intel CPUs with the AVX-512 split layout (Cascade Lake) and on AMD CPUs
+// with the AVX2 one (Zen 3), a table gives, per length, the passes that
+// fuse (the others run the default kernels) and, on the former, radix-32
+// passes for 1,024 and 2,048 points, which only FMA plans have. Elsewhere
+// every pass fuses. A transform of a length the table leaves unfused is the
+// default transform, bit for bit.
 package fft

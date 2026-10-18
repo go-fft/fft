@@ -1,3 +1,5 @@
+//go:build amd64 && !amd64.v3
+
 package fft
 
 import (
