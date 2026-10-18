@@ -46,4 +46,17 @@ func clFMATable() map[int]fmaChoice {
 	}
 }
 
-func znFMATable() map[int]fmaChoice { return map[int]fmaChoice{} }
+// znFMATable is Zen 3's (Round 42, one pinned core, fifteen rotated rounds
+// at eight heap placements): RFFT 256, whose half transform is 128 = 8·16
+// on the frame kernels, ran 0.956× as fast with both passes fused and 0.997×
+// with the final radix-16 pass unfused (complex 128: 1.030 and 1.016), so
+// 128 leaves its final pass unfused. Radix 32 did not pay on this CPU
+// (complex 1024 as 32·32 0.96× Round 41's FMA plan, 32·4·8 0.98×; 2048 as
+// 32·8·8 0.87–0.90×; 256 as 32·8 0.72×), so no length takes it. Every
+// other length fuses every pass, which ran at least as fast as the default
+// plan on every row timed.
+func znFMATable() map[int]fmaChoice {
+	return map[int]fmaChoice{
+		128: {fuse: 0b01},
+	}
+}
