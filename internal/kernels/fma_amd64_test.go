@@ -65,4 +65,16 @@ func TestFMAKernelSelection(t *testing.T) {
 		!same(intelSplitKernelFMA(b+splitIn, 32, 8, 4, true), intelSplit512R32SIInvFMA) || !same(intelSplitKernelFMA(b+splitNone, 32, 8, 8, true), intelSplit512R32IIInvFMAF) {
 		t.Error("intelSplitKernelFMA, radix 32")
 	}
+	for _, c := range []struct {
+		wide, inverse bool
+		k             *float64
+		fn            skLastFn
+	}{
+		{false, false, &skFwd[0][0], skLast32AVX2FMA}, {false, true, &skInv[0][0], skLast32AVX2FMA},
+		{true, false, &sk512Fwd[0][0], skLast32AVX512FMA}, {true, true, &sk512Inv[0][0], skLast32AVX512FMA},
+	} {
+		if k, fn := r32LastKernel(c.wide, c.inverse); k != c.k || !same(fn, c.fn) {
+			t.Errorf("r32LastKernel(%v, %v)", c.wide, c.inverse)
+		}
+	}
 }
