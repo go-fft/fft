@@ -69,6 +69,23 @@ func TestR32LastWidths(t *testing.T) {
 	}
 }
 
+// TestZnPlanFMAMask: the frame plans of an FMA plan take one FMA flag per
+// pass, and refuse a mask of another length.
+func TestZnPlanFMAMask(t *testing.T) {
+	tw := r32Data(64, 0.3)
+	if ZnPlanForWideFMA([]int{4, 4}, []uint8{0, 0}, tw, tw, nil, nil, false, []bool{true}) != nil {
+		t.Error("a mask shorter than the plan was accepted")
+	}
+	if !UseStockhamAVX2 {
+		return
+	}
+	a := ZnPlanForWideFMA([]int{4, 4}, []uint8{0, 0}, tw, tw, nil, nil, false, []bool{true, false})
+	b := ZnPlanForWideFMA([]int{4, 4}, []uint8{0, 0}, tw, tw, nil, nil, false, []bool{false, false})
+	if a == nil || b == nil || a.addr[0][0] != znAddrs[znFMAAt+4] || b.addr[0][0] != znAddrs[4] || a.addr[0][1] != znAddrs[21+4] {
+		t.Error("the frame plan did not bind the pass kernels its mask says")
+	}
+}
+
 // TestR32SplitFrames: the in-frame split radix-32 kernels give the bits of
 // the ones that keep their values in the output, for every mode, both
 // directions and both widths, with several groups and blocks.
