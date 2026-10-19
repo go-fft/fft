@@ -1,0 +1,8 @@
+#!/bin/sh
+# cljobs.sh: Cascade Lake's remaining Round 42 jobs, one after the other.
+cd ~/r42 || exit 1
+taskset -c 5 ~/gofft-bench/venv/bin/python -I r41_accuracy.py acc-cl > accuracy-cl.txt 2>&1
+mutbin/runmut.sh 5 > mutants.txt 2>&1
+GOMAXPROCS=2 taskset -c 4,5 ./cov-fft.test -test.timeout=2h -test.coverprofile=cov-fft-cl.out > suite-fft-cl.log 2>&1
+GOMAXPROCS=2 taskset -c 4,5 ./cov-k.test -test.timeout=1h -test.coverprofile=cov-k-cl.out > suite-k-cl.log 2>&1
+echo DONE > cljobs.done
