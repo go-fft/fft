@@ -32,7 +32,7 @@ func TestR42R32MatchesReference(t *testing.T) {
 	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
 	for _, l := range r41Layouts() {
 		withLayout(l.avx512, l.split, l.sp512, func() {
-			split32, inFrame := 0, 0
+			split32, inFrame, wide := 0, 0, 0
 			for _, f := range r42R32Factors {
 				n := factorProduct(f)
 				p := newSKPlanFactorsOpt(n, f, true)
@@ -41,6 +41,9 @@ func TestR42R32MatchesReference(t *testing.T) {
 						split32++
 						if st.l1*st.ido >= 64 {
 							inFrame++
+						}
+						if st.split > 4 { // a 512-bit split mode
+							wide++
 						}
 					}
 				}
@@ -66,7 +69,49 @@ func TestR42R32MatchesReference(t *testing.T) {
 			if (l.split || l.sp512) && (inFrame == 0 || inFrame == split32) {
 				t.Fatalf("%s: %d split radix-32 passes, %d of them in-frame: both kernels must run", l.name, split32, inFrame)
 			}
+			if l.sp512 && wide == 0 {
+				t.Fatalf("%s: no 512-bit split radix-32 pass was built", l.name)
+			}
 		})
+	}
+}
+
+// TestR42FrameMasks: a frame plan (kernels.ZnPlan) of an FMA plan that fuses
+// only some passes runs each pass on the kernel its stage says, bit for bit
+// what the stages' own passes give one after the other, for every mask.
+func TestR42FrameMasks(t *testing.T) {
+	fmaKernelsHere(t)
+	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
+	framed := 0
+	for _, n := range []int{64, 128, 192, 256, 384, 512} {
+		s := len(newSKPlanOpt(n, true).stages)
+		for mask := range uint32(1) << s {
+			fmaTable = map[int]fmaChoice{n: {fuse: mask}}
+			p := newSKPlanOpt(n, true)
+			if p.zn == nil {
+				continue
+			}
+			framed++
+			for _, inverse := range []bool{false, true} {
+				x := cmplxSignal(n)
+				got := make([]complex128, n)
+				p.transform(got, x, inverse)
+				in := x
+				for k := range p.stages {
+					out := make([]complex128, n)
+					p.stages[k].pass(out, in, inverse)
+					in = out
+				}
+				for i := range got {
+					if !sameBits(got[i], in[i]) {
+						t.Fatalf("n=%d mask %b inverse=%v index %d: frame %v, passes %v", n, mask, inverse, i, got[i], in[i])
+					}
+				}
+			}
+		}
+	}
+	if framed == 0 {
+		t.Skip("no frame plan on this CPU")
 	}
 }
 
