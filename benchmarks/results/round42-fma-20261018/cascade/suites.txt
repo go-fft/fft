@@ -1,0 +1,7 @@
+X11 forwarding request failed on channel 0
+39bd3ffc5338c31350ec92c52970c47d5d1ee9bd8c63acb38315fe3b990061a9  cov-fft.test
+bdb302e28519e4c8cde0f8ed5ed5b2840927daa1d4007e2ae61ba6e70c51e495  cov-k.test
+PASS
+coverage: 98.8% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+PASS
+coverage: 90.9% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels

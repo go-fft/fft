@@ -1,0 +1,234 @@
+# start 2026-10-18T19:13:08Z load 0.28 0.07 0.02 1/192 13307 core 3
+# cmd ./r42a.test -test.run TestR42Masks -test.v -test.timeout=3h -r42.ab=7,20,4 -r42.rows=c256,c512,c1024,c2048,c4096,c8192,c16384,c65536,c1048576,c1000,c1080,c1920,c1296,r256,r1024,r4096,r65536,r1000,r1080,r1920
+=== RUN   TestR42Masks
+    round42_bench_test.go:150: fmaAvailable=true rounds=7 ms=20 placements=4
+    round42_bench_test.go:191: c256: 4(ido 64, split 5) 8(ido 8, split 7) 8(ido 1, split 0) +zn
+    round42_bench_test.go:195:   c256         default        380.9 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c256         FFF            357.1 ns  default/variant 1.070  (1.053–1.077)  rounds 1.053 1.070 1.070 1.066 1.077 1.070 1.077
+    round42_bench_test.go:195:   c256         .FF            368.4 ns  default/variant 1.043  (1.026–1.056)  rounds 1.026 1.044 1.033 1.034 1.044 1.043 1.056
+    round42_bench_test.go:195:   c256         F.F            368.4 ns  default/variant 1.039  (1.030–1.049)  rounds 1.030 1.035 1.046 1.034 1.040 1.039 1.049
+    round42_bench_test.go:195:   c256         ..F            378.5 ns  default/variant 1.010  (0.999–1.021)  rounds 0.999 1.010 1.013 1.005 1.021 1.009 1.014
+    round42_bench_test.go:195:   c256         FF.            363.3 ns  default/variant 1.051  (1.040–1.059)  rounds 1.050 1.040 1.051 1.044 1.059 1.057 1.056
+    round42_bench_test.go:195:   c256         .F.            373.2 ns  default/variant 1.020  (1.019–1.031)  rounds 1.019 1.019 1.020 1.020 1.031 1.025 1.022
+    round42_bench_test.go:195:   c256         F..            373.2 ns  default/variant 1.022  (1.009–1.029)  rounds 1.009 1.021 1.021 1.027 1.023 1.022 1.029
+    round42_bench_test.go:195:   c256         ...            382.2 ns  default/variant 1.001  (0.994–1.007)  rounds 1.001 1.002 1.005 0.997 1.007 0.994 1.000
+    round42_bench_test.go:191: c512: 8(ido 64, split 5) 8(ido 8, split 7) 8(ido 1, split 0) +zn
+    round42_bench_test.go:195:   c512         default        821.2 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c512         FFF            766.6 ns  default/variant 1.071  (1.065–1.074)  rounds 1.074 1.071 1.068 1.065 1.074 1.071 1.065
+    round42_bench_test.go:195:   c512         .FF            792.7 ns  default/variant 1.037  (1.034–1.038)  rounds 1.035 1.037 1.035 1.034 1.037 1.037 1.038
+    round42_bench_test.go:195:   c512         F.F            780.5 ns  default/variant 1.051  (1.043–1.054)  rounds 1.054 1.051 1.043 1.051 1.051 1.053 1.053
+    round42_bench_test.go:195:   c512         ..F            812.3 ns  default/variant 1.011  (1.009–1.019)  rounds 1.019 1.011 1.011 1.009 1.013 1.011 1.009
+    round42_bench_test.go:195:   c512         FF.            773.9 ns  default/variant 1.062  (1.056–1.066)  rounds 1.062 1.066 1.061 1.056 1.063 1.062 1.061
+    round42_bench_test.go:195:   c512         .F.            800.4 ns  default/variant 1.025  (1.024–1.041)  rounds 1.041 1.026 1.025 1.025 1.027 1.025 1.024
+    round42_bench_test.go:195:   c512         F..            792.8 ns  default/variant 1.036  (1.035–1.041)  rounds 1.041 1.036 1.036 1.035 1.037 1.036 1.035
+    round42_bench_test.go:195:   c512         ...            818.3 ns  default/variant 1.004  (1.003–1.005)  rounds 1.004 1.005 1.003 1.003 1.005 1.004 1.004
+    round42_bench_test.go:191: c1024: 8(ido 128, split 5) 4(ido 32, split 6) 4(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c1024        default       2449.2 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c1024        FFFF          2404.2 ns  default/variant 1.018  (1.014–1.023)  rounds 1.014 1.023 1.022 1.018 1.020 1.018 1.016
+    round42_bench_test.go:195:   c1024        .FFF          2408.9 ns  default/variant 1.018  (1.010–1.021)  rounds 1.010 1.015 1.018 1.017 1.021 1.018 1.020
+    round42_bench_test.go:195:   c1024        F.FF          2434.4 ns  default/variant 1.006  (1.003–1.009)  rounds 1.003 1.006 1.006 1.007 1.003 1.009 1.005
+    round42_bench_test.go:195:   c1024        ..FF          2418.5 ns  default/variant 1.015  (1.010–1.019)  rounds 1.011 1.016 1.014 1.010 1.017 1.019 1.015
+    round42_bench_test.go:195:   c1024        FF.F          2427.8 ns  default/variant 1.009  (0.998–1.012)  rounds 0.998 1.009 1.009 1.011 1.012 1.007 1.012
+    round42_bench_test.go:195:   c1024        .F.F          2404.5 ns  default/variant 1.019  (1.014–1.022)  rounds 1.014 1.018 1.019 1.020 1.020 1.014 1.022
+    round42_bench_test.go:195:   c1024        F..F          2432.9 ns  default/variant 1.007  (0.999–1.012)  rounds 0.999 1.006 1.007 1.008 1.012 1.005 1.008
+    round42_bench_test.go:195:   c1024        ...F          2428.9 ns  default/variant 1.009  (1.003–1.012)  rounds 1.003 1.012 1.009 1.009 1.011 1.009 1.011
+    round42_bench_test.go:195:   c1024        FFF.          2418.8 ns  default/variant 1.011  (1.008–1.019)  rounds 1.008 1.014 1.010 1.012 1.019 1.011 1.011
+    round42_bench_test.go:195:   c1024        .FF.          2412.7 ns  default/variant 1.015  (1.010–1.023)  rounds 1.010 1.022 1.020 1.012 1.023 1.011 1.015
+    round42_bench_test.go:195:   c1024        F.F.          2445.7 ns  default/variant 1.003  (1.000–1.005)  rounds 1.001 1.000 1.005 1.002 1.005 1.003 1.004
+    round42_bench_test.go:195:   c1024        ..F.          2431.5 ns  default/variant 1.008  (1.005–1.013)  rounds 1.005 1.005 1.008 1.008 1.011 1.013 1.010
+    round42_bench_test.go:195:   c1024        FF..          2438.1 ns  default/variant 1.003  (1.001–1.011)  rounds 1.001 1.003 1.003 1.003 1.011 1.003 1.002
+    round42_bench_test.go:195:   c1024        .F..          2421.4 ns  default/variant 1.013  (1.008–1.017)  rounds 1.008 1.008 1.013 1.009 1.017 1.016 1.015
+    round42_bench_test.go:195:   c1024        F...          2448.3 ns  default/variant 1.002  (0.994–1.004)  rounds 0.994 1.002 1.004 1.001 1.004 1.002 1.002
+    round42_bench_test.go:195:   c1024        ....          2428.1 ns  default/variant 1.009  (1.004–1.018)  rounds 1.004 1.008 1.009 1.009 1.018 1.010 1.010
+    round42_bench_test.go:191: c2048: 4(ido 512, split 5) 8(ido 64, split 6) 8(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c2048        default       6323.1 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c2048        FFFF          6400.2 ns  default/variant 0.991  (0.984–0.994)  rounds 0.986 0.984 0.993 0.994 0.992 0.991 0.990
+    round42_bench_test.go:195:   c2048        .FFF          6437.3 ns  default/variant 0.983  (0.980–0.986)  rounds 0.982 0.983 0.980 0.981 0.986 0.983 0.986
+    round42_bench_test.go:195:   c2048        F.FF          6399.9 ns  default/variant 0.989  (0.984–0.994)  rounds 0.985 0.984 0.994 0.990 0.993 0.989 0.988
+    round42_bench_test.go:195:   c2048        ..FF          6399.2 ns  default/variant 0.989  (0.987–0.990)  rounds 0.990 0.987 0.989 0.989 0.990 0.990 0.989
+    round42_bench_test.go:195:   c2048        FF.F          6375.6 ns  default/variant 0.993  (0.990–0.997)  rounds 0.990 0.993 0.993 0.991 0.997 0.990 0.993
+    round42_bench_test.go:195:   c2048        .F.F          6389.1 ns  default/variant 0.989  (0.985–0.995)  rounds 0.985 0.989 0.989 0.992 0.995 0.992 0.986
+    round42_bench_test.go:195:   c2048        F..F          6469.5 ns  default/variant 0.978  (0.971–0.982)  rounds 0.975 0.971 0.979 0.979 0.982 0.976 0.978
+    round42_bench_test.go:195:   c2048        ...F          6365.7 ns  default/variant 0.994  (0.988–1.004)  rounds 0.992 0.988 0.995 0.997 1.004 0.993 0.994
+    round42_bench_test.go:195:   c2048        FFF.          6380.9 ns  default/variant 0.990  (0.987–0.998)  rounds 0.987 0.989 0.990 0.992 0.998 0.994 0.989
+    round42_bench_test.go:195:   c2048        .FF.          6410.5 ns  default/variant 0.986  (0.983–0.989)  rounds 0.985 0.988 0.987 0.983 0.986 0.985 0.989
+    round42_bench_test.go:195:   c2048        F.F.          6341.2 ns  default/variant 0.997  (0.985–0.999)  rounds 0.997 0.994 0.999 0.999 0.985 0.997 0.998
+    round42_bench_test.go:195:   c2048        ..F.          6342.3 ns  default/variant 0.996  (0.994–0.999)  rounds 0.995 0.996 0.994 0.999 0.995 0.996 0.999
+    round42_bench_test.go:195:   c2048        FF..          6374.9 ns  default/variant 0.992  (0.990–0.995)  rounds 0.991 0.990 0.993 0.994 0.991 0.992 0.995
+    round42_bench_test.go:195:   c2048        .F..          6362.2 ns  default/variant 0.994  (0.987–0.997)  rounds 0.989 0.991 0.996 0.996 0.987 0.997 0.994
+    round42_bench_test.go:195:   c2048        F...          6316.8 ns  default/variant 1.001  (0.999–1.004)  rounds 0.999 1.000 1.002 1.001 1.001 1.004 1.003
+    round42_bench_test.go:195:   c2048        ....          6304.0 ns  default/variant 1.004  (1.000–1.008)  rounds 1.000 1.008 1.001 1.005 1.008 1.004 1.003
+    round42_bench_test.go:191: c4096: 8(ido 512, split 5) 8(ido 64, split 6) 8(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c4096        default      12083.9 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c4096        FFFF         12349.9 ns  default/variant 0.979  (0.973–0.982)  rounds 0.973 0.979 0.979 0.982 0.975 0.982 0.977
+    round42_bench_test.go:195:   c4096        .FFF         12355.2 ns  default/variant 0.978  (0.976–0.980)  rounds 0.978 0.976 0.980 0.979 0.976 0.979 0.978
+    round42_bench_test.go:195:   c4096        F.FF         12268.8 ns  default/variant 0.985  (0.983–0.989)  rounds 0.986 0.989 0.986 0.984 0.985 0.984 0.983
+    round42_bench_test.go:195:   c4096        ..FF         12215.8 ns  default/variant 0.989  (0.986–0.994)  rounds 0.987 0.986 0.994 0.992 0.989 0.987 0.990
+    round42_bench_test.go:195:   c4096        FF.F         12321.0 ns  default/variant 0.981  (0.978–0.986)  rounds 0.978 0.981 0.984 0.986 0.978 0.981 0.978
+    round42_bench_test.go:195:   c4096        .F.F         12280.4 ns  default/variant 0.984  (0.981–0.988)  rounds 0.981 0.983 0.988 0.985 0.988 0.984 0.983
+    round42_bench_test.go:195:   c4096        F..F         12253.2 ns  default/variant 0.987  (0.986–0.992)  rounds 0.986 0.986 0.987 0.987 0.986 0.992 0.988
+    round42_bench_test.go:195:   c4096        ...F         12206.4 ns  default/variant 0.989  (0.986–0.994)  rounds 0.988 0.989 0.988 0.993 0.989 0.994 0.986
+    round42_bench_test.go:195:   c4096        FFF.         12216.5 ns  default/variant 0.989  (0.983–0.991)  rounds 0.989 0.991 0.988 0.987 0.989 0.991 0.983
+    round42_bench_test.go:195:   c4096        .FF.         12274.2 ns  default/variant 0.986  (0.984–0.988)  rounds 0.988 0.984 0.986 0.987 0.984 0.984 0.986
+    round42_bench_test.go:195:   c4096        F.F.         12092.5 ns  default/variant 0.999  (0.994–1.004)  rounds 0.994 1.000 1.004 0.999 0.999 0.999 0.994
+    round42_bench_test.go:195:   c4096        ..F.         12129.9 ns  default/variant 0.997  (0.990–1.002)  rounds 0.994 0.999 1.002 0.997 0.993 0.999 0.990
+    round42_bench_test.go:195:   c4096        FF..         12199.1 ns  default/variant 0.991  (0.985–0.993)  rounds 0.989 0.990 0.992 0.991 0.993 0.991 0.985
+    round42_bench_test.go:195:   c4096        .F..         12220.3 ns  default/variant 0.990  (0.985–0.993)  rounds 0.985 0.989 0.991 0.990 0.988 0.993 0.992
+    round42_bench_test.go:195:   c4096        F...         12068.3 ns  default/variant 1.000  (0.996–1.006)  rounds 0.999 0.997 1.006 1.003 1.000 1.002 0.996
+    round42_bench_test.go:195:   c4096        ....         12057.7 ns  default/variant 1.001  (0.999–1.005)  rounds 1.000 1.001 1.002 1.005 1.001 1.002 0.999
+    round42_bench_test.go:191: c8192: 8(ido 1024, split 5) 8(ido 128, split 6) 4(ido 32, split 6) 4(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c8192        default      27047.5 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c8192        FFFFF        27727.3 ns  default/variant 0.975  (0.971–0.979)  rounds 0.978 0.974 0.974 0.975 0.976 0.971 0.979
+    round42_bench_test.go:195:   c8192        .FFFF        27612.6 ns  default/variant 0.981  (0.976–0.984)  rounds 0.984 0.981 0.981 0.980 0.982 0.976 0.982
+    round42_bench_test.go:195:   c8192        F.FFF        27281.1 ns  default/variant 0.992  (0.988–0.997)  rounds 0.997 0.988 0.993 0.990 0.992 0.991 0.995
+    round42_bench_test.go:195:   c8192        FF.FF        27671.3 ns  default/variant 0.978  (0.973–0.982)  rounds 0.982 0.976 0.976 0.978 0.980 0.973 0.979
+    round42_bench_test.go:195:   c8192        FFF.F        27595.8 ns  default/variant 0.980  (0.980–0.983)  rounds 0.983 0.980 0.980 0.980 0.982 0.980 0.982
+    round42_bench_test.go:195:   c8192        FFFF.        27525.1 ns  default/variant 0.984  (0.978–0.986)  rounds 0.984 0.980 0.982 0.984 0.986 0.978 0.986
+    round42_bench_test.go:195:   c8192        .....        26933.6 ns  default/variant 1.005  (1.003–1.007)  rounds 1.005 1.005 1.003 1.007 1.005 1.004 1.006
+    round42_bench_test.go:191: c16384: 4(ido 4096, split 5) 8(ido 512, split 6) 8(ido 64, split 6) 8(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c16384       default      57692.9 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c16384       FFFFF        57587.5 ns  default/variant 1.001  (1.000–1.006)  rounds 1.001 1.000 1.002 1.000 1.000 1.006 1.003
+    round42_bench_test.go:195:   c16384       .FFFF        57851.7 ns  default/variant 0.998  (0.996–1.001)  rounds 0.997 1.000 0.998 0.997 0.999 1.001 0.996
+    round42_bench_test.go:195:   c16384       F.FFF        57538.1 ns  default/variant 1.001  (0.992–1.008)  rounds 1.001 1.004 1.002 1.001 0.992 1.008 1.000
+    round42_bench_test.go:195:   c16384       FF.FF        57509.9 ns  default/variant 1.003  (0.992–1.007)  rounds 1.002 1.006 1.003 0.998 0.992 1.007 1.003
+    round42_bench_test.go:195:   c16384       FFF.F        58057.5 ns  default/variant 0.994  (0.991–0.998)  rounds 0.994 0.995 0.994 0.991 0.991 0.998 0.996
+    round42_bench_test.go:195:   c16384       FFFF.        57908.5 ns  default/variant 0.997  (0.996–1.000)  rounds 0.998 0.997 0.997 0.999 0.996 1.000 0.996
+    round42_bench_test.go:195:   c16384       .....        57286.1 ns  default/variant 1.007  (0.997–1.009)  rounds 1.009 1.009 1.006 1.004 0.997 1.007 1.008
+    round42_bench_test.go:191: c65536: 8(ido 8192, split 0) 8(ido 1024, split 0) 4(ido 256, split 0) 4(ido 64, split 0) 8(ido 8, split 0) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c65536       default     426948.5 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c65536       FFFFFF      406806.5 ns  default/variant 1.051  (1.045–1.054)  rounds 1.051 1.047 1.045 1.051 1.053 1.054 1.050
+    round42_bench_test.go:195:   c65536       .FFFFF      416697.2 ns  default/variant 1.024  (1.022–1.030)  rounds 1.027 1.023 1.024 1.023 1.022 1.028 1.030
+    round42_bench_test.go:195:   c65536       F.FFFF      412970.5 ns  default/variant 1.033  (1.029–1.043)  rounds 1.035 1.031 1.033 1.033 1.029 1.036 1.043
+    round42_bench_test.go:195:   c65536       FF.FFF      414770.2 ns  default/variant 1.029  (1.026–1.036)  rounds 1.034 1.029 1.026 1.028 1.031 1.028 1.036
+    round42_bench_test.go:195:   c65536       FFF.FF      410058.8 ns  default/variant 1.043  (1.039–1.045)  rounds 1.044 1.045 1.042 1.044 1.039 1.042 1.043
+    round42_bench_test.go:195:   c65536       FFFF.F      419659.5 ns  default/variant 1.018  (1.011–1.029)  rounds 1.019 1.016 1.015 1.011 1.018 1.018 1.029
+    round42_bench_test.go:195:   c65536       FFFFF.      410851.8 ns  default/variant 1.041  (1.035–1.044)  rounds 1.035 1.043 1.035 1.038 1.044 1.041 1.041
+    round42_bench_test.go:195:   c65536       ......      431494.0 ns  default/variant 0.991  (0.982–1.001)  rounds 0.996 0.982 0.991 0.992 0.989 0.990 1.001
+    round42_bench_test.go:191: c1048576: 8(ido 131072, split 0) 8(ido 16384, split 0) 8(ido 2048, split 0) 8(ido 256, split 0) 8(ido 32, split 0) 4(ido 8, split 0) 8(ido 1, split 0)
+    round42_bench_test.go:195:   c1048576     default   19844375.5 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c1048576     FFFFFFF   19003369.5 ns  default/variant 1.047  (1.027–1.048)  rounds 1.047 1.048 1.048 1.027 1.048 1.047 1.042
+    round42_bench_test.go:195:   c1048576     .FFFFFF   19207281.5 ns  default/variant 1.036  (1.024–1.058)  rounds 1.058 1.030 1.037 1.025 1.049 1.036 1.024
+    round42_bench_test.go:195:   c1048576     F.FFFFF   19366981.5 ns  default/variant 1.025  (1.014–1.040)  rounds 1.040 1.016 1.031 1.024 1.037 1.025 1.014
+    round42_bench_test.go:195:   c1048576     FF.FFFF   19017136.5 ns  default/variant 1.041  (1.035–1.057)  rounds 1.038 1.035 1.057 1.037 1.043 1.051 1.041
+    round42_bench_test.go:195:   c1048576     FFF.FFF   19097581.0 ns  default/variant 1.036  (1.018–1.058)  rounds 1.036 1.044 1.039 1.033 1.018 1.058 1.035
+    round42_bench_test.go:195:   c1048576     FFFF.FF   19201221.5 ns  default/variant 1.030  (1.013–1.050)  rounds 1.017 1.032 1.038 1.029 1.050 1.030 1.013
+    round42_bench_test.go:195:   c1048576     FFFFF.F   19207506.5 ns  default/variant 1.037  (1.016–1.042)  rounds 1.038 1.031 1.038 1.016 1.037 1.042 1.032
+    round42_bench_test.go:195:   c1048576     FFFFFF.   19051289.5 ns  default/variant 1.038  (1.034–1.048)  rounds 1.036 1.048 1.038 1.036 1.048 1.046 1.034
+    round42_bench_test.go:195:   c1048576     .......   19826438.0 ns  default/variant 1.003  (0.985–1.007)  rounds 1.007 1.003 1.005 0.985 1.006 1.001 0.997
+    round42_bench_test.go:191: c1000: 5(ido 200, split 0) 10(ido 20, split 0) 20(ido 1, split 0)
+    round42_bench_test.go:195:   c1000        default       3068.1 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c1000        FFF           2902.8 ns  default/variant 1.057  (1.049–1.062)  rounds 1.059 1.056 1.057 1.057 1.062 1.057 1.049
+    round42_bench_test.go:195:   c1000        .FF           2927.5 ns  default/variant 1.048  (1.043–1.049)  rounds 1.048 1.048 1.048 1.049 1.049 1.043 1.049
+    round42_bench_test.go:195:   c1000        F.F           2973.7 ns  default/variant 1.032  (1.026–1.034)  rounds 1.032 1.031 1.032 1.029 1.034 1.026 1.032
+    round42_bench_test.go:195:   c1000        ..F           3026.0 ns  default/variant 1.014  (1.010–1.016)  rounds 1.014 1.010 1.016 1.014 1.016 1.012 1.015
+    round42_bench_test.go:195:   c1000        FF.           2947.1 ns  default/variant 1.041  (1.037–1.042)  rounds 1.042 1.041 1.041 1.041 1.042 1.041 1.037
+    round42_bench_test.go:195:   c1000        .F.           2991.7 ns  default/variant 1.027  (1.021–1.028)  rounds 1.026 1.027 1.028 1.024 1.028 1.028 1.021
+    round42_bench_test.go:195:   c1000        F..           3035.7 ns  default/variant 1.011  (1.006–1.014)  rounds 1.011 1.010 1.011 1.012 1.014 1.009 1.006
+    round42_bench_test.go:195:   c1000        ...           3074.5 ns  default/variant 0.998  (0.991–1.001)  rounds 0.998 0.998 0.997 1.001 0.999 0.999 0.991
+    round42_bench_test.go:191: c1080: 9(ido 120, split 0) 10(ido 12, split 0) 12(ido 1, split 0)
+    round42_bench_test.go:195:   c1080        default       3528.4 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c1080        FFF           3261.0 ns  default/variant 1.082  (1.081–1.083)  rounds 1.082 1.083 1.083 1.082 1.082 1.081 1.082
+    round42_bench_test.go:195:   c1080        .FF           3333.3 ns  default/variant 1.059  (1.058–1.060)  rounds 1.059 1.060 1.060 1.059 1.058 1.058 1.058
+    round42_bench_test.go:195:   c1080        F.F           3361.4 ns  default/variant 1.050  (1.049–1.051)  rounds 1.049 1.050 1.051 1.050 1.049 1.050 1.050
+    round42_bench_test.go:195:   c1080        ..F           3409.4 ns  default/variant 1.035  (1.034–1.037)  rounds 1.035 1.036 1.035 1.037 1.035 1.034 1.035
+    round42_bench_test.go:195:   c1080        FF.           3379.4 ns  default/variant 1.044  (1.043–1.046)  rounds 1.043 1.046 1.046 1.045 1.044 1.043 1.044
+    round42_bench_test.go:195:   c1080        .F.           3439.1 ns  default/variant 1.026  (1.025–1.028)  rounds 1.026 1.028 1.028 1.026 1.025 1.026 1.027
+    round42_bench_test.go:195:   c1080        F..           3463.9 ns  default/variant 1.019  (1.018–1.020)  rounds 1.019 1.020 1.020 1.019 1.019 1.018 1.018
+    round42_bench_test.go:195:   c1080        ...           3520.7 ns  default/variant 1.003  (1.001–1.003)  rounds 1.003 1.003 1.003 1.003 1.002 1.001 1.002
+    round42_bench_test.go:191: c1920: 8(ido 240, split 4) 12(ido 20, split 0) 20(ido 1, split 0)
+    round42_bench_test.go:195:   c1920        default       5506.8 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c1920        FFF           5319.1 ns  default/variant 1.035  (1.033–1.039)  rounds 1.039 1.033 1.033 1.034 1.035 1.037 1.035
+    round42_bench_test.go:195:   c1920        .FF           5357.3 ns  default/variant 1.028  (1.025–1.029)  rounds 1.029 1.026 1.028 1.028 1.025 1.028 1.028
+    round42_bench_test.go:195:   c1920        F.F           5346.4 ns  default/variant 1.029  (1.027–1.031)  rounds 1.031 1.029 1.028 1.029 1.027 1.030 1.031
+    round42_bench_test.go:195:   c1920        ..F           5401.0 ns  default/variant 1.020  (1.017–1.021)  rounds 1.021 1.017 1.019 1.021 1.017 1.020 1.021
+    round42_bench_test.go:195:   c1920        FF.           5411.4 ns  default/variant 1.017  (1.014–1.019)  rounds 1.017 1.014 1.017 1.017 1.014 1.018 1.019
+    round42_bench_test.go:195:   c1920        .F.           5466.0 ns  default/variant 1.007  (1.003–1.009)  rounds 1.008 1.005 1.006 1.007 1.003 1.009 1.008
+    round42_bench_test.go:195:   c1920        F..           5455.9 ns  default/variant 1.009  (1.007–1.013)  rounds 1.013 1.007 1.009 1.010 1.007 1.009 1.009
+    round42_bench_test.go:195:   c1920        ...           5492.6 ns  default/variant 1.001  (0.998–1.004)  rounds 1.003 1.001 0.998 1.002 0.999 1.004 1.001
+    round42_bench_test.go:191: c1296: 9(ido 144, split 0) 12(ido 12, split 0) 12(ido 1, split 0)
+    round42_bench_test.go:195:   c1296        default       4045.4 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   c1296        FFF           3796.7 ns  default/variant 1.065  (1.065–1.066)  rounds 1.065 1.066 1.065 1.065 1.066 1.065 1.065
+    round42_bench_test.go:195:   c1296        .FF           3880.0 ns  default/variant 1.043  (1.042–1.043)  rounds 1.043 1.043 1.042 1.042 1.043 1.043 1.042
+    round42_bench_test.go:195:   c1296        F.F           3822.5 ns  default/variant 1.058  (1.057–1.059)  rounds 1.058 1.058 1.057 1.058 1.059 1.058 1.058
+    round42_bench_test.go:195:   c1296        ..F           3901.8 ns  default/variant 1.036  (1.034–1.038)  rounds 1.036 1.037 1.034 1.034 1.038 1.036 1.037
+    round42_bench_test.go:195:   c1296        FF.           3937.3 ns  default/variant 1.028  (1.027–1.028)  rounds 1.027 1.028 1.027 1.027 1.028 1.028 1.028
+    round42_bench_test.go:195:   c1296        .F.           4019.2 ns  default/variant 1.006  (1.005–1.007)  rounds 1.007 1.006 1.007 1.005 1.007 1.006 1.006
+    round42_bench_test.go:195:   c1296        F..           3962.8 ns  default/variant 1.020  (1.020–1.022)  rounds 1.020 1.021 1.020 1.020 1.022 1.021 1.020
+    round42_bench_test.go:195:   c1296        ...           4046.1 ns  default/variant 1.000  (0.999–1.001)  rounds 0.999 1.001 1.000 0.999 1.000 1.000 0.999
+    round42_bench_test.go:191: r256: 16(ido 8, split 0) 8(ido 1, split 0) +zn
+    round42_bench_test.go:195:   r256         default        392.2 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r256         FF             352.7 ns  default/variant 1.120  (1.091–1.158)  rounds 1.107 1.099 1.154 1.158 1.091 1.120 1.135
+    round42_bench_test.go:195:   r256         .F             348.4 ns  default/variant 1.126  (1.118–1.163)  rounds 1.125 1.131 1.163 1.133 1.125 1.126 1.118
+    round42_bench_test.go:195:   r256         F.             341.3 ns  default/variant 1.151  (1.145–1.194)  rounds 1.149 1.154 1.194 1.152 1.145 1.146 1.151
+    round42_bench_test.go:195:   r256         ..             354.6 ns  default/variant 1.106  (1.088–1.117)  rounds 1.108 1.113 1.091 1.117 1.088 1.098 1.106
+    round42_bench_test.go:191: r1024: 8(ido 64, split 5) 8(ido 8, split 7) 8(ido 1, split 0) +zn
+    round42_bench_test.go:195:   r1024        default       1198.3 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r1024        FFF           1123.5 ns  default/variant 1.066  (1.057–1.067)  rounds 1.066 1.067 1.065 1.067 1.067 1.058 1.057
+    round42_bench_test.go:195:   r1024        .FF           1166.7 ns  default/variant 1.026  (1.017–1.028)  rounds 1.026 1.025 1.026 1.027 1.028 1.026 1.017
+    round42_bench_test.go:195:   r1024        F.F           1151.3 ns  default/variant 1.039  (1.031–1.041)  rounds 1.039 1.040 1.038 1.041 1.041 1.031 1.033
+    round42_bench_test.go:195:   r1024        ..F           1171.1 ns  default/variant 1.022  (1.018–1.024)  rounds 1.022 1.020 1.022 1.023 1.024 1.018 1.023
+    round42_bench_test.go:195:   r1024        FF.           1145.8 ns  default/variant 1.045  (1.030–1.048)  rounds 1.044 1.045 1.042 1.048 1.046 1.048 1.030
+    round42_bench_test.go:195:   r1024        .F.           1173.6 ns  default/variant 1.021  (1.017–1.024)  rounds 1.019 1.021 1.017 1.023 1.022 1.024 1.019
+    round42_bench_test.go:195:   r1024        F..           1158.2 ns  default/variant 1.033  (1.029–1.040)  rounds 1.033 1.033 1.032 1.032 1.036 1.040 1.029
+    round42_bench_test.go:195:   r1024        ...           1195.1 ns  default/variant 1.000  (0.996–1.006)  rounds 1.001 1.002 1.000 1.006 0.999 0.997 0.996
+    round42_bench_test.go:191: r4096: 4(ido 512, split 5) 8(ido 64, split 6) 8(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   r4096        default       7695.3 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r4096        FFFF          7646.5 ns  default/variant 1.009  (1.000–1.015)  rounds 1.008 1.010 1.012 1.015 1.009 1.002 1.000
+    round42_bench_test.go:195:   r4096        .FFF          7657.6 ns  default/variant 1.006  (0.998–1.011)  rounds 1.005 1.011 1.005 1.006 1.006 0.998 1.010
+    round42_bench_test.go:195:   r4096        F.FF          7692.3 ns  default/variant 1.000  (0.996–1.007)  rounds 0.996 1.007 0.999 1.007 1.002 0.999 1.000
+    round42_bench_test.go:195:   r4096        ..FF          7711.9 ns  default/variant 1.000  (0.991–1.005)  rounds 1.000 1.005 0.999 1.001 1.000 0.992 0.991
+    round42_bench_test.go:195:   r4096        FF.F          7701.6 ns  default/variant 1.001  (0.988–1.009)  rounds 0.988 1.009 1.001 1.004 1.002 0.995 0.997
+    round42_bench_test.go:195:   r4096        .F.F          7717.2 ns  default/variant 0.999  (0.992–1.004)  rounds 0.992 1.004 1.000 0.999 1.000 0.994 0.992
+    round42_bench_test.go:195:   r4096        F..F          7736.6 ns  default/variant 0.993  (0.988–1.001)  rounds 0.993 1.001 0.993 0.998 0.996 0.991 0.988
+    round42_bench_test.go:195:   r4096        ...F          7727.8 ns  default/variant 0.997  (0.988–1.000)  rounds 0.995 0.999 0.997 1.000 0.998 0.988 0.990
+    round42_bench_test.go:195:   r4096        FFF.          7612.3 ns  default/variant 1.011  (1.009–1.020)  rounds 1.009 1.020 1.011 1.014 1.015 1.010 1.010
+    round42_bench_test.go:195:   r4096        .FF.          7590.3 ns  default/variant 1.014  (1.008–1.019)  rounds 1.008 1.018 1.015 1.019 1.014 1.010 1.010
+    round42_bench_test.go:195:   r4096        F.F.          7647.4 ns  default/variant 1.007  (0.994–1.011)  rounds 1.008 1.011 1.007 1.011 0.994 0.998 1.004
+    round42_bench_test.go:195:   r4096        ..F.          7660.9 ns  default/variant 1.004  (1.001–1.014)  rounds 1.003 1.014 1.008 1.005 1.004 1.001 1.002
+    round42_bench_test.go:195:   r4096        FF..          7639.5 ns  default/variant 1.009  (1.003–1.016)  rounds 1.007 1.016 1.009 1.009 1.010 1.003 1.006
+    round42_bench_test.go:195:   r4096        .F..          7620.5 ns  default/variant 1.010  (0.999–1.014)  rounds 1.009 1.014 1.011 1.012 1.008 0.999 1.010
+    round42_bench_test.go:195:   r4096        F...          7671.1 ns  default/variant 1.004  (1.000–1.012)  rounds 1.000 1.012 1.004 1.006 1.006 1.000 1.000
+    round42_bench_test.go:195:   r4096        ....          7754.6 ns  default/variant 0.994  (0.986–1.001)  rounds 0.991 1.001 0.995 0.996 0.994 0.986 0.988
+    round42_bench_test.go:191: r65536: 8(ido 4096, split 5) 8(ido 512, split 6) 8(ido 64, split 6) 8(ido 8, split 7) 8(ido 1, split 0)
+    round42_bench_test.go:195:   r65536       default     196804.8 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r65536       FFFFF       199203.0 ns  default/variant 0.988  (0.987–0.996)  rounds 0.996 0.987 0.990 0.988 0.987 0.987 0.988
+    round42_bench_test.go:195:   r65536       .FFFF       196331.2 ns  default/variant 1.003  (1.000–1.010)  rounds 1.010 1.003 1.005 1.002 1.000 1.002 1.004
+    round42_bench_test.go:195:   r65536       F.FFF       198325.2 ns  default/variant 0.992  (0.990–1.001)  rounds 1.001 0.991 0.994 0.990 0.992 0.991 0.992
+    round42_bench_test.go:195:   r65536       FF.FF       197897.5 ns  default/variant 0.994  (0.992–1.007)  rounds 1.007 0.994 0.996 0.992 0.994 0.993 0.995
+    round42_bench_test.go:195:   r65536       FFF.F       198336.8 ns  default/variant 0.993  (0.991–1.001)  rounds 1.001 0.993 0.993 0.992 0.991 0.992 0.993
+    round42_bench_test.go:195:   r65536       FFFF.       192905.2 ns  default/variant 1.021  (1.019–1.030)  rounds 1.030 1.021 1.022 1.021 1.019 1.020 1.021
+    round42_bench_test.go:195:   r65536       .....       195862.5 ns  default/variant 1.005  (1.002–1.016)  rounds 1.016 1.006 1.005 1.003 1.002 1.004 1.005
+    round42_bench_test.go:191: r1000: 5(ido 100, split 0) 5(ido 20, split 0) 20(ido 1, split 0) +zn
+    round42_bench_test.go:195:   r1000        default       1803.9 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r1000        FFF           1724.0 ns  default/variant 1.031  (1.030–1.057)  rounds 1.031 1.031 1.039 1.031 1.030 1.057 1.055
+    round42_bench_test.go:195:   r1000        .FF           1747.1 ns  default/variant 1.024  (1.017–1.044)  rounds 1.017 1.018 1.024 1.023 1.029 1.044 1.031
+    round42_bench_test.go:195:   r1000        F.F           1742.6 ns  default/variant 1.030  (1.017–1.046)  rounds 1.017 1.019 1.017 1.030 1.032 1.046 1.034
+    round42_bench_test.go:195:   r1000        ..F           1796.2 ns  default/variant 1.003  (0.988–1.013)  rounds 0.998 0.988 1.003 1.012 1.003 1.013 1.010
+    round42_bench_test.go:195:   r1000        FF.           1746.6 ns  default/variant 1.033  (1.023–1.057)  rounds 1.023 1.032 1.033 1.033 1.027 1.043 1.057
+    round42_bench_test.go:195:   r1000        .F.           1742.4 ns  default/variant 1.031  (1.017–1.046)  rounds 1.017 1.019 1.036 1.031 1.031 1.046 1.038
+    round42_bench_test.go:195:   r1000        F..           1748.9 ns  default/variant 1.023  (1.014–1.033)  rounds 1.014 1.015 1.033 1.032 1.018 1.023 1.032
+    round42_bench_test.go:195:   r1000        ...           1802.3 ns  default/variant 1.001  (0.993–1.012)  rounds 1.001 1.003 0.999 0.998 0.993 1.012 1.008
+    round42_bench_test.go:191: r1080: 3(ido 180, split 0) 15(ido 12, split 0) 12(ido 1, split 0)
+    round42_bench_test.go:195:   r1080        default       2106.3 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r1080        FFF           2039.6 ns  default/variant 1.033  (1.020–1.045)  rounds 1.024 1.033 1.045 1.032 1.041 1.020 1.039
+    round42_bench_test.go:195:   r1080        .FF           2071.9 ns  default/variant 1.016  (1.002–1.023)  rounds 1.016 1.022 1.022 1.012 1.023 1.002 1.006
+    round42_bench_test.go:195:   r1080        F.F           2078.1 ns  default/variant 1.017  (0.998–1.021)  rounds 1.017 1.004 1.020 1.004 1.017 0.998 1.021
+    round42_bench_test.go:195:   r1080        ..F           2102.1 ns  default/variant 1.002  (0.991–1.012)  rounds 0.996 1.012 1.003 1.002 0.998 0.991 1.005
+    round42_bench_test.go:195:   r1080        FF.           2048.0 ns  default/variant 1.025  (1.018–1.039)  rounds 1.025 1.018 1.039 1.018 1.025 1.022 1.033
+    round42_bench_test.go:195:   r1080        .F.           2063.8 ns  default/variant 1.022  (1.002–1.028)  rounds 1.017 1.028 1.026 1.017 1.024 1.002 1.022
+    round42_bench_test.go:195:   r1080        F..           2072.1 ns  default/variant 1.013  (1.003–1.022)  rounds 1.003 1.005 1.022 1.017 1.013 1.010 1.019
+    round42_bench_test.go:195:   r1080        ...           2100.7 ns  default/variant 1.001  (0.998–1.013)  rounds 0.999 1.007 1.004 1.001 0.999 0.998 1.013
+    round42_bench_test.go:191: r1920: 4(ido 240, split 4) 12(ido 20, split 0) 20(ido 1, split 0)
+    round42_bench_test.go:195:   r1920        default       3390.3 ns  default/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:195:   r1920        FFF           3344.1 ns  default/variant 1.015  (1.010–1.019)  rounds 1.015 1.014 1.012 1.015 1.016 1.010 1.019
+    round42_bench_test.go:195:   r1920        .FF           3350.0 ns  default/variant 1.012  (1.009–1.016)  rounds 1.012 1.011 1.009 1.013 1.013 1.011 1.016
+    round42_bench_test.go:195:   r1920        F.F           3361.3 ns  default/variant 1.009  (1.005–1.013)  rounds 1.011 1.010 1.007 1.009 1.008 1.005 1.013
+    round42_bench_test.go:195:   r1920        ..F           3387.7 ns  default/variant 1.001  (0.998–1.004)  rounds 1.004 1.000 0.998 1.001 1.003 1.001 1.003
+    round42_bench_test.go:195:   r1920        FF.           3347.7 ns  default/variant 1.014  (1.010–1.016)  rounds 1.014 1.012 1.010 1.014 1.016 1.010 1.016
+    round42_bench_test.go:195:   r1920        .F.           3367.4 ns  default/variant 1.008  (1.002–1.010)  rounds 1.008 1.006 1.005 1.008 1.010 1.002 1.010
+    round42_bench_test.go:195:   r1920        F..           3360.9 ns  default/variant 1.009  (1.006–1.012)  rounds 1.009 1.008 1.006 1.011 1.011 1.007 1.012
+    round42_bench_test.go:195:   r1920        ...           3400.2 ns  default/variant 0.997  (0.994–1.001)  rounds 0.997 0.997 0.994 0.999 1.000 0.995 1.001
+--- PASS: TestR42Masks (147.94s)
+PASS
+# rc 0
+# end 2026-10-18T19:15:36Z load 0.94 0.43 0.17 1/189 13387

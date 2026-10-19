@@ -1,0 +1,16 @@
+#!/bin/bash
+# gated.sh <gate> <core> <outfile> <cmd...>: wait for 1-min load < gate, then
+# run cmd pinned to core with GOMAXPROCS=1, logging load at start and end.
+gate=$1; core=$2; out=$3; shift 3
+while :; do
+  l=$(cut -d' ' -f1 /proc/loadavg)
+  awk -v l=$l -v g=$gate 'BEGIN{exit !(l<g)}' && break
+  sleep 20
+done
+{
+echo "# start $(date -u +%FT%TZ) load $(cat /proc/loadavg) core $core"
+echo "# cmd $*"
+GOMAXPROCS=1 taskset -c $core "$@" 2>&1
+echo "# rc $?"
+echo "# end $(date -u +%FT%TZ) load $(cat /proc/loadavg)"
+} > "$out"

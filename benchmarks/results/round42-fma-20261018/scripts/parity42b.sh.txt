@@ -1,0 +1,25 @@
+#!/bin/sh
+# parity42b.sh CORE MAXSTART MAXEND TRIES "MACHINE" TAG V...: parity42.sh with
+# reruns: each variant runs until a run ends at or below MAXEND (at most
+# TRIES runs); a run that ends above it is kept as out<TAG><i>-<v>-loaded.
+C=$1; LS=$2; LE=$3; T=$4; M=$5; G=$6; shift 6
+D=$(cd "$(dirname "$0")" && pwd)
+cd "$D" && sha256sum -c r42.sha || exit 1
+i=0
+for v in "$@"; do
+  i=$((i+1)); try=0
+  while [ $try -lt "$T" ]; do
+    try=$((try+1))
+    while awk -v m="$LS" '{exit !($1 >= m)}' /proc/loadavg; do sleep 30; done
+    echo "# run $G$i $v try $try start $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg)"
+    if [ "$v" = fma ]; then F=1; else F=; fi
+    GOFFT_FMA=$F GOV=go1.27.1 FFTW_DESC="3.3.10 built from source by setup.sh" taskset -c "$C" sh runpkg/run-remote.sh amd64 "$M" > "run$G$i-$v-$try.log" 2>&1
+    end=$(cut -d' ' -f1 /proc/loadavg)
+    o="out$G$i-$v"
+    if awk -v m="$LE" -v e="$end" 'BEGIN{exit !(e > m)}'; then o="$o-loaded$try"; fi
+    mkdir -p "$o" && cp runpkg/benchmarks/go_bench.txt runpkg/benchmarks/fftw.json runpkg/benchmarks/ref.json runpkg/benchmarks/REPORT.md "$o/" 2>/dev/null
+    echo "# run $G$i $v try $try end $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg) -> $o"
+    case "$o" in *-loaded*) ;; *) break ;; esac
+  done
+done
+echo END

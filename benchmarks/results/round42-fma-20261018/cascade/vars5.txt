@@ -1,0 +1,24 @@
+# start 2026-10-18T20:13:24Z load 0.01 0.04 0.02 1/193 16581 core 3
+# cmd ./r42h.test -test.run TestR42Vars -test.v -r42.ab=9,20,4 -r42.vars=c4096:def,32.8.16+f,32.16.8+f,32.4.4.8+f,32.8.4.4+f,32.4.8.4+f;c8192:def,32.8.8.4+f,32.4.8.8+f,32.8.4.8+f;c16384:def,32.8.8.8+f,32.4.4.8.4+f;c512:fma,32.16+f,32.4.4+f
+=== RUN   TestR42Vars
+    round42_bench_test.go:306: fmaAvailable=true rounds=9 ms=20 placements=4
+    round42_bench_test.go:344:   c4096    def                  11848.8 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:344:   c4096    32.8.16+f            17160.7 ns  first/variant 0.689  (0.683–0.691)  rounds 0.683 0.689 0.689 0.687 0.689 0.691 0.690 0.690 0.689
+    round42_bench_test.go:344:   c4096    32.16.8+f            16899.3 ns  first/variant 0.700  (0.691–0.704)  rounds 0.691 0.696 0.699 0.700 0.701 0.702 0.701 0.704 0.699
+    round42_bench_test.go:344:   c4096    32.4.4.8+f           12638.1 ns  first/variant 0.936  (0.928–0.943)  rounds 0.928 0.936 0.935 0.943 0.935 0.940 0.937 0.938 0.931
+    round42_bench_test.go:344:   c4096    32.8.4.4+f           12859.7 ns  first/variant 0.920  (0.912–0.925)  rounds 0.912 0.920 0.921 0.920 0.920 0.922 0.923 0.925 0.917
+    round42_bench_test.go:344:   c4096    32.4.8.4+f           12716.1 ns  first/variant 0.931  (0.928–0.940)  rounds 0.928 0.928 0.929 0.931 0.932 0.934 0.932 0.940 0.930
+    round42_bench_test.go:344:   c8192    def                  26585.2 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:344:   c8192    32.8.8.4+f           28167.5 ns  first/variant 0.944  (0.929–0.948)  rounds 0.947 0.944 0.943 0.929 0.944 0.943 0.947 0.940 0.948
+    round42_bench_test.go:344:   c8192    32.4.8.8+f           27150.0 ns  first/variant 0.980  (0.977–0.985)  rounds 0.983 0.980 0.977 0.978 0.980 0.978 0.982 0.977 0.985
+    round42_bench_test.go:344:   c8192    32.8.4.8+f           27756.3 ns  first/variant 0.958  (0.956–0.964)  rounds 0.961 0.957 0.958 0.958 0.958 0.957 0.962 0.956 0.964
+    round42_bench_test.go:344:   c16384   def                  57697.2 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:344:   c16384   32.8.8.8+f           56812.9 ns  first/variant 1.015  (1.002–1.025)  rounds 1.025 1.014 1.009 1.002 1.015 1.013 1.021 1.016 1.017
+    round42_bench_test.go:344:   c16384   32.4.4.8.4+f         64222.9 ns  first/variant 0.898  (0.895–0.903)  rounds 0.899 0.903 0.898 0.899 0.895 0.898 0.897 0.898 0.901
+    round42_bench_test.go:344:   c512     fma                    763.3 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:344:   c512     32.16+f               1024.3 ns  first/variant 0.742  (0.723–0.753)  rounds 0.740 0.744 0.742 0.742 0.735 0.723 0.728 0.745 0.753
+    round42_bench_test.go:344:   c512     32.4.4+f              1050.4 ns  first/variant 0.726  (0.707–0.737)  rounds 0.727 0.730 0.726 0.724 0.729 0.707 0.713 0.726 0.737
+--- PASS: TestR42Vars (11.99s)
+PASS
+# rc 0
+# end 2026-10-18T20:13:36Z load 0.23 0.09 0.04 1/193 16587

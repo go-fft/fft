@@ -1,0 +1,117 @@
+// Command mut builds Round 42's mutants: for every mutant of a JSON list it
+// copies the go-fft tree (and, for a generator mutant, the go-asmgen tree),
+// applies one exact replacement that must match exactly once, regenerates
+// the amd64 assembly when the mutant is in the generator, and cross-compiles
+// the test binary of the mutant's package for linux/amd64 into OUT, with a
+// line per mutant in OUT/list.txt: id, binary, -test.run pattern.
+//
+//	mut FFT ASMGEN LIST.json OUT
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+)
+
+type mutant struct {
+	ID   string `json:"id"`
+	Repo string `json:"repo"` // "fft" or "asmgen"
+	File string `json:"file"`
+	Old  string `json:"old"`
+	New  string `json:"new"`
+	Pkg  string `json:"pkg"` // "." or "./internal/kernels"
+	Run  string `json:"run"`
+}
+
+func run(dir string, env []string, name string, args ...string) error {
+	c := exec.Command(name, args...)
+	c.Dir = dir
+	c.Env = append(os.Environ(), env...)
+	out, err := c.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s %v in %s: %v\n%s", name, args, dir, err, out)
+	}
+	return nil
+}
+
+func main() {
+	if len(os.Args) != 5 {
+		fmt.Fprintln(os.Stderr, "usage: mut FFT ASMGEN LIST.json OUT")
+		os.Exit(2)
+	}
+	fftSrc, asmSrc, list, out := os.Args[1], os.Args[2], os.Args[3], os.Args[4]
+	b, err := os.ReadFile(list)
+	if err != nil {
+		fail(err)
+	}
+	var ms []mutant
+	if err := json.Unmarshal(b, &ms); err != nil {
+		fail(err)
+	}
+	if err := os.MkdirAll(out, 0o755); err != nil {
+		fail(err)
+	}
+	work := filepath.Join(out, "work")
+	var lines []string
+	for _, m := range ms {
+		wf, wa := filepath.Join(work, "fft"), filepath.Join(work, "asmgen")
+		if err := os.MkdirAll(work, 0o755); err != nil {
+			fail(err)
+		}
+		for _, p := range [][2]string{{fftSrc, wf}, {asmSrc, wa}} {
+			if err := run(".", nil, "rsync", "-a", "--delete", "--exclude", ".git", p[0]+"/", p[1]+"/"); err != nil {
+				fail(err)
+			}
+		}
+		root := wf
+		if m.Repo == "asmgen" {
+			root = wa
+		}
+		path := filepath.Join(root, m.File)
+		src, err := os.ReadFile(path)
+		if err != nil {
+			fail(err)
+		}
+		if c := strings.Count(string(src), m.Old); c != 1 {
+			fail(fmt.Errorf("%s: %q matches %d times in %s", m.ID, m.Old, c, m.File))
+		}
+		if err := os.WriteFile(path, []byte(strings.Replace(string(src), m.Old, m.New, 1)), 0o644); err != nil {
+			fail(err)
+		}
+		gen := filepath.Join(wf, "internal/kernels/asmgen/amd64")
+		if m.Repo == "asmgen" || strings.HasPrefix(m.File, "internal/kernels/asmgen/") {
+			if err := run(gen, nil, "go", "mod", "edit", "-replace", "github.com/go-asmgen/asmgen="+wa); err != nil {
+				fail(err)
+			}
+			if err := run(gen, []string{"GOFLAGS=-mod=mod"}, "go", "run", "gen.go"); err != nil {
+				fail(err)
+			}
+			ss, _ := filepath.Glob(filepath.Join(gen, "*.s"))
+			for _, s := range ss {
+				if err := os.Rename(s, filepath.Join(wf, "internal/kernels", filepath.Base(s))); err != nil {
+					fail(err)
+				}
+			}
+		}
+		bin := filepath.Join(out, m.ID+".test")
+		if err := run(wf, []string{"GOOS=linux", "GOARCH=amd64", "GOWORK=off"}, "go", "test", "-c", "-o", bin, m.Pkg); err != nil {
+			lines = append(lines, fmt.Sprintf("%s BUILD-FAILS -", m.ID))
+			fmt.Println(m.ID, "does not build (counts as caught)")
+			continue
+		}
+		lines = append(lines, fmt.Sprintf("%s %s %s", m.ID, filepath.Base(bin), m.Run))
+		fmt.Println(m.ID, "built")
+	}
+	if err := os.WriteFile(filepath.Join(out, "list.txt"), []byte(strings.Join(lines, "\n")+"\n"), 0o644); err != nil {
+		fail(err)
+	}
+}
+
+func fail(err error) {
+	fmt.Fprintln(os.Stderr, err)
+	os.Exit(1)
+}

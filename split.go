@@ -58,25 +58,30 @@ var clRowOrder map[int][]int
 // Haswell (Round 37: route_amd64.go).
 var clRowMin int
 
-// clRowPlan returns the plan the last axis of an N-D plan of size elements
+// clRowPlanF returns the plan the last axis of an N-D plan of size elements
 // takes for lines of length n: clRowOrder's when the plan is large enough
-// and the length is in the table, else nil.
-func clRowPlan(n, size int) *Plan {
+// and the length is in the table, else nil; an FMA plan when fma is set,
+// from a cache of its own.
+func clRowPlanF(n, size int, fma bool) *Plan {
 	f := clRowOrder[n]
 	if f == nil || size < clRowMin {
 		return nil
 	}
+	cache := clRowCache
+	if fma {
+		cache = clRowCacheFMA
+	}
 	planMu.Lock()
 	defer planMu.Unlock()
-	p, ok := clRowCache[n]
+	p, ok := cache[n]
 	if !ok {
-		p = &Plan{n: n, sk: newSKPlanFactors(n, f)}
-		clRowCache[n] = p
+		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, fma)}
+		cache[n] = p
 	}
 	return p
 }
 
-var clRowCache = map[int]*Plan{}
+var clRowCache, clRowCacheFMA = map[int]*Plan{}, map[int]*Plan{}
 
 // hswSplitFloor, when positive, keeps the split layout to the powers of two
 // of at least that many points: every other plan runs its passes

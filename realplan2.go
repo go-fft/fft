@@ -17,11 +17,23 @@ type RealPlan2 struct {
 
 // NewRealPlan2 returns a plan for real rows×cols matrices. Both lengths must be
 // positive; NewRealPlan2 panics otherwise.
-func NewRealPlan2(rows, cols int) *RealPlan2 {
+func NewRealPlan2(rows, cols int) *RealPlan2 { return newRealPlan2F(rows, cols, false) }
+
+// NewRealPlan2With is NewRealPlan2 with options: o.FMA asks for an FMA plan
+// (see Options.FMA), whose row and column transforms are FMA plans. The
+// other fields must be zero, as for NewPlanWith. NewRealPlan2With(rows,
+// cols, Options{}) is NewRealPlan2(rows, cols).
+func NewRealPlan2With(rows, cols int, o Options) *RealPlan2 {
+	return newRealPlan2F(rows, cols, o.checkPlan("NewRealPlan2With"))
+}
+
+// newRealPlan2F is NewRealPlan2 on FMA plans when fma is set (already
+// resolved by fmaOn).
+func newRealPlan2F(rows, cols int, fma bool) *RealPlan2 {
 	shapeProduct(rows, cols)
 	p := &RealPlan2{rows: rows, cols: cols, rcols: cols/2 + 1}
-	p.row = cachedRealPlan(cols)
-	p.col = NewPlanN(rows, p.rcols)
+	p.row = cachedRealPlanF(cols, fma)
+	p.col = newPlanNF([]int{rows, p.rcols}, fma)
 	p.col.colsOf2 = true
 	size := rows * p.rcols
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }

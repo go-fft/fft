@@ -48,7 +48,7 @@ var (
 // radix r with ido points per block: radix 4 or 8, and ido a positive
 // multiple of eight, so every stream starts on an eight-point block.
 func intelSplitPass512(r, ido int) bool {
-	return (r == 4 || r == 8) && ido >= 8 && ido%8 == 0
+	return (r == 4 || r == 8 || r == 32) && ido >= 8 && ido%8 == 0
 }
 
 // intelSplitModes512 is splitModes at 512 bits, for a power of two of at

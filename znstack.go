@@ -10,13 +10,24 @@ var znTwoPassMax, znThreePassMax = znTwoPassMaxDefault(), znThreePassMaxDefault(
 
 // znPlanFor returns the kernels.ZnPlan that runs a plan of these stages, or
 // nil: more than znTwoPassMax or znThreePassMax points for its pass count,
-// or a plan the frame kernels cannot run.
-func znPlanFor(n int, st []skStage) *kernels.ZnPlan {
+// or a plan the frame kernels cannot run. An FMA plan (fma) binds the FMA
+// twins of the kernels of its stages that fuse (skStage.fma).
+func znPlanFor(n int, st []skStage, fma bool) *kernels.ZnPlan {
+	bind := kernels.ZnPlanForWide
+	if fma {
+		f := make([]bool, len(st))
+		for i := range st {
+			f[i] = st[i].fma
+		}
+		bind = func(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *kernels.ZnPlan {
+			return kernels.ZnPlanForWideFMA(r, mode, tw0, tw0c, tw1, tw1c, wide, f)
+		}
+	}
 	switch {
 	case len(st) == 2 && n <= znTwoPassMax:
-		return kernels.ZnPlanForWide([]int{st[0].r, st[1].r}, []uint8{st[0].split, st[1].split}, st[0].twX, st[0].twXc, nil, nil, st[0].wide)
+		return bind([]int{st[0].r, st[1].r}, []uint8{st[0].split, st[1].split}, st[0].twX, st[0].twXc, nil, nil, st[0].wide)
 	case len(st) == 3 && n <= znThreePassMax:
-		return kernels.ZnPlanForWide([]int{st[0].r, st[1].r, st[2].r}, []uint8{st[0].split, st[1].split, st[2].split},
+		return bind([]int{st[0].r, st[1].r, st[2].r}, []uint8{st[0].split, st[1].split, st[2].split},
 			st[0].twX, st[0].twXc, st[1].twX, st[1].twXc, st[0].wide)
 	}
 	return nil

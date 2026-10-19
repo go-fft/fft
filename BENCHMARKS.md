@@ -3130,6 +3130,276 @@ the ends). Main time ÷ branch time, fifteen rounds:
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round29-haswell-20261007/`](benchmarks/results/round29-haswell-20261007/).
 
+### Round 42 — opt-in FMA, per pass and per CPU: never slower than the default, and radix 32 closes complex 1,024 on Cascade Lake (not on Zen 3) (2026-10-18)
+
+**The question.** Round 41's FMA plans fused every twiddled pass. They did not
+close complex 1,024 (Zen 3 1.10 → 1.09 × FFTW, Cascade Lake 1.17 → 1.17), and
+some rows lost up to 2.2% to the default plan. This round (a) located where
+fusing loses and made the FMA plan choose per pass from a measured table,
+per CPU, and (b) built radix-32 passes with fused products, the codelet size
+FFTW uses for 1,024 (`t2fv_32` then `n2fv_32`). Hosts: Zen 3 (cfarm420, core
+40, load gate 2.5 at start, rerun above 3.5 at the end) and Cascade Lake
+(cfarm151, core 3, gate 1.0, rerun above 2.0), `GOMAXPROCS=1`, go1.27.1;
+branch `fma-r42` on `fma-opt-in-r41` (v0.27.3 + Round 41).
+
+**Bibliography.**
+- **Frigo, "A Fast Fourier Transform Compiler" (PLDI 1999).** genfft builds a
+  DAG (Cooley–Tukey, split radix, Rader), simplifies it (constant folding,
+  every constant made positive — "10–15% on most machines", from halving the
+  constant loads — and network transposition, which removes multiplications,
+  never additions), then schedules it "cache-obliviously": for 2^k points
+  the schedule reaches the Hong–Kung lower bound of Θ(n log n / log R)
+  register spills for any register count R, by recursing on √n × √n. The
+  scheduler does not address instruction scheduling.
+- **Johnson and Frigo, "A modified split-radix FFT with fewer arithmetic
+  operations" (2007).** 34/9 n lg n instead of 4 n lg n − 6n + 8: 33,968
+  against 34,824 flops at 1,024 (−2.5%), by rescaling twiddles (t = ω/cos);
+  they note that the rescaling's multiply/add trade "no longer appears to
+  be beneficial on CPUs with … fused multiply-adders" (Linzer–Feig).
+- **FFTW 3.3.10's codelets** (`-fma -simd`): the split-format ("sv") ones
+  are the comparison for this library's split layout. Vector operations
+  (add + mul + fma): `t1sv_8` 44 + 14 + 22 = 80, `t1sv_16` 104 + 30 + 70 =
+  204, `t1sv_32` 236 + 62 + 198 = 496, `n2sv_8` 44 + 0 + 8, `n2sv_16` 104 +
+  0 + 40, `n2sv_32` 236 + 0 + 136, `n2sv_64` 520 + 0 + 392. Per point,
+  8·8·16 costs 29 operations, 32·32 27.1 (−6.5%), and 32·32 has 16% fewer
+  additions. This library's split radix-8 FMA pass has 45 + 14 + 22 = 81,
+  `t1sv_8`'s count: radix 8 cannot fuse more.
+- **FFTW's plans on these hosts** (Round 36, `fftw-plans.txt`): Zen 3 runs
+  1,024 as `t2fv_32_avx2` + `n2fv_32_avx` (interleaved, two complex values
+  per YMM register), 256 as `t2fv_32_avx2` + `n2fv_8_avx`.
+
+**1. Where FMA lost.** Every pass of the rows' plans was timed alone, default
+kernel against FMA kernel (`TestR42Passes`, nine rotated rounds,
+`*/passes1.txt`), and every row's FMA plan with every subset of its passes
+fused (`TestR42Masks`, all 2^s subsets up to four passes, else
+leave-one-out; seven to fifteen rounds, four to eight heap placements,
+`*/masks*.txt`):
+- **Cascade Lake: the 512-bit split passes of L2-resident transforms.** Fused,
+  they gain 6–14% per pass at 256–1,024 points and lose 1–5% from 2,048 to
+  16,384 (c4096: every pass 0.976–0.995 alone; whole transform 0.977 with
+  all four fused, 1.002 with none, and every subset in between ordered by
+  how many passes fuse). The AVX-512 final radix-8 pass loses 2–5% fused
+  from 2,048 up (0.954 at 65,536). Composites (interleaved, AVX2) gain at
+  every pass (1.03–1.08). The VMs have no PMU, so the cause inside the
+  kernels is not isolated: the fused √2/2 product needs a register copy, so
+  it saves no instruction at 512 bits, and the loss appears exactly where
+  the working set leaves L1.
+- **Zen 3: RFFT 256's half transform**, 128 = 8·16 on the frame kernels: both
+  passes fused 0.949–0.956 (fifteen rounds, eight placements), the final
+  radix-16 pass unfused 0.997; the same plan as complex 128 gains (1.030 and
+  1.016). Every other Zen 3 row's all-fused plan measured at or above 1.0,
+  within this host's ±3% (the same variant read 1.042 and 0.949 in two runs
+  at load 2.4–5).
+
+**2. The FMA plan per pass and per CPU (`fmaTable`, `fma_amd64.go`).** An FMA
+plan of length n takes the table's factorization and fuse mask (bit k: pass
+k runs its FMA kernel, else the default kernel); a plan of other factors (an
+N-D strip's, a row plan's) and every length absent from the table fuse every
+pass (Round 41's plans). The frame kernels take the mask too
+(`ZnPlanForWideFMA`'s per-pass flags). Measured tables:
+
+| CPU | length | factors | fused passes | default ÷ FMA, before → after |
+|:--|:--|:--|:--|:--|
+| Cascade Lake | 1,024 | 32·32 | both | 1.013 → **1.224** |
+| | 2,048 | 32·8·8 | first two | 0.986 → **1.111** |
+| | 4,096, 8,192, 16,384 | the default's | none | 0.977 / 0.983 / 0.971 → 1.001 / 0.998 / 0.993 |
+| | 65,536 | the default's | all but the final | 1.045 → 1.051 |
+| Zen 3 | 128 | the default's (8·16) | the first | RFFT 256: 0.956 → 0.991–0.997 |
+| Haswell | — | not measured: every pass fuses (Round 41) | | |
+
+A length whose table fuses nothing runs the default kernels: its FMA
+transform is the default transform bit for bit.
+
+**3. Radix 32 with FMA.** New go-asmgen builders (v0.20.0, go-asmgen#30):
+`SplitR32` (split layout, 256 and 512 bits, every layout pair, the values
+between its two stages kept in the output's slots, Round 38's layout),
+`SplitR32InFrame` (the same with those values in its own 2 KB / 4 KB frame,
+not NOSPLIT), and `LastR32` (interleaved final pass, two blocks per YMM or
+four per ZMM register). The butterfly is `bfly32FMA`: four `bfly8FMA` over
+n2 + 4·n1, the internal twiddles W32^(n2·k1) as one product and one fused
+multiply-add per part (W32^8 the exact rotation), eight radix-4 butterflies,
+`cmulFMA` twiddles. Only registers 0–15 are written at 512 bits (Round 28:
+values left in Z16–Z31 slow the code that follows). Radix 32 exists in FMA
+plans only (a default plan refuses it), so the default plans keep their bits.
+Every variant was timed against the default plan and Round 41's FMA plan in
+one process (`TestR42Vars`, nine to fifteen rounds, four to eight
+placements, `*/vars*.txt`):
+
+| | Cascade Lake | Zen 3 |
+|:--|:--|:--|
+| c1024: 32·32 / 32·4·8 / 32·8·4 | **1.241** / 1.174 / 1.118 × default | 0.960 / 0.984 / — × FMA (8·8·16) |
+| c1024 others (4·8·32, 8·4·32, 4·32·8, 32·2·16, 8·32·4) | 0.92–1.08 | 0.93–0.98 |
+| c2048: 32·8·8 (in frame) | **1.061** (1.042 over the slots) | 0.87–0.90 × FMA |
+| c4096 … c16384 (32 first, last or between) | 0.42–1.02 | 0.32–0.57 |
+| c256: 32·8 / 8·32 | 0.875 / 0.783 | 0.72 / 0.77 |
+| c512: 32·16, 16·32, 32·4·4, 4·4·32 | 0.73–0.88 | 0.83–0.88 |
+
+- **Why Cascade Lake gains:** its default 1,024 is 8·4·4·8 on the 512-bit split
+  layout, four passes; 32·32 is two. Per pass alone (`cascade/passes2.txt`)
+  the split radix-32 pass costs 0.197 ns per point and bit against 0.25 for
+  the split radix 8 and 0.20–0.23 for radix 4, the 512-bit final radix-32
+  pass 0.173 against 0.19 for the final radix 8.
+- **Why Zen 3 does not:** its default 1,024 is already three passes
+  (8s·8s·16), and per bit the radix-32 passes only match them: split radix
+  32 0.153–0.174 ns per point and bit against 0.163 for split radix 8, final
+  radix 32 0.145 against 0.143 for final radix 16 (`zen3/passes2.txt`).
+  Sixteen YMM registers hold one radix-8 butterfly, so the 32 values between
+  the stages cost a pass's worth of stores (1.125 per point, against 1.25
+  per point for the two radix-8 passes they replace), and the arithmetic
+  saved by fusing the internal twiddles does not show.
+- **Why 4,096 and up lose everywhere:** a radix-32 pass's 32 output streams
+  are n/32 points apart; at 4,096 that is 2 KB, two streams per 4 KB page
+  and sixteen in each L1 set (Round 38 met the same with radix 32 at 4,096).
+  The in-frame variant takes the slots out of those sets (at 2,048 it gains
+  4%), but the outputs themselves stay there.
+- **Radix 64** was not built: its 64 streams would be n/64 points apart
+  (1 KB at 4,096), and the only lengths where a two-pass plan would need it
+  are the ones radix 32 already loses at.
+- **The in-frame rule** (`r32InFrame`): the frame where the output streams are
+  at least 1 KB apart (l1·ido ≥ 64): 2,048 = 32·8·8 1.04×, 1,024 = 32·32
+  (512 bytes apart) 0.87× in frame.
+
+**4. Never slower than the default.** The final table, every row against the
+default plan in one process (`TestR41AB`, Cascade Lake nine rounds × four
+placements, Zen 3 eleven × six, `*/val1.txt`), 41 rows: complex 64 to 2^20,
+composites, Rader 1,009, Bluestein 10,007, RFFT, IRFFT and 2-D:
+- **Cascade Lake:** lowest 0.990 (RFFT 65,536, range 0.972–0.999; an earlier
+  run read 1.006), then 0.993 (c16384, which fuses nothing: the noise
+  floor), 0.997 (RFFT 8192 and c10007). Highest: complex 1,024 1.224, RFFT
+  2,048 1.167, complex 2,048 1.111, c524288 1.094, RFFT 4,096 1.089.
+- **Zen 3:** lowest 0.991 (RFFT 256, range 0.980–1.013; 0.997 in a fifteen-
+  round A/B), then 0.998 (c4096, c8192, RFFT 1920). Highest: complex 256
+  1.063, c64 1.056, c512 1.056, n1024² 1.052, RFFT 512 1.043.
+
+No row is below 0.99 on either host, inside the ±1–2% that identical plans
+show between heap placements here (Cascade Lake's c16384 and RFFT 8192 run
+the default kernels and read 0.993 and 0.997).
+
+**5. Against FFTW, with FMA on.** The parity package of the branch (binaries
+checked by SHA-256 on each host, `*/parity/r42.sha`, `GOFFT_FMA=1` for the FMA
+runs), runs default, FMA, FMA, default; runs that ended above the load bound
+were rerun (`parity42*.out`, kept as `-loaded`). go-fft the mean of two clean
+runs per variant, FFTW the median of all clean runs (`partab-def.txt`,
+`partab-fma.txt`). go-fft time ÷ FFTW time, Round 41's FMA column for
+comparison:
+
+| row | Zen 3 default | Zen 3 FMA R41 | Zen 3 FMA R42 | Cascade default | Cascade FMA R41 | Cascade FMA R42 |
+|:--|--:|--:|--:|--:|--:|--:|
+| complex 256 | 1.102 | 1.074 | 1.063 | **1.048** | **0.963** | **0.962** |
+| complex 1,024 | 1.129 | 1.090 | 1.096 | 1.189 | 1.166 | **0.939** |
+| complex 4,096 | **0.893** | **0.886** | **0.890** | **0.957** | **0.968** | **0.945** |
+| complex 65,536 | **0.870** | **0.847** | **0.859** | 1.106 | **1.026** | 1.057 |
+| complex 1,000 / 1,080 / 1,920 | **0.968** / 1.100 / **1.016** | **0.947** / 1.097 / **1.019** | **0.935** / 1.147 / **1.010** | 1.098 / 1.155 / 1.106 | 1.089 / 1.140 / 1.109 | 1.108 / 1.143 / 1.090 |
+| complex 1,296 | **0.966** | **0.872** | **0.917** | **1.031** | 1.076 | **1.005** |
+| RFFT 256 | 1.061 | 1.064 | 1.056 | **0.951** | **0.921** | **0.930** |
+| RFFT 1,024 | **1.033** | **0.984** | **0.967** | **0.790** | **0.746** | **0.736** |
+| RFFT 4,096 | 1.060 | **1.044** | **1.045** | **1.032** | 1.061 | **0.940** |
+| RFFT 65,536 / 2^20 | **0.858** / **0.776** | **0.846** / **0.727** | **0.854** / **0.777** | 1.080 / 1.135 | **1.046** / 1.006 | 1.092 / 1.080 |
+| 2-D 64² … 1024² | 0.807–0.947 | ≤ 0.941 | 0.814–0.951 | 0.868–1.033 | 0.720–1.034 | 0.868–1.009 |
+| rows ≤ 1.05 (of 24) | 19 | 20 | 20 | 17 | 18 | 18 |
+
+- **Complex 1,024 on Cascade Lake: 1.166 → 0.939**, ahead of FFTW; complex 1,024
+  in process 1.224× the default. RFFT 4,096 there 1.061 → 0.940.
+- **Zen 3 does not close complex 1,024**: 1.096 with FMA (1.129 default). The
+  FMA plan stays 8s·8s·16 there; Round 41's in-process gain at 1,024 (1.00–1.04)
+  is this host's noise band. complex 1,080 reads 1.147 with FMA against 1.100
+  default in these runs, where the in-process A/B reads FMA 1.015–1.045×
+  faster (`zen3/val1.txt`, `zen3/vars6.txt`): one of the two FMA runs read
+  2,699 ns against 2,519 for the other.
+- Rows still behind FFTW by more than 5% with FMA: Zen 3 complex 256, 1,024,
+  1,080, RFFT 256; Cascade Lake complex 1,000, 1,080, 1,920, 65,536, RFFT
+  65,536 and 2^20 (the latter two this host's L2/L3 noise, Round 41).
+
+**Accuracy against numpy and long double on the exact bytes** (Round 41's
+`TestR41Export` and `scripts/r41_accuracy.py`, the same 90 transforms;
+numpy 2.5.3, scipy 1.18.1 in long double; each host's own FMA plans):
+
+| transform | Zen 3 FMA ÷ default | Cascade Lake FMA ÷ default |
+|:--|--:|--:|
+| complex 256 | 0.970 | 0.970 |
+| complex 1,024 | 0.966 | **0.760** (32·32) |
+| complex 2,048 | 0.974 | **0.878** (32·8·8) |
+| complex 4,096 / 8,192 / 16,384 | 0.983 / 0.984 / 0.983 | 1.000 (nothing fused) |
+| complex 2^20 | 0.979 | 0.979 |
+| Rader 1,009 / Bluestein 10,007 | 0.991 / 0.998 | 0.983 / 0.995 |
+| RFFT / IRFFT 4,096 | 0.981 / 0.969 | **0.883** / **0.837** |
+| RFFT / IRFFT 256 | 0.977 / 1.084 | 1.065 / 1.023 |
+| 2-D 1024² | 0.980 | 0.983 |
+| all 90 | 0.897–1.084 | 0.760–1.065 |
+
+Relative RMS errors against long double stay between 1.1e-16 and 1.1e-15
+(`*/accuracy.txt`). Radix 32 is the more accurate (complex 1,024: 2.37e-16
+against 3.12e-16 for the default's four passes): fewer passes, fewer
+roundings. The worst ratios are at 256 points, where both errors are near
+2.2e-16 (Zen 3's IRFFT 256: 2.23e-16 against 2.06e-16; its half transform
+128 now leaves its final pass unfused). The bound set for shipping was
+1.5×.
+
+**Correctness.**
+- `TestR42R32MatchesReference`: 30 factorizations with radix 32 (first, last,
+  between, beside 2, 3, 4, 5, 8, 9, 12 and 16; l1 · ido below and above the
+  in-frame threshold), under every layout each host runs (AVX2 interleaved
+  and split; AVX-512 interleaved and 512-bit split on Cascade Lake), in place
+  and not, both directions, on the generic, signed-zero and infinite
+  signals, against the same plan on its Go passes (`bfly32FMA`), bit for
+  bit; both slot kernels must run. `TestR42R32AgainstNaive` holds them to an
+  O(n²) DFT with exactly reduced angles. `TestR32LastWidths` (512-bit final
+  kernel = 256-bit one for l1 = 1 … 13, every tail), `TestR32SplitFrames`
+  (in-frame = slot kernels, every mode, both widths), `TestR42FMATable`,
+  `TestR42FMATableAMD64`, `TestZnPlanFMAMask`, `TestR42DefaultRefusesRadix32`.
+- Both packages' suites pass on Cascade Lake and Zen 3 (coverage binaries
+  cross-compiled); Round 41's tests, `TestNDStripAxisEveryLength` with the
+  option on (lengths 2 … 2000) among them, pass with the tables in force.
+  Statement coverage of both packages: 100.0% on Cascade Lake alone, and
+  100.0% merged with Zen 3's and arm64's (macOS) profiles. gofmt clean; `go vet` clean for amd64 at
+  GOAMD64 v1 and v3, arm64, and the benchmarks module.
+- **Every `.s` regenerates** with go-asmgen v0.20.0: every file but the two new
+  ones (`r32fma_amd64.s`, `r32frame_amd64.s`) is byte-identical to v0.27.3's,
+  so the default kernels are unchanged; go-asmgen's `testdata/gofft.sha256`
+  pins both new files.
+- **Mutations** (`scripts/mutants.json`, built by `scripts/mut.go.txt`, run on
+  Cascade Lake by `scripts/runmut.sh.txt` after both unmutated controls pass;
+  `cascade/mutants*.txt`): 36 mutants in the fft package (the table, the
+  masks, `bfly32FMA`, the frame plans' mask, the default plans' refusal), the
+  kernels package (the in-place guard, the kernel selections, the split
+  predicates, the trig table and the constants rows) and the go-asmgen
+  builders (FMA forms, rotation signs, slot addressing, blends, block
+  steps, tails, the frame slots). 31 failed their tests at once. Of the
+  five that passed: the frame plans' mask (`f[i] = true`) and the 512-bit
+  split predicate without radix 32 are caught by tests added since
+  (`TestR42FrameMasks`, the 512-bit count in `TestR42R32MatchesReference`);
+  the final kernel's odd-l1 tail is caught by the fft package's tests (it
+  had been run against the kernels package's only); the Cascade Lake table
+  entry for 1,024 changes speed, not bits, and `TestR42FMATableAMD64` now
+  asserts the table (not rerun); and `bfly32FMA` computing W32^8 through the
+  trigonometric form (cos 0, sin 1) instead of rotS survives: it is the same
+  value except for a signed zero that no test signal reaches.
+
+**What is not verified.**
+- Haswell (cfarm13 at load 20–40 throughout): no table; its FMA plans are
+  Round 41's. Neoverse-N1 and float32: no FMA plans, as in Round 41.
+- The cause inside the kernels of Cascade Lake's L2-size losses (no PMU on
+  these VMs).
+- A duplicated-twiddle variant of the interleaved FMA composite kernels
+  (radix 9, 10, 12, 15, 20), meant for Cascade Lake's composites (1.09–1.14
+  × FFTW): started (go-asmgen branch `r42-dup-fma`, `Kernels.Dup`), not
+  wired into go-fft, not measured.
+- The race detector ran only in CI.
+
+**Lessons.**
+- A pass's FMA gain depends on where its data lives: the same 512-bit split
+  kernel gains 6–14% at 1,024 points and loses 1–5% at 4,096. One switch
+  for the whole plan could not be right on both sides of L1.
+- Radix 32 paid where it removed passes (Cascade Lake: four → two), not where
+  it only fused more (Zen 3: three → two, per-bit cost unchanged). FFTW's
+  per-codelet counts predicted neither: the split radix-8 FMA pass already
+  has `t1sv_8`'s operation count.
+- On Zen 3, the same variant read 1.042 and 0.949 in two runs; decisions there
+  needed fifteen rounds at eight placements, and the parity runs disagree
+  with the in-process A/B on single rows by up to 5%.
+
+Raw data, scripts and per-row ratios: [`benchmarks/results/round42-fma-20261018/`](benchmarks/results/round42-fma-20261018/).
+
 ### Round 41 — opt-in FMA: built, bit-identical to a `math.FMA` reference, as accurate, and it does not close complex 1,024 (2026-10-17)
 
 **The question.** Round 38 attributed FFTW's remaining lead on amd64

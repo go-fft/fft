@@ -20,12 +20,13 @@ import (
 // precomputed once into the plan, so a transform costs two length-M FFTs and a
 // pointwise product with no per-call trig.
 type bluesteinPlan struct {
-	n  int
-	m  int          // convolution length, 7-smooth, >= 2n-1
-	wF []complex128 // forward chirp  w[j]  = exp(-πi·j²/N), j = 0 .. n-1
-	wI []complex128 // inverse chirp  conj  = exp(+πi·j²/N)
-	bF []complex128 // FFT of the forward kernel b (built from conj(wF)) / m
-	bI []complex128 // FFT of the inverse kernel (built from conj(wI)) / m
+	n   int
+	fma bool         // the convolution runs on an FMA plan (cachedPlanF)
+	m   int          // convolution length, 7-smooth, >= 2n-1
+	wF  []complex128 // forward chirp  w[j]  = exp(-πi·j²/N), j = 0 .. n-1
+	wI  []complex128 // inverse chirp  conj  = exp(+πi·j²/N)
+	bF  []complex128 // FFT of the forward kernel b (built from conj(wF)) / m
+	bI  []complex128 // FFT of the inverse kernel (built from conj(wI)) / m
 
 	// scratch lends each concurrent transform its length-m convolution buffer,
 	// so a steady-state transform allocates nothing.
@@ -34,9 +35,13 @@ type bluesteinPlan struct {
 
 // newBluesteinPlan precomputes the chirps and the kernel spectra for both
 // directions of a length-n Bluestein transform.
-func newBluesteinPlan(n int) *bluesteinPlan {
+func newBluesteinPlan(n int) *bluesteinPlan { return newBluesteinPlanOpt(n, false) }
+
+// newBluesteinPlanOpt is newBluesteinPlan whose convolution, kernel
+// spectra included, runs on an FMA plan when fma is set.
+func newBluesteinPlanOpt(n int, fma bool) *bluesteinPlan {
 	m := bestConvLen(2*n - 1)
-	p := &bluesteinPlan{n: n, m: m}
+	p := &bluesteinPlan{n: n, m: m, fma: fma}
 
 	p.wF = make([]complex128, n)
 	p.wI = make([]complex128, n)
@@ -48,15 +53,15 @@ func newBluesteinPlan(n int) *bluesteinPlan {
 		p.wI[j] = complex(math.Cos(ang), math.Sin(ang))
 	}
 
-	p.bF = buildKernelSpectrum(p.wF, n, m)
-	p.bI = buildKernelSpectrum(p.wI, n, m)
+	p.bF = buildKernelSpectrum(p.wF, n, m, fma)
+	p.bI = buildKernelSpectrum(p.wI, n, m, fma)
 	p.scratch.New = func() any { b := make([]complex128, m); return &b }
 	return p
 }
 
 // buildKernelSpectrum forms the mirrored conj(chirp) kernel b of length m and
 // returns its forward FFT scaled by 1/m, precomputed so transforms skip both.
-func buildKernelSpectrum(w []complex128, n, m int) []complex128 {
+func buildKernelSpectrum(w []complex128, n, m int, fma bool) []complex128 {
 	b := make([]complex128, m)
 	b[0] = complexConj(w[0])
 	for j := 1; j < n; j++ {
@@ -64,7 +69,7 @@ func buildKernelSpectrum(w []complex128, n, m int) []complex128 {
 		b[j] = c
 		b[m-j] = c
 	}
-	cachedPlan(m).FFT(b, b)
+	cachedPlanF(m, fma).FFT(b, b)
 	inv := complex(1/float64(m), 0)
 	for i := range b {
 		b[i] *= inv
@@ -89,7 +94,7 @@ func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
 	clear(a[n:]) // the pooled buffer is dirty; the pad must be zero
 
 	// Convolution, in place: a = IFFT(FFT(a) · bSpec); bSpec carries the 1/m.
-	plan := cachedPlan(p.m)
+	plan := cachedPlanF(p.m, p.fma)
 	plan.execute(a, a, false)
 	kernels.CMulTo(a, a, bSpec)
 	plan.execute(a, a, true)

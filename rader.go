@@ -34,6 +34,7 @@ import (
 // is gone: those primes go to Bluestein.
 type raderPlan struct {
 	n     int
+	fma   bool         // the convolution runs on an FMA plan (cachedPlanF)
 	perm  []int        // perm[p] = g^p mod N, p = 0 .. N-2 (input gather order)
 	iperm []int        // iperm[q] = g^{-q} mod N, q = 0 .. N-2 (output scatter order)
 	bF    []complex128 // FFT of the forward convolution kernel / q, length q
@@ -47,10 +48,14 @@ type raderPlan struct {
 // newRaderPlan builds a Rader plan for prime n (n >= 3). The caller guarantees
 // primality and that n-1 is a length the mixed-radix engine handles directly
 // (factorsAreSmall); NewPlan further restricts it to a 7-smooth n-1.
-func newRaderPlan(n int) *raderPlan {
+func newRaderPlan(n int) *raderPlan { return newRaderPlanOpt(n, false) }
+
+// newRaderPlanOpt is newRaderPlan whose convolution, kernel spectra
+// included, runs on an FMA plan when fma is set.
+func newRaderPlanOpt(n int, fma bool) *raderPlan {
 	g := primitiveRoot(n)
 	q := n - 1
-	p := &raderPlan{n: n}
+	p := &raderPlan{n: n, fma: fma}
 
 	p.perm = make([]int, q)
 	p.iperm = make([]int, q)
@@ -87,7 +92,7 @@ func (p *raderPlan) buildKernel(n int, inverse bool) []complex128 {
 		ang := sign * 2 * math.Pi * float64(e) / float64(n)
 		b[m] = complex(math.Cos(ang), math.Sin(ang))
 	}
-	cachedPlan(q).FFT(b, b)
+	cachedPlanF(q, p.fma).FFT(b, b)
 	inv := complex(1/float64(q), 0)
 	for i := range b {
 		b[i] *= inv
@@ -123,7 +128,7 @@ func (p *raderPlan) transform(dst, src []complex128, inverse bool) {
 
 	// Cyclic convolution a ⊛ kernel via FFTs, in place: IFFT(FFT(a)·bSpec),
 	// with the 1/q carried by bSpec.
-	plan := cachedPlan(q)
+	plan := cachedPlanF(q, p.fma)
 	plan.execute(a, a, false)
 	bSpec = bSpec[:q]
 	for i := range a {

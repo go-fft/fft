@@ -1,0 +1,83 @@
+# start 2026-10-18T19:12:52Z load 0.00 0.00 0.00 1/192 13294 core 3
+# cmd ./r42a.test -test.run TestR42Passes -test.v -r42.passes=9,10 -r42.rows=c256,c512,c1024,c2048,c4096,c8192,c16384,c65536,c1048576,c1000,c1080,c1920,c1296,r256,r1024,r4096,r65536,r1000,r1080,r1920
+=== RUN   TestR42Passes
+    round42_bench_test.go:235: c256       pass 0 r  4 ido    64 l1     1 split 5 fma true: default    111.9 ns (0.437 ns/pt)  fma     99.2 ns  default/fma 1.127
+    round42_bench_test.go:235: c256       pass 1 r  8 ido     8 l1     4 split 7 fma true: default    158.9 ns (0.621 ns/pt)  fma    149.5 ns  default/fma 1.063
+    round42_bench_test.go:235: c256       pass 2 r  8 ido     1 l1    32 split 0 fma true: default    152.3 ns (0.595 ns/pt)  fma    152.2 ns  default/fma 1.001
+    round42_bench_test.go:235: c512       pass 0 r  8 ido    64 l1     1 split 5 fma true: default    260.1 ns (0.508 ns/pt)  fma    228.7 ns  default/fma 1.137
+    round42_bench_test.go:235: c512       pass 1 r  8 ido     8 l1     8 split 7 fma true: default    300.4 ns (0.587 ns/pt)  fma    274.6 ns  default/fma 1.094
+    round42_bench_test.go:235: c512       pass 2 r  8 ido     1 l1    64 split 0 fma true: default    294.3 ns (0.575 ns/pt)  fma    289.9 ns  default/fma 1.015
+    round42_bench_test.go:235: c1024      pass 0 r  8 ido   128 l1     1 split 5 fma true: default    779.5 ns (0.761 ns/pt)  fma    779.1 ns  default/fma 1.000
+    round42_bench_test.go:235: c1024      pass 1 r  4 ido    32 l1     8 split 6 fma true: default    447.2 ns (0.437 ns/pt)  fma    415.4 ns  default/fma 1.077
+    round42_bench_test.go:235: c1024      pass 2 r  4 ido     8 l1    32 split 7 fma true: default    442.8 ns (0.432 ns/pt)  fma    404.0 ns  default/fma 1.096
+    round42_bench_test.go:235: c1024      pass 3 r  8 ido     1 l1   128 split 0 fma true: default    586.8 ns (0.573 ns/pt)  fma    573.5 ns  default/fma 1.023
+    round42_bench_test.go:235: c2048      pass 0 r  4 ido   512 l1     1 split 5 fma true: default   1430.5 ns (0.699 ns/pt)  fma   1453.9 ns  default/fma 0.984
+    round42_bench_test.go:235: c2048      pass 1 r  8 ido    64 l1     4 split 6 fma true: default   1597.9 ns (0.780 ns/pt)  fma   1613.7 ns  default/fma 0.990
+    round42_bench_test.go:235: c2048      pass 2 r  8 ido     8 l1    32 split 7 fma true: default   1511.4 ns (0.738 ns/pt)  fma   1538.8 ns  default/fma 0.982
+    round42_bench_test.go:235: c2048      pass 3 r  8 ido     1 l1   256 split 0 fma true: default   1351.3 ns (0.660 ns/pt)  fma   1404.3 ns  default/fma 0.962
+    round42_bench_test.go:235: c4096      pass 0 r  8 ido   512 l1     1 split 5 fma true: default   2991.9 ns (0.730 ns/pt)  fma   3045.3 ns  default/fma 0.982
+    round42_bench_test.go:235: c4096      pass 1 r  8 ido    64 l1     8 split 6 fma true: default   3087.5 ns (0.754 ns/pt)  fma   3163.0 ns  default/fma 0.976
+    round42_bench_test.go:235: c4096      pass 2 r  8 ido     8 l1    64 split 7 fma true: default   2993.0 ns (0.731 ns/pt)  fma   3008.0 ns  default/fma 0.995
+    round42_bench_test.go:235: c4096      pass 3 r  8 ido     1 l1   512 split 0 fma true: default   2666.7 ns (0.651 ns/pt)  fma   2755.3 ns  default/fma 0.968
+    round42_bench_test.go:235: c8192      pass 0 r  8 ido  1024 l1     1 split 5 fma true: default   5925.5 ns (0.723 ns/pt)  fma   6019.0 ns  default/fma 0.984
+    round42_bench_test.go:235: c8192      pass 1 r  8 ido   128 l1     8 split 6 fma true: default   6293.4 ns (0.768 ns/pt)  fma   6602.5 ns  default/fma 0.953
+    round42_bench_test.go:235: c8192      pass 2 r  4 ido    32 l1    64 split 6 fma true: default   4831.0 ns (0.590 ns/pt)  fma   4876.7 ns  default/fma 0.991
+    round42_bench_test.go:235: c8192      pass 3 r  4 ido     8 l1   256 split 7 fma true: default   4902.6 ns (0.598 ns/pt)  fma   4864.6 ns  default/fma 1.008
+    round42_bench_test.go:235: c8192      pass 4 r  8 ido     1 l1  1024 split 0 fma true: default   5179.3 ns (0.632 ns/pt)  fma   5189.1 ns  default/fma 0.998
+    round42_bench_test.go:235: c16384     pass 0 r  4 ido  4096 l1     1 split 5 fma true: default  11175.5 ns (0.682 ns/pt)  fma  11169.2 ns  default/fma 1.001
+    round42_bench_test.go:235: c16384     pass 1 r  8 ido   512 l1     4 split 6 fma true: default  11959.7 ns (0.730 ns/pt)  fma  12144.8 ns  default/fma 0.985
+    round42_bench_test.go:235: c16384     pass 2 r  8 ido    64 l1    32 split 6 fma true: default  11634.2 ns (0.710 ns/pt)  fma  11741.9 ns  default/fma 0.991
+    round42_bench_test.go:235: c16384     pass 3 r  8 ido     8 l1   256 split 7 fma true: default  11095.5 ns (0.677 ns/pt)  fma  10848.4 ns  default/fma 1.023
+    round42_bench_test.go:235: c16384     pass 4 r  8 ido     1 l1  2048 split 0 fma true: default  10275.8 ns (0.627 ns/pt)  fma  10225.6 ns  default/fma 1.005
+    round42_bench_test.go:235: c65536     pass 0 r  8 ido  8192 l1     1 split 0 fma true: default 151344.5 ns (2.309 ns/pt)  fma 140806.8 ns  default/fma 1.075
+    round42_bench_test.go:235: c65536     pass 1 r  8 ido  1024 l1     8 split 0 fma true: default 106690.5 ns (1.628 ns/pt)  fma 103028.8 ns  default/fma 1.036
+    round42_bench_test.go:235: c65536     pass 2 r  4 ido   256 l1    64 split 0 fma true: default  94225.5 ns (1.438 ns/pt)  fma  93193.8 ns  default/fma 1.011
+    round42_bench_test.go:235: c65536     pass 3 r  4 ido    64 l1   256 split 0 fma true: default 113803.0 ns (1.736 ns/pt)  fma 110698.0 ns  default/fma 1.028
+    round42_bench_test.go:235: c65536     pass 4 r  8 ido     8 l1  1024 split 0 fma true: default  93998.0 ns (1.434 ns/pt)  fma  91949.9 ns  default/fma 1.022
+    round42_bench_test.go:235: c65536     pass 5 r  8 ido     1 l1  8192 split 0 fma true: default  91632.0 ns (1.398 ns/pt)  fma  96071.9 ns  default/fma 0.954
+    round42_bench_test.go:235: c1048576   pass 0 r  8 ido 131072 l1     1 split 0 fma true: default 4876299.0 ns (4.650 ns/pt)  fma 4504300.0 ns  default/fma 1.083
+    round42_bench_test.go:235: c1048576   pass 1 r  8 ido 16384 l1     8 split 0 fma true: default 3795407.0 ns (3.620 ns/pt)  fma 3636876.0 ns  default/fma 1.044
+    round42_bench_test.go:235: c1048576   pass 2 r  8 ido  2048 l1    64 split 0 fma true: default 3040692.5 ns (2.900 ns/pt)  fma 2862254.5 ns  default/fma 1.062
+    round42_bench_test.go:235: c1048576   pass 3 r  8 ido   256 l1   512 split 0 fma true: default 2539354.0 ns (2.422 ns/pt)  fma 2516110.0 ns  default/fma 1.009
+    round42_bench_test.go:235: c1048576   pass 4 r  8 ido    32 l1  4096 split 0 fma true: default 4064876.0 ns (3.877 ns/pt)  fma 3466018.0 ns  default/fma 1.173
+    round42_bench_test.go:235: c1048576   pass 5 r  4 ido     8 l1 32768 split 0 fma true: default 6289328.0 ns (5.998 ns/pt)  fma 6155315.0 ns  default/fma 1.022
+    round42_bench_test.go:235: c1048576   pass 6 r  8 ido     1 l1 131072 split 0 fma true: default 2941185.5 ns (2.805 ns/pt)  fma 3011258.0 ns  default/fma 0.977
+    round42_bench_test.go:235: c1000      pass 0 r  5 ido   200 l1     1 split 0 fma true: default    918.1 ns (0.918 ns/pt)  fma    886.1 ns  default/fma 1.036
+    round42_bench_test.go:235: c1000      pass 1 r 10 ido    20 l1     5 split 0 fma true: default   1133.8 ns (1.134 ns/pt)  fma   1052.4 ns  default/fma 1.077
+    round42_bench_test.go:235: c1000      pass 2 r 20 ido     1 l1    50 split 0 fma true: default    925.6 ns (0.926 ns/pt)  fma    884.8 ns  default/fma 1.046
+    round42_bench_test.go:235: c1080      pass 0 r  9 ido   120 l1     1 split 0 fma true: default   1257.3 ns (1.164 ns/pt)  fma   1189.0 ns  default/fma 1.057
+    round42_bench_test.go:235: c1080      pass 1 r 10 ido    12 l1     9 split 0 fma true: default   1259.5 ns (1.166 ns/pt)  fma   1192.2 ns  default/fma 1.056
+    round42_bench_test.go:235: c1080      pass 2 r 12 ido     1 l1    90 split 0 fma true: default    885.9 ns (0.820 ns/pt)  fma    853.1 ns  default/fma 1.038
+    round42_bench_test.go:235: c1920      pass 0 r  8 ido   240 l1     1 split 4 fma true: default   1641.3 ns (0.855 ns/pt)  fma   1526.7 ns  default/fma 1.075
+    round42_bench_test.go:235: c1920      pass 1 r 12 ido    20 l1     8 split 0 fma true: default   1870.9 ns (0.974 ns/pt)  fma   1893.9 ns  default/fma 0.988
+    round42_bench_test.go:235: c1920      pass 2 r 20 ido     1 l1    96 split 0 fma true: default   1948.5 ns (1.015 ns/pt)  fma   1872.4 ns  default/fma 1.041
+    round42_bench_test.go:235: c1296      pass 0 r  9 ido   144 l1     1 split 0 fma true: default   1528.2 ns (1.179 ns/pt)  fma   1451.6 ns  default/fma 1.053
+    round42_bench_test.go:235: c1296      pass 1 r 12 ido    12 l1     9 split 0 fma true: default   1352.3 ns (1.043 ns/pt)  fma   1349.5 ns  default/fma 1.002
+    round42_bench_test.go:235: c1296      pass 2 r 12 ido     1 l1   108 split 0 fma true: default   1039.8 ns (0.802 ns/pt)  fma   1001.0 ns  default/fma 1.039
+    round42_bench_test.go:235: r256       pass 0 r 16 ido     8 l1     1 split 0 fma true: default    142.0 ns (1.110 ns/pt)  fma    141.5 ns  default/fma 1.004
+    round42_bench_test.go:235: r256       pass 1 r  8 ido     1 l1    16 split 0 fma true: default     89.0 ns (0.696 ns/pt)  fma     90.6 ns  default/fma 0.983
+    round42_bench_test.go:235: r1024      pass 0 r  8 ido    64 l1     1 split 5 fma true: default    258.1 ns (0.504 ns/pt)  fma    228.1 ns  default/fma 1.132
+    round42_bench_test.go:235: r1024      pass 1 r  8 ido     8 l1     8 split 7 fma true: default    292.5 ns (0.571 ns/pt)  fma    271.5 ns  default/fma 1.077
+    round42_bench_test.go:235: r1024      pass 2 r  8 ido     1 l1    64 split 0 fma true: default    275.3 ns (0.538 ns/pt)  fma    278.0 ns  default/fma 0.990
+    round42_bench_test.go:235: r4096      pass 0 r  4 ido   512 l1     1 split 5 fma true: default   1406.6 ns (0.687 ns/pt)  fma   1415.5 ns  default/fma 0.994
+    round42_bench_test.go:235: r4096      pass 1 r  8 ido    64 l1     4 split 6 fma true: default   1584.3 ns (0.774 ns/pt)  fma   1612.1 ns  default/fma 0.983
+    round42_bench_test.go:235: r4096      pass 2 r  8 ido     8 l1    32 split 7 fma true: default   1521.7 ns (0.743 ns/pt)  fma   1527.9 ns  default/fma 0.996
+    round42_bench_test.go:235: r4096      pass 3 r  8 ido     1 l1   256 split 0 fma true: default   1354.4 ns (0.661 ns/pt)  fma   1397.2 ns  default/fma 0.969
+    round42_bench_test.go:235: r65536     pass 0 r  8 ido  4096 l1     1 split 5 fma true: default  63410.5 ns (1.935 ns/pt)  fma  62487.4 ns  default/fma 1.015
+    round42_bench_test.go:235: r65536     pass 1 r  8 ido   512 l1     8 split 6 fma true: default  37661.6 ns (1.149 ns/pt)  fma  38238.7 ns  default/fma 0.985
+    round42_bench_test.go:235: r65536     pass 2 r  8 ido    64 l1    64 split 6 fma true: default  24924.9 ns (0.761 ns/pt)  fma  25326.1 ns  default/fma 0.984
+    round42_bench_test.go:235: r65536     pass 3 r  8 ido     8 l1   512 split 7 fma true: default  23910.7 ns (0.730 ns/pt)  fma  23190.1 ns  default/fma 1.031
+    round42_bench_test.go:235: r65536     pass 4 r  8 ido     1 l1  4096 split 0 fma true: default  21884.0 ns (0.668 ns/pt)  fma  21772.0 ns  default/fma 1.005
+    round42_bench_test.go:235: r1000      pass 0 r  5 ido   100 l1     1 split 0 fma true: default    450.1 ns (0.900 ns/pt)  fma    418.0 ns  default/fma 1.077
+    round42_bench_test.go:235: r1000      pass 1 r  5 ido    20 l1     5 split 0 fma true: default    446.0 ns (0.892 ns/pt)  fma    422.5 ns  default/fma 1.056
+    round42_bench_test.go:235: r1000      pass 2 r 20 ido     1 l1    25 split 0 fma true: default    468.3 ns (0.937 ns/pt)  fma    464.3 ns  default/fma 1.009
+    round42_bench_test.go:235: r1080      pass 0 r  3 ido   180 l1     1 split 0 fma true: default    366.3 ns (0.678 ns/pt)  fma    355.7 ns  default/fma 1.030
+    round42_bench_test.go:235: r1080      pass 1 r 15 ido    12 l1     3 split 0 fma true: default    758.8 ns (1.405 ns/pt)  fma    695.9 ns  default/fma 1.090
+    round42_bench_test.go:235: r1080      pass 2 r 12 ido     1 l1    45 split 0 fma true: default    421.6 ns (0.781 ns/pt)  fma    408.9 ns  default/fma 1.031
+    round42_bench_test.go:235: r1920      pass 0 r  4 ido   240 l1     1 split 4 fma true: default    667.0 ns (0.695 ns/pt)  fma    643.8 ns  default/fma 1.036
+    round42_bench_test.go:235: r1920      pass 1 r 12 ido    20 l1     4 split 0 fma true: default    930.0 ns (0.969 ns/pt)  fma    936.0 ns  default/fma 0.994
+    round42_bench_test.go:235: r1920      pass 2 r 20 ido     1 l1    48 split 0 fma true: default    890.8 ns (0.928 ns/pt)  fma    861.3 ns  default/fma 1.034
+--- PASS: TestR42Passes (16.19s)
+PASS
+# rc 0
+# end 2026-10-18T19:13:08Z load 0.28 0.07 0.02 1/192 13302

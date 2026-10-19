@@ -1,0 +1,5 @@
+runpkg/verify.amd64: OK
+runpkg/bench.amd64: OK
+# run c1 def try 1 start 08:58:20 load 0.02 0.05 0.01
+# run c1 def try 1 end 09:08:39 load 1.00 0.89 0.52 -> outc1-def
+END
