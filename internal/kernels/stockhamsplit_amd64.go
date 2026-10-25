@@ -43,11 +43,17 @@ func splitDefault(avx2, avx512 bool) bool { return avx2 && !avx512 }
 // split* offsets in gen.go): √2/2, and −0, the sign flip; then (Round 36)
 // the radix-3 and radix-5 bodies' 0.5, sin(2π/3), cos(2π/5), cos(4π/5),
 // sin(2π/5), sin(4π/5): skConst's rows 1 to 6, the Go passes' values.
-var splitK = [8][4]float64{
+// Then (Round 42) the radix-32 kernels' cosines C_k = cos(kπ/16), k = 1 ..
+// 7 (R32Cos).
+var splitK = [15][4]float64{
 	{0.707106781186547524400844362104849, 0.707106781186547524400844362104849, 0.707106781186547524400844362104849, 0.707106781186547524400844362104849},
 	{math.Copysign(0, -1), math.Copysign(0, -1), math.Copysign(0, -1), math.Copysign(0, -1)},
 	skFwd[1], skFwd[2], skFwd[3], skFwd[4], skFwd[5], skFwd[6],
+	r32Row(1), r32Row(2), r32Row(3), r32Row(4), r32Row(5), r32Row(6), r32Row(7),
 }
+
+// r32Row is a split constants row of R32Cos[k].
+func r32Row(k int) [4]float64 { return [4]float64{R32Cos[k], R32Cos[k], R32Cos[k], R32Cos[k]} }
 
 // The split kernels by radix and mode, per direction.
 var (
@@ -81,8 +87,11 @@ func zmSplitRun(r, ido int) bool {
 // splitPass reports whether a split kernel runs a pass of radix r with ido
 // points per block: a radix with a split body, and ido a positive multiple of
 // four, so every stream starts on a four-point block.
+//
+// Radix 32 (Round 42) has split kernels for FMA plans only, which are the
+// only plans with radix-32 passes.
 func splitPass(r, ido int) bool {
-	return r >= 0 && r < len(skSplitFwd) && skSplitFwd[r][splitBoth] != nil && ido >= 4 && ido%4 == 0
+	return (r == 32 || r >= 0 && r < len(skSplitFwd) && skSplitFwd[r][splitBoth] != nil) && ido >= 4 && ido%4 == 0
 }
 
 // StockhamSplitModes returns, for the passes of one transform (pass k of

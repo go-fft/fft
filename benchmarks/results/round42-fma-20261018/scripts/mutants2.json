@@ -1,0 +1,6 @@
+[
+ {"id":"M04b-bfly32-rot8","repo":"fft","file":"radix32.go","old":"if e := n2 * k1; e == 8 {","new":"if e := n2 * k1; e == 0 {","pkg":".","run":"TestR42|TestFMA"},
+ {"id":"M06b-zn-perstage","repo":"fft","file":"znstack.go","old":"f[i] = st[i].fma","new":"f[i] = true","pkg":".","run":"TestR42|TestFMA|TestZn"},
+ {"id":"K05b-split512-32","repo":"fft","file":"internal/kernels/stockhamsplit512_amd64.go","old":"(r == 4 || r == 8 || r == 32)","new":"(r == 4 || r == 8)","pkg":".","run":"TestR42|TestFMA"},
+ {"id":"G10b-last-tail1","repo":"asmgen","file":"fft/amd64/radix32.go","old":"b.Raw(\"TESTQ $16, DX\"). // l1 odd","new":"b.Raw(\"TESTQ $0, DX\"). // l1 odd","pkg":".","run":"TestR42R32"}
+]

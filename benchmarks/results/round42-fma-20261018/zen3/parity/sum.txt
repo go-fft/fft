@@ -1,0 +1,4 @@
+rows 24; go/FFTW <= 1.05: 19; < 1: 15; numpy in every run: 24; scipy in every run: 24
+rows 24; go/FFTW <= 1.05: 20; < 1: 16; numpy in every run: 24; scipy in every run: 24
+rows 24; go/FFTW <= 1.05: 19; < 1: 15; numpy in every run: 24; scipy in every run: 24
+rows 24; go/FFTW <= 1.05: 20; < 1: 16; numpy in every run: 24; scipy in every run: 24

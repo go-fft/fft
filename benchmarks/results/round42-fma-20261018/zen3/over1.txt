@@ -1,0 +1,15 @@
+# start 2026-10-18T19:59:29Z load 2.36 2.51 2.54 4/1333 3754274 core 40
+# cmd ./r42f.test -test.run TestR42Overhead -test.v -r42.over=9,10 -r42.rows=c1024,c1024/32.4.8,c1024/32.32,c1024/8.8.16,c512,c2048,c4096,r4096
+=== RUN   TestR42Overhead
+    round42_bench_test.go:402: c1024          transform   1597.7  passes   1632.6  each   504.9   476.0   580.0
+    round42_bench_test.go:402: c1024/32.4.8   transform   1704.6  passes   1647.4  each   846.8   354.7   376.6
+    round42_bench_test.go:402: c1024/32.32    transform   1702.9  passes   1669.0  each   884.0   744.5
+    round42_bench_test.go:402: c1024/8.8.16   transform   1618.8  passes   1604.3  each   499.0   456.1   579.4
+    round42_bench_test.go:402: c512           transform    636.7  passes    659.6  each   219.8   230.5   191.4
+    round42_bench_test.go:402: c2048          transform   4097.5  passes   4099.6  each  1384.7  1054.1  1079.2   687.9
+    round42_bench_test.go:402: c4096          transform   9109.1  passes   8920.3  each  1838.1  2089.9  1393.2  2149.6  1330.7
+    round42_bench_test.go:402: r4096          transform   8902.8  passes   8817.8  each  1829.3  2064.1  1325.4  2128.6  1313.4
+--- PASS: TestR42Overhead (4.25s)
+PASS
+# rc 0
+# end 2026-10-18T19:59:33Z load 2.36 2.51 2.54 3/1325 3754566

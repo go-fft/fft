@@ -1,0 +1,11 @@
+runpkg/verify.amd64: OK
+runpkg/bench.amd64: OK
+# run 1 def start 20:39:08 load 2.17 2.58 2.68
+# run 1 def end 20:48:46 load 4.01 3.44 3.08 ABOVE 3.5: rerun
+# run 2 fma start 20:51:16 load 2.39 2.98 2.96
+# run 2 fma end 21:00:58 load 3.63 3.34 3.14 ABOVE 3.5: rerun
+# run 3 fma start 21:03:28 load 2.36 2.93 3.01
+# run 3 fma end 21:13:22 load 3.33 3.69 3.37
+# run 4 def start 21:14:52 load 2.39 3.30 3.26
+# run 4 def end 21:24:37 load 3.32 3.71 3.49
+END

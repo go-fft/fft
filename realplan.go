@@ -34,21 +34,36 @@ type RealPlan struct {
 
 	// Odd path: full complex plan of length n.
 	full *Plan
+
+	// fma: the complex plans (half, full) are FMA plans (Options.FMA).
+	fma bool
 }
 
 // NewRealPlan returns a real-input transform plan for length n, precomputing
 // all twiddle factors. n must be non-negative.
-func NewRealPlan(n int) *RealPlan {
-	p := &RealPlan{n: n}
+func NewRealPlan(n int) *RealPlan { return newRealPlanF(n, false) }
+
+// NewRealPlanWith is NewRealPlan with options: o.FMA asks for an FMA plan
+// (see Options.FMA), whose complex half (or, for an odd n, full) transform
+// is an FMA plan; the untangle is the default one. The other fields must be
+// zero, as for NewPlanWith. NewRealPlanWith(n, Options{}) is NewRealPlan(n).
+func NewRealPlanWith(n int, o Options) *RealPlan {
+	return newRealPlanF(n, o.checkPlan("NewRealPlanWith"))
+}
+
+// newRealPlanF is NewRealPlan on FMA complex plans when fma is set (already
+// resolved by fmaOn).
+func newRealPlanF(n int, fma bool) *RealPlan {
+	p := &RealPlan{n: n, fma: fma}
 	if n <= 1 || n%2 != 0 {
 		// Trivial or odd: defer to a full complex plan of length n.
 		if n >= 1 {
-			p.full = cachedPlan(n)
+			p.full = cachedPlanF(n, fma)
 		}
 		return p
 	}
 	m := n / 2
-	p.half = cachedPlan(m)
+	p.half = cachedPlanF(m, fma)
 	p.tw = make([]complex128, m+1)
 	for k := 0; k <= m; k++ {
 		ang := -2 * math.Pi * float64(k) / float64(n)
@@ -245,7 +260,7 @@ func (p *RealPlan) irfftFull(dst []float64, src []complex128) []float64 {
 		}
 	}
 	inv := make([]complex128, n)
-	cachedPlan(n).IFFT(inv, full)
+	cachedPlanF(n, p.fma).IFFT(inv, full)
 	for i := 0; i < n; i++ {
 		dst[i] = real(inv[i])
 	}

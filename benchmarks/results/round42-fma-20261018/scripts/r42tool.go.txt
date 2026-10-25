@@ -1,0 +1,80 @@
+// Command r42tool summarizes Round 42's measurement logs.
+//
+//	r42tool strip FILE      print the test log lines without the file:line prefix
+//	r42tool masks FILE      per row of TestR42Masks: default, all fused, best mask
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+)
+
+var prefix = regexp.MustCompile(`^\s*round4[12]_[a-z_]+test\.go:\d+:\s?`)
+
+func main() {
+	if len(os.Args) != 3 {
+		fmt.Fprintln(os.Stderr, "usage: r42tool strip|masks FILE")
+		os.Exit(2)
+	}
+	f, err := os.Open(os.Args[2])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	sc.Buffer(make([]byte, 1<<20), 1<<20)
+	switch os.Args[1] {
+	case "strip":
+		for sc.Scan() {
+			fmt.Println(prefix.ReplaceAllString(sc.Text(), ""))
+		}
+	case "masks":
+		masks(sc)
+	}
+}
+
+type variant struct {
+	name          string
+	ns, r, lo, hi float64
+}
+
+func masks(sc *bufio.Scanner) {
+	head := regexp.MustCompile(`: ([cr]\d+(?:/[\d.]+)?):(.*)$`)
+	line := regexp.MustCompile(`^\s+round42_bench_test.go:\d+:\s+(\S+)\s+(\S+)\s+([\d.]+) ns\s+default/variant ([\d.]+)\s+\(([\d.]+)–([\d.]+)\)`)
+	var row, desc string
+	var vs []variant
+	flush := func() {
+		if row == "" || len(vs) < 2 {
+			return
+		}
+		best := vs[1]
+		for _, v := range vs[1:] {
+			if v.r > best.r {
+				best = v
+			}
+		}
+		fmt.Printf("%-10s def %10.1f  all %s %.3f (%.3f-%.3f)  best %s %.3f (%.3f-%.3f) |%s\n",
+			row, vs[0].ns, vs[1].name, vs[1].r, vs[1].lo, vs[1].hi, best.name, best.r, best.lo, best.hi, desc)
+	}
+	for sc.Scan() {
+		t := sc.Text()
+		if m := line.FindStringSubmatch(t); m != nil {
+			v := variant{name: m[2]}
+			v.ns, _ = strconv.ParseFloat(m[3], 64)
+			v.r, _ = strconv.ParseFloat(m[4], 64)
+			v.lo, _ = strconv.ParseFloat(m[5], 64)
+			v.hi, _ = strconv.ParseFloat(m[6], 64)
+			vs = append(vs, v)
+			continue
+		}
+		if m := head.FindStringSubmatch(t); m != nil {
+			flush()
+			row, desc, vs = m[1], m[2], nil
+		}
+	}
+	flush()
+}

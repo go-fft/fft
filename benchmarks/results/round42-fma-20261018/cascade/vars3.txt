@@ -1,0 +1,40 @@
+# start 2026-10-18T19:59:51Z load 0.00 0.00 0.03 1/192 16152 core 3
+# cmd ./r42g.test -test.run TestR42Vars -test.v -r42.ab=9,20,4 -r42.vars=c1024:def,fma,32.32,32.32@F.,32.4.8,32.4.8@F..,32.4.8@FF.;c2048:def,fma,32.8.8,32.8.8@F..,32.8.8@FF.,32.8.8@F.F,4.8.8.8@....;r4096:def,fma,32.8.8,32.8.8@F..,32.8.8@FF.,32.8.8@F.F;r2048:def,fma,32.32,32.4.8;r256:def,fma,16.8@F.,16.8@.F;c256:def,fma,4.8.8@FF.,4.8.8@F.F
+=== RUN   TestR42Vars
+    round42_bench_test.go:304: fmaAvailable=true rounds=9 ms=20 placements=4
+    round42_bench_test.go:342:   c1024    def                   2445.3 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:342:   c1024    fma                   2419.2 ns  first/variant 1.014  (1.001–1.026)  rounds 1.005 1.001 1.015 1.026 1.014 1.003 1.016 1.017 1.011
+    round42_bench_test.go:342:   c1024    32.32                 1975.8 ns  first/variant 1.241  (1.224–1.255)  rounds 1.231 1.252 1.241 1.255 1.242 1.224 1.241 1.238 1.232
+    round42_bench_test.go:342:   c1024    32.32@F.              1980.7 ns  first/variant 1.235  (1.224–1.253)  rounds 1.229 1.249 1.242 1.253 1.227 1.224 1.235 1.235 1.227
+    round42_bench_test.go:342:   c1024    32.4.8                2079.7 ns  first/variant 1.174  (1.157–1.198)  rounds 1.157 1.198 1.174 1.198 1.189 1.163 1.176 1.174 1.162
+    round42_bench_test.go:342:   c1024    32.4.8@F..            2133.5 ns  first/variant 1.145  (1.131–1.165)  rounds 1.142 1.165 1.131 1.162 1.158 1.139 1.145 1.145 1.137
+    round42_bench_test.go:342:   c1024    32.4.8@FF.            2107.0 ns  first/variant 1.164  (1.031–1.177)  rounds 1.164 1.168 1.139 1.177 1.157 1.031 1.168 1.173 1.158
+    round42_bench_test.go:342:   c2048    def                   6117.9 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:342:   c2048    fma                   6242.1 ns  first/variant 0.982  (0.977–0.984)  rounds 0.982 0.982 0.982 0.982 0.982 0.980 0.984 0.979 0.977
+    round42_bench_test.go:342:   c2048    32.8.8                5765.9 ns  first/variant 1.061  (1.057–1.064)  rounds 1.063 1.057 1.061 1.060 1.061 1.059 1.063 1.060 1.064
+    round42_bench_test.go:342:   c2048    32.8.8@F..            5745.4 ns  first/variant 1.067  (1.058–1.069)  rounds 1.065 1.058 1.069 1.068 1.067 1.067 1.065 1.067 1.065
+    round42_bench_test.go:342:   c2048    32.8.8@FF.            5732.2 ns  first/variant 1.068  (1.065–1.070)  rounds 1.068 1.068 1.070 1.067 1.068 1.065 1.068 1.069 1.068
+    round42_bench_test.go:342:   c2048    32.8.8@F.F            5775.2 ns  first/variant 1.061  (1.059–1.064)  rounds 1.059 1.062 1.062 1.064 1.059 1.061 1.061 1.061 1.059
+    round42_bench_test.go:342:   c2048    4.8.8.8@....          6112.2 ns  first/variant 1.001  (0.996–1.006)  rounds 1.003 1.006 1.000 1.005 1.000 1.000 1.005 0.996 1.001
+    round42_bench_test.go:342:   r4096    def                   7550.2 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:342:   r4096    fma                   7465.4 ns  first/variant 1.012  (1.008–1.021)  rounds 1.011 1.021 1.014 1.017 1.008 1.015 1.009 1.008 1.012
+    round42_bench_test.go:342:   r4096    32.8.8                7014.7 ns  first/variant 1.077  (1.072–1.082)  rounds 1.079 1.082 1.079 1.079 1.076 1.077 1.072 1.076 1.074
+    round42_bench_test.go:342:   r4096    32.8.8@F..            7012.5 ns  first/variant 1.079  (1.073–1.083)  rounds 1.079 1.083 1.080 1.082 1.074 1.079 1.073 1.075 1.074
+    round42_bench_test.go:342:   r4096    32.8.8@FF.            6915.8 ns  first/variant 1.093  (1.080–1.097)  rounds 1.095 1.097 1.095 1.093 1.089 1.094 1.080 1.090 1.090
+    round42_bench_test.go:342:   r4096    32.8.8@F.F            7062.3 ns  first/variant 1.069  (1.065–1.075)  rounds 1.070 1.073 1.068 1.075 1.066 1.074 1.065 1.067 1.069
+    round42_bench_test.go:342:   r2048    def                   3123.8 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:342:   r2048    fma                   3056.4 ns  first/variant 1.023  (1.019–1.041)  rounds 1.041 1.023 1.022 1.019 1.021 1.025 1.019 1.026 1.030
+    round42_bench_test.go:342:   r2048    32.32                 2662.7 ns  first/variant 1.172  (1.162–1.187)  rounds 1.187 1.172 1.172 1.173 1.172 1.174 1.162 1.170 1.182
+    round42_bench_test.go:342:   r2048    32.4.8                2714.3 ns  first/variant 1.151  (1.147–1.166)  rounds 1.166 1.150 1.151 1.148 1.152 1.157 1.151 1.147 1.151
+    round42_bench_test.go:342:   r256     def                    349.5 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:342:   r256     fma                    340.5 ns  first/variant 1.027  (1.023–1.028)  rounds 1.026 1.027 1.027 1.028 1.025 1.027 1.027 1.026 1.023
+    round42_bench_test.go:342:   r256     16.8@F.                341.7 ns  first/variant 1.023  (1.019–1.031)  rounds 1.022 1.022 1.022 1.031 1.027 1.026 1.023 1.029 1.019
+    round42_bench_test.go:342:   r256     16.8@.F                349.8 ns  first/variant 0.999  (0.996–1.006)  rounds 0.999 0.999 0.998 1.006 0.999 1.000 1.000 0.999 0.996
+    round42_bench_test.go:342:   c256     def                    381.1 ns  first/variant 1.000  (1.000–1.000)  rounds 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    round42_bench_test.go:342:   c256     fma                    352.8 ns  first/variant 1.080  (1.075–1.084)  rounds 1.079 1.080 1.082 1.080 1.075 1.084 1.080 1.081 1.081
+    round42_bench_test.go:342:   c256     4.8.8@FF.              358.1 ns  first/variant 1.064  (1.058–1.068)  rounds 1.063 1.064 1.065 1.064 1.062 1.068 1.058 1.066 1.064
+    round42_bench_test.go:342:   c256     4.8.8@F.F              366.0 ns  first/variant 1.041  (1.040–1.045)  rounds 1.040 1.042 1.041 1.040 1.040 1.045 1.041 1.041 1.041
+--- PASS: TestR42Vars (23.97s)
+PASS
+# rc 0
+# end 2026-10-18T20:00:15Z load 0.35 0.08 0.06 1/192 16186

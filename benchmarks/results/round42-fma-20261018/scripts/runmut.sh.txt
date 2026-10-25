@@ -1,0 +1,14 @@
+#!/bin/bash
+# runmut.sh CORE: run the two unmutated controls, then every mutant of
+# list.txt with its -test.run pattern; a mutant is caught when its tests fail.
+cd "$(dirname "$0")" || exit 1
+C=$1
+run() { timeout 900 env GOMAXPROCS=1 taskset -c "$C" "./$1" -test.run "$2" > "out-$1.log" 2>&1; echo $?; }
+echo "control fft rc=$(run C00-control-fft.test 'TestR42|TestFMA|TestZn')"
+echo "control kernels rc=$(run C00-control-k.test 'TestR32|TestFMA')"
+while read -r id bin pat; do
+  if [ "$bin" = BUILD-FAILS ]; then echo "$id caught (does not build)"; continue; fi
+  rc=$(run "$bin" "$pat")
+  if [ "$rc" = 0 ]; then echo "$id SURVIVED"; else echo "$id caught rc=$rc"; fi
+done < list.txt
+echo END

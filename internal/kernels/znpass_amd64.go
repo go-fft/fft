@@ -14,8 +14,14 @@ const ZnThreePassMax = 512
 // znAddrSlots is the size of znKernelAddrs' table: 21 interleaved pass
 // kernels by radix, 21 final-pass kernels, then 2·9·5 split kernels by
 // direction, radix and mode, the same for the 512-bit split kernels (Round
-// 35), and 21 AVX-512 final-pass kernels by radix.
-const znAddrSlots = 42 + 4*9*5 + 21
+// 35), and 21 AVX-512 final-pass kernels by radix; then the same for the
+// FMA plans (Round 41, znFMAAt).
+const znAddrSlots = 2 * znFMAAt
+
+// znFMAAt is where znKernelAddrs puts the kernels of the FMA plans (Round
+// 41): each at znFMAAt + its default twin's slot, the default final-pass
+// kernel where a radix has no FMA twin of it.
+const znFMAAt = 42 + 4*9*5 + 21
 
 // Where znKernelAddrs puts the 512-bit split kernels and the AVX-512
 // final-pass kernels (gen.go's genZnKernelAddrs).
@@ -47,7 +53,11 @@ var znAddrs = func() (t [znAddrSlots]uintptr) {
 // AVX-512 kernels allowed): an interleaved pass it would run at 512 bits
 // gets none, there being no such entry in the table. r is 2 to 20
 // (ZnPlanFor checks it).
-func znPass(r, ido int, mode uint8, inverse, wide bool) (addr uintptr, k *float64, twLen int) {
+func znPass(r, ido int, mode uint8, inverse, wide, fma bool) (addr uintptr, k *float64, twLen int) {
+	at := 0
+	if fma {
+		at = znFMAAt
+	}
 	if mode == 0 {
 		if stockhamWidth(r, ido, true, wide) == 512 {
 			return 0, nil, 0
@@ -56,7 +66,7 @@ func znPass(r, ido int, mode uint8, inverse, wide bool) (addr uintptr, k *float6
 		if inverse {
 			k = &skInv[0][0]
 		}
-		return znAddrs[r], k, skTwLen(r, ido)
+		return znAddrs[at+r], k, skTwLen(r, ido)
 	}
 	if !intelSplitModeOK(mode, r, ido, 1) {
 		return 0, nil, 0
@@ -65,9 +75,9 @@ func znPass(r, ido int, mode uint8, inverse, wide bool) (addr uintptr, k *float6
 	if inverse {
 		d = 1
 	}
-	at := 42
+	at += 42
 	if mode > splitNone {
-		at, mode = csZnSplit512At, mode-intelSplit512Base
+		at, mode = at-42+csZnSplit512At, mode-intelSplit512Base
 	}
 	return znAddrs[at+(9*d+r)*5+int(mode)], &splitK[0][0], (r - 1) * ido
 }
@@ -75,19 +85,23 @@ func znPass(r, ido int, mode uint8, inverse, wide bool) (addr uintptr, k *float6
 // znLast selects the final-pass kernel of radix r (entry point 0 when there
 // is none) and its constants table, at the width StockhamPass would run it
 // (wide as there); r is 2 to 20.
-func znLast(r int, inverse, wide bool) (addr uintptr, k *float64) {
+func znLast(r int, inverse, wide, fma bool) (addr uintptr, k *float64) {
+	at := 0
+	if fma {
+		at = znFMAAt
+	}
 	if stockhamWidth(r, 1, true, wide) == 512 {
 		k = &sk512Fwd[0][0]
 		if inverse {
 			k = &sk512Inv[0][0]
 		}
-		return znAddrs[csZnLast512At+r], k
+		return znAddrs[at+csZnLast512At+r], k
 	}
 	k = &skFwd[0][0]
 	if inverse {
 		k = &skInv[0][0]
 	}
-	return znAddrs[21+r], k
+	return znAddrs[at+21+r], k
 }
 
 // znSplitOut and znSplitIn report whether a pass of layout mode writes or
@@ -149,6 +163,24 @@ func ZnPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128) *ZnPlan
 // interleaved pass other than the last that StockhamPass would run at 512
 // bits has no entry point: such a plan gets nil.
 func ZnPlanForWide(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *ZnPlan {
+	return znPlanFor(r, mode, tw0, tw0c, tw1, tw1c, wide, nil)
+}
+
+// ZnPlanForWideFMA is ZnPlanForWide for the passes of an FMA plan (Round
+// 41): pass i runs the FMA twin of the kernel ZnPlanForWide binds (the one
+// StockhamPassLayoutFMA or StockhamPassFMA runs) where fma[i] is set, the
+// default kernel where it is not (Round 42: an FMA plan fuses only the
+// passes where that pays). fma has one entry per pass.
+func ZnPlanForWideFMA(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool, fma []bool) *ZnPlan {
+	if len(fma) != len(r) {
+		return nil
+	}
+	return znPlanFor(r, mode, tw0, tw0c, tw1, tw1c, wide, fma)
+}
+
+// znPlanFor is ZnPlanForWide, pass i with the FMA kernels where fma[i] is
+// set (fma nil: none).
+func znPlanFor(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool, fma []bool) *ZnPlan {
 	s := len(r)
 	if !UseStockhamAVX2 || (s != 2 && s != 3) || len(mode) != s || mode[s-1] != 0 || znSplitIn(mode[0]) || znSplitOut(mode[s-2]) {
 		return nil
@@ -177,14 +209,14 @@ func ZnPlanForWide(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wid
 	for d := range 2 {
 		l1 := 1
 		for i := 0; i < s-1; i++ {
-			a, k, tl := znPass(r[i], n/(l1*r[i]), mode[i], d == 1, wide)
+			a, k, tl := znPass(r[i], n/(l1*r[i]), mode[i], d == 1, wide, fma != nil && fma[i])
 			if a == 0 || len(tws[d][i]) < tl {
 				return nil
 			}
 			z.addr[d][i], z.k[d][i], z.tw[d][i] = a, k, &tws[d][i][0]
 			l1 *= r[i]
 		}
-		a, k := znLast(r[s-1], d == 1, wide)
+		a, k := znLast(r[s-1], d == 1, wide, fma != nil && fma[s-1])
 		if a == 0 {
 			return nil
 		}

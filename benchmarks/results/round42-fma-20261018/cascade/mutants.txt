@@ -1,0 +1,39 @@
+control fft rc=0
+control kernels rc=0
+M01-markFMA-r32 caught rc=1
+M02-fmaFuse-equal caught rc=1
+M03-fmaFactors caught rc=1
+M04-bfly32-rot8 SURVIVED
+M05-bfly32-sign caught rc=1
+M06-zn-perstage SURVIVED
+M07-bflyAny-32 caught rc=1
+M08-default-r32-guard caught rc=1
+M09-bfly32-stage2 caught rc=1
+M10-cl-table-1024 SURVIVED
+K01-inplace-guard caught rc=1
+K02-last-kernel-wide caught rc=1
+K03-inframe-threshold caught rc=1
+K04-splitPass-32 caught rc=1
+K05-split512-32 SURVIVED
+K06-trig-sign caught rc=1
+K07-krows-swap caught rc=1
+K08-splitK-rows caught rc=1
+K09-passfma-r32 caught rc=1
+K10-l1-zero caught rc=2
+G01-reOp caught rc=1
+G02-rot8-neg caught rc=1
+G03-ss-direction caught rc=1
+G04-slot2-order caught rc=1
+G05-hpm-sign caught rc=1
+G06-blend caught rc=1
+G07-knext caught rc=1
+G08-base-n2 caught rc=1
+G09-frame-slot2 caught rc=1
+G10-last-tail1 SURVIVED
+G11-last-tail2 caught rc=1
+G12-last-step caught rc=1
+G13-last-rotC caught rc=1
+G14-last-bfly4 caught rc=1
+G15-twiddle-skip caught rc=1
+G16-stage2-store caught rc=1
+END

@@ -1,0 +1,49 @@
+# start 2026-10-18T20:22:34Z load 0.07 0.14 0.07 1/192 17182 core 3
+# cmd ./r42i.test -test.run TestR41AB -test.v -test.timeout=3h -r41.ab=9,20,4 -r41.rows=c64,c128,c256,c512,c1024,c2048,c4096,c8192,c16384,c32768,c65536,c131072,c262144,c524288,c1048576,c1000,c1080,c1920,c1296,c1009,c10007,c6144,c20160,r256,r512,r1024,r2048,r4096,r8192,r65536,r1048576,r1000,r1080,r1920,i1024,i4096,n64x64,n128x128,n256x256,n512x512,n1024x1024
+=== RUN   TestR41AB
+    round41_bench_test.go:144: fmaAvailable=true rounds=9 ms=20 placements=4
+    round41_bench_test.go:179: c64          default       113.3 ns  fma       107.8 ns  default/fma 1.051  (1.044–1.067)  rounds 1.061 1.067 1.053 1.051 1.051 1.044 1.051 1.046 1.050
+    round41_bench_test.go:179: c128         default       215.8 ns  fma       209.2 ns  default/fma 1.030  (0.878–1.039)  rounds 1.039 1.030 1.025 1.032 1.027 1.032 1.030 0.878 1.033
+    round41_bench_test.go:179: c256         default       383.1 ns  fma       359.1 ns  default/fma 1.068  (1.057–1.074)  rounds 1.058 1.068 1.070 1.057 1.070 1.061 1.074 1.067 1.071
+    round41_bench_test.go:179: c512         default       815.9 ns  fma       756.6 ns  default/fma 1.079  (1.069–1.085)  rounds 1.079 1.079 1.080 1.075 1.084 1.069 1.085 1.075 1.078
+    round41_bench_test.go:179: c1024        default      2430.2 ns  fma      1985.6 ns  default/fma 1.224  (1.216–1.231)  rounds 1.223 1.216 1.224 1.224 1.228 1.225 1.231 1.228 1.221
+    round41_bench_test.go:179: c2048        default      6145.4 ns  fma      5528.6 ns  default/fma 1.111  (1.100–1.119)  rounds 1.110 1.111 1.119 1.117 1.109 1.109 1.113 1.100 1.113
+    round41_bench_test.go:179: c4096        default     11855.1 ns  fma     11865.2 ns  default/fma 1.001  (0.994–1.017)  rounds 0.994 0.999 0.999 1.001 1.004 1.002 1.001 1.017 1.000
+    round41_bench_test.go:179: c8192        default     26647.0 ns  fma     26711.5 ns  default/fma 0.998  (0.996–1.240)  rounds 0.999 0.996 0.996 0.998 0.997 0.998 1.240 1.003 1.000
+    round41_bench_test.go:179: c16384       default     57170.8 ns  fma     57502.9 ns  default/fma 0.993  (0.883–1.008)  rounds 1.008 0.970 0.996 0.997 0.988 0.988 0.883 0.993 0.996
+    round41_bench_test.go:179: c32768       default    191716.2 ns  fma    191395.2 ns  default/fma 1.001  (0.993–1.004)  rounds 1.001 1.000 1.001 1.004 0.993 1.001 1.002 1.000 1.003
+    round41_bench_test.go:179: c65536       default    430568.5 ns  fma    410205.0 ns  default/fma 1.051  (1.043–1.079)  rounds 1.050 1.050 1.051 1.049 1.056 1.043 1.079 1.051 1.052
+    round41_bench_test.go:179: c131072      default    967994.0 ns  fma    928287.8 ns  default/fma 1.046  (1.040–1.105)  rounds 1.045 1.056 1.040 1.072 1.041 1.047 1.105 1.046 1.041
+    round41_bench_test.go:179: c262144      default   2363772.5 ns  fma   2305574.0 ns  default/fma 1.042  (0.991–1.088)  rounds 1.023 1.045 1.088 1.036 1.070 1.054 1.042 0.991 1.024
+    round41_bench_test.go:179: c524288      default   8106446.5 ns  fma   7397180.0 ns  default/fma 1.094  (1.011–1.152)  rounds 1.152 1.059 1.095 1.098 1.094 1.038 1.091 1.112 1.011
+    round41_bench_test.go:179: c1048576     default  18605194.5 ns  fma  18298085.5 ns  default/fma 1.015  (1.009–1.044)  rounds 1.032 1.025 1.014 1.012 1.012 1.017 1.044 1.015 1.009
+    round41_bench_test.go:179: c1000        default      3055.0 ns  fma      2944.7 ns  default/fma 1.037  (1.034–1.039)  rounds 1.034 1.039 1.034 1.036 1.037 1.038 1.037 1.037 1.035
+    round41_bench_test.go:179: c1080        default      3448.2 ns  fma      3320.4 ns  default/fma 1.038  (1.032–1.041)  rounds 1.041 1.038 1.032 1.038 1.040 1.037 1.036 1.038 1.039
+    round41_bench_test.go:179: c1920        default      5436.7 ns  fma      5234.6 ns  default/fma 1.037  (1.035–1.039)  rounds 1.039 1.036 1.035 1.036 1.038 1.036 1.039 1.039 1.037
+    round41_bench_test.go:179: c1296        default      3935.5 ns  fma      3773.1 ns  default/fma 1.043  (1.042–1.054)  rounds 1.043 1.042 1.054 1.043 1.042 1.043 1.044 1.043 1.042
+    round41_bench_test.go:179: c1009        default     17828.3 ns  fma     17536.8 ns  default/fma 1.017  (1.009–1.024)  rounds 1.016 1.017 1.009 1.019 1.017 1.017 1.024 1.017 1.017
+    round41_bench_test.go:179: c10007       default    327549.0 ns  fma    328561.5 ns  default/fma 0.997  (0.988–1.010)  rounds 1.003 0.995 0.993 1.010 0.997 0.989 0.988 0.998 0.998
+    round41_bench_test.go:179: c6144        default     25278.2 ns  fma     25140.7 ns  default/fma 1.007  (1.004–1.016)  rounds 1.004 1.007 1.005 1.016 1.006 1.005 1.008 1.009 1.007
+    round41_bench_test.go:179: c20160       default    154643.0 ns  fma    150454.6 ns  default/fma 1.029  (1.027–1.182)  rounds 1.033 1.038 1.029 1.029 1.028 1.027 1.182 1.027 1.033
+    round41_bench_test.go:179: r256         default       348.4 ns  fma       334.5 ns  default/fma 1.044  (1.032–1.066)  rounds 1.032 1.055 1.045 1.037 1.037 1.056 1.036 1.044 1.066
+    round41_bench_test.go:179: r512         default       580.0 ns  fma       554.9 ns  default/fma 1.045  (1.034–1.060)  rounds 1.049 1.045 1.052 1.044 1.047 1.045 1.060 1.045 1.034
+    round41_bench_test.go:179: r1024        default      1184.3 ns  fma      1126.5 ns  default/fma 1.049  (1.034–1.075)  rounds 1.034 1.044 1.047 1.066 1.052 1.049 1.075 1.049 1.043
+    round41_bench_test.go:179: r2048        default      3117.1 ns  fma      2674.8 ns  default/fma 1.167  (1.147–1.170)  rounds 1.170 1.168 1.170 1.161 1.170 1.167 1.165 1.164 1.147
+    round41_bench_test.go:179: r4096        default      7508.6 ns  fma      6905.6 ns  default/fma 1.089  (1.079–1.099)  rounds 1.089 1.091 1.089 1.079 1.085 1.092 1.083 1.090 1.099
+    round41_bench_test.go:179: r8192        default     14556.1 ns  fma     14572.8 ns  default/fma 0.997  (0.995–1.028)  rounds 0.995 0.997 0.995 1.000 1.002 0.997 1.002 0.997 1.028
+    round41_bench_test.go:179: r65536       default    209380.0 ns  fma    211847.8 ns  default/fma 0.990  (0.972–0.999)  rounds 0.998 0.991 0.972 0.999 0.988 0.989 0.975 0.990 0.994
+    round41_bench_test.go:179: r1048576     default   8536791.5 ns  fma   8249097.5 ns  default/fma 1.025  (0.986–1.070)  rounds 0.992 1.054 1.059 0.998 1.070 1.041 1.023 1.025 0.986
+    round41_bench_test.go:179: r1000        default      1764.5 ns  fma      1708.4 ns  default/fma 1.032  (0.999–1.035)  rounds 1.032 1.033 1.001 1.033 1.035 1.032 0.999 1.033 1.022
+    round41_bench_test.go:179: r1080        default      2031.5 ns  fma      2025.2 ns  default/fma 1.003  (0.983–1.005)  rounds 0.983 1.004 0.994 1.003 1.003 0.998 1.003 1.005 1.004
+    round41_bench_test.go:179: r1920        default      3320.5 ns  fma      3329.9 ns  default/fma 0.999  (0.980–1.011)  rounds 0.987 0.999 0.980 0.998 0.994 0.999 1.011 0.999 1.003
+    round41_bench_test.go:179: i1024        default      1332.0 ns  fma      1312.4 ns  default/fma 1.015  (1.013–1.025)  rounds 1.013 1.025 1.019 1.013 1.016 1.013 1.015 1.015 1.021
+    round41_bench_test.go:179: i4096        default      7577.5 ns  fma      7243.1 ns  default/fma 1.047  (1.044–1.062)  rounds 1.062 1.044 1.047 1.044 1.045 1.049 1.048 1.047 1.044
+    round41_bench_test.go:179: n64x64       default     15291.7 ns  fma     14587.9 ns  default/fma 1.049  (1.046–1.057)  rounds 1.050 1.049 1.049 1.048 1.049 1.050 1.057 1.046 1.056
+    round41_bench_test.go:179: n128x128     default     74942.0 ns  fma     72759.0 ns  default/fma 1.031  (1.027–1.036)  rounds 1.029 1.031 1.028 1.031 1.036 1.032 1.034 1.032 1.027
+    round41_bench_test.go:179: n256x256     default    426086.2 ns  fma    417655.8 ns  default/fma 1.025  (1.018–1.027)  rounds 1.018 1.025 1.027 1.024 1.027 1.025 1.022 1.025 1.026
+    round41_bench_test.go:179: n512x512     default   2008091.2 ns  fma   1974722.0 ns  default/fma 1.014  (1.000–1.051)  rounds 1.034 1.000 1.051 1.011 1.012 1.014 1.036 1.010 1.020
+    round41_bench_test.go:179: n1024x1024   default  14424409.5 ns  fma  14325841.5 ns  default/fma 1.008  (0.858–1.024)  rounds 0.987 1.011 1.008 1.001 1.011 1.022 0.858 0.994 1.024
+--- PASS: TestR41AB (77.94s)
+PASS
+# rc 0
+# end 2026-10-18T20:23:52Z load 0.76 0.35 0.15 1/191 17188

@@ -40,6 +40,8 @@ type skStage struct {
 	// run of passes keeps its data block-split between them
 	// (kernels.StockhamSplitModes); 0 is interleaved.
 	split uint8
+	// fma: the pass fuses its twiddle products (an FMA plan, markFMA).
+	fma bool
 }
 
 // skPlan is the Stockham plan for one smooth length.
@@ -55,13 +57,32 @@ type skPlan struct {
 	// zn runs the transform with the buffers between its passes in a
 	// kernel's stack frame (znPlanFor, Round 32); nil uses p.scratch.
 	zn *kernels.ZnPlan
+	// fma: an FMA plan (fma.go); its stages say which passes fuse.
+	fma bool
 }
 
-func newSKPlan(n int) *skPlan { return newSKPlanFactors(n, skFactorize(n)) }
+func newSKPlan(n int) *skPlan { return newSKPlanOpt(n, false) }
+
+// newSKPlanOpt is newSKPlan, an FMA plan when fma is set (fma.go).
+// Its factorization is fmaFactors' (fmaTable).
+func newSKPlanOpt(n int, fma bool) *skPlan {
+	if fma {
+		return newSKPlanFactorsOpt(n, fmaFactors(n), true)
+	}
+	return newSKPlanFactorsOpt(n, skFactorize(n), false)
+}
 
 // newSKPlanFactors builds the plan for the given ordered radices, whose
 // product must be n.
-func newSKPlanFactors(n int, factors []int) *skPlan {
+func newSKPlanFactors(n int, factors []int) *skPlan { return newSKPlanFactorsOpt(n, factors, false) }
+
+// newSKPlanFactorsOpt is newSKPlanFactors, an FMA plan when fma is set: the
+// same passes, layouts and schedule, its twiddled passes marked to fuse
+// their products (markFMA).
+func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
+	if !fma && slices.Contains(factors, 32) {
+		panic("fft: radix-32 passes are built into FMA plans only")
+	}
 	root := twiddleTable(n)
 	p := &skPlan{n: n}
 	l1 := 1
@@ -98,7 +119,10 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 	for k, st := range p.stages {
 		rs[k], idos[k], l1s[k] = st.r, st.ido, st.l1
 	}
-	if hswSplitKept(n) {
+	// An FMA plan keeps the split layout only where its split passes have FMA
+	// kernels (fmaSplit): elsewhere its Go passes, which read interleaved
+	// data, run them.
+	if hswSplitKept(n) && (!fma || fmaSplit) {
 		for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
 			p.stages[k].split = m
 		}
@@ -126,7 +150,11 @@ func newSKPlanFactors(n int, factors []int) *skPlan {
 		}
 	}
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
-	p.zn = znPlanFor(n, p.stages) // at most 512 points: never a blocked schedule
+	if fma {
+		p.fma = true
+		p.markFMA(fmaFuse(n, factors))
+	}
+	p.zn = znPlanFor(n, p.stages, p.fma) // at most 512 points: never a blocked schedule
 	return p
 }
 
@@ -401,9 +429,13 @@ func (st *skStage) pass(ch, cc []complex128, inverse bool) {
 	// An interleaved pass calls StockhamPass itself: StockhamPassLayout does
 	// not inline, and the extra call cost composites about 1% on Zen 3.
 	var ok bool
-	if st.split == 0 {
+	switch {
+	case st.fma:
+		st.passFMA(ch, cc, twX, inverse)
+		return
+	case st.split == 0:
 		ok = kernels.StockhamPass(st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide)
-	} else {
+	default:
 		ok = kernels.StockhamPassLayout(st.split, st.r, st.ido, st.l1, cc, ch, twX, inverse, st.wide)
 	}
 	if !ok {
@@ -950,6 +982,10 @@ func (st *skStage) batchTwiddles() (fwd, conj []complex128) {
 // passBatch runs the stage as a batched pass, on the SIMD kernel when there
 // is one. tw is batchTwiddles' table for the direction.
 func (st *skStage) passBatch(ch, cc, tw []complex128, w, sIn, sOut int, inverse bool) {
+	if st.fma {
+		st.passBatchFMA(ch, cc, tw, w, sIn, sOut, inverse)
+		return
+	}
 	if !kernels.StockhamBatchPass(st.r, st.ido, st.l1, cc, ch, tw, w, sIn, sOut, inverse) {
 		st.passBatchScalar(ch, cc, tw, w, sIn, sOut, inverse)
 	}

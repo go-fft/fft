@@ -56,7 +56,7 @@ func complexNWith(name string, data []complex128, shape []int, o Options, invers
 	axes := o.checkND(name, len(shape))
 	f := o.Norm.scale(axesProduct(shape, axes), inverse)
 	out := make([]complex128, len(data))
-	planNFor(shape, axes).transform(out, data, inverse)
+	planNFor(shape, axes, o.fma()).transform(out, data, inverse)
 	scaleComplex(out, f)
 	return out
 }
@@ -90,9 +90,10 @@ func RFFTNWith(data []float64, shape []int, o Options) []complex128 {
 	ra := axes[len(axes)-1]
 	half := halfShape(shape, ra)
 	out := make([]complex128, len(data)/shape[ra]*half[ra])
-	realAxisForward(out, data, shape, half, ra)
+	fma := o.fma()
+	realAxisForward(out, data, shape, half, ra, fma)
 	if len(axes) > 1 {
-		planNFor(half, axes[:len(axes)-1]).transform(out, out, false)
+		planNFor(half, axes[:len(axes)-1], fma).transform(out, out, false)
 	}
 	scaleComplex(out, f)
 	return out
@@ -131,11 +132,12 @@ func IRFFTNWith(data []complex128, shape []int, o Options) []float64 {
 	half := halfShape(shape, ra)
 	spec := make([]complex128, total/n*half[ra])
 	copy(spec, data) // missing bins read as zero, extra ones are ignored
+	fma := o.fma()
 	if len(axes) > 1 {
-		planNFor(half, axes[:len(axes)-1]).transform(spec, spec, true)
+		planNFor(half, axes[:len(axes)-1], fma).transform(spec, spec, true)
 	}
 	out := make([]float64, total)
-	realAxisInverse(out, spec, shape, half, ra) // normalized by 1/n
+	realAxisInverse(out, spec, shape, half, ra, fma) // normalized by 1/n
 	scaleReal(out, f)
 	return out
 }
@@ -149,7 +151,7 @@ func RFFT2With(data []float64, shape [2]int, o Options) []complex128 {
 	}
 	o.checkND("RFFT2With", 2)
 	f := o.Norm.scale(shapeProduct(shape[0], shape[1]), false)
-	out := RFFT2(data, shape)
+	out := rfft2F(data, shape, o.fma())
 	scaleComplex(out, f)
 	return out
 }
@@ -164,7 +166,7 @@ func IRFFT2With(data []complex128, shape [2]int, o Options) []float64 {
 	o.checkND("IRFFT2With", 2)
 	total := shapeProduct(shape[0], shape[1])
 	f := unitInverseRescale(o.Norm.scale(total, true), total)
-	out := IRFFT2(data, shape)
+	out := irfft2F(data, shape, o.fma())
 	scaleReal(out, f)
 	return out
 }
@@ -203,9 +205,9 @@ func rowMajorStrides(shape []int) []int {
 // shape) into dst (shape half), line by line. A line of the last axis is
 // contiguous on both sides and transformed in place; any other axis is
 // gathered into scratch and scattered back.
-func realAxisForward(dst []complex128, src []float64, shape, half []int, ra int) {
+func realAxisForward(dst []complex128, src []float64, shape, half []int, ra int, fma bool) {
 	n, h := shape[ra], half[ra]
-	rp := cachedRealPlan(n)
+	rp := cachedRealPlanF(n, fma)
 	inSt, outSt := rowMajorStrides(shape), rowMajorStrides(half)
 	lines := len(src) / n
 	body := func(lo, hi int) {
@@ -233,9 +235,9 @@ func realAxisForward(dst []complex128, src []float64, shape, half []int, ra int)
 // realAxisInverse runs the real inverse transform (normalized by 1/n) along
 // axis ra of the spectrum src (shape half) into dst (shape shape), line by
 // line, as realAxisForward does in the other direction.
-func realAxisInverse(dst []float64, src []complex128, shape, half []int, ra int) {
+func realAxisInverse(dst []float64, src []complex128, shape, half []int, ra int, fma bool) {
 	n, h := shape[ra], half[ra]
-	rp := cachedRealPlan(n)
+	rp := cachedRealPlanF(n, fma)
 	outSt, inSt := rowMajorStrides(shape), rowMajorStrides(half)
 	lines := len(dst) / n
 	body := func(lo, hi int) {
@@ -275,9 +277,9 @@ func runLines(lines, n int, body func(lo, hi int)) {
 // Every axis is FFTN's own cached plan; a subset gets a plan of its own,
 // cached by shape and axes, whose unlisted axes have no 1-D plan — so a batch
 // of a million rows never builds a million-point plan it will not run.
-func planNFor(shape, axes []int) *PlanN {
+func planNFor(shape, axes []int, fma bool) *PlanN {
 	if len(axes) == len(shape) {
-		return cachedPlanN(shape)
+		return cachedPlanNF(shape, fma)
 	}
 	var kb [96]byte
 	key := kb[:0]
@@ -290,11 +292,14 @@ func planNFor(shape, axes []int) *PlanN {
 		key = strconv.AppendInt(key, int64(ax), 10)
 		key = append(key, ',')
 	}
+	if fma {
+		key = append(key, 'f') // an FMA plan: never the default one's entry
+	}
 	planNAxesMu.Lock()
 	defer planNAxesMu.Unlock()
 	p, ok := planNAxesCache[string(key)]
 	if !ok {
-		p = newPlanNAxes(shape, axes)
+		p = newPlanNAxes(shape, axes, fma)
 		planNAxesCache[string(key)] = p
 	}
 	return p
@@ -309,15 +314,15 @@ var (
 // axes only: PlanN.transform skips an axis without a 1-D plan. Its IFFT
 // method's 1/Len() normalization would be wrong for a subset, so such a plan is
 // never handed out; callers use transform and scale themselves.
-func newPlanNAxes(shape, axes []int) *PlanN {
-	p := &PlanN{shape: append([]int(nil), shape...)}
+func newPlanNAxes(shape, axes []int, fma bool) *PlanN {
+	p := &PlanN{shape: append([]int(nil), shape...), fma: fma}
 	p.size = shapeProduct(shape...)
 	p.stride = rowMajorStrides(shape)
 	p.axes = make([]*Plan, len(shape))
 	for _, ax := range axes {
 		n := shape[ax]
 		if n > 1 {
-			p.axes[ax] = cachedPlan(n)
+			p.axes[ax] = cachedPlanF(n, fma)
 		}
 		p.maxLen = max(p.maxLen, n)
 	}

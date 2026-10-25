@@ -1,0 +1,21 @@
+X11 forwarding request failed on channel 0
+PASS
+coverage: 98.7% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+PASS
+coverage: 90.3% of statements in github.com/go-fft/fft, github.com/go-fft/fft/internal/kernels
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+control fft rc=0
+control kernels rc=0
+M04b-bfly32-rot8 SURVIVED
+M06b-zn-perstage caught rc=1
+K05b-split512-32 caught rc=1
+G10b-last-tail1 caught rc=1
+END
