@@ -26,11 +26,12 @@ to the Go code.
 > silently, on Intel CPUs with AVX-512 when an axis other than the last has a
 > length 9·p ([v0.26.3 release notes](https://github.com/go-fft/fft/releases/tag/v0.26.3)).
 
-> Status: released as v0.27.x (Go 1.27.1 or later). Complex and real transforms
+> Status: released as v0.28.x (Go 1.27.1 or later). Complex and real transforms
 > of any length (`FFT`/`IFFT`, `RFFT`/`IRFFT`, `HFFT`/`IHFFT`), the
 > multi-dimensional transforms (`FFT2`/`IFFT2`, `FFTN`/`IFFTN`,
 > `RFFT2`/`IRFFT2`, `RFFTN`/`IRFFTN`), numpy's `n`, `norm` and `axes` arguments
-> (`...With(Options)`), `FFTShift`, `NextFastLen`, the DCT and DST of types
+> (`...With(Options)`), opt-in fused multiply-add plans on amd64
+> (`Options.FMA`), `FFTShift`, `NextFastLen`, the DCT and DST of types
 > I–IV, all of these in single precision too (`FFT32`, `FFTN32`, `RFFT2_32`,
 > `FFT32With`, `DCT32`, `Plan32`, …), reusable and
 > allocation-free plans (`Plan`, `RealPlan`, `PlanN`, `RealPlan2`, `DCTPlan`,
@@ -169,6 +170,42 @@ raises); an axis listed twice is refused (numpy's `fftn` transforms it twice);
 `IRFFTN`/`IRFFTNWith` take the real output's shape instead of numpy's
 `s`, and the N-D transforms do not pad or crop axes (numpy's `s` argument).
 
+### Opt-in fused multiply-add: `Options.FMA` (v0.28.0)
+
+By default every amd64 kernel is bit-identical to the package's Go code, so a
+result never depends on which CPU ran it. `Options{FMA: true}` trades that for
+speed on amd64 CPUs with FMA3: twiddle products and butterfly constants are
+fused, and on Cascade Lake class CPUs (AVX-512) 1,024 and 2,048 points take
+radix-32 passes that only the FMA plans have. Results differ from the default
+in the last bits and are as accurate: against long-double scipy on the same
+inputs, the error was 0.76–1.08× the default's over 90 transforms.
+
+```go
+X := fft.FFTWith(x, fft.Options{FMA: true})  // every ...With function accepts it
+p := fft.NewPlanWith(1024, fft.Options{FMA: true})
+rp := fft.NewRealPlanWith(4096, fft.Options{FMA: true}) // also NewPlanNWith, NewRealPlan2With
+```
+
+When to use it: when the last bits may differ between machines and you want
+the speed. It is a request: elsewhere than amd64 with FMA3 (arm64, other
+architectures, a CPU or hypervisor without FMA3) you get the default transform,
+bit for bit; the float32 transforms ignore it.
+
+What it gains (in-process against the default plan, one core; BENCHMARKS.md,
+Rounds 41 and 42):
+
+| | Cascade Lake (AVX-512) | Zen 3 (AVX2) |
+|:--|:--|:--|
+| complex 1,024 | **1.22×**, 1.19 → 0.94 × FFTW | 1.00–1.04×, 1.13 → 1.10 × FFTW |
+| complex 2,048 / RFFT 4,096 | 1.11× / 1.09× | 1.03× / 1.03× |
+| complex 256, 512 | 1.07–1.08× | 1.06× |
+| composites (1,000 … 1,920), 2-D | 1.01–1.05× | 1.01–1.05× |
+| rows it does not speed up | 4,096–16,384 (FMA off there: the default kernels) | most rows ±2% |
+
+On those two CPUs the plan fuses only the passes measured faster fused, so no
+row measured slower than the default beyond noise (lowest 0.99). Other amd64
+CPUs (Haswell, Zen 2/4) were not measured: there every pass fuses.
+
 ### DCT and DST (scipy.fft.dct / dst)
 
 The discrete cosine and sine transforms of types I–IV, forward and inverse,
@@ -288,7 +325,9 @@ powers of two of 256 points or more as **AVX-512** kernels where the CPU and
 the OS allow it; the real-FFT untangle has an AVX2 kernel too. They keep the
 Go code's arithmetic order (separately rounded multiplies and adds, no FMA), so
 their results are **bit-identical** to the Go passes, and the tests compare
-them bit for bit on generic, ±0 and ∞ inputs. On **arm64** the radix-2/3/4/5/8
+them bit for bit on generic, ±0 and ∞ inputs. The opt-in FMA plans
+(`Options.FMA`, above) run fused twins of these kernels, each bit-identical to
+a Go reference written with `math.FMA`. On **arm64** the radix-2/3/4/5/8
 passes, and the radix-2 to 5 final passes over an even number of blocks, run as
 generated **NEON** kernels. gc fuses multiply-adds on arm64, so each kernel
 reproduces, pass by pass, which product the Go code rounds and which it fuses;
