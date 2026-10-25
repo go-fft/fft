@@ -5,6 +5,19 @@ import "github.com/go-fft/fft/internal/kernels"
 // fmaSplitDefault: every amd64 split kernel has an FMA twin (fmasplit*.s).
 func fmaSplitDefault() bool { return true }
 
+// znFMABind is the frame plans' binder for an FMA plan: the FMA twins of the
+// kernels of the stages that fuse (skStage.fma), the default kernels of the
+// others (kernels.ZnPlanForWideFMA's per-pass flags).
+func znFMABind(st []skStage) znBinder {
+	f := make([]bool, len(st))
+	for i := range st {
+		f[i] = st[i].fma
+	}
+	return func(r []int, mode []uint8, tw0, tw0c, tw1, tw1c []complex128, wide bool) *kernels.ZnPlan {
+		return kernels.ZnPlanForWideFMA(r, mode, tw0, tw0c, tw1, tw1c, wide, f)
+	}
+}
+
 // fmaTableDefault is fmaTableAMD64 for this machine.
 func fmaTableDefault() map[int]fmaChoice {
 	return fmaTableAMD64(kernels.UseStockhamSplit512, kernels.UseStockhamSplit && !kernels.IntelCPU)
