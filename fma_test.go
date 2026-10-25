@@ -6,7 +6,25 @@ import (
 	"math/rand/v2"
 	"strings"
 	"testing"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
+
+// fmaSweep is the lengths lo .. hi a sweep of FMA plans runs: every one
+// where the FMA kernels run (kernels.UseFMA), whose arithmetic it checks;
+// elsewhere, where an FMA plan (built by the tests only) runs the Go
+// reference passes, every one to 150 and one in 13 beyond: the full sweep
+// replayed the same Go passes for 119 s of the macOS suite (race and
+// coverage on), against main's 377 s in all.
+func fmaSweep(lo, hi int) []int {
+	var lens []int
+	for n := lo; n <= hi; n++ {
+		if kernels.UseFMA || n <= 150 || n%13 == 0 {
+			lens = append(lens, n)
+		}
+	}
+	return lens
+}
 
 // The opt-in FMA mode (Round 41) on every architecture: the option's
 // routing, its caches, and that every path honours it. forceFMA (per
@@ -323,10 +341,7 @@ func sameFloats(a, b []float64) bool {
 func TestFMAStripsMatchLines(t *testing.T) {
 	forceFMA(t)
 	defer func(s bool) { stripAxes = s }(stripAxes)
-	lens := []int{153, 171, 207, 1000, 1024, 1080}
-	for n := 2; n <= 600; n++ {
-		lens = append(lens, n)
-	}
+	lens := append([]int{153, 171, 207, 1000, 1024, 1080}, fmaSweep(2, 600)...)
 	for _, n := range lens {
 		sh := []int{n, 3}
 		x := fmaSignal(3*n, uint64(n))
@@ -344,7 +359,7 @@ func TestFMAStripsMatchLines(t *testing.T) {
 		}
 	}
 	stripAxes = true
-	for n := 2; n <= 2000; n++ {
+	for _, n := range fmaSweep(2, 2000) {
 		x := make([]complex128, n)
 		for i := range x {
 			x[i] = complex(float64(i%5), float64(i%3))

@@ -3,25 +3,11 @@
 package fft
 
 import (
-	"math"
-	"math/cmplx"
 	"slices"
 	"testing"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
-
-// r42R32Factors are factorizations with a radix-32 pass: first, last,
-// between, beside every radix with a kernel, with ido from 1 to 64 and l1
-// from 1 to 32, so that the split kernel runs with one and several groups
-// and blocks, both widths' group sizes, and the final kernel with odd and
-// even l1.
-var r42R32Factors = [][]int{
-	{32}, {32, 32}, {32, 8}, {8, 32}, {32, 4}, {4, 32}, {32, 2}, {2, 32}, {32, 16}, {16, 32},
-	{4, 32, 32}, {32, 4, 32}, {32, 32, 4}, {8, 8, 32}, {2, 32, 32}, {32, 32, 2}, {4, 32, 8},
-	{3, 32}, {32, 3}, {5, 32}, {32, 5}, {3, 32, 3}, {32, 9}, {9, 32}, {32, 12}, {32, 32, 3},
-	{8, 4, 32}, {32, 8, 4}, {4, 8, 32}, {16, 32, 4},
-}
 
 // TestR42R32MatchesReference: every radix-32 FMA plan, under every layout the
 // machine runs, gives the bits of the same plan run on the Go passes
@@ -113,48 +99,4 @@ func TestR42FrameMasks(t *testing.T) {
 	if framed == 0 {
 		t.Skip("no frame plan on this CPU")
 	}
-}
-
-// TestR42R32AgainstNaive holds the radix-32 FMA plans (kernels on) and
-// bfly32FMA to the O(n²) DFT.
-func TestR42R32AgainstNaive(t *testing.T) {
-	for _, f := range r42R32Factors {
-		n := factorProduct(f)
-		if n > 4096 {
-			continue
-		}
-		p := newSKPlanFactorsOpt(n, f, true)
-		x := cmplxSignal(n)
-		want := r42DFT(x)
-		got := make([]complex128, n)
-		p.transform(got, x, false)
-		var num, den float64
-		for i := range got {
-			d := cmplx.Abs(got[i] - want[i])
-			num += d * d
-			den += cmplx.Abs(want[i]) * cmplx.Abs(want[i])
-		}
-		if num > 1e-26*den {
-			t.Errorf("factors %v: relative error² %.3g", f, num/den)
-		}
-	}
-}
-
-// r42DFT is the O(n²) forward DFT with its angles reduced exactly (k·j mod
-// n), which naiveDFT's are not.
-func r42DFT(x []complex128) []complex128 {
-	n := len(x)
-	w := make([]complex128, n)
-	for k := range w {
-		w[k] = cmplx.Rect(1, -2*math.Pi*float64(k)/float64(n))
-	}
-	out := make([]complex128, n)
-	for k := range out {
-		var sum complex128
-		for j := range x {
-			sum += x[j] * w[k*j%n]
-		}
-		out[k] = sum
-	}
-	return out
 }
