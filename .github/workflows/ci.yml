@@ -172,7 +172,7 @@ jobs:
     # ubuntu-latest became 26.04 (resolute), where qemu-user-static is only a
     # virtual package ("has no installation candidate"); 24.04 still ships it
     # with the qemu-*-static binaries the matrix names.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
