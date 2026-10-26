@@ -169,10 +169,11 @@ jobs:
   # the endianness/word-size guard and the trivially-scalar==scalar SIMD test.
   arch-qemu:
     name: arch ${{ matrix.goarch }} (qemu)
-    # ubuntu-latest became 26.04 (resolute), where qemu-user-static is only a
-    # virtual package ("has no installation candidate"); 24.04 still ships it
-    # with the qemu-*-static binaries the matrix names.
-    runs-on: ubuntu-24.04
+    # Not pinned: the install step below takes qemu-user (dynamic qemu-<arch>),
+    # which exists on 24.04 and on 26.04 alike, and the test step accepts both
+    # the -static and the plain name. A pin to ubuntu-24.04 only postponed the
+    # break (qemu-user-static is virtual on 26.04) and Renovate bumped it.
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
