@@ -18,10 +18,18 @@ import (
 // to Go (odd ido, odd l1).
 func TestStockhamPassMatchesScalarNEON(t *testing.T) {
 	defer func(v bool) { kernels.UseStockhamNEON = v }(kernels.UseStockhamNEON)
-	sizes := []int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3, 1 << 17}
-	for n := 2; n <= 2100; n++ {
-		sizes = append(sizes, n)
+	factorings := func(n int) [][]int {
+		var fs [][]int
+		for _, f := range [][]int{skFactorize(n), pow2Radices4(n), compOtherOrder(n)} {
+			if f != nil {
+				fs = append(fs, f)
+			}
+		}
+		return fs
 	}
+	// Every route of the lengths to 2,100 (routeSample), and a few large ones.
+	sizes := append([]int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3, 1 << 17},
+		routeSample(upTo(2100), smoothRoutes(factorings))...)
 	for _, n := range sizes {
 		if !factorsAreSmall(n) {
 			continue

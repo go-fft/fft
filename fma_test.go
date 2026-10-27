@@ -19,16 +19,35 @@ func fmaSweep(lo, hi int) []int {
 	for n := lo; n <= hi; n++ {
 		all = append(all, n)
 	}
-	return routeSample(all, func(n int) string {
+	return routeSample(all, func(n int) []string {
 		if !factorsAreSmall(n) {
 			if n <= 150 || n%13 == 0 {
-				return fmt.Sprintf("n=%d", n)
+				return []string{fmt.Sprintf("n=%d", n)}
 			}
-			return "dropped"
+			return nil
 		}
-		f := fmaFactors(n)
-		return fmt.Sprintf("%s|%s|%s|%b", lengthClass(n), passKey(n, skFactorizeOrder(n, compOddFirst)), passKey(n, f), fmaFuse(n, f))
+		// The strips' factorization, then the lines' (fmaRoutes).
+		keys := []string{}
+		for _, k := range passKeys(n, skFactorizeOrder(n, compOddFirst)) {
+			keys = append(keys, "strip "+k)
+		}
+		return append(keys, fmaRoutes(n)...)
 	})
+}
+
+// fmaRoutes keys a smooth length by the passes of its FMA plan, each with
+// whether it fuses, and its class (routeSample).
+func fmaRoutes(n int) []string {
+	if !factorsAreSmall(n) {
+		return []string{"not smooth"}
+	}
+	f := fmaFactors(n)
+	fuse := fmaFuse(n, f)
+	keys := []string{lengthClass(n)}
+	for k, key := range passKeys(n, f) {
+		keys = append(keys, fmt.Sprintf("%s fused:%v", key, fuse>>k&1 == 1))
+	}
+	return keys
 }
 
 // The opt-in FMA mode (Round 41) on every architecture: the option's
