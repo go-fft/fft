@@ -35,7 +35,7 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 	}
 	// Every route of the lengths to 2,100 (routeSample), and a few large ones.
 	sizes := append([]int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3},
-		routeSample(upTo(2100), smoothRoute(func(n int) [][]int { return [][]int{skFactorize(n)} }))...)
+		routeSample(upTo(2100), smoothRoutes(oneFactoring))...)
 	for _, n := range sizes {
 		if !factorsAreSmall(n) {
 			continue

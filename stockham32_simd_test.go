@@ -113,7 +113,7 @@ func TestStockham32PassMatchesScalar(t *testing.T) {
 	defer func(v bool) { kernels.UseStockham32 = v }(kernels.UseStockham32)
 	// Every route of the lengths to 2,100 (routeSample), and a few large ones.
 	sizes := append([]int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3, 1 << 17},
-		routeSample(upTo(2100), smoothRoute(f32simdFactorings))...)
+		routeSample(upTo(2100), smoothRoutes(f32simdFactorings))...)
 	if testing.Short() {
 		sizes = sizes[:3]
 		for n := 2; n <= 300; n++ {
