@@ -10,7 +10,7 @@ module github.com/go-fft/fft/benchmarks
 go 1.27.1
 
 require (
-	github.com/go-fft/fft v0.28.2
+	github.com/go-fft/fft v0.28.4
 	gonum.org/v1/gonum v0.17.0
 )
 
