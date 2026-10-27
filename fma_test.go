@@ -1,29 +1,34 @@
 package fft
 
 import (
+	"fmt"
 	"math"
 	"math/cmplx"
 	"math/rand/v2"
 	"strings"
 	"testing"
-
-	"github.com/go-fft/fft/internal/kernels"
 )
 
-// fmaSweep is the lengths lo .. hi a sweep of FMA plans runs: every one
-// where the FMA kernels run (kernels.UseFMA), whose arithmetic it checks;
-// elsewhere, where an FMA plan (built by the tests only) runs the Go
-// reference passes, every one to 150 and one in 13 beyond: the full sweep
-// replayed the same Go passes for 119 s of the macOS suite (race and
-// coverage on), against main's 377 s in all.
+// fmaSweep is the lengths lo .. hi a sweep of FMA plans runs: one smooth
+// length per route (routeSample: its strips' and its lines' factorizations,
+// and the passes its FMA plan fuses), and of the others (Rader and
+// Bluestein) every one to 150 and one in 13 beyond. Every length took 30 s
+// of the Windows suite and 119 s of the macOS one (race and coverage on).
 func fmaSweep(lo, hi int) []int {
-	var lens []int
+	var all []int
 	for n := lo; n <= hi; n++ {
-		if kernels.UseFMA || n <= 150 || n%13 == 0 {
-			lens = append(lens, n)
-		}
+		all = append(all, n)
 	}
-	return lens
+	return routeSample(all, func(n int) string {
+		if !factorsAreSmall(n) {
+			if n <= 150 || n%13 == 0 {
+				return fmt.Sprintf("n=%d", n)
+			}
+			return "dropped"
+		}
+		f := fmaFactors(n)
+		return fmt.Sprintf("%s|%s|%s|%b", lengthClass(n), passKey(n, skFactorizeOrder(n, compOddFirst)), passKey(n, f), fmaFuse(n, f))
+	})
 }
 
 // The opt-in FMA mode (Round 41) on every architecture: the option's
