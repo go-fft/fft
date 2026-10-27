@@ -33,10 +33,9 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 	} else {
 		t.Log("no AVX-512 on this CPU: only the AVX2 kernels are compared")
 	}
-	sizes := []int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3}
-	for n := 2; n <= 2100; n++ {
-		sizes = append(sizes, n)
-	}
+	// Every route of the lengths to 2,100 (routeSample), and a few large ones.
+	sizes := append([]int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3},
+		routeSample(upTo(2100), smoothRoute(func(n int) [][]int { return [][]int{skFactorize(n)} }))...)
 	for _, n := range sizes {
 		if !factorsAreSmall(n) {
 			continue
