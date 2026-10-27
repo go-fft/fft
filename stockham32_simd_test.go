@@ -111,10 +111,9 @@ func TestStockham32PassMatchesScalar(t *testing.T) {
 		t.Skip("no float32 pass kernels on this machine")
 	}
 	defer func(v bool) { kernels.UseStockham32 = v }(kernels.UseStockham32)
-	sizes := []int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3, 1 << 17}
-	for n := 2; n <= 2100; n++ {
-		sizes = append(sizes, n)
-	}
+	// Every route of the lengths to 2,100 (routeSample), and a few large ones.
+	sizes := append([]int{4096, 8192, 16384, 20160, 45000, 65536, 65536 * 3, 1 << 17},
+		routeSample(upTo(2100), smoothRoutes(f32simdFactorings))...)
 	if testing.Short() {
 		sizes = sizes[:3]
 		for n := 2; n <= 300; n++ {
@@ -127,7 +126,7 @@ func TestStockham32PassMatchesScalar(t *testing.T) {
 		}
 		for _, factors := range f32simdFactorings(n) {
 			p := newSKPlan32Factors(n, factors)
-			for s, x := range f32simdSignals(n) {
+			for s, x := range largeSignals(n, f32simdSignals(n)) {
 				for _, inverse := range []bool{false, true} {
 					kernels.UseStockham32 = false
 					scalar := make([]complex64, n)

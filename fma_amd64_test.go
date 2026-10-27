@@ -69,10 +69,9 @@ func withLayout(avx512, split, sp512 bool, f func()) {
 func TestFMAPassMatchesReference(t *testing.T) {
 	fmaKernelsHere(t)
 	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
-	sizes := []int{4096, 8192, 16384, 20160, 45000, 65536}
-	for n := 2; n <= 2100; n++ {
-		sizes = append(sizes, n)
-	}
+	// Every route of the lengths to 2,100 (routeSample: an FMA plan's
+	// factorization and the passes it fuses), and a few large ones.
+	sizes := append([]int{4096, 8192, 16384, 20160, 45000, 65536}, routeSample(upTo(2100), fmaRoutes)...)
 	for _, l := range r41Layouts() {
 		withLayout(l.avx512, l.split, l.sp512, func() {
 			fused := 0

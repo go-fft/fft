@@ -1,29 +1,53 @@
 package fft
 
 import (
+	"fmt"
 	"math"
 	"math/cmplx"
 	"math/rand/v2"
 	"strings"
 	"testing"
-
-	"github.com/go-fft/fft/internal/kernels"
 )
 
-// fmaSweep is the lengths lo .. hi a sweep of FMA plans runs: every one
-// where the FMA kernels run (kernels.UseFMA), whose arithmetic it checks;
-// elsewhere, where an FMA plan (built by the tests only) runs the Go
-// reference passes, every one to 150 and one in 13 beyond: the full sweep
-// replayed the same Go passes for 119 s of the macOS suite (race and
-// coverage on), against main's 377 s in all.
+// fmaSweep is the lengths lo .. hi a sweep of FMA plans runs: one smooth
+// length per route (routeSample: its strips' and its lines' factorizations,
+// and the passes its FMA plan fuses), and of the others (Rader and
+// Bluestein) every one to 150 and one in 13 beyond. Every length took 30 s
+// of the Windows suite and 119 s of the macOS one (race and coverage on).
 func fmaSweep(lo, hi int) []int {
-	var lens []int
+	var all []int
 	for n := lo; n <= hi; n++ {
-		if kernels.UseFMA || n <= 150 || n%13 == 0 {
-			lens = append(lens, n)
-		}
+		all = append(all, n)
 	}
-	return lens
+	return routeSample(all, func(n int) []string {
+		if !factorsAreSmall(n) {
+			if n <= 150 || n%13 == 0 {
+				return []string{fmt.Sprintf("n=%d", n)}
+			}
+			return nil
+		}
+		// The strips' factorization, then the lines' (fmaRoutes).
+		keys := []string{}
+		for _, k := range passKeys(n, skFactorizeOrder(n, compOddFirst)) {
+			keys = append(keys, "strip "+k)
+		}
+		return append(keys, fmaRoutes(n)...)
+	})
+}
+
+// fmaRoutes keys a smooth length by the passes of its FMA plan, each with
+// whether it fuses, and its class (routeSample).
+func fmaRoutes(n int) []string {
+	if !factorsAreSmall(n) {
+		return []string{"not smooth"}
+	}
+	f := fmaFactors(n)
+	fuse := fmaFuse(n, f)
+	keys := []string{lengthClass(n)}
+	for k, key := range passKeys(n, f) {
+		keys = append(keys, fmt.Sprintf("%s fused:%v", key, fuse>>k&1 == 1))
+	}
+	return keys
 }
 
 // The opt-in FMA mode (Round 41) on every architecture: the option's
