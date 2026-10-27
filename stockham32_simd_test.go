@@ -126,7 +126,7 @@ func TestStockham32PassMatchesScalar(t *testing.T) {
 		}
 		for _, factors := range f32simdFactorings(n) {
 			p := newSKPlan32Factors(n, factors)
-			for s, x := range f32simdSignals(n) {
+			for s, x := range largeSignals(n, f32simdSignals(n)) {
 				for _, inverse := range []bool{false, true} {
 					kernels.UseStockham32 = false
 					scalar := make([]complex64, n)

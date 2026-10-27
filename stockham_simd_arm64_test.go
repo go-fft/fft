@@ -39,7 +39,7 @@ func TestStockhamPassMatchesScalarNEON(t *testing.T) {
 				continue
 			}
 			p := newSKPlanFactors(n, factors)
-			for s, x := range neonSignals(n) {
+			for s, x := range largeSignals(n, neonSignals(n)) {
 				for _, inverse := range []bool{false, true} {
 					kernels.UseStockhamNEON = false
 					scalar := make([]complex128, n)

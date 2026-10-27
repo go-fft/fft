@@ -98,6 +98,17 @@ func smoothRoutes(factorings func(n int) [][]int) func(n int) []string {
 // oneFactoring is skFactorize's factorization as smoothRoutes takes it.
 func oneFactoring(n int) [][]int { return [][]int{skFactorize(n)} }
 
+// largeSignals is the signals a sweep runs at n: all of them up to 2,100
+// points, where every route runs (routeSample); above, where the lengths
+// run routes the small ones already ran on longer blocks, the first four
+// (the generic signal, signed zeros, the ±1 and zero mix, an infinity).
+func largeSignals[S any](n int, signals []S) []S {
+	if n > 2100 && len(signals) > 4 {
+		return signals[:4]
+	}
+	return signals
+}
+
 // upTo is 2, 3, …, hi.
 func upTo(hi int) []int {
 	s := make([]int, 0, hi)
