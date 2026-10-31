@@ -1,0 +1,37 @@
+# start 20:28:01 load 6.15 6.44 6.57
+Z43BAL whole/0    1671.9 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL p0/0        537.0 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL p1/0        528.6 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL p2/0        580.9 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL whole/2    1830.8 ns  default/this 0.911  min 0.824 max 1.266
+Z43BAL p0/2        570.2 ns  default/this 0.944  min 0.795 max 1.717
+Z43BAL p1/2        568.2 ns  default/this 0.930  min 0.792 max 1.319
+Z43BAL p2/2        643.4 ns  default/this 0.902  min 0.745 max 1.077
+Z43BAL whole/3    1757.6 ns  default/this 0.952  min 0.778 max 1.319
+Z43BAL p0/3        555.5 ns  default/this 0.968  min 0.793 max 1.749
+Z43BAL p1/3        549.5 ns  default/this 0.959  min 0.773 max 1.392
+Z43BAL p2/3        621.9 ns  default/this 0.936  min 0.774 max 1.116
+Z43BAL whole/4    1741.3 ns  default/this 0.956  min 0.901 max 1.335
+Z43BAL p0/4        550.6 ns  default/this 0.976  min 0.864 max 1.774
+Z43BAL p1/4        544.4 ns  default/this 0.971  min 0.935 max 1.404
+Z43BAL p2/4        614.3 ns  default/this 0.949  min 0.878 max 1.128
+PASS
+Z43BAL whole/0    1700.8 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL p0/0        544.8 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL p1/0        517.2 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL p2/0        571.9 ns  default/this 1.000  min 1.000 max 1.000
+Z43BAL whole/2    1858.6 ns  default/this 0.915  min 0.854 max 0.949
+Z43BAL p0/2        578.4 ns  default/this 0.944  min 0.888 max 0.962
+Z43BAL p1/2        556.5 ns  default/this 0.930  min 0.886 max 1.158
+Z43BAL p2/2        636.1 ns  default/this 0.900  min 0.869 max 1.166
+Z43BAL whole/3    1784.6 ns  default/this 0.952  min 0.848 max 0.972
+Z43BAL p0/3        564.8 ns  default/this 0.965  min 0.896 max 0.992
+Z43BAL p1/3        532.4 ns  default/this 0.973  min 0.870 max 1.219
+Z43BAL p2/3        610.2 ns  default/this 0.938  min 0.904 max 1.221
+Z43BAL whole/4    1764.2 ns  default/this 0.962  min 0.837 max 1.000
+Z43BAL p0/4        558.6 ns  default/this 0.975  min 0.892 max 1.007
+Z43BAL p1/4        532.8 ns  default/this 0.971  min 0.944 max 1.220
+Z43BAL p2/4        601.1 ns  default/this 0.952  min 0.932 max 1.244
+PASS
+# end 20:28:40 load 6.57 6.51 6.59
+END

@@ -1,0 +1,29 @@
+# start 20:23:36 load 6.19 6.46 6.60
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t2fv_32_avx2")
+  (dft-direct-32-x32 "n2fv_32_avx"))
+FFTWPLACE 1024 in@0 median 1592.7 best 1578.4
+FFTWPLACE 1024 in@576 median 1585.7 best 1571.3
+FFTWPLACE 1024 in@1088 median 1589.0 best 1574.8
+FFTWPLACE 1024 in@2048 median 1594.1 best 1578.8
+FFTWPLACE 1024 in@2112 median 1603.1 best 1586.5
+FFTWPLACE 1024 in@3136 median 1592.4 best 1577.1
+Z43PLACE 1024 8x8x16         whole@0=1711 pass0@0=552 whole@576=1690 pass0@576=538 whole@1088=1686 pass0@1088=528 whole@2048=1718 pass0@2048=561 whole@2112=1701 pass0@2112=549 whole@3136=1682 pass0@3136=526
+Z43PLACE 1024 8x8x16/fma     whole@0=1725 pass0@0=526 whole@576=1693 pass0@576=501 whole@1088=1697 pass0@1088=500 whole@2048=1728 pass0@2048=529 whole@2112=1712 pass0@2112=512 whole@3136=1694 pass0@3136=499
+Z43PLACE 1024 8x4x4x8        whole@0=1720 pass0@0=519 whole@576=1723 pass0@576=553 whole@1088=1708 pass0@1088=520 whole@2048=1716 pass0@2048=527 whole@2112=1719 pass0@2112=532 whole@3136=1712 pass0@3136=529
+PASS
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t2fv_32_avx2")
+  (dft-direct-32-x32 "n2fv_32_avx"))
+FFTWPLACE 1024 in@0 median 1559.6 best 1553.7
+FFTWPLACE 1024 in@576 median 1570.5 best 1562.4
+FFTWPLACE 1024 in@1088 median 1558.2 best 1550.5
+FFTWPLACE 1024 in@2048 median 1561.3 best 1550.0
+FFTWPLACE 1024 in@2112 median 1567.8 best 1557.7
+FFTWPLACE 1024 in@3136 median 1557.3 best 1547.4
+Z43PLACE 1024 8x8x16         whole@0=1707 pass0@0=538 whole@576=1689 pass0@576=522 whole@1088=1683 pass0@1088=519 whole@2048=1711 pass0@2048=541 whole@2112=1707 pass0@2112=529 whole@3136=1688 pass0@3136=521
+Z43PLACE 1024 8x8x16/fma     whole@0=1699 pass0@0=515 whole@576=1701 pass0@576=499 whole@1088=1675 pass0@1088=494 whole@2048=1704 pass0@2048=523 whole@2112=1697 pass0@2112=509 whole@3136=1667 pass0@3136=495
+Z43PLACE 1024 8x4x4x8        whole@0=1740 pass0@0=529 whole@576=1738 pass0@576=538 whole@1088=1728 pass0@1088=520 whole@2048=1742 pass0@2048=525 whole@2112=1743 pass0@2112=523 whole@3136=1723 pass0@3136=531
+PASS
+# end 20:25:37 load 7.03 6.67 6.66
+END

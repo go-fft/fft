@@ -1,0 +1,78 @@
+# start 20:11:08 load 6.18 6.28 6.55
+== n=1024 MEASURE out-of-place  best 1535.2 ns  flops add=3280 mul=960 fma=3152
+(dft-ct-dit/16
+  (dftw-direct-16/120 "t2fv_16_avx2")
+  (dft-direct-64-x16 "n2fv_64_avx2"))
+== n=1024 MEASURE in-place  best 1840.8 ns  flops add=3280 mul=960 fma=3152
+(dft-buffered-1024/1-0
+  (dft-ct-dit/16
+    (dftw-direct-16/120 "t2fv_16_avx2")
+    (dft-direct-64-x16 "n2fv_64_avx2"))
+  (dft-r2hc-1
+    (rdft-rank0-memcpy/2048))
+  (dft-nop))
+== n=1024 PATIENT out-of-place  best 1597.0 ns  flops add=3280 mul=960 fma=3152
+(dft-ct-dit/16
+  (dftw-direct-16/120 "t2fv_16_avx2")
+  (dft-direct-64-x16 "n2fv_64_avx2"))
+== n=1024 PATIENT in-place  best 1796.2 ns  flops add=3280 mul=960 fma=3152
+(dft-buffered-1024/1-0
+  (dft-ct-dit/16
+    (dftw-direct-16/120 "t2fv_16_avx2")
+    (dft-direct-64-x16 "n2fv_64_avx2"))
+  (dft-r2hc-1
+    (rdft-rank0-memcpy/2048))
+  (dft-nop))
+Z43PASSES 1024 8x8x16         whole 1687 sum 1639 | r8/i128/s1/ffalse 541 r8/i16/s3/ffalse 510 r16/i1/s0/ffalse 589
+Z43PASSES 1024 8x8x16/fma     whole 1672 sum 1590 | r8/i128/s1/ftrue 514 r8/i16/s3/ftrue 485 r16/i1/s0/ftrue 590
+Z43PASSES 1024 32x32/fma      whole 1754 sum 1694 | r32/i32/s4/ftrue 919 r32/i1/s0/ftrue 775
+Z43PASSES 1024 16x8x8         whole 2085 sum 1988 | r16/i64/s0/ffalse 996 r8/i8/s4/ffalse 584 r8/i1/s0/ffalse 407
+Z43PASSES 1024 4x16x16        whole 1942 sum 1858 | r4/i256/s4/ffalse 488 r16/i16/s0/ffalse 780 r16/i1/s0/ffalse 590
+Z43PASSES 1024 8x4x4x8        whole 1769 sum 1661 | r8/i128/s1/ffalse 531 r4/i32/s2/ffalse 328 r4/i8/s3/ffalse 384 r8/i1/s0/ffalse 418
+Z43PASSES 1024 4x4x8x8        whole 1787 sum 1701 | r4/i256/s1/ffalse 443 r4/i64/s2/ffalse 328 r8/i8/s3/ffalse 517 r8/i1/s0/ffalse 412
+PASS
+Z43AB 1024 8x8x16           1728.2 ns  first/this 1.000  spread 1.000
+Z43AB 1024 8x8x16/fma       1648.5 ns  first/this 1.047  spread 1.167
+Z43AB 1024 32x32/fma        1757.4 ns  first/this 0.982  spread 1.179
+Z43AB 1024 8x16x8           1847.9 ns  first/this 0.934  spread 1.370
+Z43AB 1024 16x8x8           2071.7 ns  first/this 0.837  spread 1.172
+Z43AB 1024 4x16x16          1905.3 ns  first/this 0.904  spread 1.241
+Z43AB 1024 16x16x4          2146.7 ns  first/this 0.807  spread 1.109
+Z43AB 1024 8x4x4x8          1742.1 ns  first/this 0.988  spread 1.138
+Z43AB 1024 4x4x8x8          1781.4 ns  first/this 0.971  spread 1.146
+Z43AB 1024 4x8x4x8          1763.9 ns  first/this 0.981  spread 1.165
+Z43AB 1024 8x8x4x4          1746.9 ns  first/this 0.986  spread 1.271
+PASS
+OVER 64 8x8 FFT 78.1 transform 74.4 passes 88.5 pool 16.6
+OVER 128 8x16 FFT 158.8 transform 152.4 passes 169.0 pool 16.6
+OVER 256 4x8x8 FFT 307.1 transform 303.7 passes 336.3 pool 16.6
+OVER 512 8x8x8 FFT 731.5 transform 723.1 passes 732.8 pool 16.6
+OVER 1024 8x8x16 FFT 1708.8 transform 1734.3 passes 1699.4 pool 16.5
+OVER 1000 5x5x5x8 FFT 2033.4 transform 2043.6 passes 2005.3 pool 16.0
+PASS
+== n=1024 MEASURE out-of-place  best 1568.0 ns  flops add=3280 mul=960 fma=3152
+(dft-ct-dit/16
+  (dftw-direct-16/120 "t2fv_16_avx2")
+  (dft-direct-64-x16 "n2fv_64_avx2"))
+== n=1024 MEASURE in-place  best 1857.6 ns  flops add=3312 mul=992 fma=3136
+(dft-buffered-1024/1-0
+  (dft-ct-dit/32
+    (dftw-direct-32/248 "t2fv_32_avx2")
+    (dft-direct-32-x32 "n2fv_32_avx"))
+  (dft-r2hc-1
+    (rdft-rank0-memcpy/2048))
+  (dft-nop))
+== n=1024 PATIENT out-of-place  best 1616.0 ns  flops add=3312 mul=992 fma=3136
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t2fv_32_avx2")
+  (dft-direct-32-x32 "n2fv_32_avx"))
+== n=1024 PATIENT in-place  best 1833.5 ns  flops add=3312 mul=992 fma=3136
+(dft-buffered-1024/1-0
+  (dft-ct-dit/32
+    (dftw-direct-32/124 "t1fv_32_avx2")
+    (dft-direct-32-x32 "n2fv_32_avx"))
+  (dft-r2hc-1
+    (rdft-rank0-memcpy/2048))
+  (dft-nop))
+# end 20:15:33 load 7.04 6.80 6.72
+END
