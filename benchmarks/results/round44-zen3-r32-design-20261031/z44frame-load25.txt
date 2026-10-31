@@ -1,0 +1,15 @@
+Z44FRAME 8x8x16 whole                  1874.1 ns  8x8x16whole/this 1.000
+Z44FRAME 8x8x16 p0(r8,s1)               572.5 ns  8x8x16whole/this 3.127
+Z44FRAME 8x8x16 p1(r8,s3)               541.4 ns  8x8x16whole/this 3.427
+Z44FRAME 8x8x16 p2(r16,s0)              599.5 ns  8x8x16whole/this 3.034
+Z44FRAME 8x8x16/fma whole              1719.8 ns  8x8x16whole/this 1.056
+Z44FRAME 8x8x16/fma p0(r8,s1)           556.1 ns  8x8x16whole/this 3.329
+Z44FRAME 8x8x16/fma p1(r8,s3)           517.8 ns  8x8x16whole/this 3.566
+Z44FRAME 8x8x16/fma p2(r16,s0)          621.5 ns  8x8x16whole/this 2.906
+Z44FRAME 32x32/fma/out whole           1857.4 ns  8x8x16whole/this 1.003
+Z44FRAME 32x32/fma/out p0(r32,s4)      1016.4 ns  8x8x16whole/this 1.855
+Z44FRAME 32x32/fma/out p1(r32,s0)       786.3 ns  8x8x16whole/this 2.252
+Z44FRAME 32x32/fma/frame whole         1900.4 ns  8x8x16whole/this 0.937
+Z44FRAME 32x32/fma/frame p0(r32,s4)    1128.0 ns  8x8x16whole/this 1.637
+Z44FRAME 32x32/fma/frame p1(r32,s0)     802.3 ns  8x8x16whole/this 2.274
+PASS

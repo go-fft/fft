@@ -12,7 +12,19 @@ package kernels
 // made 2048 = 32·8·8 1.04× and RFFT 4096 1.09× faster, and 1024 = 32·32
 // (streams 512 bytes apart) 0.87× as fast. A pure function, tested both
 // ways on any machine.
-func r32InFrame(ido, l1 int) bool { return ido*l1 >= 64 }
+func r32InFrame(ido, l1 int) bool {
+	switch R32FrameForce {
+	case 1:
+		return true
+	case 2:
+		return false
+	}
+	return ido*l1 >= 64
+}
+
+// R32FrameForce (prototype, Round 44): 1 forces the in-frame radix-32
+// kernels, 2 the through-the-output ones, 0 keeps r32InFrame's rule.
+var R32FrameForce int
 
 var (
 	skSplit32FMAF = [2][5]skPassFn{

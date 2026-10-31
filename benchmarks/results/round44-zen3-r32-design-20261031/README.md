@@ -60,3 +60,42 @@ There are 16 butterfly pairs per pass, so:
 - The radix-32 kernels that exist today (Round 38, Round 42) lost to 8·8·16, and their arithmetic is not genfft's.
 
 Stopped here, as the gate requires.
+
+## Follow-up: the user asked to build it anyway — and the premise fails on the existing kernels
+
+1. **Licensing.** FFTW's codelets are GPL-2.0-or-later, while go-fft and
+   go-asmgen are BSD-3. A Go reference that copies n2fv_32's or t2fv_32's
+   expression DAG would be a derivative work, so it must not be done. It is
+   not needed either. The 4×8 split that go-fft already uses (bfly32FMA)
+   costs 376 real additions and 88 multiplications per 32 points against
+   FFTW n1_32's 372 and 84, so the arithmetic already matches genfft.
+2. **Instruction counts of the generated kernels** (`scripts/asmcount`,
+   steady loops of v0.28.6's .s files):
+
+   | kernel | per iteration | per transform |
+   |:--|--:|--:|
+   | skSplit8ISFwd / SIFwd (8 points × 4 lanes) | 176 | 2 × 32 × 176 = 11 264 |
+   | skLast16AVX2 (2 blocks) | 188 | 32 × 188 = 6 016 |
+   | **8·8·16 total** | | **17 280** |
+   | skSplit32IIFwdFMA (32 points × 4 lanes) | 1 002 | 8 × 1 002 = 8 016 |
+   | skLast32AVX2FMA (2 blocks) | 496 | 16 × 496 = 7 936 |
+   | **32·32 FMA total** | | **15 952** |
+
+   The FMA 32·32 plan that go-fft already has is at FFTW's count
+   (~15 700), yet it runs slower than 8·8·16. Round 43, quiet host:
+   1754 against 1687 ns, and 1672 for FMA 8·8·16. Its twiddled pass retires
+   about 8 instructions per ns where every other pass retires about 10.
+   The deficit is IPC, not instruction count, and without a PMU this VM
+   cannot say which stall it is.
+3. **The frame variant** (`z44frame-load25.txt`, `TestZ44Frame`,
+   load 25): keeping the radix-32 values between stages in the stack frame
+   instead of the 512-byte-strided output rules out 4 KB aliasing. The pass
+   got slower: 1128 against 1016 ns.
+4. **Best case for a new interleaved twiddled radix-32 pass** (t2fv-like,
+   FMA): about 557 instructions per pair, 8 900 per pass, about 890 ns at
+   10 per ns. Plus the final pass (786) that is about 1 680–1 720 ns, which
+   does not beat FMA 8·8·16 (1672). Default mode needs 31 more instructions
+   per pair.
+
+Checkpoint rule: the radix-32 kernels measure slower than 8·8·16 at its
+best, so I stop. Nothing is shipped.
