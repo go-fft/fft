@@ -140,7 +140,12 @@ where two would hide which side of 1 or 1.05 a row is on:
   two passes with 32- and 64-point codelets. Round 38 built a bit-identical
   radix-32 pass for amd64, but it lost to split radix 8 wherever it was timed,
   so it was not shipped (v0.26.4 records the measurements). Also open: complex
-  and RFFT 1,080, and RFFT 256.
+  and RFFT 1,080, and RFFT 256. Complex 1,024 stays at about 1.08–1.13× FFTW
+  on Zen 3; Rounds 43 and 44 (branch `perf-zen1024-fmapipes`, not merged:
+  [`round43-zen3-1024-20261031`](https://github.com/go-fft/fft/tree/perf-zen1024-fmapipes/benchmarks/results/round43-zen3-1024-20261031) and
+  [`round44-zen3-r32-design-20261031`](https://github.com/go-fft/fft/tree/perf-zen1024-fmapipes/benchmarks/results/round44-zen3-r32-design-20261031))
+  show that it is an IPC deficit of the twiddled radix-32 pass, not
+  instruction count, placement or arithmetic.
 - **FMA is not what keeps complex 1,024 behind** (Round 41): an opt-in FMA
   mode, as accurate as the default, moved complex 1,024 by 0–1% against FFTW
   on both hosts; it closed complex 256 on Cascade Lake (1.09 → 0.96). Its

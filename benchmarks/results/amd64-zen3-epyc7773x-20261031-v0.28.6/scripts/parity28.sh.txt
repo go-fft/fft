@@ -1,0 +1,28 @@
+#!/bin/sh
+# parity28.sh ARCH CORE MAXSTART MAXEND TRIES "MACHINE" V...: the parity package
+# (parity42b.sh / r40parity.sh procedure) once per variant, pinned with taskset,
+# GOMAXPROCS=1. V is "def" (GOFFT_FMA unset) or "fma" (GOFFT_FMA=1; amd64 only).
+# Each run waits for a one-minute load below MAXSTART and is kept as
+# out<i>-<v>-loaded<try> (and rerun, at most TRIES runs) when the load at its
+# end is above MAXEND. Run from the directory that holds runpkg/ and r28.sha.
+A=$1; C=$2; LS=$3; LE=$4; T=$5; M=$6; shift 6
+D=$(cd "$(dirname "$0")" && pwd)
+cd "$D" && sha256sum -c r28.sha || exit 1
+i=0
+for v in "$@"; do
+  i=$((i+1)); try=0
+  while [ $try -lt "$T" ]; do
+    try=$((try+1))
+    while awk -v m="$LS" '{exit !($1 >= m)}' /proc/loadavg; do sleep 30; done
+    echo "# run $i $v try $try start $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg)"
+    if [ "$v" = fma ]; then F=1; else F=; fi
+    GOMAXPROCS=1 GOFFT_FMA=$F GOV=go1.27.1 FFTW_DESC="3.3.10 built from source by setup.sh" taskset -c "$C" sh runpkg/run-remote.sh "$A" "$M" > "run$i-$v-$try.log" 2>&1
+    end=$(cut -d' ' -f1 /proc/loadavg)
+    o="out$i-$v"
+    if awk -v m="$LE" -v e="$end" 'BEGIN{exit !(e > m)}'; then o="$o-loaded$try"; fi
+    mkdir -p "$o" && cp runpkg/benchmarks/go_bench.txt runpkg/benchmarks/fftw.json runpkg/benchmarks/ref.json runpkg/benchmarks/REPORT.md "$o/" 2>/dev/null
+    echo "# run $i $v try $try end $(date +%T) load $(cut -d' ' -f1-3 /proc/loadavg) -> $o"
+    case "$o" in *-loaded*) ;; *) break ;; esac
+  done
+done
+echo END
