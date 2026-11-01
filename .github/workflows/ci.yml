@@ -113,7 +113,11 @@ jobs:
       - name: govulncheck
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
       - name: Fuzz the public API for 60 s
-        run: go test -run '^$' -fuzz FuzzPublicAPI -fuzztime 60s .
+        run: go test -run '^$' -fuzz '^FuzzPublicAPI$' -fuzztime 60s .
+      - name: Fuzz the FMA and scalar variants for 20 s each
+        run: |
+          go test -run '^$' -fuzz '^FuzzPublicAPIFMA$' -fuzztime 20s .
+          go test -run '^$' -fuzz '^FuzzPublicAPIScalar$' -fuzztime 20s . || test "$(go env GOARCH)" != amd64
 
   # Native per-arch execution. amd64/arm64 have GitHub-hosted runners, so the
   # generated assembly (where present) runs natively. Each job regenerates the
