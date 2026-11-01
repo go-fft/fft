@@ -341,9 +341,9 @@ are not used: the scalar loop measured as fast.
 
 **Against FFTW, numpy and scipy**, on three GCC Compile Farm hosts, each with
 the newest parity runs available (BENCHMARKS.md, "Current numbers"): Zen 3
-re-measured on 2026-10-31 at v0.28.6; Neoverse-N1 Round 40 (the v0.26.1 tag)
-and Cascade Lake Round 39 (v0.27.0), both 2026-10-11, not re-measured at
-v0.28.6 because the two hosts were under a load of 9–31 all session.
+re-measured on 2026-10-31 at v0.28.6, and Neoverse-N1 on 2026-11-01 at the
+v0.28.7 code; Cascade Lake is Round 39 (v0.27.0, 2026-10-11), not re-measured
+because its host was under a load of 5–11 on 8 cores.
 v0.24.0 changed only Haswell's and arm64's paths, v0.25.0, v0.26.3
 and v0.27.0 Intel AVX-512's, v0.26.0 only paths taken off Intel;
 the exceptions are listed in BENCHMARKS.md. Every row on one pinned core.
@@ -356,30 +356,30 @@ FFTW time (below 1 means go-fft is faster):
 |:--|--:|--:|--:|
 | complex 256 | 1.07 | **0.88** | 1.052 |
 | complex 1,024 | 1.13 | **0.77** | 1.19 |
-| complex 4,096 | **0.92** | **0.59** | **0.94** |
-| complex 65,536 | **0.92** | **0.58** | 1.08 |
-| complex 1,048,576 | **0.50** | **0.47** | **0.70** |
-| complex 1,000 (2³·5³) | **0.97** | **0.85** | 1.10 |
-| complex 1,296 (2⁴·3⁴) | **0.93** | **0.77** | 1.10 |
+| complex 4,096 | **0.92** | **0.58** | **0.94** |
+| complex 65,536 | **0.92** | **0.59** | 1.08 |
+| complex 1,048,576 | **0.50** | **0.46** | **0.70** |
+| complex 1,000 (2³·5³) | **0.97** | **0.84** | 1.10 |
+| complex 1,296 (2⁴·3⁴) | **0.93** | **0.76** | 1.10 |
 | complex 1,009 (prime, Rader) | **0.63** | **0.45** | **0.59** |
-| complex 10,007 (prime, Bluestein) | **0.81** | **0.69** | **0.94** |
-| RFFT 256 | 1.075 | **0.998** | **0.94** |
-| RFFT 4,096 | 1.061 | **0.72** | **1.049** |
-| RFFT 1,048,576 | **0.79** | **0.56** | 1.09 |
+| complex 10,007 (prime, Bluestein) | **0.81** | **0.68** | **0.94** |
+| RFFT 256 | 1.075 | **0.992** | **0.94** |
+| RFFT 4,096 | 1.061 | **0.71** | **1.049** |
+| RFFT 1,048,576 | **0.79** | **0.58** | 1.09 |
 | 2-D 64×64 | **0.89** | **0.79** | **0.94** |
-| 2-D 128×128 | **0.80** | **0.66** | **0.95** |
-| 2-D 512×512 | **0.94** | **0.48** | **0.88** |
-| 2-D 1024×1024 | **0.94** | **0.42** | **0.83** |
+| 2-D 128×128 | **0.80** | **0.65** | **0.95** |
+| 2-D 512×512 | **0.94** | **0.45** | **0.88** |
+| 2-D 1024×1024 | **0.94** | **0.39** | **0.83** |
 
 Bold: at or above FFTW, which here includes rows up to 1.05, slower than FFTW
 by at most 5%.
 - **At or above FFTW** on 24 of the 24 rows of the full sweep on Neoverse-N1
-  (faster on all 24), 18 on Zen 3 (faster on 16; 18 and 16 as well with
-  `Options{FMA: true}`) and 15 on Cascade Lake
+  (faster on all 24), 18 on Zen 3 (faster on 16; with
+  `Options{FMA: true}` 18 to 20, faster on 16 to 17, over two passes) and 15 on Cascade Lake
   (faster on 14, among them all five 2-D rows). The rows counted but still
   slower than FFTW: RFFT 1,024 (1.030) and 1,080 (1.014) on Zen 3; RFFT 4,096 (1.049) on
-  Cascade Lake. None on Neoverse-N1, whose closest rows are RFFT 256 (0.998)
-  and RFFT 1,080 (0.994).
+  Cascade Lake. None on Neoverse-N1, whose closest rows are RFFT 256 (0.992)
+  and RFFT 1,080 (0.987).
 - **At or above numpy.fft and scipy.fft** on all 24 rows, in both runs, on
   every host.
 - **Where FFTW still leads:** on Zen 3 complex 256 and 1,024 (1.07×, 1.13×),
@@ -394,8 +394,9 @@ by at most 5%.
   1.20× faster than v0.23.1 (Round 37), which also measured that v0.22.x cost
   RFFT 256 about 1.5%. v0.25.0 removes the call responsible; that has not been
   re-measured on Haswell.
-  **Not measured:** Apple M4 with the current engines, and loong64 (no host
-  reachable).
+  **Not measured:** Apple M4 with the current engines (the pkgx FFTW bottle
+  has no NEON codelets, so a comparison against it would be unfair; see
+  BENCHMARKS.md), and loong64 (no host reachable).
 - **Against gonum/dsp/fourier**, the pure-Go peer (both `CGO_ENABLED=0`),
   go-fft is faster on every row measured (19/19 on each host), by the widest
   margin on primes: gonum's arbitrary-length path is a naive Bluestein with no

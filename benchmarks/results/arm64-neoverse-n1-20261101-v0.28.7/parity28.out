@@ -1,0 +1,7 @@
+runpkg/verify.arm64: OK
+runpkg/bench.arm64: OK
+# run 1 def try 1 start 07:52:18 load 2.45 2.28 2.54
+# run 1 def try 1 end 08:01:04 load 3.11 3.00 2.83 -> out1-def
+# run 2 def try 1 start 08:01:34 load 2.60 2.89 2.80
+# run 2 def try 1 end 08:10:23 load 3.27 3.12 2.97 -> out2-def
+END

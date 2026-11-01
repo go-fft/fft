@@ -2,7 +2,7 @@
 
 Standardized parity report for the pure-Go (CGO=0) FFT library `go-fft`, measured against the gold-standard C library **FFTW** and the reference Python (`numpy.fft`, `scipy.fft` = pocketfft) and Go (`gonum`) FFTs, all on the **same machine, same inputs, same sizes**.
 
-## Current numbers (v0.28.6 on Zen 3; v0.27.0's columns on the other two hosts)
+## Current numbers (v0.28.7 code on Zen 3 and Neoverse-N1; Cascade Lake's column is v0.27.0's)
 
 > **Correctness, not speed:** v0.25.0 to v0.26.2 return wrong N-D results
 > (`FFTN`, `FFT2`, `PlanN` and their inverses), silently, on Intel CPUs with
@@ -22,8 +22,12 @@ correctness fix) and v0.27.0 (Round 39) changed Intel AVX-512's. v0.26.0
 v0.26.2 and v0.26.4 changed no library code. The exceptions are listed under
 the table.
 
-- **Neoverse-N1** (cfarm424): Round 40, 2026-10-11, the v0.26.1 tag; arm64's
-  paths have not changed since
+- **Neoverse-N1** (cfarm424): 2026-11-01, the code of the v0.28.7 tag (a
+  docs-only release over v0.28.6), two pinned runs on core 3
+  ([`arm64-neoverse-n1-20261101-v0.28.7/`](benchmarks/results/arm64-neoverse-n1-20261101-v0.28.7/)
+  `out1-def`, `out2-def`; one-minute load 2.3–3.3 on the 64 cores, from other
+  users' jobs, the earlier column was taken below 1.5). The previous column
+  was Round 40's, 2026-10-11, the v0.26.1 tag
   ([`round40-parity-n1-v0.26.1-20261011/parity/`](benchmarks/results/round40-parity-n1-v0.26.1-20261011/parity/) `r1`, `r2`);
 - **Cascade Lake** (cfarm151): Round 39, 2026-10-11, the branch that became
   v0.27.0 ([`round39-cascade-20261011/parity/`](benchmarks/results/round39-cascade-20261011/parity/) `p-br1`, `p-br2`);
@@ -35,11 +39,12 @@ the table.
   threads, from five other users' single-thread jobs, and the pinned core
   was idle). The previous column was Round 36's, on the branch that became
   v0.26.0.
-- **Not re-measured at v0.28.6:** Neoverse-N1 and Cascade Lake. cfarm424 ran
-  at a one-minute load of 22–31 on 64 cores and cfarm151 at 9–11 on 8 cores
-  for the whole session, above the load (below 1.5) every earlier run of
-  those two columns was taken at, so the runs were not taken. Their columns
-  stay as published above.
+- **Cascade Lake not re-measured at v0.28.6/v0.28.7.** cfarm151 ran at a
+  one-minute load of 5–11 on 8 cores for the whole of 2026-10-31 and the
+  morning of 2026-11-01, above the load (below 1.5) its earlier runs were
+  taken at, so its column stays as published above. cfarm424 was likewise
+  too loaded on 2026-10-31 (22–31 on 64 cores) and was measured on
+  2026-11-01 once the load fell to 2.
 
 **Method.** go-fft: the median of the three repetitions in each run's
 `go_bench.txt`, then the mean of the two runs named above. FFTW: the median of
@@ -66,39 +71,45 @@ where two would hide which side of 1 or 1.05 a row is on:
 |:--|--:|--:|--:|
 | complex 256 | 1.07 | **0.88** | 1.052 |
 | complex 1,024 | 1.13 | **0.77** | 1.19 |
-| complex 4,096 | **0.92** | **0.59** | **0.94** |
-| complex 65,536 | **0.92** | **0.58** | 1.08 |
-| complex 1,048,576 | **0.50** | **0.47** | **0.70** |
-| complex 1,000 (2³·5³) | **0.97** | **0.85** | 1.10 |
-| complex 1,080 (2³·3³·5) | 1.10 | **0.90** | 1.13 |
-| complex 1,920 (2⁷·3·5) | **0.97** | **0.89** | 1.11 |
+| complex 4,096 | **0.92** | **0.58** | **0.94** |
+| complex 65,536 | **0.92** | **0.59** | 1.08 |
+| complex 1,048,576 | **0.50** | **0.46** | **0.70** |
+| complex 1,000 (2³·5³) | **0.97** | **0.84** | 1.10 |
+| complex 1,080 (2³·3³·5) | 1.10 | **0.89** | 1.13 |
+| complex 1,920 (2⁷·3·5) | **0.97** | **0.88** | 1.11 |
 | complex 1,009 (prime, Rader) | **0.63** | **0.45** | **0.59** |
-| complex 1,296 (2⁴·3⁴) | **0.93** | **0.77** | 1.10 |
-| complex 10,007 (prime, Bluestein) | **0.81** | **0.69** | **0.94** |
-| RFFT 256 | 1.075 | **0.998** | **0.94** |
+| complex 1,296 (2⁴·3⁴) | **0.93** | **0.76** | 1.10 |
+| complex 10,007 (prime, Bluestein) | **0.81** | **0.68** | **0.94** |
+| RFFT 256 | 1.075 | **0.992** | **0.94** |
 | RFFT 1,024 | **1.030** | **0.70** | **0.78** |
-| RFFT 4,096 | 1.061 | **0.72** | **1.049** |
-| RFFT 65,536 | **0.88** | **0.72** | 1.09 |
-| RFFT 1,048,576 | **0.79** | **0.56** | 1.09 |
-| RFFT 1,000 | **0.984** | **0.94** | **0.95** |
-| RFFT 1,080 | **1.014** | **0.994** | **0.995** |
+| RFFT 4,096 | 1.061 | **0.71** | **1.049** |
+| RFFT 65,536 | **0.88** | **0.70** | 1.09 |
+| RFFT 1,048,576 | **0.79** | **0.58** | 1.09 |
+| RFFT 1,000 | **0.984** | **0.93** | **0.95** |
+| RFFT 1,080 | **1.014** | **0.987** | **0.995** |
 | RFFT 1,920 | 1.057 | **0.93** | **0.97** |
 | 2-D 64×64 | **0.89** | **0.79** | **0.94** |
-| 2-D 128×128 | **0.80** | **0.66** | **0.95** |
-| 2-D 256×256 | **0.94** | **0.54** | **0.95** |
-| 2-D 512×512 | **0.94** | **0.48** | **0.88** |
-| 2-D 1024×1024 | **0.94** | **0.42** | **0.83** |
+| 2-D 128×128 | **0.80** | **0.65** | **0.95** |
+| 2-D 256×256 | **0.94** | **0.47** | **0.95** |
+| 2-D 512×512 | **0.94** | **0.45** | **0.88** |
+| 2-D 1024×1024 | **0.94** | **0.39** | **0.83** |
 
 - **Against FFTW** (all 24 rows: 11 complex, 8 RFFT, 5 2-D):
   - **Neoverse-N1: 24 of 24**, faster on all 24. None is within 5% and still
-    slower. The closest are RFFT 256 (0.998) and RFFT 1,080 (0.994).
+    slower. The closest are RFFT 256 (0.992) and RFFT 1,080 (0.987).
   - **Zen 3: 18 of 24**; faster on 16 (17 in Round 36's column). Within 5%
     but still slower: RFFT 1,024 (1.030) and 1,080 (1.014). Slower by more:
     complex 256 (1.07), 1,024 (1.13), 1,080 (1.10); RFFT 256 (1.075), 4,096
-    (1.061), 1,920 (1.057). With `Options{FMA: true}` the same run counts 18
-    of 24 and faster on 16 as well (complex 1,920 at 1.052 and RFFT 4,096 at
-    1.053 sit just over the line); Round 42 counted 20 of 24 under a
-    one-minute load of 2.3–4.1.
+    (1.061), 1,920 (1.057). With `Options{FMA: true}` the 2026-10-31 FMA runs
+    count 18 of 24 and faster on 16 as well (complex 1,920 at 1.052, RFFT
+    4,096 at 1.053 and RFFT 256 at 1.060 sit just over the line); a second
+    pair of FMA runs on 2026-11-01 (`pass2-20261101/`, load 6.1–7.2, same
+    pinned core) counts **20 of 24**, faster on 17 (complex 1,920 1.031 and
+    RFFT 256 1.047 in; RFFT 4,096 1.063 still out, complex 1,920's runs read
+    3,853 and 4,337 ns). Round 42 counted 20 of 24 under a one-minute load of
+    2.3–4.1. FMA on Zen 3 is therefore 18–20 of 24: three rows (complex
+    1,920, RFFT 256, RFFT 4,096) sit within 0.01 of 1.05, and two passes do
+    not settle which side they are on; RFFT 4,096 is out in both.
   - **Cascade Lake: 15 of 24**; faster on 14 (10 in v0.26.0). All five 2-D
     rows are faster than FFTW. Within 5% but still slower: RFFT 4,096
     (1.049). Slower by more: complex 256 (1.052), 1,024 (1.19), 65,536
@@ -140,12 +151,15 @@ where two would hide which side of 1 or 1.05 a row is on:
     so the four rows are not attributed to a release. The per-run go-fft times
     of the two default runs agree within 8% on every row but RFFT 1,000
     (1,142 and 1,287 ns).
-  - **Neoverse-N1.** The column is Round 40's, on v0.26.1. Against Round 37's
-    (v0.24.0) column, complex 10,007 went 0.72 → 0.69 (v0.26.1 runs it 2%
-    faster than v0.25.0) and 2-D 256² 0.50 → 0.54. That 2-D path has not
-    changed on arm64 since v0.24.0, and one binary ran it at 610–705 µs
-    between processes; likely allocation placement, not proved. Every other
-    row is within 0.01 of Round 37's.
+  - **Neoverse-N1, 2026-11-01 against Round 40's column (v0.26.1).** Three
+    rows moved by more than 5% in ratio, all the 2-D ones getting faster:
+    256² 0.54 → 0.47 (−13%), 512² 0.48 → 0.45 (−7%) and 1024² 0.42 → 0.39
+    (−6%). arm64's code has not changed since v0.24.0; go-fft's 256² time is
+    608 µs (Round 40: one binary ran it at 610–705 µs between processes,
+    likely allocation placement, not proved) and FFTW's own 2-D medians moved
+    in this session (256²: 1,303 µs, spread 1,249–1,358 across the two runs).
+    Every other row is within 3%. The earlier Round 37 → 40 note (complex
+    10,007 0.72 → 0.69) stands; it reads 0.68 here.
 - **Haswell** (Xeon E5-2620 v3, no FFTW on the host, so no ratio): v0.21.0
   (Round 29) runs complex 512–2^18 1.03–1.21× faster than v0.19.1, the
   composites 1000–6000 1.07–1.21× faster and RFFT 1000 1.09× faster. v0.24.0
@@ -157,7 +171,12 @@ where two would hide which side of 1 or 1.05 a row is on:
   removes that second call, but it has **not** been re-measured on Haswell.
 - **Not measured:** Apple M4 has never been measured against FFTW with the
   current engines (the June 2026 M4 tables below describe the previous ones),
-  and no loong64 host could be reached.
+  and no loong64 host could be reached. On 2026-11-01 the M4 comparison was
+  attempted and stopped before any timing: the pkgx `fftw.org` bottle
+  (3.3.11, the pantry recipe configures `--enable-shared --enable-threads`
+  with no `--enable-neon`) has an empty `neon.o` and no SIMD codelets in
+  `libfftw3.a`, so it is a scalar-C FFTW and would flatter go-fft. A fair
+  M4 row needs an FFTW built with `--enable-neon`.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,
