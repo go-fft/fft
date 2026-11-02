@@ -79,10 +79,34 @@ func TestLongerSlicesStillWork(t *testing.T) {
 // single precision, with fuzzed lengths and shapes. The only panics allowed are the package's own ("fft: ..."), and every
 // transform must round-trip.
 func FuzzPublicAPI(f *testing.F) {
+	fuzzPublicAPISeeds(f)
+	f.Fuzz(fuzzPublicAPI)
+}
+
+// fuzzFMA makes the Options entry points of the fuzz targets request FMA
+// plans; only FuzzPublicAPIFMA sets it.
+var fuzzFMA bool
+
+func fuzzPublicAPISeeds(f *testing.F) {
 	for _, s := range [][3]int{{1, 1, 0}, {7, 3, 1}, {64, 16, 2}, {97, 5, 3}, {1000, 0, 4}, {0, 9, 5}, {12, 5, 8}, {9, 4, 10}, {2, 3, 13}, {5, 5, 19}} {
 		f.Add(s[0], s[1], uint8(s[2]))
 	}
+}
+
+// FuzzPublicAPIFMA is FuzzPublicAPI with Options.FMA requested (and FMA plans
+// forced on whatever the CPU), so the fused kernels are fuzzed too.
+func FuzzPublicAPIFMA(f *testing.F) {
+	fuzzPublicAPISeeds(f)
+	fuzzFMA = true
+	defer func() { fuzzFMA = false }()
 	f.Fuzz(func(t *testing.T, a, b int, seed uint8) {
+		forceFMA(t)
+		fuzzPublicAPI(t, a, b, seed)
+	})
+}
+
+func fuzzPublicAPI(t *testing.T, a, b int, seed uint8) {
+	{
 		// Bound the work, not the validation: oversized or negative values must
 		// still be rejected cleanly, so they are passed through to shape checks.
 		defer func() {
@@ -190,7 +214,7 @@ func FuzzPublicAPI(f *testing.F) {
 		}
 		fuzzOptions(t, a, b, seed)
 		fuzzF32ND(t, a, b, seed)
-	})
+	}
 }
 
 // fuzzOptions drives the numpy-style entry points (Options, Hermitian, real
@@ -220,10 +244,10 @@ func fuzzOptions(t *testing.T, a, b int, seed uint8) {
 			x[i] = complex(float64((i*5+int(seed))%9)-4, float64((i*7+int(seed))%5)-2)
 			r[i] = real(x[i])
 		}
-		o := Options{N: b, Norm: norm}
+		o := Options{N: b, Norm: norm, FMA: fuzzFMA}
 		try("FFTWith/IFFTWith", func() {
 			X := FFTWith(x, o)
-			back := IFFTWith(X, Options{N: len(X), Norm: norm})
+			back := IFFTWith(X, Options{N: len(X), Norm: norm, FMA: fuzzFMA})
 			for i, v := range back {
 				want := complex128(0)
 				if i < len(x) {
@@ -287,7 +311,7 @@ func fuzzOptions(t *testing.T, a, b int, seed uint8) {
 		d[i] = complex(float64(i%7)-3, float64(i%4))
 		rd[i] = float64(i%6) - 2
 	}
-	o := Options{Axes: axes, Norm: norm}
+	o := Options{Axes: axes, Norm: norm, FMA: fuzzFMA}
 	try("FFTNWith/IFFTNWith", func() {
 		back := IFFTNWith(FFTNWith(d, shape, o), shape, o)
 		for i := range d {
