@@ -317,6 +317,7 @@ var (
 func newPlanNAxes(shape, axes []int, fma bool) *PlanN {
 	p := &PlanN{shape: append([]int(nil), shape...), fma: fma}
 	p.size = shapeProduct(shape...)
+	checkAlloc("NewPlanN", p.size, 16)
 	p.stride = rowMajorStrides(shape)
 	p.axes = make([]*Plan, len(shape))
 	for _, ax := range axes {

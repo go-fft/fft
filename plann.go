@@ -107,6 +107,7 @@ func NewPlanNWith(shape []int, o Options) *PlanN {
 func newPlanNF(shape []int, fma bool) *PlanN {
 	p := &PlanN{shape: append([]int(nil), shape...), fma: fma}
 	p.size = shapeProduct(shape...)
+	checkAlloc("NewPlanN", p.size, 16)
 	p.stride = make([]int, len(shape))
 	acc := 1
 	for ax := len(shape) - 1; ax >= 0; ax-- {

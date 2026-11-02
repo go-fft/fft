@@ -32,6 +32,7 @@ func IFFTWith(x []complex128, o Options) []complex128 {
 func complexWith(name string, x []complex128, o Options, inverse bool) []complex128 {
 	n := o.check1D(name, len(x))
 	f := o.Norm.scale(n, inverse)
+	checkAlloc(name, n, 16)
 	out := make([]complex128, n)
 	copy(out, x) // truncates to n, or leaves the zero padding past len(x)
 	if n > 1 {
@@ -57,6 +58,7 @@ func rfftScaled(x []float64, n int, f float64, fma bool) []complex128 {
 	if n == 0 {
 		return []complex128{}
 	}
+	checkAlloc("RFFTWith", n, 16) // the odd-n complex plan outweighs the n reals
 	in := x
 	if len(x) != n {
 		in = make([]float64, n)

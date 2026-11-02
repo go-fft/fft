@@ -82,6 +82,13 @@ func checkR2R(cosine bool, typ, n int, norm Norm) {
 		panic("fft: " + r2rName(cosine, typ) + " length " + strconv.Itoa(n) + " is below its minimum " + strconv.Itoa(lo))
 	}
 	norm.scale(1, false) // panics on an unknown Norm
+	// Types I and IV (odd n) build a real plan of 2n+2 or 4n points; the others
+	// hold n-point complex128 buffers.
+	bytes := 16
+	if typ == 1 || typ == 4 {
+		bytes = 32
+	}
+	checkAlloc(r2rName(cosine, typ), n, bytes)
 }
 
 // inverseType is the type whose transform inverts type typ: I and IV are their

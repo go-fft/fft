@@ -29,6 +29,7 @@ func IFFT32With(x []complex64, o Options) []complex64 {
 
 func f32ndComplexWith(name string, x []complex64, o Options, inverse bool) []complex64 {
 	n := o.check1D(name, len(x))
+	checkAlloc(name, n, 16) // Plan32's twiddle table is complex128
 	out := make([]complex64, n)
 	copy(out, x) // truncates to n, or leaves the zero padding past len(x)
 	p := cachedPlan32(n)
@@ -52,6 +53,7 @@ func f32ndRFFT(x []float32, n int, m Norm) []complex64 {
 	if n == 0 {
 		return []complex64{}
 	}
+	checkAlloc("RFFT32With", n, 16)
 	in := x
 	if len(x) != n {
 		in = make([]float32, n)

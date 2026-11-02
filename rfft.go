@@ -47,6 +47,7 @@ func irfftF(spectrum []complex128, n int, fma bool) []float64 {
 	if n <= 0 {
 		return []float64{}
 	}
+	checkAlloc("IRFFT", n, 16)
 	dst := make([]float64, n)
 	return cachedRealPlanF(n, fma).IRFFT(dst, spectrum)
 }

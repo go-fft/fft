@@ -27,6 +27,9 @@ type RealPlan32 struct {
 // (n >= 0).
 func NewRealPlan32(n int) *RealPlan32 {
 	p := &RealPlan32{n: n}
+	if n > 1 {
+		checkAlloc("NewRealPlan32", n, 16) // twiddleTable(n) is complex128
+	}
 	if n <= 1 || n%2 != 0 {
 		if n >= 1 {
 			p.full = cachedPlan32(n)

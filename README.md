@@ -93,7 +93,11 @@ r2.IRFFT(img, spec)                  // normalized inverse
 The multi-dimensional transforms are separable: the 1-D FFT is applied along
 each axis in turn. The forward transforms are unnormalized; the inverses divide
 by the product of the transformed axis lengths. The shape must be positive and
-its product must equal `len(data)`, else the call panics (numpy semantics).
+its product must equal `len(data)`, else the call panics (numpy semantics). A
+length too large to allocate at all (more than `math.MaxInt/16` elements for a
+complex128 plan) panics with `fft: <function>: length N is too large`; smaller
+lengths allocate in proportion to themselves, so bound a length that comes from
+untrusted input (see [SECURITY.md](SECURITY.md)).
 
 Empty input returns an empty slice; length 1 returns a copy. `RFFT` keeps only
 the lower `N/2+1` bins because a real signal's spectrum is conjugate-symmetric

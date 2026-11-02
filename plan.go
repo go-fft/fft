@@ -63,6 +63,7 @@ func newPlanF(n int, fma bool) *Plan {
 	if n <= 1 {
 		return p
 	}
+	checkAlloc("NewPlan", n, 16) // the twiddle table and scratch of every engine
 	if n&(n-1) == 0 && n > pow2StockhamMax {
 		// Pure power of two: the iterative cache-friendly kernel (one bit-reversal
 		// + radix-4 DIT stages, twiddles laid out for sequential reads) measured

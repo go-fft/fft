@@ -1,0 +1,4 @@
+go test fuzz v1
+int(48)
+int(4)
+byte('\r')

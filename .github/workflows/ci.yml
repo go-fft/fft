@@ -241,3 +241,22 @@ jobs:
           # indistinguishable from a green tick.
           echo "running ${{ matrix.goarch }} under $q"
           GOARCH=${{ matrix.goarch }} go test -exec="$q" ./...
+
+  # A 32-bit lane for the length guards: math.MaxInt is 2^31-1 there, so the
+  # guard's bound and the size arithmetic behind it are different numbers. The
+  # root package's own tests assume a 64-bit int and do not compile for 386;
+  # internal/guardtest is the black-box suite that does. linux/386 binaries run
+  # natively on the amd64 runner.
+  arch-386:
+    name: arch 386 (32-bit guards)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.3'
+      - name: Vet + test the length guards on 386
+        run: |
+          GOARCH=386 go build ./...
+          GOARCH=386 go vet ./internal/guardtest/
+          GOARCH=386 go test -count=1 -v ./internal/guardtest/

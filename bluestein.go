@@ -40,6 +40,10 @@ func newBluesteinPlan(n int) *bluesteinPlan { return newBluesteinPlanOpt(n, fals
 // newBluesteinPlanOpt is newBluesteinPlan whose convolution, kernel
 // spectra included, runs on an FMA plan when fma is set.
 func newBluesteinPlanOpt(n int, fma bool) *bluesteinPlan {
+	// The convolution length m is below 2.8·n (bestConvLen's 1.4 window over
+	// 2n-1): four n-element complex128 buffers bound it, and keep 2n-1 and the
+	// window from overflowing.
+	checkAlloc("NewPlan", n, 4*16)
 	m := bestConvLen(2*n - 1)
 	p := &bluesteinPlan{n: n, m: m, fma: fma}
 

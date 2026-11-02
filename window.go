@@ -63,6 +63,7 @@ func cosineWindow(n int, a []float64) []float64 {
 	if n == 1 {
 		return []float64{1}
 	}
+	checkAlloc("window", n, 8)
 	w := make([]float64, n)
 	denom := float64(n - 1)
 	for k := 0; k < n; k++ {
@@ -90,6 +91,7 @@ func Bartlett(n int) []float64 {
 	if n == 1 {
 		return []float64{1}
 	}
+	checkAlloc("Bartlett", n, 8)
 	w := make([]float64, n)
 	denom := float64(n - 1)
 	half := denom / 2

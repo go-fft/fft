@@ -22,7 +22,7 @@ type RealPlan2_32 struct {
 // NewRealPlan2_32 returns a single-precision plan for real rows×cols matrices.
 // Both lengths must be positive; NewRealPlan2_32 panics otherwise.
 func NewRealPlan2_32(rows, cols int) *RealPlan2_32 {
-	shapeProduct(rows, cols)
+	checkAlloc("NewRealPlan2_32", shapeProduct(rows, cols), 16)
 	p := &RealPlan2_32{rows: rows, cols: cols, rcols: cols/2 + 1}
 	p.row = cachedRealPlan32(cols)
 	p.col = f32ndNewPlanN([]int{rows, p.rcols}, []int{0})

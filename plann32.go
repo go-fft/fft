@@ -54,6 +54,7 @@ func NewPlanN32(shape ...int) *PlanN32 {
 func f32ndNewPlanN(shape, axes []int) *PlanN32 {
 	p := &PlanN32{shape: append([]int(nil), shape...)}
 	p.size = shapeProduct(shape...)
+	checkAlloc("NewPlanN32", p.size, 8)
 	p.stride = rowMajorStrides(shape)
 	p.axes = make([]*Plan32, len(shape))
 	for _, ax := range axes {

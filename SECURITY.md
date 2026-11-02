@@ -59,7 +59,29 @@ recover from running out of memory: on Linux with a 4 GB limit, each of these
 called with n = 2^36 ends the process with `fatal error: out of memory`
 (2026-10-04). If n or a shape comes from untrusted input, bound it before the
 call. The library rejects only lengths that are invalid in themselves:
-non-positive shape lengths, and shapes whose product overflows `int`.
+non-positive shape lengths, shapes whose product overflows `int`, and (since
+v0.28.9) a length whose byte count overflows `int` — more than
+`math.MaxInt/16` elements for a complex128 plan, 2^59 on a 64-bit target and
+2^27 on a 32-bit one — which panics with `fft: <function>: length N is too
+large` before anything is allocated, instead of the runtime's
+`makeslice: len out of range`. Below that bound a length allocates in
+proportion to itself, as above, and nothing caps it.
+
+## Audit of 2026-11-02 (v0.28.9)
+
+- **Fuzzing:** `FuzzPublicAPI` and two new variants, `FuzzPublicAPIFMA`
+  (`Options.FMA` requested, FMA plans forced) and `FuzzPublicAPIScalar` (every
+  amd64 assembly route off), ran on a Zen 3 host with AVX2: 115 million inputs
+  in 20 minutes each, without coverage guidance (the test binary was not built
+  with `-fuzz`), then 4.7 million coverage-guided in 5 minutes each. No
+  failure. The coverage-guided corpus (100 entries per target) is committed in
+  `testdata/fuzz` and replayed by `go test`.
+- **Chaos:** shared plans used from 24 goroutines, NaN/Inf inputs, negative,
+  zero and absurd lengths, and partly overlapping `dst`/`src` — no failure
+  (`chaos_test.go`).
+- **Fixed — huge lengths:** see above; `internal/guardtest` checks every entry
+  point and runs on 386 in CI.
+- **govulncheck:** no vulnerability reachable from the module.
 
 ## Audit of 2026-10-04 (v0.1.11)
 

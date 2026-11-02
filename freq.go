@@ -18,6 +18,7 @@ func FFTFreq(n int, d float64) []float64 {
 	if n <= 0 {
 		return []float64{}
 	}
+	checkAlloc("FFTFreq", n, 8)
 	out := make([]float64, n)
 	val := 1.0 / (d * float64(n))
 	// Positive (and zero) half: indices 0 .. (n-1)/2.
@@ -47,6 +48,7 @@ func RFFTFreq(n int, d float64) []float64 {
 		return []float64{}
 	}
 	m := n/2 + 1
+	checkAlloc("RFFTFreq", m, 8)
 	out := make([]float64, m)
 	val := 1.0 / (d * float64(n))
 	for i := 0; i < m; i++ {
