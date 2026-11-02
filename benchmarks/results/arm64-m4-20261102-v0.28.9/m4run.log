@@ -1,0 +1,11 @@
+# pass 1 try 1 start 12:26:42
+# pass 1 try 1 end 12:35:14 load samples verify=4.75 gobench=4.75 goplan=5.83 fftw=5.55 numpy=4.96 report=23.39 end=23.39 -> out1-loaded1
+# pass 1 try 2 start 12:45:14
+# pass 1 try 2 end 12:49:10 load samples verify=7.82 gobench=7.82 goplan=14.23 end=14.23 -> out1-loaded2
+# pass 1 try 3 start 12:50:10
+# pass 1 try 3 end 12:58:35 load samples verify=7.91 gobench=7.91 goplan=4.32 fftw=4.11 numpy=4.53 report=3.84 end=3.84 -> out1
+# pass 2 try 1 start 12:58:35
+# pass 2 try 1 end 13:06:53 load samples verify=3.84 gobench=3.84 goplan=3.25 fftw=3.21 numpy=3.92 report=3.73 end=3.73 -> out2
+# pass 1b try 1 start 13:06:53
+# pass 1b try 1 end 13:15:14 load samples verify=3.73 gobench=3.73 goplan=4.84 fftw=4.55 numpy=5.58 report=6.27 end=6.27 -> out1b
+END
