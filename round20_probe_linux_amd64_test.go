@@ -454,8 +454,8 @@ func TestRound20Probe(t *testing.T) {
 				return (*bp)[shift : shift+n]
 			}
 			itp := newITPlan(n)
-			hs, hd, hscr := r20Alloc(n, true, 0), r20Alloc(n, true, 0), r20Alloc(n, true, setGap)
-			ss, sd, sscr := r20Alloc(n, false, 0), r20Alloc(n, false, 0), r20Alloc(n, false, setGap)
+			hs, hd, hscr := r20Alloc(n, true, 0), r20Alloc(n, true, 0), r20Alloc(n, true, setGapDefault)
+			ss, sd, sscr := r20Alloc(n, false, 0), r20Alloc(n, false, 0), r20Alloc(n, false, setGapDefault)
 			copy(hs, src)
 			copy(ss, src)
 			vs := []variant{
