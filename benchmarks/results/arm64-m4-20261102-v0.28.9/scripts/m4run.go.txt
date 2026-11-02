@@ -1,0 +1,241 @@
+// m4run: the parity procedure of benchmarks/remote/run.sh on a macOS host, with
+// the load gate the cfarm runs got from parity28.sh. macOS has no taskset, so
+// the Go side runs with GOMAXPROCS=1 and is not pinned to a core.
+//
+//	m4run --base DIR --out OUT --max-load 8 --tries 3 p1 p2 p1b
+//
+// For every pass label it waits for the one-minute load to be below --max-load
+// (giving up after --wait), then runs the six stages, re-reading the load before
+// each stage; a pass that saw a load at or above the limit is kept as
+// out<label>-loaded<try> and rerun, at most --tries times.
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+)
+
+var osExit = os.Exit
+
+func load1() (float64, error) {
+	b, err := exec.Command("sysctl", "-n", "vm.loadavg").Output()
+	if err != nil {
+		return 0, err
+	}
+	f := strings.Fields(strings.Trim(string(b), "{} \n"))
+	if len(f) < 1 {
+		return 0, fmt.Errorf("vm.loadavg: %q", b)
+	}
+	return strconv.ParseFloat(f[0], 64)
+}
+
+type runner struct {
+	base, out, desc, py string
+	maxLoad             float64
+	wait                time.Duration
+	tries               int
+	logf                *os.File
+}
+
+func (r *runner) log(format string, a ...any) {
+	s := fmt.Sprintf(format, a...)
+	fmt.Println(s)
+	fmt.Fprintln(r.logf, s)
+}
+
+func (r *runner) waitLoad() error {
+	deadline := time.Now().Add(r.wait)
+	for {
+		l, err := load1()
+		if err != nil {
+			return err
+		}
+		if l < r.maxLoad {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("load %.2f stayed at or above %.1f for %v: pass deferred", l, r.maxLoad, r.wait)
+		}
+		time.Sleep(30 * time.Second)
+	}
+}
+
+var benchRe = regexp.MustCompile(`(?m)^(Benchmark\S+)`)
+
+func (r *runner) env() []string {
+	return append(os.Environ(), "GOMAXPROCS=1", "OMP_NUM_THREADS=1", "OPENBLAS_NUM_THREADS=1",
+		"MKL_NUM_THREADS=1", "NUMEXPR_NUM_THREADS=1", "VECLIB_MAXIMUM_THREADS=1", "FFTW_DESC="+r.desc)
+}
+
+// stage runs name with args in dir and writes its stdout to outFile ("" = discard).
+func (r *runner) stage(dir, outFile, name string, args ...string) error {
+	c := exec.Command(name, args...)
+	c.Dir, c.Env = dir, r.env()
+	var so, se bytes.Buffer
+	c.Stdout, c.Stderr = &so, &se
+	if err := c.Run(); err != nil {
+		return fmt.Errorf("%s %v: %w\n%s", name, args, err, se.String())
+	}
+	if outFile != "" {
+		return os.WriteFile(outFile, so.Bytes(), 0o644)
+	}
+	return nil
+}
+
+func (r *runner) pass(label string, try int) (string, bool, error) {
+	if err := r.waitLoad(); err != nil {
+		return "", false, err
+	}
+	bdir := filepath.Join(r.base, "benchmarks")
+	loaded := false
+	var samples []string
+	check := func(stage string) error {
+		l, err := load1()
+		if err != nil {
+			return err
+		}
+		samples = append(samples, fmt.Sprintf("%s=%.2f", stage, l))
+		if l >= r.maxLoad {
+			loaded = true
+		}
+		return nil
+	}
+	r.log("# pass %s try %d start %s", label, try, time.Now().Format("15:04:05"))
+	steps := []struct {
+		name string
+		fn   func() error
+	}{
+		{"verify", func() error {
+			v := exec.Command(filepath.Join(r.base, "verify"))
+			v.Dir, v.Env = bdir, r.env()
+			vo, err := v.Output()
+			if err != nil {
+				return err
+			}
+			p := exec.Command(r.py, "verify_correctness.py")
+			p.Dir, p.Env, p.Stdin = bdir, r.env(), bytes.NewReader(vo)
+			po, err := p.CombinedOutput()
+			if err != nil {
+				return fmt.Errorf("correctness gate: %w\n%s", err, po)
+			}
+			return os.WriteFile(filepath.Join(bdir, "verify.txt"), po, 0o644)
+		}},
+		{"gobench", func() error {
+			return r.stage(bdir, filepath.Join(bdir, "go_bench.txt"), filepath.Join(r.base, "bench"),
+				"-test.run=^$", "-test.bench=Benchmark(Complex|Real|CReal|FFT2|FFT2Plan)_", "-test.benchtime=1s", "-test.count=3")
+		}},
+		{"goplan", func() error {
+			return r.stage(bdir, filepath.Join(bdir, "go_plan.txt"), filepath.Join(r.base, "bench"),
+				"-test.run=^$", "-test.bench=BenchmarkComplexPlan_", "-test.benchtime=300ms", "-test.count=1")
+		}},
+		{"fftw", func() error { return r.stage(bdir, filepath.Join(bdir, "fftw.json"), filepath.Join(bdir, "fftw_bench")) }},
+		{"numpy", func() error { return r.stage(bdir, filepath.Join(bdir, "ref.json"), r.py, "fft_reference.py") }},
+		{"report", func() error {
+			for _, f := range []string{"go_bench.txt", "go_plan.txt"} { // report.py wants the -N suffix
+				b, err := os.ReadFile(filepath.Join(bdir, f))
+				if err != nil {
+					return err
+				}
+				if err := os.WriteFile(filepath.Join(bdir, f), []byte(benchRe.ReplaceAllString(string(b), "${1}-1")), 0o644); err != nil {
+					return err
+				}
+			}
+			return r.stage(bdir, "", r.py, "report.py")
+		}},
+	}
+	for _, s := range steps {
+		if err := check(s.name); err != nil {
+			return "", false, err
+		}
+		if loaded {
+			break
+		}
+		if err := s.fn(); err != nil {
+			return "", false, fmt.Errorf("pass %s stage %s: %w", label, s.name, err)
+		}
+	}
+	if err := check("end"); err != nil {
+		return "", false, err
+	}
+	o := "out" + label
+	if loaded {
+		o += "-loaded" + strconv.Itoa(try)
+	}
+	od := filepath.Join(r.out, o)
+	if err := os.MkdirAll(od, 0o755); err != nil {
+		return "", false, err
+	}
+	for _, f := range []string{"go_bench.txt", "go_plan.txt", "fftw.json", "ref.json", "REPORT.md", "verify.txt"} {
+		if b, err := os.ReadFile(filepath.Join(bdir, f)); err == nil {
+			if err := os.WriteFile(filepath.Join(od, f), b, 0o644); err != nil {
+				return "", false, err
+			}
+		}
+	}
+	r.log("# pass %s try %d end %s load samples %s -> %s", label, try, time.Now().Format("15:04:05"), strings.Join(samples, " "), o)
+	return o, !loaded, nil
+}
+
+func rootCmd() *cobra.Command {
+	r := &runner{}
+	cmd := &cobra.Command{
+		Use:          "m4run [flags] LABEL...",
+		Short:        "load-gated parity passes on macOS",
+		SilenceUsage: true,
+		Args:         cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, labels []string) error {
+			if err := os.MkdirAll(r.out, 0o755); err != nil {
+				return err
+			}
+			lf, err := os.OpenFile(filepath.Join(r.out, "m4run.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+			if err != nil {
+				return err
+			}
+			defer lf.Close()
+			r.logf = lf
+			for _, label := range labels {
+				ok := false
+				for try := 1; try <= r.tries && !ok; try++ {
+					_, good, err := r.pass(label, try)
+					if err != nil {
+						r.log("# pass %s try %d ABORTED: %v", label, try, err)
+						return err
+					}
+					ok = good
+				}
+				if !ok {
+					return fmt.Errorf("pass %s: every try saw load >= %.1f", label, r.maxLoad)
+				}
+			}
+			r.log("END")
+			return nil
+		},
+	}
+	f := cmd.Flags()
+	f.StringVar(&r.base, "base", "", "directory with verify, bench and benchmarks/")
+	f.StringVar(&r.out, "out", "", "results directory")
+	f.StringVar(&r.py, "python", "", "python of the numpy/scipy venv")
+	f.StringVar(&r.desc, "fftw-desc", "", "FFTW_DESC for report.py")
+	f.Float64Var(&r.maxLoad, "max-load", 8, "one-minute load limit")
+	f.DurationVar(&r.wait, "wait", 20*time.Minute, "how long to wait for the load before deferring a pass")
+	f.IntVar(&r.tries, "tries", 3, "tries per pass")
+	for _, n := range []string{"base", "out", "python"} {
+		_ = cmd.MarkFlagRequired(n)
+	}
+	return cmd
+}
+
+func main() {
+	if err := rootCmd().Execute(); err != nil {
+		osExit(1)
+	}
+}

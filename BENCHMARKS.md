@@ -169,14 +169,39 @@ where two would hide which side of 1 or 1.05 a row is on:
   v0.22.x's call to the 512-bit untangle with nothing to do costs RFFT 256
   and IRFFT 256 about 1.5% (v0.23.1 ÷ v0.21.0: 1.015). v0.25.0's tail jump
   removes that second call, but it has **not** been re-measured on Haswell.
-- **Not measured:** Apple M4 has never been measured against FFTW with the
-  current engines (the June 2026 M4 tables below describe the previous ones),
-  and no loong64 host could be reached. On 2026-11-01 the M4 comparison was
-  attempted and stopped before any timing: the pkgx `fftw.org` bottle
-  (3.3.11, the pantry recipe configures `--enable-shared --enable-threads`
-  with no `--enable-neon`) has an empty `neon.o` and no SIMD codelets in
-  `libfftw3.a`, so it is a scalar-C FFTW and would flatter go-fft. A fair
-  M4 row needs an FFTW built with `--enable-neon`.
+- **Apple M4 Max, first measurement against FFTW** (2026-11-02, go-fft
+  v0.28.9; v0.28.9 over v0.28.8 only adds length guards to plan constructors,
+  no execution path). The reference is **FFTW 3.3.11** from the pkgx bottle
+  rebuilt with NEON (go-pkgx/packages#399, 2026-11-02), linked statically from
+  C; the cfarm columns use FFTW 3.3.10 built from source. Control before
+  timing: `nm -g` on `lib/libfftw3.3.dylib` shows 751 `_fftw_` symbols, of
+  which 207 contain `_neon` (an earlier 2026-11-01 attempt found the previous
+  bottle scalar and was stopped). The host is shared and macOS has no
+  `taskset`, so the runs use GOMAXPROCS=1 on an unpinned core (P/E scheduling
+  is not controlled); each pass waited for a one-minute load below 8.
+  Passes 1, 2 and a repeat of 1 (`1b`) as drift control; a first try of pass 1
+  at load 23.4 and a second at 14.2 were excluded
+  (`out1-loaded1`, `out1-loaded2`). go1.27.3, numpy 2.5.3, scipy 1.18.1.
+  Pass 1's Go stage began at a load of 7.9, falling from 14; the repeat `1b`
+  ran at 3.7–6.3. Correctness 24/24 in each pass. Raw data and tables:
+  [`arm64-m4-20261102-v0.28.9/`](benchmarks/results/arm64-m4-20261102-v0.28.9/)
+  (`partab-main.txt`: go-fft = mean of passes 1 and 2, FFTW = median of all
+  three). **16 of 24 rows within 5% of FFTW, faster on 12**; go-fft ÷ FFTW:
+  complex 256 0.97, 1,024 0.97, 4,096 0.93, 65,536 **1.27**, 2²⁰ 0.87, 1,000
+  0.94, 1,080 0.93, 1,920 0.86, 1,009 0.57, 1,296 0.89, 10,007 0.85; RFFT 256
+  **1.18**, 1,024 1.014, 4,096 0.93, 65,536 **1.18**, 2²⁰ **1.14**, 1,000
+  1.010, 1,080 1.014, 1,920 0.985; 2-D 64² **1.28**, 128² **1.18**, 256²
+  **1.27**, 512² 1.023, 1024² **1.25**. FFTW's NEON codelets beat go-fft on
+  the real transforms at 256 and at 65,536 and above, on complex 65,536 and
+  on the 2-D rows; those are open defects on this host (the arm64 kernels
+  were tuned on Neoverse-N1, where go-fft leads on all 24 rows). At or above
+  numpy.fft on 24 of 24 rows and above scipy.fft on 23 (2-D 256², 1.22,
+  is the exception); faster than gonum on 19 of 19. The repeat `1b` against pass 1
+  (go-fft's time): 18 rows within 3%; complex 65,536 +15%, complex 2²⁰
+  +16%, complex 10,007 +14%, RFFT 65,536 +13%, 2-D 512² +6% and 1024² −4%
+  (the large rows are the ones an unpinned thread can land on an E core
+  for; not proved). Rows near 1.05 are not settled by one host session. The June 2026 M4 tables below describe the previous engines. No
+  loong64 host could be reached.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,

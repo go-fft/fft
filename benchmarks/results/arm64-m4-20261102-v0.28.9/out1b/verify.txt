@@ -1,0 +1,1 @@
+CORRECTNESS: all 24 go-fft transforms match numpy.fft (rtol=1e-09, atol=1e-07)

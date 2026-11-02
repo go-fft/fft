@@ -398,9 +398,12 @@ by at most 5%.
   1.20× faster than v0.23.1 (Round 37), which also measured that v0.22.x cost
   RFFT 256 about 1.5%. v0.25.0 removes the call responsible; that has not been
   re-measured on Haswell.
-  **Not measured:** Apple M4 with the current engines (the pkgx FFTW bottle
-  has no NEON codelets, so a comparison against it would be unfair; see
-  BENCHMARKS.md), and loong64 (no host reachable).
+  **Apple M4 Max** (first measurement against FFTW, 2026-11-02, v0.28.9, FFTW
+  3.3.11 pkgx bottle with NEON, GOMAXPROCS=1, unpinned): 16 of 24 rows within
+  5% of FFTW, faster on 12; behind it on complex 65,536 (1.27×), RFFT 256 and
+  65,536 and above (1.14–1.18×) and the 2-D rows other than 512² (1.18–1.28×);
+  at or above numpy.fft on 24 of 24 rows and scipy.fft on 23 (BENCHMARKS.md).
+  **Not measured:** loong64 (no host reachable).
 - **Against gonum/dsp/fourier**, the pure-Go peer (both `CGO_ENABLED=0`),
   go-fft is faster on every row measured (19/19 on each host), by the widest
   margin on primes: gonum's arbitrary-length path is a naive Bluestein with no
