@@ -1,0 +1,42 @@
+# FFTW fftw-3.3.11-neon (native, 1 thread, FFTW_MEASURE)
+
+## Complex FFT (ns/op | GFLOP/s | plan ns)
+      256           296    34.63       2905000
+     1024          1441    35.54       6317000
+     4096          7476    32.87      25148000
+    65536        201984    25.96     459247000
+  1048576       5774281    18.16    1781374000
+     1000          1686    29.55       8038000
+     1080          1817    29.95      18789000
+     1920          3044    34.40      31788000
+     1009         11126     4.52      12758000
+     1296          2329    28.77      17161000
+    10007        136409     4.87     214195000
+
+## Real RFFT (ns/op | GFLOP/s | plan ns)
+      256           179    28.61       4286000
+     1024           815    31.40       9358000
+     4096          4040    30.42      23787000
+    65536        105385    24.87     357514000
+  1048576       2301992    22.78    6401355000
+     1000          1022    24.38      11578000
+     1080          1115    24.41      23534000
+     1920          1747    29.97      47793000
+
+## Real inverse IRFFT c2r (ns/op | GFLOP/s | plan ns)
+      256           194    26.38       4062000
+     1024           877    29.19      10395000
+     4096          4485    27.40      28923000
+    65536        111727    23.46     474514000
+  1048576       2507367    20.91    7206563000
+     1000          1047    23.81      12315000
+     1080          1127    24.15      26981000
+     1920          1921    27.26      58545000
+
+## 2-D FFT2 (ns/op | GFLOP/s | plan ns)
+   64x64             5121    47.99       5091000
+  128x128           38502    29.79      11004000
+  256x256          193328    27.12      17030000
+  512x512          871684    27.07      48827000
+ 1024x1024        4094078    25.61     201689000
+{"fftw_version":"fftw-3.3.11-neon","complex":[{"n":256,"fftw_ns":295.7,"fftw_gflops":34.633,"fftw_plan_ns":2905000.0},{"n":1024,"fftw_ns":1440.6,"fftw_gflops":35.542,"fftw_plan_ns":6317000.0},{"n":4096,"fftw_ns":7476.2,"fftw_gflops":32.872,"fftw_plan_ns":25148000.0},{"n":65536,"fftw_ns":201984.4,"fftw_gflops":25.957,"fftw_plan_ns":459247000.0},{"n":1048576,"fftw_ns":5774281.2,"fftw_gflops":18.159,"fftw_plan_ns":1781374000.0},{"n":1000,"fftw_ns":1686.3,"fftw_gflops":29.549,"fftw_plan_ns":8038000.0},{"n":1080,"fftw_ns":1816.8,"fftw_gflops":29.951,"fftw_plan_ns":18789000.0},{"n":1920,"fftw_ns":3044.0,"fftw_gflops":34.398,"fftw_plan_ns":31788000.0},{"n":1009,"fftw_ns":11126.2,"fftw_gflops":4.525,"fftw_plan_ns":12758000.0},{"n":1296,"fftw_ns":2328.6,"fftw_gflops":28.774,"fftw_plan_ns":17161000.0},{"n":10007,"fftw_ns":136408.7,"fftw_gflops":4.874,"fftw_plan_ns":214195000.0}],"real":[{"n":256,"fftw_ns":178.9,"fftw_gflops":28.613,"fftw_plan_ns":4286000.0},{"n":1024,"fftw_ns":815.3,"fftw_gflops":31.399,"fftw_plan_ns":9358000.0},{"n":4096,"fftw_ns":4039.6,"fftw_gflops":30.419,"fftw_plan_ns":23787000.0},{"n":65536,"fftw_ns":105384.8,"fftw_gflops":24.875,"fftw_plan_ns":357514000.0},{"n":1048576,"fftw_ns":2301992.2,"fftw_gflops":22.775,"fftw_plan_ns":6401355000.0},{"n":1000,"fftw_ns":1021.8,"fftw_gflops":24.383,"fftw_plan_ns":11578000.0},{"n":1080,"fftw_ns":1114.5,"fftw_gflops":24.412,"fftw_plan_ns":23534000.0},{"n":1920,"fftw_ns":1747.0,"fftw_gflops":29.967,"fftw_plan_ns":47793000.0}],"creal":[{"n":256,"fftw_ns":194.1,"fftw_gflops":26.376,"fftw_plan_ns":4062000.0},{"n":1024,"fftw_ns":876.9,"fftw_gflops":29.192,"fftw_plan_ns":10395000.0},{"n":4096,"fftw_ns":4484.7,"fftw_gflops":27.400,"fftw_plan_ns":28923000.0},{"n":65536,"fftw_ns":111727.1,"fftw_gflops":23.463,"fftw_plan_ns":474514000.0},{"n":1048576,"fftw_ns":2507367.2,"fftw_gflops":20.910,"fftw_plan_ns":7206563000.0},{"n":1000,"fftw_ns":1046.5,"fftw_gflops":23.807,"fftw_plan_ns":12315000.0},{"n":1080,"fftw_ns":1126.7,"fftw_gflops":24.147,"fftw_plan_ns":26981000.0},{"n":1920,"fftw_ns":1920.7,"fftw_gflops":27.258,"fftw_plan_ns":58545000.0}],"fft2":[{"shape":"64x64","n":4096,"fftw_ns":5121.4,"fftw_gflops":47.987,"fftw_plan_ns":5091000.0},{"shape":"128x128","n":16384,"fftw_ns":38502.4,"fftw_gflops":29.787,"fftw_plan_ns":11004000.0},{"shape":"256x256","n":65536,"fftw_ns":193328.1,"fftw_gflops":27.119,"fftw_plan_ns":17030000.0},{"shape":"512x512","n":262144,"fftw_ns":871683.6,"fftw_gflops":27.066,"fftw_plan_ns":48827000.0},{"shape":"1024x1024","n":1048576,"fftw_ns":4094078.1,"fftw_gflops":25.612,"fftw_plan_ns":201689000.0}]}

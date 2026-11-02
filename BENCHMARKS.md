@@ -202,6 +202,44 @@ where two would hide which side of 1 or 1.05 a row is on:
   (the large rows are the ones an unpinned thread can land on an E core
   for; not proved). Rows near 1.05 are not settled by one host session. The June 2026 M4 tables below describe the previous engines. No
   loong64 host could be reached.
+- **Apple M4 Max, why it is behind FFTW, and the scratch gap** (2026-11-02,
+  v0.28.10 plus the change below; data in
+  [`arm64-m4-gap-20261102/`](benchmarks/results/arm64-m4-gap-20261102/)).
+  *FFTW's plans* (`fftw_print_plan`, FFTW_MEASURE, `plans.txt`, `plans2.txt`;
+  plans vary between runs under load): complex 65,536 is five passes of
+  radices 4, 4, 8, 16, 32 (`t3fv_4`, `t1fv_4`, `t2fv_8`, `t2fv_16`,
+  `n1fv_32`) or a transposed variant ending in `n1fv_64`; go-fft runs eight
+  radix-4 NEON passes (radix 8 is slower here, see `o65536.txt`). RFFT 256 is
+  `hc2cfdftv_32` over 16 `n2fv_8`; the 2-D rows use `n1fv_64`/`n1fv_128`
+  leaf codelets, one pass per axis, where go-fft takes two radix-8 passes per
+  64-point line. go-fft has no NEON radix 16/32/64 pass (the arm64 generator
+  stops at radix 8), so these rows have a pass-count and load/store gap that
+  only such a kernel in go-asmgen could close; not done, and not measured to
+  be the whole gap. Static counts of the generated passes are in
+  `counts.txt` (radix-4 split pass 62 vector ops and 27 memory ops per 8
+  complex points).
+  *What the measurements did find:* pass by pass at 65,536 points
+  (`o65536.txt`, load 7.95), the three radix-4 passes whose streams are 16 KB
+  or more apart take 45–46 µs each against 25 µs for the later ones, 137 of
+  270 µs. That is the false store-to-load dependence of Round 18 through the
+  576-byte scratch gap. Whole transforms with the gap varied
+  (`g1.txt`, 11 rotated rounds, load 7.3–7.9), time ÷ the 576-byte time:
+  65,536 points 0 bytes 0.81, 1088 0.93, 2112 0.85, 4032 0.81; 524,288
+  0.82–0.83 except 1088; 2^20 0.86–0.88; from 4096 to 32,768 every gap
+  within 2%, no gap 3–7% slower at 4096. go-fft now uses 4032 bytes on
+  darwin/arm64 (`setgap_darwin_arm64.go`); Neoverse-N1 and the other
+  architectures keep 576, their measured value. Check, old and new test
+  binaries and FFTW interleaved, two rounds each, load 5.4–7.5 before and
+  after every run (one end reading of 10.7 after the last FFTW run, which
+  ran at its start under 6.0): complex 65,536 old 267–278 µs
+  (one 460 µs outlier), new 220–232 µs, FFTW 202 and 210 µs, so go-fft ÷
+  FFTW goes from about 1.3 to 1.07–1.09 (not settled: the drift control of
+  v0.28.9 moved such rows 13–16%); complex 2^20 4.69–4.98 ms against FFTW
+  5.77 and 6.22 ms (0.80–0.86; old 4.83–5.68 ms); RFFT 65,536, RFFT 256 and
+  the 2-D rows within noise (RFFT 65,536 is a 32,768-point transform, which
+  the gap does not move). So complex 65,536 is closed to within noise of
+  FFTW; RFFT 256/65,536/2^20 and 2-D 64²–1024² remain 1.1–1.3× behind and
+  need a larger-radix NEON pass.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,

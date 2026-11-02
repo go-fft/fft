@@ -403,6 +403,10 @@ by at most 5%.
   5% of FFTW, faster on 12; behind it on complex 65,536 (1.27×), RFFT 256 and
   65,536 and above (1.14–1.18×) and the 2-D rows other than 512² (1.18–1.28×);
   at or above numpy.fft on 24 of 24 rows and scipy.fft on 23 (BENCHMARKS.md).
+  The complex 65,536 gap was the 576-byte scratch gap, which costs Apple
+  Silicon a fifth of the time from 65,536 points; it is 4032 bytes there
+  since v0.28.11, taking that row from 1.27× to about 1.07–1.09×. RFFT and
+  2-D rows are unchanged and open.
   **Not measured:** loong64 (no host reachable).
 - **Against gonum/dsp/fourier**, the pure-Go peer (both `CGO_ENABLED=0`),
   go-fft is faster on every row measured (19/19 on each host), by the widest

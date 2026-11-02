@@ -1,0 +1,125 @@
+== complex 65536
+(dft-ct-dit/4
+  (dftw-direct-4/6 "t1fuv_4_neon")
+  (dft-indirect-before
+    (dft-vrank>=1-x4/1
+      (dft-ct-dit/4
+        (dftw-direct-4/6 "t1fuv_4_neon")
+        (dft-ct-dif/4
+          (dftw-directsq-4/6-x4 "q1fv_4_neon")
+          (dft-vrank>=1-x4/1
+            (dft-vrank>=1-x4/1
+              (dft-ct-dit/4
+                (dftw-direct-4/12 "t2fv_4_neon")
+                (dft-ct-dif/4
+                  (dftw-directsq-4/6-x4 "q1fv_4_neon")
+                  (dft-vrank>=1-x4/1
+                    (dft-direct-64-x4 "n1fv_64_neon")))))))))
+    (dft-r2hc-1
+      (rdft-rank0-iter-ci/2-x16384-x4))))flops add 1314816 mul 565248 fma 53248
+
+== r2c 256
+(rdft2-ct-dit/32
+  (hc2c-direct-32/62/0 "hc2cfdftv_32_neon"
+    (rdft2-r2hc-direct-32 "r2cf_32")
+    (rdft2-r2hc01-direct-32 "r2cfII_32"))
+  (dft-direct-8-x16 "n2fv_8_neon"))flops add 1393 mul 455 fma 100
+
+== r2c 65536
+(rdft2-ct-dit/16
+  (hc2c-direct-16/30/0 "hc2cfdftv_16_neon"
+    (rdft2-r2hc-direct-16 "r2cf_16")
+    (rdft2-r2hc01-direct-16 "r2cfII_16"))
+  (dft-vrank>=1-x8/1
+    (dft-ct-dit/4
+      (dftw-direct-4/6 "t1fuv_4_neon")
+      (dft-vrank>=1-x4/1
+        (dft-ct-dit/64
+          (dftw-direct-64/252 "t2fv_64_neon")
+          (dft-direct-16-x64 "n2fv_16_neon"))))))flops add 671241 mul 273382 fma 43020
+
+== r2c 1048576
+(rdft2-ct-dit/4
+  (hc2c-direct-4/6/0 "hc2cfdftv_4_neon"
+    (rdft2-r2hc-direct-4 "r2cf_4")
+    (rdft2-r2hc01-direct-4 "r2cfII_4"))
+  (dft-vrank>=1-x2/1
+    (dft-ct-dit/4
+      (dftw-direct-4/6 "t1fv_4_neon")
+      (dft-vrank>=1-x4/1
+        (dft-ct-dit/4
+          (dftw-direct-4/6 "t1fv_4_neon")
+          (dft-indirect-before
+            (dft-vrank>=1-x4/1
+              (dft-ct-dit/4
+                (dftw-direct-4/6 "t1fuv_4_neon")
+                (dft-ct-dif/4
+                  (dftw-directsq-4/6-x4 "q1fv_4_neon")
+                  (dft-vrank>=1-x4/1
+                    (dft-vrank>=1-x4/1
+                      (dft-ct-dit/4
+                        (dftw-direct-4/12 "t2fv_4_neon")
+                        (dft-ct-dif/4
+                          (dftw-directsq-4/6-x4 "q1fv_4_neon")
+                          (dft-vrank>=1-x4/1
+                            (dft-direct-64-x4 "n1fv_64_neon")))))))))
+            (dft-r2hc-1
+              (rdft-rank0-iter-co/2-x4-x16384))))))))flops add 13926397 mul 6619128 fma 425984
+
+== 2d 64x64
+(dft-rank>=2/1
+  (dft-direct-64-x64 "n1fv_64_neon")
+  (dft-direct-64-x64 "n1fv_64_neon"))flops add 51712 mul 9216 fma 6656
+
+== 2d 128x128
+(dft-rank>=2/1
+  (dft-vrank>=1-x128/1
+    (dft-ct-dit/16
+      (dftw-direct-16/60 "t2fv_16_neon")
+      (dft-direct-8-x16 "n2fv_8_neon")))
+  (dft-vrank>=1-x128/1
+    (dft-direct-128 "n1fv_128_neon")))flops add 258304 mul 66816 fma 22528
+
+== 2d 256x256
+(dft-rank>=2/1
+  (dft-vrank>=1-x256/1
+    (dft-ct-dit/4
+      (dftw-direct-4/6 "t1fv_4_neon")
+      (dft-direct-64-x4 "n2fv_64_neon")))
+  (dft-buffered-256-x128/256-6
+    (dft-indirect-before
+      (dft-vrank>=1-x128/1
+        (dft-ct-dit/2
+          (dftw-direct-2/4 "t2fv_2_neon")
+          (dft-ct-dif/2
+            (dftw-directsq-2/2-x2 "q1fv_2_neon")
+            (dft-vrank>=1-x2/1
+              (dft-direct-64-x2 "n1fv_64_neon")))))
+      (dft-r2hc-1
+        (rdft-rank0-iter-ci/2-x256-x128)))
+    (dft-r2hc-1
+      (rdft-rank0-iter-co/2-x128-x256))
+    (dft-nop)))flops add 1204224 mul 376832 fma 106496
+
+== 2d 1024x1024
+(dft-rank>=2/1
+  (dft-vrank>=1-x1024/1
+    (dft-ct-dit/16
+      (dftw-direct-16/60 "t2fv_16_neon")
+      (dft-direct-64-x16 "n2fv_64_neon")))
+  (dft-buffered-1024-x32/1024-6
+    (dft-indirect-before
+      (dft-vrank>=1-x32/1
+        (dft-ct-dit/4
+          (dftw-direct-4/12 "t2fv_4_neon")
+          (dft-ct-dif/4
+            (dftw-directsq-4/6-x4 "q1fv_4_neon")
+            (dft-vrank>=1-x4/1
+              (dft-vrank>=1-x4/1
+                (dft-direct-64 "n1fv_64_neon"))))))
+      (dft-r2hc-1
+        (rdft-rank0-iter-ci/2-x1024-x32)))
+    (dft-r2hc-1
+      (rdft-rank0-iter-co/2-x32-x1024))
+    (dft-nop)))flops add 24444928 mul 7995392 fma 1966080
+
