@@ -41,7 +41,7 @@ const cascadeLocal = 8192
 
 // cascadeSkew separates the two local buffers by setGap bytes beyond their
 // length, so they do not sit a multiple of 4 KB apart (see offTheSets).
-const cascadeSkew = setGap / 16
+const cascadeSkew = setGapDefault / 16
 
 // cascadeMin is the smallest length that runs the blocked schedule, 0 for
 // none; it is per-architecture (route_*.go) and a variable so the tests can

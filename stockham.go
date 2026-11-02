@@ -405,9 +405,12 @@ func (p *skPlan) run(dst, src, buf []complex128, inverse bool) {
 // are at least 4 KB apart: below it the gap bought nothing anywhere and cost
 // 2–3% at 64 and 128 points on Haswell and Cascade Lake.
 const (
-	setSpan = 4096 / 16 // one 4 KB set period, in complex128
-	setGap  = 576       // bytes
+	setSpan       = 4096 / 16 // one 4 KB set period, in complex128
+	setGapDefault = 576       // bytes
 )
+
+// setGap is the gap in bytes; a variable so the tests can time other gaps.
+var setGap uintptr = setGapDefault
 
 // takesGap reports whether a transform of length n slides its scratch off
 // dst's sets: powers of two from 1024 points.

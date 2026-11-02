@@ -1,0 +1,101 @@
+== complex 65536
+(dft-ct-dit/4
+  (dftw-direct-4/4 "t3fv_4_neon")
+  (dft-vrank>=1-x4/1
+    (dft-ct-dit/4
+      (dftw-direct-4/6 "t1fv_4_neon")
+      (dft-vrank>=1-x4/1
+        (dft-ct-dit/8
+          (dftw-direct-8/28 "t2fv_8_neon")
+          (dft-vrank>=1-x8/1
+            (dft-ct-dit/16
+              (dftw-direct-16/60 "t2fv_16_neon")
+              (dft-direct-32-x16 "n1fv_32_neon"))))))))
+== r2c 256
+(rdft2-ct-dit/32
+  (hc2c-direct-32/62/0 "hc2cfdftv_32_neon"
+    (rdft2-r2hc-direct-32 "r2cf_32")
+    (rdft2-r2hc01-direct-32 "r2cfII_32"))
+  (dft-direct-8-x16 "n2fv_8_neon"))
+== r2c 65536
+(rdft2-ct-dit/16
+  (hc2c-direct-16/30/0 "hc2cfdftv_16_neon"
+    (rdft2-r2hc-direct-16 "r2cf_16")
+    (rdft2-r2hc01-direct-16 "r2cfII_16"))
+  (dft-vrank>=1-x8/1
+    (dft-ct-dit/8
+      (dftw-direct-8/28 "t2fv_8_neon")
+      (dft-vrank>=1-x8/1
+        (dft-ct-dit/16
+          (dftw-direct-16/60 "t2fv_16_neon")
+          (dft-direct-32-x16 "n1fv_32_neon"))))))
+== r2c 1048576
+(rdft2-ct-dit/4
+  (hc2c-direct-4/6/0 "hc2cfdftv_4_neon"
+    (rdft2-r2hc-direct-4 "r2cf_4")
+    (rdft2-r2hc01-direct-4 "r2cfII_4"))
+  (dft-vrank>=1-x2/1
+    (dft-ct-dit/4
+      (dftw-direct-4/6 "t1fv_4_neon")
+      (dft-vrank>=1-x4/1
+        (dft-ct-dit/4
+          (dftw-direct-4/6 "t1fuv_4_neon")
+          (dft-vrank>=1-x4/1
+            (dft-ct-dit/4
+              (dftw-direct-4/6 "t1fv_4_neon")
+              (dft-vrank>=1-x4/1
+                (dft-ct-dit/4
+                  (dftw-direct-4/12 "t2fv_4_neon")
+                  (dft-vrank>=1-x4/1
+                    (dft-ct-dit/32
+                      (dftw-direct-32/124 "t2fv_32_neon")
+                      (dft-direct-32-x32 "n1fv_32_neon"))))))))))))
+== 2d 64x64
+(dft-rank>=2/1
+  (dft-direct-64-x64 "n1fv_64_neon")
+  (dft-direct-64-x64 "n1fv_64_neon"))
+== 2d 128x128
+(dft-rank>=2/1
+  (dft-vrank>=1-x128/1
+    (dft-ct-dit/8
+      (dftw-direct-8/28 "t2fv_8_neon")
+      (dft-direct-16-x8 "n2fv_16_neon")))
+  (dft-buffered-128-x8/128-6
+    (dft-direct-128-x8 "n1fv_128_neon")
+    (dft-r2hc-1
+      (rdft-rank0-iter-co/2-x8-x128))
+    (dft-nop)))
+== 2d 256x256
+(dft-rank>=2/1
+  (dft-vrank>=1-x256/1
+    (dft-ct-dit/4
+      (dftw-direct-4/4 "t3fv_4_neon")
+      (dft-direct-64-x4 "n2fv_64_neon")))
+  (dft-buffered-256-x8/256-6
+    (dft-vrank>=1-x8/1
+      (dft-ct-dit/16
+        (dftw-direct-16/60 "t2fv_16_neon")
+        (dft-direct-16-x16 "n2fv_16_neon")))
+    (dft-r2hc-1
+      (rdft-rank0-iter-co/2-x8-x256))
+    (dft-nop)))
+== 2d 1024x1024
+(dft-rank>=2/1
+  (dft-vrank>=1-x1024/1
+    (dft-ct-dit/16
+      (dftw-direct-16/60 "t2fv_16_neon")
+      (dft-direct-64-x16 "n2fv_64_neon")))
+  (dft-buffered-1024-x32/1024-6
+    (dft-indirect-before
+      (dft-vrank>=1-x32/1
+        (dft-ct-dit/4
+          (dftw-direct-4/12 "t2fv_4_neon")
+          (dft-ct-dif/4
+            (dftw-directsq-4/6-x4 "q1fv_4_neon")
+            (dft-vrank>=1-x4/1
+              (dft-direct-64-x4 "n1fv_64_neon")))))
+      (dft-r2hc-1
+        (rdft-rank0-iter-ci/2-x1024-x32)))
+    (dft-r2hc-1
+      (rdft-rank0-iter-co/2-x32-x1024))
+    (dft-nop)))
