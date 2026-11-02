@@ -54,6 +54,7 @@ func NewPlan32(n int) *Plan32 {
 	if n <= 1 {
 		return p
 	}
+	checkAlloc("NewPlan32", n, 16) // twiddleTable(n) is complex128
 	if factorsAreSmall(n) {
 		p.sk = newSKPlan32(n)
 		return p

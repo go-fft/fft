@@ -1,0 +1,4 @@
+go test fuzz v1
+int(62)
+int(19)
+byte('X')

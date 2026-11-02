@@ -1,0 +1,4 @@
+go test fuzz v1
+int(3)
+int(17)
+byte('9')

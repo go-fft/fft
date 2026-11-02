@@ -55,6 +55,9 @@ func NewRealPlanWith(n int, o Options) *RealPlan {
 // resolved by fmaOn).
 func newRealPlanF(n int, fma bool) *RealPlan {
 	p := &RealPlan{n: n, fma: fma}
+	if n > 1 {
+		checkAlloc("NewRealPlan", n, 16) // the full complex buffer of an odd n
+	}
 	if n <= 1 || n%2 != 0 {
 		// Trivial or odd: defer to a full complex plan of length n.
 		if n >= 1 {

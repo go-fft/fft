@@ -1,0 +1,4 @@
+go test fuzz v1
+int(79)
+int(1)
+byte('e')

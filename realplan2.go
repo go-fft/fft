@@ -30,7 +30,7 @@ func NewRealPlan2With(rows, cols int, o Options) *RealPlan2 {
 // newRealPlan2F is NewRealPlan2 on FMA plans when fma is set (already
 // resolved by fmaOn).
 func newRealPlan2F(rows, cols int, fma bool) *RealPlan2 {
-	shapeProduct(rows, cols)
+	checkAlloc("NewRealPlan2", shapeProduct(rows, cols), 16)
 	p := &RealPlan2{rows: rows, cols: cols, rcols: cols/2 + 1}
 	p.row = cachedRealPlanF(cols, fma)
 	p.col = newPlanNF([]int{rows, p.rcols}, fma)

@@ -1,0 +1,4 @@
+go test fuzz v1
+int(106)
+int(6)
+byte('n')
