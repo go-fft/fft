@@ -240,6 +240,33 @@ where two would hide which side of 1 or 1.05 a row is on:
   the gap does not move). So complex 65,536 is closed to within noise of
   FFTW; RFFT 256/65,536/2^20 and 2-D 64²–1024² remain 1.1–1.3× behind and
   need a larger-radix NEON pass.
+  *NEON radix 16, predicted before built* (2026-11-07, Round 45; test
+  `radix16_predict_arm64_test.go`, output in
+  [`arm64-m4-r16-prediction-20261107/`](benchmarks/results/arm64-m4-r16-prediction-20261107/)).
+  The instruction model reproduces the generated passes' counts (radix-4
+  step 39 instructions per 8 points, radix-8 step 108 per 16; `counts.txt`).
+  A radix-16 step, derived from the textbook 4×4 split (Cooley–Tukey, as
+  `radix16.go` already cites; no FFTW codelet read), is 267 instructions per
+  32 points before spills: 16 loads, 8 butterflies of 16 operations, 8
+  internal twiddle products of 4, 15 outer twiddled outputs of 5, 16 stores.
+  NEON has 32 vector registers and the 16 points of two lanes need 32, so
+  eight to sixteen values per step go through the frame (16 to 32 extra
+  instructions). With each 4,4 pair of go-fft's factorization replaced by a
+  16, vector-loop instructions per point, new ÷ old: complex 128 (the RFFT
+  256 and 2-D 128² row axis) 0.94–0.97, complex 32,768 (RFFT 65,536)
+  0.93–0.97, complex 524,288 (RFFT 2^20) 0.92–0.97, 2-D 1024² row axis
+  0.96–0.98, 2-D 64² and 256² 1.00 (no 4,4 pair: [8 8] and [4 8 8]); 0.88 to
+  0.94 only if nothing spilled. The 2-D column axes run batched passes, which
+  have no radix-16 kernel (a batched one lost on amd64, Round 19). Against
+  gaps of 1.14–1.28 a 3–8% instruction saving cannot close any row, and
+  radix 8 over radix 4 already lost on large powers of two (stream
+  aliasing, `skFactorize`; at 2^15 on this host, `route_arm64.go`), which
+  sixteen streams may make worse (untested); so the
+  kernel was not built and nothing was timed (no new timing, no
+  go-asmgen or go-fft release). What would close the rows is what FFTW
+  does there: a leaf codelet that does 64 or 128 points per call in
+  registers without twiddle tables (`n1fv_64`, `n1fv_128`), a different
+  kernel than a larger radix-r Stockham pass.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,

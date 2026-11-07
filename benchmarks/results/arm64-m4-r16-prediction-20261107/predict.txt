@@ -1,0 +1,11 @@
+=== RUN   TestRadix16Prediction
+    radix16_predict_arm64_test.go:106: RFFT 256 (complex 128)             [4 4 8] -> [16 8]  per point: 15.31  spill  0: 13.91 (0.908x)  spill  8: 14.41 (0.941x)  spill 16: 14.91 (0.973x)
+    radix16_predict_arm64_test.go:106: RFFT 65,536 (complex 32,768)       [2 4 4 4 4 4 4 4] -> [2 16 16 16 4]  per point: 36.50  spill  0: 32.28 (0.884x)  spill  8: 33.78 (0.926x)  spill 16: 35.28 (0.967x)
+    radix16_predict_arm64_test.go:106: RFFT 1,048,576 (complex 524,288)   [2 4 4 4 4 4 4 4 4 4] -> [2 16 16 16 16 4]  per point: 46.25  spill  0: 40.62 (0.878x)  spill  8: 42.62 (0.922x)  spill 16: 44.62 (0.965x)
+    radix16_predict_arm64_test.go:106: 2-D 64x64 rows                     [8 8] -> [8 8]  per point: 12.31  spill  0: 12.31 (1.000x)  spill  8: 12.31 (1.000x)  spill 16: 12.31 (1.000x)
+    radix16_predict_arm64_test.go:106: 2-D 128x128 rows                   [4 4 8] -> [16 8]  per point: 15.31  spill  0: 13.91 (0.908x)  spill  8: 14.41 (0.941x)  spill 16: 14.91 (0.973x)
+    radix16_predict_arm64_test.go:106: 2-D 256x256 rows                   [4 8 8] -> [4 8 8]  per point: 17.19  spill  0: 17.19 (1.000x)  spill  8: 17.19 (1.000x)  spill 16: 17.19 (1.000x)
+    radix16_predict_arm64_test.go:106: 2-D 1024x1024 rows                 [4 4 8 8] -> [16 8 8]  per point: 22.06  spill  0: 20.66 (0.936x)  spill  8: 21.16 (0.959x)  spill 16: 21.66 (0.982x)
+--- PASS: TestRadix16Prediction (0.00s)
+PASS
+ok  	github.com/go-fft/fft	0.154s
