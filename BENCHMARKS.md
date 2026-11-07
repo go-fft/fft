@@ -267,6 +267,54 @@ where two would hide which side of 1 or 1.05 a row is on:
   does there: a leaf codelet that does 64 or 128 points per call in
   registers without twiddle tables (`n1fv_64`, `n1fv_128`), a different
   kernel than a larger radix-r Stockham pass.
+  *NEON register-resident leaf (64 and 128 points), predicted before built*
+  (2026-11-07, Round 46; test `leaf_predict_arm64_test.go`, output in
+  [`arm64-m4-leaf-prediction-20261107/`](benchmarks/results/arm64-m4-leaf-prediction-20261107/)).
+  Opened: Frigo, "A Fast Fourier Transform Compiler" (PLDI 1999,
+  fftw.org/pldi99.pdf): genfft emits straight-line codelets whose size-64
+  complex transform has 912 additions and 248 multiplications (section 1), and
+  schedules the DAG to minimise register spills for sizes 2^k (section 6,
+  after Hong and Kung); the Round 38 table above holds the counts of
+  `n1fv_64` (456 + 124 = 580 vector operations, 456 with FMA). Frigo and
+  Johnson, "The Design and Implementation of FFTW3" (Proc. IEEE 93(2), 2005)
+  was fetched but its text could not be extracted here: only its section
+  headings (4 plans, 6 genfft, 9 SIMD) were read, so nothing is cited from it.
+  *Model* (same step counts as Round 45): a leaf keeps the butterflies and
+  internal twiddle products of the passes it replaces (580 operations per 64
+  points is 9.06 per point without FMA; the model's two radix-8 passes are
+  8.88, so genfft's simplification buys nothing here and FFTW's 7.12 per
+  point is the FMA, which bit identity with the Go reference forbids), drops
+  the twiddle loads for constants (at most 0.5 per point), and does one load
+  (0.5 per point) and one store with the final pairing (1.5) per point. Its
+  128 (64 points) or 256 (128 points) values of two lanes do not fit 32
+  registers (26 usable): 102 or 230 values make a round trip through the
+  frame, once for 64 points and twice for 128, at 0.5 (four-register ST1/LD1)
+  to 2 (single register) instructions per value and trip. Vector-loop
+  instructions per point, leaf ÷ old, whole transform (cheap..dear spill):
+  2-D 64² rows 0.956..1.053; 2-D 128² rows and RFFT 256 0.882..1.087; 2-D
+  1024² rows 0.975..1.029; RFFT 65,536 0.949..0.982; RFFT 2^20 0.960..0.986;
+  2-D 64² columns 0.952..1.057 and 128² columns 0.874..1.094 (no VZIP pairing
+  on a column store); 2-D 256² rows [4 8 8] has no 128-point tail, a 256-point
+  leaf holds 512 values, so 1.00. A twiddled leaf in the middle of a plan
+  (a `t1fv_64`) adds the 4.9 per point of twiddle products to the leaf's cost
+  and loses to three radix-4 passes (16.5..17.9 against 14.6), so only the
+  final, twiddle-free pass gets one. *Memory traffic* (main data, 16 B read
+  and 16 B written per pass per point): 2-D 64² 64 → 32 B per point, 128²
+  96 → 32, RFFT 256 96 → 32, RFFT 65,536 256 → 192, RFFT 2^20 320 → 256, 2-D
+  1024² rows 128 → 96. The traffic falls by a third to two thirds, but whether
+  that is time is not known: the later radix-4 passes at 65,536 points take
+  25 µs each (`arm64-m4-gap-20261102/o65536.txt`), and nothing measured
+  separates the L2 stream from the instruction count there, so the traffic
+  column is an upper bound on what a leaf could save, not a prediction.
+  *Decision:*
+  the gaps are 1.14 to 1.28, which need ratios of 0.88 down to 0.78; the best
+  case (cheap spill, 128 points) is 0.87..0.88 and only for the two rows
+  with a 128-point leaf, the realistic range straddles 1.0, and every other
+  row is 0.95..1.05. Not built, nothing timed (1-minute load 50 at the time),
+  no go-asmgen or go-fft release. What the model does show is where FFTW's
+  lead is: the fused multiply-add (456 against 580 operations in its 64-point
+  leaf, 21%), which Round 41's opt-in FMA mode already tried (0–1% on
+  complex 1,024) and which the default's bit identity forbids.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,
