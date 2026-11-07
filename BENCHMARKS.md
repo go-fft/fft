@@ -315,6 +315,33 @@ where two would hide which side of 1 or 1.05 a row is on:
   lead is: the fused multiply-add (456 against 580 operations in its 64-point
   leaf, 21%), which Round 41's opt-in FMA mode already tried (0–1% on
   complex 1,024) and which the default's bit identity forbids.
+  *NEON FMA kernels for `Options.FMA`, predicted before built* (2026-11-07,
+  Round 47; test `fma_predict_arm64_test.go`, output in
+  [`arm64-m4-fma-prediction-20261107/`](benchmarks/results/arm64-m4-fma-prediction-20261107/)).
+  The brief for this round assumed the NEON assembly has no FMLA/FMLS. It has:
+  the twiddle product of every default pass is VLD1, FMUL, FMLS, FMUL, FMLA
+  (`stockham_arm64.s`, 582 VFMLA/VFMLS lines; 4 arithmetic instructions, the
+  count of FFTW's FMA complex product against 6 without), because the kernels
+  reproduce the FMSUBD/FMADDD gc emits for the Go reference
+  (`asmgen/arm64/gen.go` header, `internal/kernels/cmul_arm64.go`). The
+  radix-2 and radix-4 butterflies hold additions and ±i swaps only, nothing
+  to fuse. The one constant product is radix 8's √2/2 rotations (`bfly8FMA`,
+  `fmaPM`): 4 multiplies and 8 add/subs per step become 8 FMAs, 57 → 53
+  arithmetic instructions (108 → 104 per 16 points), the same fusion amd64's
+  FMA mode applies. The RFFT untangle's products are already FMLS/FMLA; 0.5
+  instruction per point is credited to it as a generous bound. Vector-loop
+  instructions per point, FMA ÷ default (needed ratio 1 / gap in brackets):
+  2-D 64² rows 0.959 (0.85), 128² rows 0.984 (0.85), 256² rows 0.971 (0.78),
+  1024² rows 0.977 (0.78), RFFT 256 0.984 (0.951 with the untangle bound;
+  0.85), RFFT 65,536 and 2^20 1.000 (0.986 and 0.989; 0.85): their plans are
+  radix 2 and 4 only. No row comes within 0.10 of its needed ratio. FFTW's
+  remaining lead in FMA mode is therefore not the radix-8 constants but
+  genfft's scheduling and its different decomposition, which a bit-identical
+  Stockham pass does not reproduce. *Decision:* not built, nothing timed
+  (Mac 1-minute load 22 at the time; cfarm424 not used, there being no
+  kernel to time), no go-asmgen or go-fft release; the default stays
+  bit-identical and `Options.FMA` stays amd64-only (arm64 builds the default
+  plans). Deferred: an M4 or N1 FMA row, since there is no kernel.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,

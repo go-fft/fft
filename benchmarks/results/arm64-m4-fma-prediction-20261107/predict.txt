@@ -1,0 +1,23 @@
+=== RUN   TestFMAPrediction
+    fma_predict_arm64_test.go:64: 2-D 64x64 rows                     [8 8]: 12.31 -> 11.81 instr/pt = 0.959 (0.959 with the untangle bound); needs <= 0.847
+    fma_predict_arm64_test.go:64: 2-D 128x128 rows                   [4 4 8]: 15.31 -> 15.06 instr/pt = 0.984 (0.984 with the untangle bound); needs <= 0.847
+    fma_predict_arm64_test.go:64: 2-D 256x256 rows                   [4 8 8]: 17.19 -> 16.69 instr/pt = 0.971 (0.971 with the untangle bound); needs <= 0.781
+    fma_predict_arm64_test.go:64: 2-D 1024x1024 rows                 [4 4 8 8]: 22.06 -> 21.56 instr/pt = 0.977 (0.977 with the untangle bound); needs <= 0.781
+    fma_predict_arm64_test.go:64: RFFT 256 (complex 128)             [4 4 8]: 15.31 -> 15.06 instr/pt = 0.984 (0.951 with the untangle bound); needs <= 0.847
+    fma_predict_arm64_test.go:64: RFFT 65,536 (complex 32,768)       [2 4 4 4 4 4 4 4]: 36.50 -> 36.50 instr/pt = 1.000 (0.986 with the untangle bound); needs <= 0.847
+    fma_predict_arm64_test.go:64: RFFT 1,048,576 (complex 524,288)   [2 4 4 4 4 4 4 4 4 4]: 46.25 -> 46.25 instr/pt = 1.000 (0.989 with the untangle bound); needs <= 0.847
+--- PASS: TestFMAPrediction (0.00s)
+=== RUN   TestLeafPrediction
+    leaf_predict_arm64_test.go:109: 2-D 64x64 rows                     [8 8] tail [8 8]: old tail 12.31 -> leaf 11.77..12.96; row 12.31 -> 11.77..12.96 = 0.956..1.053; traffic 64 -> 32 B/pt (2 -> 1 passes)
+    leaf_predict_arm64_test.go:109: 2-D 128x128 rows                   [4 4 8] tail [4 4 8]: old tail 15.31 -> leaf 13.51..16.65; row 15.31 -> 13.51..16.65 = 0.882..1.087; traffic 96 -> 32 B/pt (3 -> 1 passes)
+    leaf_predict_arm64_test.go:88: 2-D 256x256 rows                   [4 8 8]: no tail with product 128
+    leaf_predict_arm64_test.go:109: 2-D 1024x1024 rows                 [4 4 8 8] tail [8 8]: old tail 12.31 -> leaf 11.77..12.96; row 22.06 -> 21.52..22.71 = 0.975..1.029; traffic 128 -> 96 B/pt (4 -> 3 passes)
+    leaf_predict_arm64_test.go:109: RFFT 256 (complex 128)             [4 4 8] tail [4 4 8]: old tail 15.31 -> leaf 13.51..16.65; row 15.31 -> 13.51..16.65 = 0.882..1.087; traffic 96 -> 32 B/pt (3 -> 1 passes)
+    leaf_predict_arm64_test.go:109: RFFT 65,536 (complex 32,768)       [2 4 4 4 4 4 4 4] tail [4 4 4]: old tail 13.75 -> leaf 11.89..13.09; row 36.50 -> 34.64..35.84 = 0.949..0.982; traffic 256 -> 192 B/pt (8 -> 6 passes)
+    leaf_predict_arm64_test.go:109: RFFT 1,048,576 (complex 524,288)   [2 4 4 4 4 4 4 4 4 4] tail [4 4 4]: old tail 13.75 -> leaf 11.89..13.09; row 46.25 -> 44.39..45.59 = 0.960..0.986; traffic 320 -> 256 B/pt (10 -> 8 passes)
+    leaf_predict_arm64_test.go:109: 2-D 64x64 columns                  [8 8] tail [8 8]: old tail 11.31 -> leaf 10.77..11.96; row 11.31 -> 10.77..11.96 = 0.952..1.057; traffic 64 -> 32 B/pt (2 -> 1 passes)
+    leaf_predict_arm64_test.go:109: 2-D 128x128 columns                [4 4 8] tail [4 4 8]: old tail 14.31 -> leaf 12.51..15.65; row 14.31 -> 12.51..15.65 = 0.874..1.094; traffic 96 -> 32 B/pt (3 -> 1 passes)
+    leaf_predict_arm64_test.go:117: n1fv_64 non-FMA 9.06 per point, FMA 7.12
+--- PASS: TestLeafPrediction (0.00s)
+PASS
+ok  	github.com/go-fft/fft	0.185s
