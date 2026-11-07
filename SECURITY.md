@@ -67,6 +67,21 @@ large` before anything is allocated, instead of the runtime's
 `makeslice: len out of range`. Below that bound a length allocates in
 proportion to itself, as above, and nothing caps it.
 
+Between that bound and the runtime's own per-allocation limit the runtime's
+panic is raised instead: `runtime error: makeslice: len out of range`. The
+limit is `maxAlloc = 1 << heapAddrBits` in Go's `runtime/malloc.go`
+(`heapAddrBits` is 48 on 64-bit targets, 40 on iOS/arm64, 32 on 32-bit ones, and
+`maxAlloc` is one byte less on 32-bit), so on a 64-bit target it applies from
+2^44 complex128 elements (2^48 bytes) up to the `int` bound at 2^59. The panic
+is an ordinary recoverable `runtime.Error` raised by `make` before any write,
+so it is not a memory-safety issue, but its text is not an `fft:` message.
+This is accepted (go-fft/fft#97): the package cannot read `maxAlloc`, a table
+of it per GOARCH would break with each Go release, and the library's
+allocations are made in over a hundred places, so no single helper could
+recover the panic without a deferred call on every entry point. Bound untrusted
+lengths before the call, as above; a length that large is refused by the
+runtime long before memory is the limit.
+
 ## Audit of 2026-11-02 (v0.28.9)
 
 - **Fuzzing:** `FuzzPublicAPI` and two new variants, `FuzzPublicAPIFMA`
