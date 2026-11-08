@@ -60,6 +60,27 @@ func TestZen4RouteRules(t *testing.T) {
 	}
 }
 
+// TestZen4Split512Hooks: a length in zen4Split512 keeps the split modes
+// zen4Modes gives it and is not on the AVX2 route, whatever the CPU runs.
+func TestZen4Split512Hooks(t *testing.T) {
+	defer func(z map[int]bool, m func(r, ido, l1 []int) []uint8, mx int, sk map[int]bool, f int) {
+		zen4Split512, zen4Modes, zen3RouteMax, zen3RouteSkip, hswSplitFloor = z, m, mx, sk, f
+	}(zen4Split512, zen4Modes, zen3RouteMax, zen3RouteSkip, hswSplitFloor)
+	calls := 0
+	zen4Split512 = map[int]bool{1024: true}
+	zen4Modes = func(r, ido, l1 []int) []uint8 { calls++; return make([]uint8, len(r)) }
+	zen3RouteMax, zen3RouteSkip, hswSplitFloor = 1<<16, map[int]bool{1024: true}, 0
+	if !hswSplitKept(1024) || hswSplitKept(2048) && !zen3Route(2048) || zen3Route(1024) {
+		t.Errorf("1024: kept %v, zen3Route %v", hswSplitKept(1024), zen3Route(1024))
+	}
+	if p := newSKPlan(1024); p == nil || calls != 1 {
+		t.Errorf("plan %v, zen4Modes called %d times, want once", p, calls)
+	}
+	if newSKPlan(512); calls != 1 {
+		t.Errorf("512 points called zen4Modes (%d calls)", calls)
+	}
+}
+
 // TestZen4Split512Bits: a plan on the 512-bit split layout gives the same bits
 // as the 256-bit split one and as the interleaved one, in both directions (the
 // layouts move data, the arithmetic is the same), and its passes do run split
