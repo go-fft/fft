@@ -444,6 +444,29 @@ where two would hide which side of 1 or 1.05 a row is on:
   against 3.93 on the same AVX2 plan: 1.14× = 1.05× instructions × 1.10× IPC,
   with twice the L1D fills from L2, 1,607 against 717), the Round 44 question
   on Zen 3 seen with counters; nothing in them points at a kernel to change.
+  *L1D working set* (2026-11-08, Round 50, v0.28.12; output in
+  [`amd64-zen4-fractal-20261108-round50/`](benchmarks/results/amd64-zen4-fractal-20261108-round50/)).
+  Hypothesis: at 1,024 go-fft's working set (src, dst, scratch and 15.75 KiB of
+  twiddles, 63.8 KiB) overflows the 32 KiB L1D where FFTW's (47 KiB, an
+  out-of-place `n2fv_64` then an in-place `t1fv_16_avx512`) does not. L1D fills
+  from L2 per transform, go-fft ÷ FFTW AVX-512 build: 256 0.02 and 0.02, 512
+  158 and 245, 1,024 1,582 and 913 (1.73×), 2,048 5,529 and 2,827 (go-fft on
+  its AVX-512 route): they do scale with the working set past 32 KiB. They do
+  not explain the gap: go-fft ÷ FFTW cycles are 1.31, 1.20 and 1.33 at 256,
+  512 and 1,024, so the gap is there at 256 with no fills and at 512 with
+  fewer than FFTW's, where go-fft's IPC is higher (4.32 and 3.93 against 3.29
+  and 3.16) and it retires 1.72× and 1.49× the instructions (AVX2 passes
+  against AVX-512 codelets). At 1,024, charging all of go-fft's rise in
+  cycles per instruction from 256 to the fills bounds them at 987 of the 1,312
+  cycles of the gap; at FFTW's cost per fill they are 140. No bit-identical
+  reduction exists: every pass but the first reads another buffer and the last
+  writes dst already; dropping the scratch needs an in-place twiddle pass
+  (another operation order); a 512-point blocked schedule (Round 20) panics on
+  the 8·8·16 plan because `kernels.StockhamLastRun` has no radix-16 last pass;
+  the frame kernel at 1,024 would hold more bytes, not fewer. *Decision:* no
+  code change and no release; Zen 3, Cascade Lake and N1 not re-run, nothing
+  changed for them. What the counters leave at 256 and 1,024 is the instruction
+  count, not the layout. `pmu stat` gained `-benchname`.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,

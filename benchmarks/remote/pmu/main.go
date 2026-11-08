@@ -29,22 +29,23 @@ import (
 )
 
 var (
-	benchBin = flag.String("bench", os.ExpandEnv("$HOME/gofft-bench/runpkg/bench.amd64"), "go test binary")
-	fftwBin  = flag.String("fftw", os.ExpandEnv("$HOME/gofft-bench/runpkg/fftw_one"), "fftw_one binary")
-	cpu      = flag.String("cpu", "2", "cpu to pin to (its SMT sibling must be idle)")
-	fma      = flag.Bool("fma", false, "GOFFT_FMA=1 (opt-in FMA plans)")
-	loadMax  = flag.Float64("load", 1.5, "refuse to run above this 1-minute load")
-	sizes    = flag.String("sizes", "1024,65536", "complex sizes")
-	rounds   = flag.Int("rounds", 7, "interleaved rounds")
-	secs     = flag.Float64("secs", 0.4, "seconds per measurement")
-	nOne     = flag.Int("n", 1024, "stat: size")
-	iA       = flag.Int("a", 200000, "stat: low iteration count")
-	iB       = flag.Int("b", 1000000, "stat: high iteration count")
-	events   = flag.String("events", "", "stat: comma-separated extra events")
-	only     = flag.String("only", "", "stat: go or fftw (default both)")
-	re       = flag.String("re", "Benchmark(Complex|Real|CReal)_GoFFT", "envcmp: benchmark regexp")
-	benchB   = flag.String("benchb", "", "envcmp: test binary for configuration B (default -bench)")
-	envb     = flag.String("envb", "", "envcmp: comma-separated VAR=val for configuration B")
+	benchBin  = flag.String("bench", os.ExpandEnv("$HOME/gofft-bench/runpkg/bench.amd64"), "go test binary")
+	fftwBin   = flag.String("fftw", os.ExpandEnv("$HOME/gofft-bench/runpkg/fftw_one"), "fftw_one binary")
+	benchName = flag.String("benchname", "BenchmarkComplex_GoFFT", "go benchmark to drive (BenchmarkPow2_GoFFT reaches 512 and 2,048)")
+	cpu       = flag.String("cpu", "2", "cpu to pin to (its SMT sibling must be idle)")
+	fma       = flag.Bool("fma", false, "GOFFT_FMA=1 (opt-in FMA plans)")
+	loadMax   = flag.Float64("load", 1.5, "refuse to run above this 1-minute load")
+	sizes     = flag.String("sizes", "1024,65536", "complex sizes")
+	rounds    = flag.Int("rounds", 7, "interleaved rounds")
+	secs      = flag.Float64("secs", 0.4, "seconds per measurement")
+	nOne      = flag.Int("n", 1024, "stat: size")
+	iA        = flag.Int("a", 200000, "stat: low iteration count")
+	iB        = flag.Int("b", 1000000, "stat: high iteration count")
+	events    = flag.String("events", "", "stat: comma-separated extra events")
+	only      = flag.String("only", "", "stat: go or fftw (default both)")
+	re        = flag.String("re", "Benchmark(Complex|Real|CReal)_GoFFT", "envcmp: benchmark regexp")
+	benchB    = flag.String("benchb", "", "envcmp: test binary for configuration B (default -bench)")
+	envb      = flag.String("envb", "", "envcmp: comma-separated VAR=val for configuration B")
 )
 
 func main() {
@@ -88,7 +89,7 @@ func pinned(env []string, args ...string) *exec.Cmd {
 
 func goArgs(n, iters int) []string {
 	return []string{*benchBin, "-test.run=^$",
-		"-test.bench=^BenchmarkComplex_GoFFT$/^" + strconv.Itoa(n) + "$",
+		"-test.bench=^" + *benchName + "$/^" + strconv.Itoa(n) + "$",
 		"-test.benchtime=" + strconv.Itoa(iters) + "x", "-test.count=1"}
 }
 
@@ -114,7 +115,7 @@ func runGo(n int, secsWanted float64, est *float64) float64 {
 	}
 	for _, ln := range strings.Split(out.String(), "\n") {
 		f := strings.Fields(ln)
-		if len(f) >= 4 && strings.HasPrefix(f[0], "BenchmarkComplex_GoFFT/") && f[3] == "ns/op" {
+		if len(f) >= 4 && strings.HasPrefix(f[0], *benchName+"/") && f[3] == "ns/op" {
 			v, _ := strconv.ParseFloat(f[2], 64)
 			*est = v
 			return v
