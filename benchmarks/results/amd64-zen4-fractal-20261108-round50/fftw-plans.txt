@@ -1,0 +1,20 @@
+== 256
+(dft-ct-dit/32
+  (dftw-direct-32/496 "t2fv_32_avx512")
+  (dft-direct-8-x32 "n2fv_8_avx2"))
+256 176.4 ns/op
+== 512
+(dft-ct-dit/32
+  (dftw-direct-32/496 "t2fv_32_avx512")
+  (dft-direct-16-x32 "n2fv_16_avx2"))
+512 393.6 ns/op
+== 1024
+(dft-ct-dit/16
+  (dftw-direct-16/120 "t1fv_16_avx512")
+  (dft-direct-64-x16 "n2fv_64_avx2"))
+1024 987.6 ns/op
+== 2048
+(dft-ct-dit/32
+  (dftw-direct-32/248 "t1fv_32_avx512")
+  (dft-direct-64-x32 "n2fv_64_avx2"))
+2048 2462.8 ns/op

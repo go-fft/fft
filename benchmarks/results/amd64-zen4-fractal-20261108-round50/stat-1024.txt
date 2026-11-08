@@ -1,0 +1,17 @@
+# n=1024 cpu=6 fma=false: per-execute counts, (count(1000000)-count(200000))/800000, user mode
+## go-fft
+cycles:u                                                            5254.67
+instructions:u                                                     18412.93
+ls_any_fills_from_sys.local_l2:u                                    1582.45
+ls_dmnd_fills_from_sys.local_l2:u                                    662.28
+ls_hw_pf_dc_fills.all:u                                              921.49
+ls_any_fills_from_sys.all:u                                         1582.14
+IPC                                                                   3.504
+## fftw
+cycles:u                                                            3943.15
+instructions:u                                                     12338.42
+ls_any_fills_from_sys.local_l2:u                                     912.76
+ls_dmnd_fills_from_sys.local_l2:u                                    448.72
+ls_hw_pf_dc_fills.all:u                                              463.55
+ls_any_fills_from_sys.all:u                                          911.69
+IPC                                                                   3.129
