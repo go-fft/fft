@@ -467,6 +467,32 @@ where two would hide which side of 1 or 1.05 a row is on:
   code change and no release; Zen 3, Cascade Lake and N1 not re-run, nothing
   changed for them. What the counters leave at 256 and 1,024 is the instruction
   count, not the layout. `pmu stat` gained `-benchname`.
+  *Why the AVX-512 route stalls on Zen 4* (2026-11-08, Round 51; output in
+  [`amd64-zen4-fractal-20261108-round51/`](benchmarks/results/amd64-zen4-fractal-20261108-round51/)).
+  IBS on the forced v0.28.11 route at 1,024: `skPass4AVX512` 44%,
+  `skLast8AVX512` 31%, `skPass8AVX512` 20%; inside the final pass the samples
+  are flat (0.5-2.3% per instruction), the 24 `VINSERTF32X4` of its gather a
+  third of them. uops.info's Zen 4 rows: every lane insert and 512-bit lane
+  shuffle (`VINSERTF32X4`, `VINSERTF64X4`, `VSHUFF64X2`) is one uop on FP1/2 at
+  1.00 cycle, a merge-masked load one uop on FP0-3 at 1.00, `VPERMILPD zmm`
+  0.67. Rewritten gathers: masked lane loads 1,185 ns against 1,103 (worse),
+  256-bit halves 1,075, no gather at all (wrong results) 1,034. So the gather
+  is at most 6% of the transform and is not why the route loses to the AVX2
+  one (967 ns); what the AVX2 route has is the split layout (no `VPERMILPD`,
+  no sign-flip per rotation). The halves kernel gained 4-8% in the 512-bit
+  split route below 1,024 points on Zen 4 and lost 3-4.6% at 256-1,024 on
+  Cascade Lake (cfarm151, load 0.00), so it is not shipped; go-asmgen is
+  unchanged. *Shipped:* on a Zen 4, 65,536, 131,072 and 262,144 points take
+  Cascade Lake's route (the 512-bit split layout, bit-identical to the other
+  layouts: `TestZen4Split512Bits`). Default time ÷ that route, seven rounds
+  with each mode twice per round: 65,536 1.065, 131,072 1.034, 262,144 1.026;
+  1,024 1.005, 2,048 1.018 (ties), 256 0.940, 512 0.957, 4,096 0.921, 8,192
+  0.897, 16,384 0.917, 32,768 0.982, 2^19 0.995, 2^20 0.962, which keep their
+  routes. go-fft ÷ FFTW 3.3.10's AVX-512 build (the fastest on this CPU),
+  v0.28.12 → this change: 65,536 0.936 → 0.881, 131,072 0.917 → 0.895,
+  262,144 0.859 → 0.836; 256 1.26 and 1,024 1.30 do not move (load 0.3-0.9).
+  Cascade Lake runs the code it ran. The small-size gap to FFTW's AVX-512
+  codelets is still open.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,

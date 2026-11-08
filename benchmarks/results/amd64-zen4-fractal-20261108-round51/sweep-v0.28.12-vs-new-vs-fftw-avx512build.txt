@@ -1,0 +1,387 @@
+ 14:04:26 up 56 days, 23:59,  3 users,  load average: 0,32, 0,80, 0,85
+mode=sb
+BenchmarkRound51/256         	 1277778	       225.9 ns/op
+BenchmarkRound51/512         	  754272	       381.2 ns/op
+BenchmarkRound51/1024        	  311446	       965.4 ns/op
+BenchmarkRound51/2048        	  113426	      2647 ns/op
+BenchmarkRound51/4096        	   55172	      5429 ns/op
+BenchmarkRound51/8192        	   25783	     11632 ns/op
+BenchmarkRound51/16384       	   10000	     25021 ns/op
+BenchmarkRound51/65536       	    2184	    137761 ns/op
+BenchmarkRound51/131072      	    1057	    283657 ns/op
+BenchmarkRound51/262144      	     501	    593425 ns/op
+mode=f
+BenchmarkRound51/256         	 1750408	       171.3 ns/op
+BenchmarkRound51/512         	  778803	       382.3 ns/op
+BenchmarkRound51/1024        	  310809	       965.0 ns/op
+BenchmarkRound51/2048        	  119260	      2519 ns/op
+BenchmarkRound51/4096        	   54235	      5527 ns/op
+BenchmarkRound51/8192        	   25845	     11604 ns/op
+BenchmarkRound51/16384       	   12166	     24644 ns/op
+BenchmarkRound51/65536       	    2323	    129094 ns/op
+BenchmarkRound51/131072      	    1070	    277127 ns/op
+BenchmarkRound51/262144      	     512	    579260 ns/op
+mode=f
+BenchmarkRound51/256         	 1749925	       171.4 ns/op
+BenchmarkRound51/512         	  784909	       382.4 ns/op
+BenchmarkRound51/1024        	  315645	       951.0 ns/op
+BenchmarkRound51/2048        	  115777	      2589 ns/op
+BenchmarkRound51/4096        	   54528	      5495 ns/op
+BenchmarkRound51/8192        	   25941	     11560 ns/op
+BenchmarkRound51/16384       	   10000	     25115 ns/op
+BenchmarkRound51/65536       	    2332	    128612 ns/op
+BenchmarkRound51/131072      	    1069	    275905 ns/op
+BenchmarkRound51/262144      	     513	    579349 ns/op
+mode=sb
+BenchmarkRound51/256         	 1734604	       172.8 ns/op
+BenchmarkRound51/512         	  776263	       386.2 ns/op
+BenchmarkRound51/1024        	  313840	       957.7 ns/op
+BenchmarkRound51/2048        	  117453	      2551 ns/op
+BenchmarkRound51/4096        	   54583	      5495 ns/op
+BenchmarkRound51/8192        	   25686	     11651 ns/op
+BenchmarkRound51/16384       	   10000	     25172 ns/op
+BenchmarkRound51/65536       	    2185	    137324 ns/op
+BenchmarkRound51/131072      	    1058	    284251 ns/op
+BenchmarkRound51/262144      	     504	    593168 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 132.1 ns/op ns/op
+BenchmarkRound51/512 x 512 332.6 ns/op ns/op
+BenchmarkRound51/1024 x 1024 745.0 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1847.2 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5270.9 ns/op ns/op
+BenchmarkRound51/8192 x 8192 10646.2 ns/op ns/op
+BenchmarkRound51/16384 x 16384 24197.4 ns/op ns/op
+BenchmarkRound51/65536 x 65536 146820.1 ns/op ns/op
+BenchmarkRound51/131072 x 131072 313151.6 ns/op ns/op
+BenchmarkRound51/262144 x 262144 689220.8 ns/op ns/op
+mode=sb
+BenchmarkRound51/256         	 1746751	       171.6 ns/op
+BenchmarkRound51/512         	  785000	       382.7 ns/op
+BenchmarkRound51/1024        	  304575	       982.1 ns/op
+BenchmarkRound51/2048        	  116005	      2579 ns/op
+BenchmarkRound51/4096        	   54388	      5511 ns/op
+BenchmarkRound51/8192        	   25712	     11668 ns/op
+BenchmarkRound51/16384       	   12072	     24842 ns/op
+BenchmarkRound51/65536       	    2185	    137546 ns/op
+BenchmarkRound51/131072      	    1058	    283410 ns/op
+BenchmarkRound51/262144      	     504	    605591 ns/op
+mode=f
+BenchmarkRound51/256         	 1751263	       171.4 ns/op
+BenchmarkRound51/512         	  781854	       383.8 ns/op
+BenchmarkRound51/1024        	  318078	       943.6 ns/op
+BenchmarkRound51/2048        	  117945	      2533 ns/op
+BenchmarkRound51/4096        	   54601	      5488 ns/op
+BenchmarkRound51/8192        	   25864	     11602 ns/op
+BenchmarkRound51/16384       	   12052	     24839 ns/op
+BenchmarkRound51/65536       	    2306	    129366 ns/op
+BenchmarkRound51/131072      	    1070	    278181 ns/op
+BenchmarkRound51/262144      	     512	    577310 ns/op
+mode=f
+BenchmarkRound51/256         	 1752404	       172.7 ns/op
+BenchmarkRound51/512         	  776250	       382.5 ns/op
+BenchmarkRound51/1024        	  314342	       954.3 ns/op
+BenchmarkRound51/2048        	  117134	      2555 ns/op
+BenchmarkRound51/4096        	   54015	      5556 ns/op
+BenchmarkRound51/8192        	   25849	     11604 ns/op
+BenchmarkRound51/16384       	   12019	     24978 ns/op
+BenchmarkRound51/65536       	    2331	    128771 ns/op
+BenchmarkRound51/131072      	    1071	    275821 ns/op
+BenchmarkRound51/262144      	     508	    581705 ns/op
+mode=sb
+BenchmarkRound51/256         	 1748875	       171.3 ns/op
+BenchmarkRound51/512         	  785308	       383.2 ns/op
+BenchmarkRound51/1024        	  308616	       972.7 ns/op
+BenchmarkRound51/2048        	  118329	      2535 ns/op
+BenchmarkRound51/4096        	   53625	      5630 ns/op
+BenchmarkRound51/8192        	   25947	     11557 ns/op
+BenchmarkRound51/16384       	   10000	     25230 ns/op
+BenchmarkRound51/65536       	    2202	    136873 ns/op
+BenchmarkRound51/131072      	    1047	    285864 ns/op
+BenchmarkRound51/262144      	     507	    591120 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 139.5 ns/op ns/op
+BenchmarkRound51/512 x 512 298.8 ns/op ns/op
+BenchmarkRound51/1024 x 1024 722.4 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1938.3 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5419.9 ns/op ns/op
+BenchmarkRound51/8192 x 8192 10838.7 ns/op ns/op
+BenchmarkRound51/16384 x 16384 23239.4 ns/op ns/op
+BenchmarkRound51/65536 x 65536 136498.7 ns/op ns/op
+BenchmarkRound51/131072 x 131072 321337.9 ns/op ns/op
+BenchmarkRound51/262144 x 262144 692198.0 ns/op ns/op
+mode=sb
+BenchmarkRound51/256         	 1717419	       172.1 ns/op
+BenchmarkRound51/512         	  785575	       382.7 ns/op
+BenchmarkRound51/1024        	  308424	       972.4 ns/op
+BenchmarkRound51/2048        	  118480	      2533 ns/op
+BenchmarkRound51/4096        	   54673	      5482 ns/op
+BenchmarkRound51/8192        	   25802	     11629 ns/op
+BenchmarkRound51/16384       	   12170	     24645 ns/op
+BenchmarkRound51/65536       	    2167	    136853 ns/op
+BenchmarkRound51/131072      	    1054	    285139 ns/op
+BenchmarkRound51/262144      	     502	    594336 ns/op
+mode=f
+BenchmarkRound51/256         	 1741398	       172.2 ns/op
+BenchmarkRound51/512         	  784782	       384.3 ns/op
+BenchmarkRound51/1024        	  315007	       952.7 ns/op
+BenchmarkRound51/2048        	  117932	      2538 ns/op
+BenchmarkRound51/4096        	   54596	      5493 ns/op
+BenchmarkRound51/8192        	   25285	     11872 ns/op
+BenchmarkRound51/16384       	   12126	     24737 ns/op
+BenchmarkRound51/65536       	    2322	    128834 ns/op
+BenchmarkRound51/131072      	    1059	    278789 ns/op
+BenchmarkRound51/262144      	     510	    579768 ns/op
+mode=f
+BenchmarkRound51/256         	 1735003	       172.8 ns/op
+BenchmarkRound51/512         	  784592	       384.0 ns/op
+BenchmarkRound51/1024        	  314406	       954.7 ns/op
+BenchmarkRound51/2048        	  115705	      2590 ns/op
+BenchmarkRound51/4096        	   54468	      5503 ns/op
+BenchmarkRound51/8192        	   25464	     11777 ns/op
+BenchmarkRound51/16384       	   12112	     24774 ns/op
+BenchmarkRound51/65536       	    2275	    128888 ns/op
+BenchmarkRound51/131072      	    1068	    277235 ns/op
+BenchmarkRound51/262144      	     511	    577236 ns/op
+mode=sb
+BenchmarkRound51/256         	 1735024	       172.9 ns/op
+BenchmarkRound51/512         	  782781	       386.2 ns/op
+BenchmarkRound51/1024        	  315217	       951.3 ns/op
+BenchmarkRound51/2048        	  116558	      2571 ns/op
+BenchmarkRound51/4096        	   53720	      5568 ns/op
+BenchmarkRound51/8192        	   25878	     11591 ns/op
+BenchmarkRound51/16384       	   12088	     24823 ns/op
+BenchmarkRound51/65536       	    2192	    137230 ns/op
+BenchmarkRound51/131072      	    1046	    286158 ns/op
+BenchmarkRound51/262144      	     499	    597017 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 132.2 ns/op ns/op
+BenchmarkRound51/512 x 512 306.3 ns/op ns/op
+BenchmarkRound51/1024 x 1024 731.2 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1883.7 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5120.0 ns/op ns/op
+BenchmarkRound51/8192 x 8192 10600.2 ns/op ns/op
+BenchmarkRound51/16384 x 16384 23613.4 ns/op ns/op
+BenchmarkRound51/65536 x 65536 140185.8 ns/op ns/op
+BenchmarkRound51/131072 x 131072 308897.0 ns/op ns/op
+BenchmarkRound51/262144 x 262144 693863.4 ns/op ns/op
+mode=sb
+BenchmarkRound51/256         	 1748889	       172.2 ns/op
+BenchmarkRound51/512         	  774386	       383.1 ns/op
+BenchmarkRound51/1024        	  318630	       941.4 ns/op
+BenchmarkRound51/2048        	  114930	      2610 ns/op
+BenchmarkRound51/4096        	   54781	      5470 ns/op
+BenchmarkRound51/8192        	   25539	     11749 ns/op
+BenchmarkRound51/16384       	   10000	     25099 ns/op
+BenchmarkRound51/65536       	    2192	    137468 ns/op
+BenchmarkRound51/131072      	    1054	    284542 ns/op
+BenchmarkRound51/262144      	     501	    597112 ns/op
+mode=f
+BenchmarkRound51/256         	 1694472	       176.7 ns/op
+BenchmarkRound51/512         	  760671	       393.5 ns/op
+BenchmarkRound51/1024        	  309038	       972.3 ns/op
+BenchmarkRound51/2048        	  113878	      2632 ns/op
+BenchmarkRound51/4096        	   52496	      5680 ns/op
+BenchmarkRound51/8192        	   25772	     11641 ns/op
+BenchmarkRound51/16384       	   10000	     25016 ns/op
+BenchmarkRound51/65536       	    2220	    134670 ns/op
+BenchmarkRound51/131072      	    1033	    285184 ns/op
+BenchmarkRound51/262144      	     493	    598053 ns/op
+mode=f
+BenchmarkRound51/256         	 1631752	       185.8 ns/op
+BenchmarkRound51/512         	  762082	       394.1 ns/op
+BenchmarkRound51/1024        	  308971	       969.6 ns/op
+BenchmarkRound51/2048        	  115376	      2600 ns/op
+BenchmarkRound51/4096        	   52178	      5726 ns/op
+BenchmarkRound51/8192        	   25221	     11894 ns/op
+BenchmarkRound51/16384       	   10000	     26120 ns/op
+BenchmarkRound51/65536       	    2226	    134145 ns/op
+BenchmarkRound51/131072      	    1030	    287045 ns/op
+BenchmarkRound51/262144      	     494	    598537 ns/op
+mode=sb
+BenchmarkRound51/256         	 1695206	       176.9 ns/op
+BenchmarkRound51/512         	  750682	       399.3 ns/op
+BenchmarkRound51/1024        	  309984	       968.4 ns/op
+BenchmarkRound51/2048        	  114732	      2612 ns/op
+BenchmarkRound51/4096        	   53476	      5608 ns/op
+BenchmarkRound51/8192        	   25149	     11903 ns/op
+BenchmarkRound51/16384       	   10000	     25887 ns/op
+BenchmarkRound51/65536       	    2084	    143177 ns/op
+BenchmarkRound51/131072      	    1002	    299110 ns/op
+BenchmarkRound51/262144      	     477	    626883 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 139.9 ns/op ns/op
+BenchmarkRound51/512 x 512 305.7 ns/op ns/op
+BenchmarkRound51/1024 x 1024 752.7 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1896.2 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5419.6 ns/op ns/op
+BenchmarkRound51/8192 x 8192 11231.0 ns/op ns/op
+BenchmarkRound51/16384 x 16384 24869.0 ns/op ns/op
+BenchmarkRound51/65536 x 65536 148848.7 ns/op ns/op
+BenchmarkRound51/131072 x 131072 310936.8 ns/op ns/op
+BenchmarkRound51/262144 x 262144 695031.6 ns/op ns/op
+mode=sb
+BenchmarkRound51/256         	 1751871	       172.5 ns/op
+BenchmarkRound51/512         	  762387	       393.9 ns/op
+BenchmarkRound51/1024        	  306591	       978.8 ns/op
+BenchmarkRound51/2048        	  114613	      2617 ns/op
+BenchmarkRound51/4096        	   53348	      5619 ns/op
+BenchmarkRound51/8192        	   25204	     11894 ns/op
+BenchmarkRound51/16384       	   10000	     25469 ns/op
+BenchmarkRound51/65536       	    2082	    143250 ns/op
+BenchmarkRound51/131072      	    1012	    297458 ns/op
+BenchmarkRound51/262144      	     484	    618321 ns/op
+mode=f
+BenchmarkRound51/256         	 1698885	       176.5 ns/op
+BenchmarkRound51/512         	  762602	       394.4 ns/op
+BenchmarkRound51/1024        	  308859	       973.3 ns/op
+BenchmarkRound51/2048        	  114892	      2617 ns/op
+BenchmarkRound51/4096        	   52950	      5660 ns/op
+BenchmarkRound51/8192        	   25263	     11876 ns/op
+BenchmarkRound51/16384       	   10000	     26022 ns/op
+BenchmarkRound51/65536       	    2248	    133476 ns/op
+BenchmarkRound51/131072      	    1029	    286304 ns/op
+BenchmarkRound51/262144      	     496	    597090 ns/op
+mode=f
+BenchmarkRound51/256         	 1693978	       173.2 ns/op
+BenchmarkRound51/512         	  787248	       381.9 ns/op
+BenchmarkRound51/1024        	  318715	       941.0 ns/op
+BenchmarkRound51/2048        	  121321	      2473 ns/op
+BenchmarkRound51/4096        	   54717	      5483 ns/op
+BenchmarkRound51/8192        	   25585	     11703 ns/op
+BenchmarkRound51/16384       	   12169	     25105 ns/op
+BenchmarkRound51/65536       	    2232	    133505 ns/op
+BenchmarkRound51/131072      	    1036	    285208 ns/op
+BenchmarkRound51/262144      	     493	    601144 ns/op
+mode=sb
+BenchmarkRound51/256         	 1694884	       176.6 ns/op
+BenchmarkRound51/512         	  758688	       393.7 ns/op
+BenchmarkRound51/1024        	  303326	       989.3 ns/op
+BenchmarkRound51/2048        	  115586	      2596 ns/op
+BenchmarkRound51/4096        	   53235	      5632 ns/op
+BenchmarkRound51/8192        	   25066	     11970 ns/op
+BenchmarkRound51/16384       	   10000	     25621 ns/op
+BenchmarkRound51/65536       	    2083	    143057 ns/op
+BenchmarkRound51/131072      	    1017	    295424 ns/op
+BenchmarkRound51/262144      	     487	    614329 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 136.9 ns/op ns/op
+BenchmarkRound51/512 x 512 336.4 ns/op ns/op
+BenchmarkRound51/1024 x 1024 788.6 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1961.0 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5216.5 ns/op ns/op
+BenchmarkRound51/8192 x 8192 11156.3 ns/op ns/op
+BenchmarkRound51/16384 x 16384 25165.2 ns/op ns/op
+BenchmarkRound51/65536 x 65536 154682.7 ns/op ns/op
+BenchmarkRound51/131072 x 131072 309051.4 ns/op ns/op
+BenchmarkRound51/262144 x 262144 703337.7 ns/op ns/op
+mode=sb
+BenchmarkRound51/256         	 1753548	       170.8 ns/op
+BenchmarkRound51/512         	  779106	       382.1 ns/op
+BenchmarkRound51/1024        	  319287	       939.9 ns/op
+BenchmarkRound51/2048        	  114688	      2609 ns/op
+BenchmarkRound51/4096        	   54352	      5513 ns/op
+BenchmarkRound51/8192        	   25768	     11638 ns/op
+BenchmarkRound51/16384       	   12061	     24872 ns/op
+BenchmarkRound51/65536       	    2205	    136986 ns/op
+BenchmarkRound51/131072      	    1053	    285233 ns/op
+BenchmarkRound51/262144      	     495	    601667 ns/op
+mode=f
+BenchmarkRound51/256         	 1747255	       171.7 ns/op
+BenchmarkRound51/512         	  776233	       386.0 ns/op
+BenchmarkRound51/1024        	  310687	       964.5 ns/op
+BenchmarkRound51/2048        	  114705	      2616 ns/op
+BenchmarkRound51/4096        	   54672	      5486 ns/op
+BenchmarkRound51/8192        	   25916	     11575 ns/op
+BenchmarkRound51/16384       	   12046	     24886 ns/op
+BenchmarkRound51/65536       	    2310	    129728 ns/op
+BenchmarkRound51/131072      	    1047	    278842 ns/op
+BenchmarkRound51/262144      	     511	    579452 ns/op
+mode=f
+BenchmarkRound51/256         	 1743454	       172.1 ns/op
+BenchmarkRound51/512         	  778156	       382.5 ns/op
+BenchmarkRound51/1024        	  307928	       974.9 ns/op
+BenchmarkRound51/2048        	  116262	      2577 ns/op
+BenchmarkRound51/4096        	   54255	      5533 ns/op
+BenchmarkRound51/8192        	   25723	     11653 ns/op
+BenchmarkRound51/16384       	   12091	     24783 ns/op
+BenchmarkRound51/65536       	    2299	    129395 ns/op
+BenchmarkRound51/131072      	    1075	    275683 ns/op
+BenchmarkRound51/262144      	     505	    580799 ns/op
+mode=sb
+BenchmarkRound51/256         	 1747814	       171.4 ns/op
+BenchmarkRound51/512         	  786156	       382.8 ns/op
+BenchmarkRound51/1024        	  307317	       973.6 ns/op
+BenchmarkRound51/2048        	  116587	      2570 ns/op
+BenchmarkRound51/4096        	   54838	      5466 ns/op
+BenchmarkRound51/8192        	   25927	     11565 ns/op
+BenchmarkRound51/16384       	   12087	     24857 ns/op
+BenchmarkRound51/65536       	    2196	    136954 ns/op
+BenchmarkRound51/131072      	    1050	    284701 ns/op
+BenchmarkRound51/262144      	     506	    589506 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 130.7 ns/op ns/op
+BenchmarkRound51/512 x 512 302.1 ns/op ns/op
+BenchmarkRound51/1024 x 1024 728.5 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1955.6 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5122.6 ns/op ns/op
+BenchmarkRound51/8192 x 8192 10752.1 ns/op ns/op
+BenchmarkRound51/16384 x 16384 23887.5 ns/op ns/op
+BenchmarkRound51/65536 x 65536 137801.7 ns/op ns/op
+BenchmarkRound51/131072 x 131072 308455.1 ns/op ns/op
+BenchmarkRound51/262144 x 262144 708255.7 ns/op ns/op
+mode=sb
+BenchmarkRound51/256         	 1748955	       171.3 ns/op
+BenchmarkRound51/512         	  785256	       382.2 ns/op
+BenchmarkRound51/1024        	  313212	       959.8 ns/op
+BenchmarkRound51/2048        	  118370	      2533 ns/op
+BenchmarkRound51/4096        	   54429	      5514 ns/op
+BenchmarkRound51/8192        	   25843	     11608 ns/op
+BenchmarkRound51/16384       	   12068	     24859 ns/op
+BenchmarkRound51/65536       	    2163	    137271 ns/op
+BenchmarkRound51/131072      	    1052	    283770 ns/op
+BenchmarkRound51/262144      	     505	    592079 ns/op
+mode=f
+BenchmarkRound51/256         	 1750708	       171.2 ns/op
+BenchmarkRound51/512         	  784969	       383.2 ns/op
+BenchmarkRound51/1024        	  310722	       965.8 ns/op
+BenchmarkRound51/2048        	  118348	      2535 ns/op
+BenchmarkRound51/4096        	   54372	      5515 ns/op
+BenchmarkRound51/8192        	   25882	     11587 ns/op
+BenchmarkRound51/16384       	   12076	     24838 ns/op
+BenchmarkRound51/65536       	    2340	    128206 ns/op
+BenchmarkRound51/131072      	    1069	    277302 ns/op
+BenchmarkRound51/262144      	     511	    576574 ns/op
+mode=f
+BenchmarkRound51/256         	 1740096	       172.4 ns/op
+BenchmarkRound51/512         	  780932	       384.9 ns/op
+BenchmarkRound51/1024        	  318224	       942.5 ns/op
+BenchmarkRound51/2048        	  119120	      2519 ns/op
+BenchmarkRound51/4096        	   54625	      5491 ns/op
+BenchmarkRound51/8192        	   25803	     11628 ns/op
+BenchmarkRound51/16384       	   10000	     25046 ns/op
+BenchmarkRound51/65536       	    2312	    129788 ns/op
+BenchmarkRound51/131072      	    1070	    276419 ns/op
+BenchmarkRound51/262144      	     510	    624737 ns/op
+mode=sb
+BenchmarkRound51/256         	 1696106	       176.9 ns/op
+BenchmarkRound51/512         	  749926	       399.3 ns/op
+BenchmarkRound51/1024        	  308823	       970.6 ns/op
+BenchmarkRound51/2048        	  116245	      2579 ns/op
+BenchmarkRound51/4096        	   53494	      5602 ns/op
+BenchmarkRound51/8192        	   25148	     11928 ns/op
+BenchmarkRound51/16384       	   10000	     25639 ns/op
+BenchmarkRound51/65536       	    2116	    142139 ns/op
+BenchmarkRound51/131072      	    1017	    295769 ns/op
+BenchmarkRound51/262144      	     484	    616960 ns/op
+mode=fftw
+BenchmarkRound51/256 x 256 153.0 ns/op ns/op
+BenchmarkRound51/512 x 512 319.9 ns/op ns/op
+BenchmarkRound51/1024 x 1024 773.1 ns/op ns/op
+BenchmarkRound51/2048 x 2048 1884.8 ns/op ns/op
+BenchmarkRound51/4096 x 4096 5372.6 ns/op ns/op
+BenchmarkRound51/8192 x 8192 11185.2 ns/op ns/op
+BenchmarkRound51/16384 x 16384 24799.1 ns/op ns/op
+BenchmarkRound51/65536 x 65536 148969.7 ns/op ns/op
+BenchmarkRound51/131072 x 131072 313997.0 ns/op ns/op
+BenchmarkRound51/262144 x 262144 705938.1 ns/op ns/op
+ 14:07:35 up 57 days, 3 min,  3 users,  load average: 1,02, 0,93, 0,90

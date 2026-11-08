@@ -327,7 +327,8 @@ Twiddle factors are computed once per length and cached.
 **SIMD.** On amd64 the Stockham passes run as generated **AVX2** kernels, and
 powers of two of 256 points or more as **AVX-512** kernels where the CPU and
 the OS allow it (an AMD Zen 4 runs the AVX2 kernels up to 65,536 points, where
-hardware counters showed them 5–27% faster); the real-FFT untangle has an AVX2
+hardware counters showed them 5–27% faster, except 2,048, and 65,536 to 262,144
+with the 512-bit split layout, 3–6% faster still); the real-FFT untangle has an AVX2
 kernel too. They keep the
 Go code's arithmetic order (separately rounded multiplies and adds, no FMA), so
 their results are **bit-identical** to the Go passes, and the tests compare
@@ -403,7 +404,10 @@ by at most 5%.
   1.31 at 256 and 1,024 against the AVX2 build. Complex 65,536 runs the same
   cycles as FFTW (755,138 against 756,357). Complex 1,024 retires 18,437
   instructions at IPC 3.57 where FFTW's AVX2 plan retires 17,588 at 3.93
-  (BENCHMARKS.md, Round 49).
+  (BENCHMARKS.md, Round 49). Round 51 (v0.28.14, load 0.3–0.9) moves complex
+  65,536 to the 512-bit split layout: ÷ FFTW's AVX-512 build 0.94 → 0.88, and
+  131,072 0.92 → 0.90, 262,144 0.86 → 0.84; 256 (1.26) and 1,024 (1.30) are
+  unchanged.
 - **Haswell** (no FFTW on the host): v0.21.0 runs complex 512–2^18 1.03–1.21×
   and the composites 1000–6000 1.07–1.21× faster than v0.19.1 (Round 29);
   v0.24.0 runs 2-D 64×1024 … 1024² 1.04–1.06× and complex 6,144 and 10,240

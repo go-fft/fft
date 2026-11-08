@@ -175,15 +175,68 @@ func cascadeMinAMD64(avx512, intel bool) int {
 // 512-bit split layout runs, or hswSplitTable on an Intel CPU with the
 // 256-bit one, for this machine.
 func splitTableDefault() map[int][]int {
-	return zen4CapTable(intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.IntelCPU),
+	t := zen4CapTable(intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.IntelCPU),
 		kernels.AMDZen4, zen4Zen3RouteMax, zen4Zen3RouteSkip())
+	return zen4AddSplit512(t, kernels.AMDZen4, intelSplitTable512(), zen4Split512Lengths())
 }
 
-// zen4Zen3RouteSkip is zen3RouteSkip on a Zen 4: 2048 points. The AVX-512
-// route there tied the AVX2 one in the default plan (2658 against 2672 ns,
+// zen4AddSplit512 adds to table, on a Zen 4, the factorizations in gives the
+// lengths of split512; table itself elsewhere. A pure function, tested on any
+// machine.
+func zen4AddSplit512(table map[int][]int, zen4 bool, in map[int][]int, split512 map[int]bool) map[int][]int {
+	if !zen4 {
+		return table
+	}
+	for n := range split512 {
+		if f := in[n]; f != nil {
+			table[n] = f
+		}
+	}
+	return table
+}
+
+// zen4RouteAMD64 is zen4Split512 and zen4Modes: the 512-bit split route's
+// lengths and modes on a Zen 4, none elsewhere. A pure function, tested on
+// any machine.
+func zen4RouteAMD64(zen4 bool) (map[int]bool, func(r, ido, l1 []int) []uint8) {
+	if !zen4 {
+		return nil, nil
+	}
+	return zen4Split512Lengths(), kernels.StockhamSplitModes512
+}
+
+// zen4Zen3RouteSkip is zen3RouteSkip on a Zen 4: 2048 points, where the
+// AVX-512 route tied the AVX2 one in the default plan (2658 against 2672 ns,
 // five interleaved rounds) and beat it by 8% in an FMA plan (2510 against 2720
-// ns, Options.FMA), where every other length up to 65536 gained or tied.
-func zen4Zen3RouteSkip() map[int]bool { return map[int]bool{2048: true} }
+// ns, Options.FMA), where every other length up to 65536 gained or tied; and
+// the lengths of zen4Split512Lengths up to zen4Zen3RouteMax, which leave
+// Zen 3's route for the 512-bit split one.
+func zen4Zen3RouteSkip() map[int]bool {
+	skip := map[int]bool{2048: true}
+	for n := range zen4Split512Lengths() {
+		if n <= zen4Zen3RouteMax {
+			skip[n] = true
+		}
+	}
+	return skip
+}
+
+// zen4Split512Lengths are the lengths that take the 512-bit split layout (the
+// Cascade Lake route: intelSplitTable512's factorizations, kernels.
+// StockhamSplitModes512) on a Zen 4. Round 51, Ryzen 9 7950X, one pinned core,
+// seven interleaved rounds (each mode twice per round, in both orders),
+// medians, load 0.2–1: time of the AVX2 route (the interleaved AVX-512 one
+// above 65536) ÷ time of the 512-bit split route: 65536 1.065, 131072 1.034,
+// 262144 1.026. The other powers of two from 256 to 2^20: 1024 1.005 and 2048
+// 1.018 (ties), 32768 0.982, 2^19 0.995, 2^20 0.962, 256 0.940, 512 0.957,
+// 4096 0.921, 8192 0.897, 16384 0.917 (losses). The final pass of that layout
+// is the interleaved AVX-512 kernel, whose gather of four blocks costs 9–15%
+// of a transform up to 1024 points in it (a kernel that loads contiguously
+// instead, results discarded: 256 157 ns against 185, 1024 867 against 952),
+// which is why the small lengths do not gain.
+func zen4Split512Lengths() map[int]bool {
+	return map[int]bool{1 << 16: true, 1 << 17: true, 1 << 18: true}
+}
 
 // zen4Zen3RouteMax is zen3RouteMax on a Zen 4: Zen 3's route, up to 65536
 // points. A Ryzen 9 7950X (Zen 4, one pinned core, five interleaved rounds,
@@ -237,6 +290,7 @@ func init() {
 	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, hsw)
 	cl3WideStrips = kernels.UseStockhamSplit512
 	zen3RouteMax, zen3RouteSkip = zen3RouteAMD64(kernels.AMDZen4)
+	zen4Split512, zen4Modes = zen4RouteAMD64(kernels.AMDZen4)
 }
 
 // zen3RouteAMD64 is zen3RouteMax and zen3RouteSkip: Zen 3's route up to 65536

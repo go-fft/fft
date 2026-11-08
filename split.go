@@ -92,6 +92,9 @@ var hswSplitFloor int
 // hswSplitKept reports whether a plan of n points keeps the split modes
 // kernels.StockhamSplitModes gave it, under hswSplitFloor and zen3RouteMax.
 func hswSplitKept(n int) bool {
+	if zen4Split512[n] {
+		return true
+	}
 	if zen3RouteMax > 0 && !zen3Route(n) {
 		return false
 	}
@@ -107,6 +110,15 @@ var zen3RouteMax int
 // zen3RouteSkip lists the lengths below zen3RouteMax that keep the AVX-512
 // route anyway: they ran slower on the AVX2 one (route_amd64.go).
 var zen3RouteSkip map[int]bool
+
+// zen4Split512 lists the lengths that take the 512-bit split layout on a CPU
+// where UseStockhamSplit512 is off, a Zen 4 (route_amd64.go, Round 51); nil
+// elsewhere. Their passes get kernels.StockhamSplitModes512's modes, and they
+// are never on the AVX2 route.
+var zen4Split512 map[int]bool
+
+// zen4Modes gives those lengths' passes their layout modes (amd64 only).
+var zen4Modes func(r, ido, l1 []int) []uint8
 
 // zen3Route reports whether a transform of n points takes the AVX2 route
 // under zen3RouteMax and zen3RouteSkip.

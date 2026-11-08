@@ -71,19 +71,19 @@ func TestZen4CapTable(t *testing.T) {
 		t.Errorf("not a Zen 4: %v, want the table", got)
 	}
 	got := zen4CapTable(tab, true, 65536, skip)
-	if len(got) != 2 || got[131072] != nil || got[2048] != nil || !slices.Equal(got[65536], tab[65536]) || !slices.Equal(got[128], tab[128]) {
-		t.Errorf("Zen 4: %v, want 128 and 65536 only", got)
+	if len(got) != 1 || got[131072] != nil || got[2048] != nil || got[65536] != nil || !slices.Equal(got[128], tab[128]) {
+		t.Errorf("Zen 4: %v, want 128 only (2048 keeps the AVX-512 route, 65536 takes the 512-bit split one)", got)
 	}
 	if m, s := zen3RouteAMD64(false); m != 0 || s != nil {
 		t.Errorf("zen3RouteAMD64(false) = %d, %v, want none", m, s)
 	}
-	if m, s := zen3RouteAMD64(true); m != 1<<16 || !s[2048] || len(s) != 1 {
-		t.Errorf("zen3RouteAMD64(true) = %d, %v, want 65536 without 2048", m, s)
+	if m, s := zen3RouteAMD64(true); m != 1<<16 || !s[2048] || !s[1<<16] || len(s) != 2 {
+		t.Errorf("zen3RouteAMD64(true) = %d, %v, want 65536 without 2048 and 65536", m, s)
 	}
 	if !kernels.AMDZen4 && zen3RouteMax != 0 {
 		t.Errorf("zen3RouteMax = %d on a CPU that is not a Zen 4", zen3RouteMax)
 	}
-	if kernels.AMDZen4 && (zen3RouteMax != zen4Zen3RouteMax || radix16Table[1024] == nil) {
+	if kernels.AMDZen4 && (zen3RouteMax != zen4Zen3RouteMax || radix16Table[1024] == nil || !zen4Split512[1<<16]) {
 		t.Errorf("Zen 4: zen3RouteMax %d, radix16Table[1024] %v", zen3RouteMax, radix16Table[1024])
 	}
 }

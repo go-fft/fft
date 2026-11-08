@@ -87,6 +87,22 @@ func intelSplitModes512(r, ido []int) []uint8 {
 	return modes
 }
 
+// StockhamSplitModes512 is StockhamSplitModes with the 512-bit layout whatever
+// UseStockhamSplit512 says, for the lengths the fft package routes to it on a
+// Zen 4 (Round 51); all zeros (interleaved) without AVX2 and AVX-512.
+func StockhamSplitModes512(r, ido, l1 []int) []uint8 {
+	return splitModes512(useAVX2, intelHasAVX512, r, ido)
+}
+
+// splitModes512 is StockhamSplitModes512's rule, a pure function tested on any
+// machine.
+func splitModes512(avx2, avx512 bool, r, ido []int) []uint8 {
+	if !avx2 || !avx512 {
+		return make([]uint8, len(r))
+	}
+	return intelSplitModes512(r, ido)
+}
+
 // intelSplit512MinN is the smallest power of two whose passes run split at
 // 512 bits.
 const intelSplit512MinN = 256
