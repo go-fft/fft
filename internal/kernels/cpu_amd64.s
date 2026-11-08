@@ -54,6 +54,32 @@ TEXT ·supportsAVX512F(SB), NOSPLIT, $0-1
 supportsAVX512F_unsupported:
 	RET
 
+TEXT ·supportsAVX512DQ(SB), NOSPLIT, $0-1
+	MOVB $0, ret+0(FP)
+	XORL AX, AX
+	CPUID
+	CMPL AX, $7
+	JL supportsAVX512DQ_unsupported
+	MOVL $1, AX
+	CPUID
+	ANDL $0x18000000, CX // AVX and OSXSAVE
+	CMPL CX, $0x18000000
+	JNE supportsAVX512DQ_unsupported
+	XORL CX, CX
+	XGETBV
+	ANDL $0xE6, AX // XMM, YMM, opmask, ZMM_Hi256 and Hi16_ZMM state in XCR0
+	CMPL AX, $0xE6
+	JNE supportsAVX512DQ_unsupported
+	MOVL $7, AX
+	XORL CX, CX
+	CPUID
+	ANDL $0x30000, BX // AVX512F and AVX512DQ
+	CMPL BX, $0x30000
+	JNE supportsAVX512DQ_unsupported
+	MOVB $1, ret+0(FP)
+supportsAVX512DQ_unsupported:
+	RET
+
 TEXT ·isGenuineIntel(SB), NOSPLIT, $0-1
 	MOVB $0, ret+0(FP)
 	XORL AX, AX

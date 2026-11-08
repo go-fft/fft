@@ -16,11 +16,13 @@ import "math"
 // every narrower path on a machine that has the wider one.
 var (
 	UseStockhamAVX2   = useAVX2
-	UseStockhamAVX512 = supportsAVX512F()
+	UseStockhamAVX512 = detectedDispatch.Stockham512
 )
 
 // supportsAVX512F is the go-asmgen AVX-512 foundation probe (cpu_amd64.s): the
-// CPU bit and the OS saving opmask and ZMM state.
+// CPU bit and the OS saving opmask and ZMM state. It is one input of
+// detectedCPU (cpufeatures_amd64.go); dispatch never reads it alone, since the
+// kernels also need AVX512DQ (go-fft/fft#86).
 func supportsAVX512F() bool
 
 // IntelCPU reports whether CPUID names the vendor GenuineIntel. It only tunes
@@ -40,7 +42,7 @@ func isFamily19() bool
 // AMDZen4 reports an AMD Zen 4 core: AVX-512 present on AMD at family 0x19
 // (Zen 3 is 0x19 too but has no AVX-512; Zen 5 is 0x1A). It only tunes the
 // fft package's routing (route_amd64.go, Round 49); no result depends on it.
-var AMDZen4 = zen4Default(supportsAVX512F(), isAuthenticAMD(), isFamily19())
+var AMDZen4 = detectedDispatch.Zen4
 
 // zen4Default is AMDZen4's rule, a pure function tested on any machine.
 func zen4Default(avx512, amd, family19 bool) bool { return avx512 && amd && family19 }
@@ -488,7 +490,7 @@ func Retangle(z, x, tw []complex128, m int, h float64) int {
 // step on the 512-bit kernels (Round 31), the AVX2 kernel taking a pair left
 // over; untangle512Default decides. A variable so the tests can compare the
 // two widths on an AVX-512 machine.
-var UseUntangleAVX512 = untangle512Default(useAVX2, supportsAVX512F(), IntelCPU)
+var UseUntangleAVX512 = detectedDispatch.Untangle512
 
 // untangle512Default turns the 512-bit untangle on where it was measured:
 // AVX-512 on an Intel CPU (Cascade Lake, Round 31). A pure function, tested

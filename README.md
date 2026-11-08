@@ -326,7 +326,9 @@ Twiddle factors are computed once per length and cached.
 
 **SIMD.** On amd64 the Stockham passes run as generated **AVX2** kernels, and
 powers of two of 256 points or more as **AVX-512** kernels where the CPU and
-the OS allow it (an AMD Zen 4 runs the AVX2 kernels up to 65,536 points, where
+the OS allow it (AVX-512F **and** AVX-512DQ, with the OS saving ZMM and opmask
+state; a CPU with F but no DQ, such as Knights Landing, takes the AVX2 kernels;
+an AMD Zen 4 runs the AVX2 kernels up to 65,536 points, where
 hardware counters showed them 5–27% faster, except 2,048, and 65,536 to 262,144
 with the 512-bit split layout, 3–6% faster still); the real-FFT untangle has an AVX2
 kernel too. They keep the
