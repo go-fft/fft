@@ -49,9 +49,10 @@ func TestZen4Split512Bits(t *testing.T) {
 	if !kernels.UseStockhamAVX2 || !kernels.UseStockhamAVX512 {
 		t.Skip("needs AVX2 and AVX-512")
 	}
-	defer func(z map[int]bool, m func(r, ido, l1 []int) []uint8, tab map[int][]int, mx int, sk map[int]bool) {
-		zen4Split512, zen4Modes, splitTable, zen3RouteMax, zen3RouteSkip = z, m, tab, mx, sk
-	}(zen4Split512, zen4Modes, splitTable, zen3RouteMax, zen3RouteSkip)
+	defer func(z map[int]bool, m func(r, ido, l1 []int) []uint8, tab map[int][]int, mx int, sk map[int]bool, c int) {
+		zen4Split512, zen4Modes, splitTable, zen3RouteMax, zen3RouteSkip, cascadeMin = z, m, tab, mx, sk, c
+	}(zen4Split512, zen4Modes, splitTable, zen3RouteMax, zen3RouteSkip, cascadeMin)
+	cascadeMin = 0 // an Intel CPU runs these lengths blocked, interleaved
 	for _, n := range []int{1024, 2048, 1 << 16, 1 << 17, 1 << 18} {
 		x := make([]complex128, n)
 		for i := range x {
