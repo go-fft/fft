@@ -92,6 +92,10 @@ func main() {
 	// go-asmgen v0.10.0 checks it. On macOS it answers false (Darwin enables
 	// ZMM state lazily) and the AVX2 kernels run.
 	fp.Add(amd64.FeatureProbe("supportsAVX512F", amd64.AVX512F))
+	// The AVX-512 kernels also execute KMOVB (AVX512DQ), which Knights Landing
+	// and Knights Mill lack: dispatch requires F and DQ together
+	// (cpufeatures_amd64.go; go-fft/fft#86); go-asmgen v0.23.2.
+	fp.Add(amd64.FeatureProbe("supportsAVX512DQ", amd64.AVX512DQ))
 	// The vendor, for a tuning choice measured to differ between Intel and
 	// AMD (the radix rule, see the fft package's route_amd64.go); go-asmgen
 	// v0.12.0. Never for correctness: the kernels' results do not depend on it.

@@ -231,3 +231,18 @@ reachable from the public API. Both now panic on such counts
 v0.17.0–v0.19.0 (the float64 NEON `Untangle`/`Retangle`, the radix-10/15/20 and
 512-bit split kernels behind `StockhamPass`/`StockhamPassLayout`) bound-check
 before any kernel runs.
+
+### Follow-up, 2026-11-08: the AVX-512 feature gate required F but the kernels need DQ (#86)
+
+Reported externally (autobrr/upbrr, from static tracing; no affected CPU was
+available to either side). The amd64 AVX-512 dispatch tested AVX512F only, but
+the kernels it selects execute `KMOVB`, which is AVX512DQ. Intel Knights
+Landing and Knights Mill have F without DQ and would have raised an illegal
+instruction (process termination) on the split-512, real-untangle and
+interleaved Stockham AVX-512 paths. Every AVX-512 default now goes through one
+function, `dispatchFor`, whose AVX-512 condition is F and DQ together (go-asmgen
+v0.23.2's `AVX512DQ` probe, which also checks the OS saves opmask and ZMM
+state); other CPUs run the AVX2 kernels. `TestAVX512KernelsUseOnlyFandDQ` scans
+every amd64 `.s` file and fails on an AVX-512 instruction whose subset the gate
+does not require (BW and VL included). Verified with simulated feature sets and
+on Zen 4 hardware (AVX-512 with DQ); no Knights Landing machine was used.

@@ -16,11 +16,11 @@ const intelSplit512Base = splitNone
 // layout (UseStockhamSplit) or none; intelSplit512Default decides. A variable
 // so the tests can turn it on and off; it takes effect only where the CPU
 // runs AVX-512 (intelHasAVX512).
-var UseStockhamSplit512 = intelSplit512Default(useAVX2, supportsAVX512F(), IntelCPU)
+var UseStockhamSplit512 = detectedDispatch.Split512
 
 // intelHasAVX512 is the hardware probe the 512-bit split kernels need; a
 // variable so the tests can take the refusal on a machine that has it.
-var intelHasAVX512 = supportsAVX512F()
+var intelHasAVX512 = detectedDispatch.HasAVX512
 
 // intelSplit512Default turns the 512-bit split layout on where it was
 // measured (Round 28, Cascade Lake): AVX-512 on an Intel CPU. A pure

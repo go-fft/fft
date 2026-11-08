@@ -30,7 +30,7 @@ const (
 // variable so the tests can turn it on and off; a plan keeps the layout it
 // was built with, and its passes all fall back to Go, interleaved, when
 // UseStockhamAVX2 is off.
-var UseStockhamSplit = splitDefault(useAVX2, supportsAVX512F(), AMDZen4)
+var UseStockhamSplit = detectedDispatch.Split
 
 // splitDefault turns the split layout on with the AVX2 kernels, except where
 // the AVX-512 kernels run (the 512-bit split layout, UseStockhamSplit512,
