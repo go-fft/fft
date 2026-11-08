@@ -1,0 +1,12 @@
+== bench.base
+    77.16%  [.] github.com/go-fft/fft/internal/kernels.skLast8AVX512.abi0
+    11.94%  [.] github.com/go-fft/fft/internal/kernels.skPass8AVX512.abi0
+     6.68%  [.] github.com/go-fft/fft/internal/kernels.skPass4AVX512.abi0
+
+
+== bench.amd64
+    32.88%  [.] github.com/go-fft/fft/internal/kernels.skLast16AVX2.abi0
+    30.19%  [.] github.com/go-fft/fft/internal/kernels.skSplit8SIFwd.abi0
+    29.44%  [.] github.com/go-fft/fft/internal/kernels.skSplit8ISFwd.abi0
+
+

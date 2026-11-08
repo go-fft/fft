@@ -30,14 +30,16 @@ const (
 // variable so the tests can turn it on and off; a plan keeps the layout it
 // was built with, and its passes all fall back to Go, interleaved, when
 // UseStockhamAVX2 is off.
-var UseStockhamSplit = splitDefault(useAVX2, supportsAVX512F())
+var UseStockhamSplit = splitDefault(useAVX2, supportsAVX512F(), AMDZen4)
 
 // splitDefault turns the split layout on with the AVX2 kernels, except where
 // the AVX-512 kernels run (the 512-bit split layout, UseStockhamSplit512,
-// serves them). Round 23 measured it on Zen 3; Round 29 on Haswell, the
-// AVX2-only Intel core, which had kept it off until then. A pure function,
-// tested on any machine.
-func splitDefault(avx2, avx512 bool) bool { return avx2 && !avx512 }
+// serves them) and the CPU is not a Zen 4, whose 512-bit passes ran slower
+// than the 256-bit split ones up to 65536 points (Round 49; the fft package
+// keeps the layout to those lengths, route_amd64.go). Round 23 measured it on
+// Zen 3; Round 29 on Haswell, the AVX2-only Intel core, which had kept it off
+// until then. A pure function, tested on any machine.
+func splitDefault(avx2, avx512, zen4 bool) bool { return avx2 && (!avx512 || zen4) }
 
 // splitK holds the split kernels' constants, one 32-byte row each (the
 // split* offsets in gen.go): √2/2, and −0, the sign flip; then (Round 36)

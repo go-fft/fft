@@ -292,8 +292,9 @@ var r8MaxPow2 = r8MaxPow2Default()
 // kernels: a power of two of at least 256 points. Measured on Cascade Lake
 // (AVX2 time ÷ AVX-512 time, Stockham, 2026-10-01): composites 0.88–1.04
 // (see kernels.StockhamPass), powers of two 8–128 0.94–1.03, 256–2048
-// 1.19–1.34, 4096 1.49.
-func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 }
+// 1.19–1.34, 4096 1.49. Not on the lengths that take the AVX2 route on a
+// Zen 4 (zen3RouteMax).
+func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 && !zen3Route(n) }
 
 // transform writes the unnormalized DFT of src into dst (conjugate roots when
 // inverse). dst may alias src.

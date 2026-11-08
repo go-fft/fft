@@ -101,6 +101,11 @@ func main() {
 	// saves YMM state. It gates the FMA kernels below, which only plans built
 	// with the fft package's Options.FMA run.
 	fp.Add(amd64.FeatureProbe("supportsFMA", amd64.FMA))
+	// AMD Zen 4 (Round 49): the vendor and the displayed family 0x19, which
+	// with AVX-512 present is Zen 4 (Zen 3 is 0x19 too but has no AVX-512, Zen
+	// 5 is 0x1A); go-asmgen v0.23.1. Tuning only, like isGenuineIntel.
+	fp.Add(amd64.VendorProbe("isAuthenticAMD", "AuthenticAMD"))
+	fp.Add(amd64.FamilyProbe("isFamily19", 0x19))
 	writeFile("cpu_amd64.s", fp.String())
 
 	// The float32 pass kernels.

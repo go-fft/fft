@@ -1,0 +1,7 @@
+    55.15%  [.] github.com/go-fft/fft/internal/kernels.skPass4AVX512.abi0
+    34.35%  [.] github.com/go-fft/fft/internal/kernels.skPass8AVX512.abi0
+     5.48%  [.] github.com/go-fft/fft/internal/kernels.skLast8AVX512.abi0
+     1.92%  [.] github.com/go-fft/fft.(*skStage).pass
+     1.87%  [.] github.com/go-fft/fft/internal/kernels.StockhamPass
+
+

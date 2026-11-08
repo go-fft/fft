@@ -400,6 +400,44 @@ where two would hide which side of 1 or 1.05 a row is on:
   (load 16) were above the 1.0 limit, so Zen 3 and N1 were not run and
   nothing is shipped. *Decision:* default unchanged; no go-fft release. What
   remains for 65,536 is not explained; it needs a host with a PMU.
+  *Zen 4 counters, and its route* (2026-11-08, Round 49, v0.28.12; output in
+  [`amd64-zen4-fractal-20261108/`](benchmarks/results/amd64-zen4-fractal-20261108/)).
+  The first x86 host with a readable PMU: a Ryzen 9 7950X (Zen 4, AVX-512,
+  bare metal), `perf stat` and IBS, one pinned core, FFTW 3.3.10 built with and
+  without AVX-512. On Zen 4 v0.28.11 took the Cascade Lake route (AVX-512
+  passes, no split layout) and ran complex 1,024 at 1.48× FFTW's AVX-512 build
+  (1.31× its AVX2 build). Counters per transform at 1,024: v0.28.11 5,961
+  cycles at IPC 2.34, FFTW 4,071 (IPC 2.97, AVX-512 plan `t1fv_32_avx512`) and
+  4,471 (IPC 3.93, AVX2 plan); the AVX2 route of go-fft, which Zen 3 runs,
+  5,166 at IPC 3.57. IBS puts 77% of the AVX-512 route's samples in
+  `skLast8AVX512`, the final radix-8 pass. A Zen 4 core splits a 512-bit
+  operation into two 256-bit halves, so the wide passes cut the instruction
+  count (13,922 against 18,437) without cutting pipe time, and they stall the
+  floating-point scheduler 3.6 times as often (2,947 against 809 token
+  stalls). The suspected misaligned loads were not the cause: the 4,039
+  64-byte-split loads per transform are every 512-bit load (the PMU counts the
+  two halves), and aligning the twiddle tables to 64 bytes moved nothing.
+  Time of the AVX-512 route ÷ the AVX2 route, powers of two: 64 1.05, 128 1.06,
+  256 1.27, 512 1.24, 1,024 1.13, 4,096 1.08, 8,192 1.07, 16,384 1.16, 32,768
+  1.03, 65,536 1.03, and 0.88–0.98 from 131,072 up; 2,048 ties by default and
+  loses 8% in an FMA plan. The AVX2 passes without the split layout gained
+  5–17% at 128 to 1,024 but lost 1.4–1.5× at 2,048 and 4,096 (1.02–1.18× up
+  to 65,536), so from 2,048 the gain is the split layout, not the width.
+  *Shipped:* on a Zen 4 (AMD, AVX-512, CPUID family 0x19; go-asmgen v0.23.1's
+  `FamilyProbe`) lengths up to 65,536 except 2,048 take Zen 3's route; the
+  longer ones and every other CPU are unchanged, so Zen 3 and Cascade Lake
+  run the code they ran (they were not re-measured: their hosts have no
+  Zen 4 and the rule cannot fire there). v0.28.11 ÷ this change on Zen 4,
+  default plans, seven rounds: complex 256 1.26, 512 1.24, 1,024 1.15, 4,096
+  1.07, 8,192 1.12, 16,384 1.13, 1,000 1.13, 1,296 1.12, 10,007 1.09, RFFT
+  1,024 1.16 and 1,080 1.08, 65,536 1.02; the lengths above 65,536 move within
+  ±2%. Against FFTW's AVX2 build complex 1,024 goes from 1.31 to 1.14 and
+  256 from 1.43 to 1.13; against its AVX-512 build 1.48 to 1.31 and 1.62 to
+  1.29. Complex 65,536 is at parity with FFTW on this host (755,138 cycles
+  against 756,357, same IPC). What is left at 1,024 is FFTW's IPC (3.57
+  against 3.93 on the same AVX2 plan: 1.14× = 1.05× instructions × 1.10× IPC,
+  with twice the L1D fills from L2, 1,607 against 717), the Round 44 question
+  on Zen 3 seen with counters; nothing in them points at a kernel to change.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,
