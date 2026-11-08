@@ -177,15 +177,32 @@ func cascadeMinAMD64(avx512, intel bool) int {
 func splitTableDefault() map[int][]int {
 	t := zen4CapTable(intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.IntelCPU),
 		kernels.AMDZen4, zen4Zen3RouteMax, zen4Zen3RouteSkip())
-	if kernels.AMDZen4 {
-		in := intelSplitTable512()
-		for n := range zen4Split512Lengths() {
-			if f := in[n]; f != nil {
-				t[n] = f
-			}
+	return zen4AddSplit512(t, kernels.AMDZen4, intelSplitTable512(), zen4Split512Lengths())
+}
+
+// zen4AddSplit512 adds to table, on a Zen 4, the factorizations in gives the
+// lengths of split512; table itself elsewhere. A pure function, tested on any
+// machine.
+func zen4AddSplit512(table map[int][]int, zen4 bool, in map[int][]int, split512 map[int]bool) map[int][]int {
+	if !zen4 {
+		return table
+	}
+	for n := range split512 {
+		if f := in[n]; f != nil {
+			table[n] = f
 		}
 	}
-	return t
+	return table
+}
+
+// zen4RouteAMD64 is zen4Split512 and zen4Modes: the 512-bit split route's
+// lengths and modes on a Zen 4, none elsewhere. A pure function, tested on
+// any machine.
+func zen4RouteAMD64(zen4 bool) (map[int]bool, func(r, ido, l1 []int) []uint8) {
+	if !zen4 {
+		return nil, nil
+	}
+	return zen4Split512Lengths(), kernels.StockhamSplitModes512
 }
 
 // zen4Zen3RouteSkip is zen3RouteSkip on a Zen 4: 2048 points, where the
@@ -273,9 +290,7 @@ func init() {
 	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, hsw)
 	cl3WideStrips = kernels.UseStockhamSplit512
 	zen3RouteMax, zen3RouteSkip = zen3RouteAMD64(kernels.AMDZen4)
-	if kernels.AMDZen4 {
-		zen4Split512, zen4Modes = zen4Split512Lengths(), kernels.StockhamSplitModes512
-	}
+	zen4Split512, zen4Modes = zen4RouteAMD64(kernels.AMDZen4)
 }
 
 // zen3RouteAMD64 is zen3RouteMax and zen3RouteSkip: Zen 3's route up to 65536

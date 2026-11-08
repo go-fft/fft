@@ -41,6 +41,25 @@ func TestZen4Split512Lengths(t *testing.T) {
 	}
 }
 
+// TestZen4RouteRules: the pure rules behind the route, on any machine.
+func TestZen4RouteRules(t *testing.T) {
+	in := map[int][]int{1 << 16: {4, 4, 4, 4, 4, 4, 4, 4}, 1 << 17: nil}
+	tab := map[int][]int{128: {8, 16}}
+	if got := zen4AddSplit512(map[int][]int{128: {8, 16}}, false, in, zen4Split512Lengths()); len(got) != 1 {
+		t.Errorf("not a Zen 4: %v, want the table", got)
+	}
+	got := zen4AddSplit512(tab, true, in, zen4Split512Lengths())
+	if len(got) != 2 || len(got[1<<16]) != 8 || got[1<<17] != nil {
+		t.Errorf("Zen 4: %v, want 128 and the factorization of 65536 only", got)
+	}
+	if s, m := zen4RouteAMD64(false); s != nil || m != nil {
+		t.Error("zen4RouteAMD64(false) is not empty")
+	}
+	if s, m := zen4RouteAMD64(true); len(s) != 3 || m == nil {
+		t.Errorf("zen4RouteAMD64(true) = %v, %v", s, m != nil)
+	}
+}
+
 // TestZen4Split512Bits: a plan on the 512-bit split layout gives the same bits
 // as the 256-bit split one and as the interleaved one, in both directions (the
 // layouts move data, the arithmetic is the same), and its passes do run split
