@@ -1,0 +1,2556 @@
+{
+  "schema": 1,
+  "status": "deferred",
+  "date": "2026-11-08T12:05:32+01:00",
+  "commit": "",
+  "repo": "go-fft/fft",
+  "go_version": "go1.27.3",
+  "machine": "darwin/arm64, 16 CPUs",
+  "max_load": 8,
+  "load": {
+    "min": 0,
+    "median": 0,
+    "max": 0
+  },
+  "valid": true,
+  "rows": [
+    {
+      "name": "FFT/1024",
+      "func": "FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT/1024",
+      "func": "IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.FFT/1024",
+      "func": "Plan.FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.IFFT/1024",
+      "func": "Plan.IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT/1024",
+      "func": "RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.RFFT/1024",
+      "func": "RealPlan.RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT/1024",
+      "func": "IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1024))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.IRFFT/1024",
+      "func": "RealPlan.IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1024))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT/1000",
+      "func": "FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT/1000",
+      "func": "IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.FFT/1000",
+      "func": "Plan.FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.IFFT/1000",
+      "func": "Plan.IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT/1000",
+      "func": "RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.RFFT/1000",
+      "func": "RealPlan.RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT/1000",
+      "func": "IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1000))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.IRFFT/1000",
+      "func": "RealPlan.IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1000))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT/1009",
+      "func": "FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT/1009",
+      "func": "IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.FFT/1009",
+      "func": "Plan.FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.IFFT/1009",
+      "func": "Plan.IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT/1009",
+      "func": "RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.RFFT/1009",
+      "func": "RealPlan.RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTWith",
+      "func": "FFTWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTWith",
+      "func": "IFFTWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.FFTNorm",
+      "func": "Plan.FFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan.IFFTNorm",
+      "func": "Plan.IFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTReal",
+      "func": "FFTReal",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFTWith",
+      "func": "RFFTWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.RFFTNorm",
+      "func": "RealPlan.RFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFTWith",
+      "func": "IRFFTWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.IRFFTNorm",
+      "func": "RealPlan.IRFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1024, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "HFFT",
+      "func": "HFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.hfft(x, 1024))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "HFFTWith",
+      "func": "HFFTWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.hfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IHFFT",
+      "func": "IHFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ihfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IHFFTWith",
+      "func": "IHFFTWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ihfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT32",
+      "func": "FFT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT32",
+      "func": "IFFT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT32With",
+      "func": "FFT32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT32With",
+      "func": "IFFT32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan32.FFT",
+      "func": "Plan32.FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan32.IFFT",
+      "func": "Plan32.IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan32.FFTNorm",
+      "func": "Plan32.FFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Plan32.IFFTNorm",
+      "func": "Plan32.IFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT32",
+      "func": "RFFT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT32With",
+      "func": "RFFT32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan32.RFFT",
+      "func": "RealPlan32.RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan32.RFFTNorm",
+      "func": "RealPlan32.RFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT32",
+      "func": "IRFFT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1024))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT32With",
+      "func": "IRFFT32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan32.IRFFT",
+      "func": "RealPlan32.IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1024))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan32.IRFFTNorm",
+      "func": "RealPlan32.IRFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft(x, 1024, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "HFFT32",
+      "func": "HFFT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.hfft(x, 1024))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "HFFT32With",
+      "func": "HFFT32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.hfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IHFFT32",
+      "func": "IHFFT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ihfft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IHFFT32With",
+      "func": "IHFFT32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ihfft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT2",
+      "func": "FFT2",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT2With",
+      "func": "FFT2With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT2",
+      "func": "IFFT2",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT2With",
+      "func": "IFFT2With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN.FFT",
+      "func": "PlanN.FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN.IFFT",
+      "func": "PlanN.IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN.FFTNorm",
+      "func": "PlanN.FFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN.IFFTNorm",
+      "func": "PlanN.IFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT2",
+      "func": "RFFT2",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT2With",
+      "func": "RFFT2With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2.RFFT",
+      "func": "RealPlan2.RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2.RFFTNorm",
+      "func": "RealPlan2.RFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT2",
+      "func": "IRFFT2",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256)))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT2With",
+      "func": "IRFFT2With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256), norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2.IRFFT",
+      "func": "RealPlan2.IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256)))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2.IRFFTNorm",
+      "func": "RealPlan2.IRFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256), norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT2_32",
+      "func": "FFT2_32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFT2_32With",
+      "func": "FFT2_32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT2_32",
+      "func": "IFFT2_32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFT2_32With",
+      "func": "IFFT2_32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN32.FFT",
+      "func": "PlanN32.FFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN32.IFFT",
+      "func": "PlanN32.IFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN32.FFTNorm",
+      "func": "PlanN32.FFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PlanN32.IFFTNorm",
+      "func": "PlanN32.IFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT2_32",
+      "func": "RFFT2_32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFT2_32With",
+      "func": "RFFT2_32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2_32.RFFT",
+      "func": "RealPlan2_32.RFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2_32.RFFTNorm",
+      "func": "RealPlan2_32.RFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft2(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT2_32",
+      "func": "IRFFT2_32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256)))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFT2_32With",
+      "func": "IRFFT2_32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256), norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2_32.IRFFT",
+      "func": "RealPlan2_32.IRFFT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256)))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan2_32.IRFFTNorm",
+      "func": "RealPlan2_32.IRFFTNorm",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfft2(x, s=(256, 256), norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTN",
+      "func": "FFTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fftn(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTNWith",
+      "func": "FFTNWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fftn(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTN",
+      "func": "IFFTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifftn(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTNWith",
+      "func": "IFFTNWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifftn(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFTN",
+      "func": "RFFTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfftn(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 6,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFTNWith",
+      "func": "RFFTNWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfftn(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 6,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFTN",
+      "func": "IRFFTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfftn(x, s=(32, 32, 32)))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 7,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFTNWith",
+      "func": "IRFFTNWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfftn(x, s=(32, 32, 32), norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 7,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTN32",
+      "func": "FFTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fftn(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTN32With",
+      "func": "FFTN32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fftn(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTN32",
+      "func": "IFFTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifftn(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTN32With",
+      "func": "IFFTN32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifftn(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFTN32",
+      "func": "RFFTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfftn(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 7,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFTN32With",
+      "func": "RFFTN32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfftn(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 7,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFTN32",
+      "func": "IRFFTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfftn(x, s=(32, 32, 32)))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 8,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IRFFTN32With",
+      "func": "IRFFTN32With",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.irfftn(x, s=(32, 32, 32), norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 8,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCT",
+      "func": "DCT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDCT",
+      "func": "IDCT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DST",
+      "func": "DST",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDST",
+      "func": "IDST",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan.DCT",
+      "func": "DCTPlan.DCT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan.IDCT",
+      "func": "DCTPlan.IDCT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DSTPlan.DST",
+      "func": "DSTPlan.DST",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DSTPlan.IDST",
+      "func": "DSTPlan.IDST",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCT32",
+      "func": "DCT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDCT32",
+      "func": "IDCT32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DST32",
+      "func": "DST32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDST32",
+      "func": "IDST32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan32.DCT",
+      "func": "DCTPlan32.DCT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan32.IDCT",
+      "func": "DCTPlan32.IDCT",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idct(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DSTPlan32.DST",
+      "func": "DSTPlan32.DST",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DSTPlan32.IDST",
+      "func": "DSTPlan32.IDST",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idst(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTN",
+      "func": "DCTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dctn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDCTN",
+      "func": "IDCTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idctn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DSTN",
+      "func": "DSTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dstn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDSTN",
+      "func": "IDSTN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idstn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTN32",
+      "func": "DCTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dctn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDCTN32",
+      "func": "IDCTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idctn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DSTN32",
+      "func": "DSTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dstn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IDSTN32",
+      "func": "IDSTN32",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idstn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTFreq",
+      "func": "FFTFreq",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda: F.fftfreq(1024, 0.001))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RFFTFreq",
+      "func": "RFFTFreq",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda: F.rfftfreq(1024, 0.001))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTShift",
+      "func": "FFTShift",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fftshift(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTShift",
+      "func": "IFFTShift",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifftshift(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTShiftN",
+      "func": "FFTShiftN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fftshift(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "IFFTShiftN",
+      "func": "IFFTShiftN",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifftshift(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "NextFastLen",
+      "func": "NextFastLen",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda: F.next_fast_len(1031, False))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "none",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Hann",
+      "func": "Hann",
+      "reference": "scipy.fft 1.18.1 lambda: np.hanning(1024)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Hamming",
+      "func": "Hamming",
+      "reference": "scipy.fft 1.18.1 lambda: np.hamming(1024)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Blackman",
+      "func": "Blackman",
+      "reference": "scipy.fft 1.18.1 lambda: np.blackman(1024)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Bartlett",
+      "func": "Bartlett",
+      "reference": "scipy.fft 1.18.1 lambda: np.bartlett(1024)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "BlackmanHarris",
+      "func": "BlackmanHarris",
+      "reference": "scipy.fft 1.18.1 (lambda S: lambda: S.windows.blackmanharris(1024, sym=True))(__import__('scipy.signal', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "PSD",
+      "func": "PSD",
+      "reference": "scipy.fft 1.18.1 (lambda S: lambda x: S.periodogram(x, 1 / 0.001, window='boxcar', detrend=False, scaling='density')[1])(__import__('scipy.signal', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Spectrogram",
+      "func": "Spectrogram",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x, w: (lambda W: (np.abs(F.rfft(W * w, axis=1)) ** 2) * (np.r_[1.0, np.full(127, 2.0), 1.0] / (1000.0 * 256)))(np.lib.stride_tricks.sliding_window_view(x, 256)[::128]))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 262,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    }
+  ]
+}

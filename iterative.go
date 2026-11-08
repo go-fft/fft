@@ -39,7 +39,7 @@ import (
 // whole stages over 4096-point blocks, not the inner loop.)
 //
 // The recursive split-radix kernel is kept; plan.go routes each power-of-two
-// length to whichever of the two measured faster for that size (see docs/perf.md
+// length to whichever of the two measured faster for that size (see docs/perf-history.md
 // and the size-routing in NewPlan). The iterative kernel measured faster at every
 // power-of-two length on the benchmark host, so NewPlan routes all of them here.
 

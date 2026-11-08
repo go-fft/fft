@@ -1,0 +1,4 @@
+github.com/go-fleettools/fleettools v0.81.0 h1:UnMflmNw5b82Z+7Ums7UVaW5RrGuACCVmSwytwT1hxw=
+github.com/go-fleettools/fleettools v0.81.0/go.mod h1:y/o3p2HZAvto9J5G5gtPxhN45zgvaYFAXCY9RCK/lQw=
+github.com/go-scikit/refbench v0.1.2 h1:bzD0LhsC1UA6HzG1FK8TvQdIYnPib4rEibdUkgVeOfA=
+github.com/go-scikit/refbench v0.1.2/go.mod h1:PhJxvLwXiQeKLP2f5ndcb9k5k4PTvU1rSFJ/MKRCrU0=

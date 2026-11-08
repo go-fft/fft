@@ -70,7 +70,7 @@ func newPlanF(n int, fma bool) *Plan {
 		// faster than the recursive split-radix engine at every power-of-two length
 		// on the benchmark host — it matches the operation count but wins the memory
 		// schedule, which is the documented mid-range gap vs pocketfft (see
-		// docs/perf.md and iterative.go). Route every power of two here.
+		// docs/perf-history.md and iterative.go). Route every power of two here.
 		p.it = newITPlan(n)
 		return p
 	}
