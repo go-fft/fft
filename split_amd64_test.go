@@ -41,10 +41,10 @@ func splitFromBlocks(y []complex128) []complex128 {
 // Radix-3 and radix-5 passes join the runs (kernels.ZmSplitOdd, Round 36)
 // whatever the vendor.
 func splitOn(on bool) func() {
-	old, old512, floor, odd := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd
-	kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd = on, false, 0, true
+	old, old512, floor, odd, ceil := kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd, zen3RouteMax
+	kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd, zen3RouteMax = on, false, 0, true, 0
 	return func() {
-		kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd = old, old512, floor, odd
+		kernels.UseStockhamSplit, kernels.UseStockhamSplit512, hswSplitFloor, kernels.ZmSplitOdd, zen3RouteMax = old, old512, floor, odd, ceil
 	}
 }
 

@@ -89,8 +89,8 @@ func TestIntelStripOrder(t *testing.T) {
 // TestHswSplitKept: without a floor every plan keeps its split modes; with
 // Round 29's, only the powers of two from the floor up.
 func TestHswSplitKept(t *testing.T) {
-	defer func(v int) { hswSplitFloor = v }(hswSplitFloor)
-	hswSplitFloor = 0
+	defer func(v, m int) { hswSplitFloor, zen3RouteMax = v, m }(hswSplitFloor, zen3RouteMax)
+	hswSplitFloor, zen3RouteMax = 0, 0 // a Zen 4's ceiling has its own test
 	for _, n := range []int{64, 1000, 4096} {
 		if !hswSplitKept(n) {
 			t.Errorf("no floor: %d not kept", n)
@@ -101,6 +101,30 @@ func TestHswSplitKept(t *testing.T) {
 		if got := hswSplitKept(n); got != want {
 			t.Errorf("floor 512: hswSplitKept(%d) = %v, want %v", n, got, want)
 		}
+	}
+}
+
+// TestZen3RouteMax: with a ceiling, the lengths above it keep neither the
+// split modes nor the AVX2 route, the lengths up to it do (Round 49).
+func TestZen3RouteMax(t *testing.T) {
+	defer func(f, m int, s map[int]bool) { hswSplitFloor, zen3RouteMax, zen3RouteSkip = f, m, s }(hswSplitFloor, zen3RouteMax, zen3RouteSkip)
+	hswSplitFloor, zen3RouteMax, zen3RouteSkip = 0, 1<<16, map[int]bool{2048: true}
+	for n, want := range map[int]bool{64: true, 1000: true, 2048: false, 4096: true, 1 << 16: true, 1<<16 + 1: false, 1 << 20: false} {
+		if got := hswSplitKept(n); got != want {
+			t.Errorf("ceiling 65536: hswSplitKept(%d) = %v, want %v", n, got, want)
+		}
+		if got := zen3Route(n); got != want {
+			t.Errorf("ceiling 65536: zen3Route(%d) = %v, want %v", n, got, want)
+		}
+	}
+	for n, want := range map[int]bool{128: false, 255: false, 256: false, 2048: true, 4096: false, 1 << 17: true, 1 << 20: true, 1000: false} {
+		if got := wide512(n); got != want {
+			t.Errorf("ceiling 65536: wide512(%d) = %v, want %v", n, got, want)
+		}
+	}
+	zen3RouteMax = 0
+	if zen3Route(1) || !hswSplitKept(1<<30) {
+		t.Error("no ceiling: the AVX2 route must be off and every length kept")
 	}
 }
 

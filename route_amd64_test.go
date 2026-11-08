@@ -62,6 +62,32 @@ func TestRadix16TableAMD64(t *testing.T) {
 	}
 }
 
+// TestZen4CapTable: on a Zen 4 the table loses the lengths above the ceiling
+// and keeps the rest; elsewhere it is returned as it is (Round 49).
+func TestZen4CapTable(t *testing.T) {
+	tab := map[int][]int{128: {8, 16}, 2048: {8, 8, 8, 4}, 65536: {4, 4, 4, 4, 4, 4, 4, 4}, 131072: {2, 8, 8, 8, 8, 4}}
+	skip := zen4Zen3RouteSkip()
+	if got := zen4CapTable(tab, false, 65536, skip); len(got) != 4 {
+		t.Errorf("not a Zen 4: %v, want the table", got)
+	}
+	got := zen4CapTable(tab, true, 65536, skip)
+	if len(got) != 2 || got[131072] != nil || got[2048] != nil || !slices.Equal(got[65536], tab[65536]) || !slices.Equal(got[128], tab[128]) {
+		t.Errorf("Zen 4: %v, want 128 and 65536 only", got)
+	}
+	if m, s := zen3RouteAMD64(false); m != 0 || s != nil {
+		t.Errorf("zen3RouteAMD64(false) = %d, %v, want none", m, s)
+	}
+	if m, s := zen3RouteAMD64(true); m != 1<<16 || !s[2048] || len(s) != 1 {
+		t.Errorf("zen3RouteAMD64(true) = %d, %v, want 65536 without 2048", m, s)
+	}
+	if !kernels.AMDZen4 && zen3RouteMax != 0 {
+		t.Errorf("zen3RouteMax = %d on a CPU that is not a Zen 4", zen3RouteMax)
+	}
+	if kernels.AMDZen4 && (zen3RouteMax != zen4Zen3RouteMax || radix16Table[1024] == nil) {
+		t.Errorf("Zen 4: zen3RouteMax %d, radix16Table[1024] %v", zen3RouteMax, radix16Table[1024])
+	}
+}
+
 // TestIntelSplitTableAMD64: the 512-bit split layout takes its own table,
 // whatever the 256-bit setting: 1024 and 8192 change, and the three lengths
 // of csCascadeOrders (Round 35).

@@ -84,3 +84,36 @@ TEXT ·supportsFMA(SB), NOSPLIT, $0-1
 supportsFMA_unsupported:
 	RET
 
+TEXT ·isAuthenticAMD(SB), NOSPLIT, $0-1
+	MOVB $0, ret+0(FP)
+	XORL AX, AX
+	CPUID
+	CMPL BX, $0x68747541 // "Auth"
+	JNE isAuthenticAMD_other
+	CMPL DX, $0x69746e65 // "enti"
+	JNE isAuthenticAMD_other
+	CMPL CX, $0x444d4163 // "cAMD"
+	JNE isAuthenticAMD_other
+	MOVB $1, ret+0(FP)
+isAuthenticAMD_other:
+	RET
+
+TEXT ·isFamily19(SB), NOSPLIT, $0-1
+	MOVB $0, ret+0(FP)
+	MOVL $1, AX
+	CPUID
+	MOVL AX, BX
+	SHRL $8, BX
+	ANDL $0xF, BX // base family
+	CMPL BX, $0xF
+	JNE isFamily19_base
+	SHRL $20, AX
+	ANDL $0xFF, AX // extended family
+	ADDL AX, BX
+isFamily19_base:
+	CMPL BX, $0x19 // family
+	JNE isFamily19_other
+	MOVB $1, ret+0(FP)
+isFamily19_other:
+	RET
+

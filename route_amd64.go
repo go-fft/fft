@@ -113,7 +113,7 @@ func parMinChunkAMD64(avx2 bool) int {
 
 // radix16TableDefault is radix16TableAMD64 for this machine.
 func radix16TableDefault() map[int][]int {
-	return radix16TableAMD64(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512, kernels.IntelCPU)
+	return radix16TableAMD64(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 && !kernels.AMDZen4, kernels.IntelCPU)
 }
 
 // radix16TableAMD64 gives the powers of two that take radix-16 passes, with
@@ -175,7 +175,46 @@ func cascadeMinAMD64(avx512, intel bool) int {
 // 512-bit split layout runs, or hswSplitTable on an Intel CPU with the
 // 256-bit one, for this machine.
 func splitTableDefault() map[int][]int {
-	return intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.IntelCPU)
+	return zen4CapTable(intelSplitTableAMD64(kernels.UseStockhamSplit, kernels.UseStockhamSplit512, kernels.IntelCPU),
+		kernels.AMDZen4, zen4Zen3RouteMax, zen4Zen3RouteSkip())
+}
+
+// zen4Zen3RouteSkip is zen3RouteSkip on a Zen 4: 2048 points. The AVX-512
+// route there tied the AVX2 one in the default plan (2658 against 2672 ns,
+// five interleaved rounds) and beat it by 8% in an FMA plan (2510 against 2720
+// ns, Options.FMA), where every other length up to 65536 gained or tied.
+func zen4Zen3RouteSkip() map[int]bool { return map[int]bool{2048: true} }
+
+// zen4Zen3RouteMax is zen3RouteMax on a Zen 4: Zen 3's route, up to 65536
+// points. A Ryzen 9 7950X (Zen 4, one pinned core, five interleaved rounds,
+// 2026-11-08, hardware counters in Round 49) ran the AVX-512 route's
+// transforms with 2.34 instructions per cycle against 3.57 for the AVX2 route
+// at 1024 points, in 5960 cycles against 5166 although the AVX-512 route
+// retires 13 900 instructions against 18 400: a Zen 4 core splits a 512-bit
+// operation in two 256-bit halves, so the wide passes save instructions, not
+// pipe time, and they load the floating-point scheduler three and a half times
+// as often (de_dis_dispatch_token_stalls1.fp_sch_rsrc_stall 2947 against 808
+// per transform). Time of the AVX-512 route ÷ the AVX2 route: 64 1.05, 128
+// 1.06, 256 1.27, 512 1.24, 1024 1.13, 2048 0.98, 4096 1.08, 8192 1.07, 16384
+// 1.16, 32768 1.03, 65536 1.03; 131072 0.97, 262144 0.92, 2^20 0.88, 2^21
+// 0.98, 2^22 0.97, where the AVX-512 passes' halved load and store count pays
+// once the data leaves the L2. The composites 1000, 1296 and 10007 gained
+// 1.14, 1.12 and 1.10, 1920, 1080 and 1009 tied (0.99–1.04).
+const zen4Zen3RouteMax = 1 << 16
+
+// zen4CapTable is table without the lengths above max on a Zen 4, whose longer
+// transforms keep the AVX-512 route's factorizations; table itself elsewhere.
+func zen4CapTable(table map[int][]int, zen4 bool, max int, skip map[int]bool) map[int][]int {
+	if !zen4 {
+		return table
+	}
+	capped := map[int][]int{}
+	for n, f := range table {
+		if n <= max && !skip[n] {
+			capped[n] = f
+		}
+	}
+	return capped
 }
 
 // intelSplitTableAMD64 is splitTableDefault's choice: intelSplitTable512 with
@@ -197,6 +236,16 @@ func init() {
 	hswSplitFloor = hswSplitFloorAMD64(hsw)
 	clRowOrder, clRowMin = clRowOrderAMD64(kernels.UseStockhamSplit512, hsw)
 	cl3WideStrips = kernels.UseStockhamSplit512
+	zen3RouteMax, zen3RouteSkip = zen3RouteAMD64(kernels.AMDZen4)
+}
+
+// zen3RouteAMD64 is zen3RouteMax and zen3RouteSkip: Zen 3's route up to 65536
+// points on a Zen 4, none elsewhere. A pure function, tested on any machine.
+func zen3RouteAMD64(zen4 bool) (int, map[int]bool) {
+	if !zen4 {
+		return 0, nil
+	}
+	return zen4Zen3RouteMax, zen4Zen3RouteSkip()
 }
 
 // clRowOrderAMD64 is clRowOrder: with the 512-bit split layout, the rows of

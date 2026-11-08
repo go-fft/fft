@@ -90,10 +90,27 @@ var clRowCache, clRowCacheFMA = map[int]*Plan{}, map[int]*Plan{}
 var hswSplitFloor int
 
 // hswSplitKept reports whether a plan of n points keeps the split modes
-// kernels.StockhamSplitModes gave it, under hswSplitFloor.
+// kernels.StockhamSplitModes gave it, under hswSplitFloor and zen3RouteMax.
 func hswSplitKept(n int) bool {
+	if zen3RouteMax > 0 && !zen3Route(n) {
+		return false
+	}
 	return hswSplitFloor <= 0 || n >= hswSplitFloor && n&(n-1) == 0
 }
+
+// zen3RouteMax, when positive, is the longest transform that takes the AVX2
+// route (the 256-bit split layout, the 256-bit passes, Zen 3's tables) on a
+// CPU that also runs AVX-512 kernels, which every longer one keeps. Set per
+// architecture (route_amd64.go: 65536 on a Zen 4, Round 49); 0 elsewhere.
+var zen3RouteMax int
+
+// zen3RouteSkip lists the lengths below zen3RouteMax that keep the AVX-512
+// route anyway: they ran slower on the AVX2 one (route_amd64.go).
+var zen3RouteSkip map[int]bool
+
+// zen3Route reports whether a transform of n points takes the AVX2 route
+// under zen3RouteMax and zen3RouteSkip.
+func zen3Route(n int) bool { return n <= zen3RouteMax && !zen3RouteSkip[n] }
 
 // cl3WideStrips makes the strip axes of a large N-D array take wider strips
 // (cl3StripWidth). Set per architecture (route_amd64.go: Intel with the

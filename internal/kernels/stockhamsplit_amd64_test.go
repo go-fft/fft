@@ -159,13 +159,27 @@ func TestSplitTwiddles(t *testing.T) {
 }
 
 // TestSplitDefault: the 256-bit split layout runs with AVX2 alone, whatever
-// the vendor (Round 29 measured Haswell).
+// the vendor (Round 29 measured Haswell); with AVX-512 it runs only on a Zen 4
+// (Round 49).
 func TestSplitDefault(t *testing.T) {
-	for _, c := range []struct{ avx2, avx512, want bool }{
-		{true, false, true}, {true, true, false}, {false, false, false}, {false, true, false},
+	for _, c := range []struct{ avx2, avx512, zen4, want bool }{
+		{true, false, false, true}, {true, true, false, false}, {false, false, false, false}, {false, true, false, false},
+		{true, true, true, true}, {false, true, true, false},
 	} {
-		if got := splitDefault(c.avx2, c.avx512); got != c.want {
-			t.Errorf("splitDefault(avx2=%v, avx512=%v) = %v", c.avx2, c.avx512, got)
+		if got := splitDefault(c.avx2, c.avx512, c.zen4); got != c.want {
+			t.Errorf("splitDefault(avx2=%v, avx512=%v, zen4=%v) = %v", c.avx2, c.avx512, c.zen4, got)
+		}
+	}
+}
+
+// TestZen4Default: AVX-512 on AMD at family 0x19 is a Zen 4. Zen 3 is 0x19
+// without AVX-512, Zen 5 is 0x1A, and an Intel part is never one.
+func TestZen4Default(t *testing.T) {
+	for _, c := range []struct{ avx512, amd, f19, want bool }{
+		{true, true, true, true}, {false, true, true, false}, {true, false, true, false}, {true, true, false, false},
+	} {
+		if got := zen4Default(c.avx512, c.amd, c.f19); got != c.want {
+			t.Errorf("zen4Default(%v, %v, %v) = %v", c.avx512, c.amd, c.f19, got)
 		}
 	}
 }

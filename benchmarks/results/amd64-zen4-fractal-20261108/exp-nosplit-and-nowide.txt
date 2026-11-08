@@ -1,0 +1,62 @@
+1.02 2.29 2.15 2/3225 3043979
+A=old B=AVX2-nosplit
+benchmark                                               A med        B med     B/A
+BenchmarkComplex_GoFFT/1000                            1211.0       1212.0   1.001
+BenchmarkComplex_GoFFT/10007                          94169.0      93821.0   0.996
+BenchmarkComplex_GoFFT/1009                            6744.0       6713.0   0.995
+BenchmarkComplex_GoFFT/1024                            1089.0       1042.0   0.957
+BenchmarkComplex_GoFFT/1048576                      6996361.0    8809885.0   1.259
+BenchmarkComplex_GoFFT/1080                            1356.0       1353.0   0.998
+BenchmarkComplex_GoFFT/1296                            1668.0       1664.0   0.998
+BenchmarkComplex_GoFFT/1920                            2092.0       2085.0   0.997
+BenchmarkComplex_GoFFT/256                              220.1        182.8   0.831
+BenchmarkComplex_GoFFT/4096                            5839.0       8880.0   1.521
+BenchmarkComplex_GoFFT/65536                         138604.0     155964.0   1.125
+BenchmarkPow2_GoFFT/1024                               1092.0       1033.0   0.946
+BenchmarkPow2_GoFFT/1048576                         7059847.0    8931802.0   1.265
+BenchmarkPow2_GoFFT/128                                  89.8         83.8   0.934
+BenchmarkPow2_GoFFT/131072                           283951.0     351439.0   1.238
+BenchmarkPow2_GoFFT/16384                             27977.0      28474.0   1.018
+BenchmarkPow2_GoFFT/2048                               2604.0       3703.0   1.422
+BenchmarkPow2_GoFFT/2097152                        22094216.0   28600720.0   1.294
+BenchmarkPow2_GoFFT/256                                 216.9        183.1   0.844
+BenchmarkPow2_GoFFT/262144                           596486.0     729007.0   1.222
+BenchmarkPow2_GoFFT/32768                             61968.0      72915.0   1.177
+BenchmarkPow2_GoFFT/4096                               5912.0       8948.0   1.514
+BenchmarkPow2_GoFFT/4194304                        52576633.0   66782572.0   1.270
+BenchmarkPow2_GoFFT/512                                 463.9        435.2   0.938
+BenchmarkPow2_GoFFT/524288                          1823196.0    2136518.0   1.172
+BenchmarkPow2_GoFFT/64                                   41.5         41.6   1.001
+BenchmarkPow2_GoFFT/65536                            137759.0     157192.0   1.141
+BenchmarkPow2_GoFFT/8192                              12645.0      13322.0   1.054
+A=old B=old-nowide
+benchmark                                               A med        B med     B/A
+BenchmarkComplex_GoFFT/1000                            1215.0       1212.0   0.998
+BenchmarkComplex_GoFFT/10007                          93884.0      93922.0   1.000
+BenchmarkComplex_GoFFT/1009                            6763.0       6730.0   0.995
+BenchmarkComplex_GoFFT/1024                            1099.0       1075.0   0.978
+BenchmarkComplex_GoFFT/1048576                      7048362.0    7869052.0   1.116
+BenchmarkComplex_GoFFT/1080                            1353.0       1352.0   0.999
+BenchmarkComplex_GoFFT/1296                            1666.0       1665.0   0.999
+BenchmarkComplex_GoFFT/1920                            2089.0       2088.0   1.000
+BenchmarkComplex_GoFFT/256                              216.9        190.2   0.877
+BenchmarkComplex_GoFFT/4096                            5757.0       8821.0   1.532
+BenchmarkComplex_GoFFT/65536                         138655.0     184344.0   1.330
+BenchmarkPow2_GoFFT/1024                               1098.0       1077.0   0.981
+BenchmarkPow2_GoFFT/1048576                         7073301.0    7884415.0   1.115
+BenchmarkPow2_GoFFT/128                                  87.4         87.8   1.005
+BenchmarkPow2_GoFFT/131072                           281867.0     382573.0   1.357
+BenchmarkPow2_GoFFT/16384                             28443.0      41087.0   1.445
+BenchmarkPow2_GoFFT/2048                               2665.0       3653.0   1.371
+BenchmarkPow2_GoFFT/2097152                        22112037.0   23836382.0   1.078
+BenchmarkPow2_GoFFT/256                                 220.3        190.8   0.866
+BenchmarkPow2_GoFFT/262144                           591860.0     853619.0   1.442
+BenchmarkPow2_GoFFT/32768                             62261.0      96101.0   1.544
+BenchmarkPow2_GoFFT/4096                               5994.0       8885.0   1.482
+BenchmarkPow2_GoFFT/4194304                        52506296.0   56946712.0   1.085
+BenchmarkPow2_GoFFT/512                                 466.5        434.6   0.932
+BenchmarkPow2_GoFFT/524288                          1806810.0    2193018.0   1.214
+BenchmarkPow2_GoFFT/64                                   41.5         41.6   1.000
+BenchmarkPow2_GoFFT/65536                            139405.0     185489.0   1.331
+BenchmarkPow2_GoFFT/8192                              12577.0      17253.0   1.372
+1.00 1.70 1.94 1/3198 3044623

@@ -32,6 +32,19 @@ var IntelCPU = isGenuineIntel()
 // isGenuineIntel is the go-asmgen CPUID leaf-0 vendor probe (cpu_amd64.s).
 func isGenuineIntel() bool
 
+// isAuthenticAMD and isFamily19 are the go-asmgen vendor and displayed-family
+// probes (cpu_amd64.s): AMD with AVX-512 at family 0x19 is Zen 4.
+func isAuthenticAMD() bool
+func isFamily19() bool
+
+// AMDZen4 reports an AMD Zen 4 core: AVX-512 present on AMD at family 0x19
+// (Zen 3 is 0x19 too but has no AVX-512; Zen 5 is 0x1A). It only tunes the
+// fft package's routing (route_amd64.go, Round 49); no result depends on it.
+var AMDZen4 = zen4Default(supportsAVX512F(), isAuthenticAMD(), isFamily19())
+
+// zen4Default is AMDZen4's rule, a pure function tested on any machine.
+func zen4Default(avx512, amd, family19 bool) bool { return avx512 && amd && family19 }
+
 // skConst512 is skConst with 64-byte rows, for the AVX-512 kernels. Its row 8,
 // [-0, 0] repeated, is the real-lane sign flip that replaces VADDSUBPD, which
 // has no 512-bit form.

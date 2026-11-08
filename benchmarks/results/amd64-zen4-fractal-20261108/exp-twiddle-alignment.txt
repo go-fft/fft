@@ -1,0 +1,27 @@
+1.71 3.05 2.34 2/3245 3036329
+# n=1024 cpu=2 fma=false: per-execute counts, (count(1000000)-count(200000))/800000, user mode
+## go-fft
+cycles:u                                                            5943.20
+instructions:u                                                     13901.31
+ls_misal_loads.ma64:u                                               3928.73
+ls_dispatch.ld_dispatch:u                                           4524.23
+ls_any_fills_from_sys.all:u                                         1683.14
+IPC                                                                   2.339
+benchmark                                               A med        B med     B/A
+BenchmarkPow2_GoFFT/1024                                949.0       1094.0   1.153
+BenchmarkPow2_GoFFT/1048576                         8080049.0    7128334.0   0.882
+BenchmarkPow2_GoFFT/128                                  83.4         88.2   1.057
+BenchmarkPow2_GoFFT/131072                           296025.0     287176.0   0.970
+BenchmarkPow2_GoFFT/16384                             24896.0      28271.0   1.136
+BenchmarkPow2_GoFFT/2048                               2670.0       2606.0   0.976
+BenchmarkPow2_GoFFT/2097152                        23171250.0   22349145.0   0.965
+BenchmarkPow2_GoFFT/256                                 171.0        216.5   1.266
+BenchmarkPow2_GoFFT/262144                           652768.0     591565.0   0.906
+BenchmarkPow2_GoFFT/32768                             60433.0      62569.0   1.035
+BenchmarkPow2_GoFFT/4096                               5477.0       5848.0   1.068
+BenchmarkPow2_GoFFT/4194304                        54051552.0   53085900.0   0.982
+BenchmarkPow2_GoFFT/512                                 382.4        476.5   1.246
+BenchmarkPow2_GoFFT/524288                          1860374.0    1808031.0   0.972
+BenchmarkPow2_GoFFT/64                                   39.4         41.0   1.042
+BenchmarkPow2_GoFFT/65536                            136699.0     139827.0   1.023
+BenchmarkPow2_GoFFT/8192                              11671.0      12513.0   1.072

@@ -1,0 +1,36 @@
+2.12 2.36 1.87 3/3199 3052913
+NEW-GO-and-FFTW512-1024
+# n=65536 cpu=2 fma=false: per-execute counts, (count(20000)-count(4000))/16000, user mode
+## go-fft
+cycles:u                                                          755138.26
+instructions:u                                                   1929667.38
+ls_any_fills_from_sys.all:u                                       267980.54
+de_no_dispatch_per_slot.backend_stalls:u                         2549555.96
+de_no_dispatch_per_slot.no_ops_from_frontend:u                     56215.00
+ls_stlf:u                                                          48374.50
+ls_bad_status2.stli_other:u                                        18691.95
+ls_dmnd_fills_from_sys.local_l2:u                                 150514.46
+IPC                                                                   2.555
+# n=65536 cpu=2 fma=false: per-execute counts, (count(20000)-count(4000))/16000, user mode
+## fftw
+cycles:u                                                          756357.25
+instructions:u                                                   1947257.68
+ls_any_fills_from_sys.all:u                                       237640.60
+de_no_dispatch_per_slot.backend_stalls:u                         2213345.39
+de_no_dispatch_per_slot.no_ops_from_frontend:u                    317007.83
+ls_stlf:u                                                          20373.82
+ls_bad_status2.stli_other:u                                        20781.39
+ls_dmnd_fills_from_sys.local_l2:u                                  81279.76
+IPC                                                                   2.575
+AVX2-FFTW-65536
+# n=65536 cpu=2 fma=false: per-execute counts, (count(20000)-count(4000))/16000, user mode
+## fftw
+cycles:u                                                          863713.99
+instructions:u                                                   2948050.34
+ls_any_fills_from_sys.all:u                                       240247.58
+de_no_dispatch_per_slot.backend_stalls:u                         2083856.67
+de_no_dispatch_per_slot.no_ops_from_frontend:u                    187211.53
+ls_stlf:u                                                          33256.64
+ls_bad_status2.stli_other:u                                        12358.80
+ls_dmnd_fills_from_sys.local_l2:u                                  54618.34
+IPC                                                                   3.413
