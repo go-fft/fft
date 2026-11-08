@@ -371,6 +371,35 @@ where two would hide which side of 1 or 1.05 a row is on:
   kernel to time), no go-asmgen or go-fft release; the default stays
   bit-identical and `Options.FMA` stays amd64-only (arm64 builds the default
   plans). Deferred: an M4 or N1 FMA row, since there is no kernel.
+  *Scratch gap on Cascade Lake, and the missing counters* (2026-11-08,
+  Round 48; `TestR43Gap` of v0.28.11, output in
+  [`amd64-cascadelake-gap-20261108/`](benchmarks/results/amd64-cascadelake-gap-20261108/)).
+  cfarm151 is a KVM guest (`hypervisor` flag): `/sys/bus/event_source/devices`
+  has no `cpu` PMU, no `perf` binary and no `/dev/cpu/*/msr`, so cycles,
+  instructions, `ld_blocks_partial.address_alias` and `ld_blocks.store_forward`
+  cannot be read there; the Zen 3 IPC question stays unmeasured and so does
+  this one. The gap is applied modulo 4 KB, so gaps of 4,096 to 32,768 bytes
+  equal gap 0. Interleaved rounds (15, 200 ms), core 3, GOMAXPROCS=1,
+  1-minute load 0.00 at the start and 0.96 at the end; ratio = 576-byte time
+  ÷ this gap's time (above 1 is faster than the default), median:
+  65,536: gap 0 0.986, 64 0.982, 128 0.978, 512 1.001, 1024 0.984, 2048 0.965,
+  3072 1.009, 3584 0.991, 4032 0.965; 524,288: 1.016, 1.014, 1.004, 1.001,
+  0.967, 0.988, 0.994, 1.006, 0.963; 2^20: 1.058, 1.043, 1.042, 1.045, 1.030,
+  1.052, 1.064, 1.049, 0.981 (the gaps in the same order). Every
+  65,536 and 524,288 value lies inside the per-round spread of the 576
+  reference (0.93–1.06); 576 is the best or tied-best gap at 65,536, so
+  **the 1.17 at complex 65,536 is not a false store-to-load dependence of the
+  M4 kind** and 4032 (M4's fix) loses 3.5–4% on Cascade Lake at the three
+  large sizes. 2^20 reads 3–6% faster at most gaps but the spread reaches
+  0.96–1.11 and each variant has its own dst allocation there; not
+  actionable. At 1,024 (40 rounds, load 0.81 to 1.01) gaps 0, 128, 2048 and
+  3584 read 1.03–1.04 (spread 0.93–1.12), 2,048 to 16,384 1.01–1.025, and
+  gap 128 loses 2.5–3% at 4,096 and 16,384. A 3% move cannot close a 1.24
+  gap, and the gap exists to hold Zen 3's 1.34 at 1,024 (which gap 0 gives
+  up), where 3,584 was never timed; cfarm420 (load 2.3) and cfarm424
+  (load 16) were above the 1.0 limit, so Zen 3 and N1 were not run and
+  nothing is shipped. *Decision:* default unchanged; no go-fft release. What
+  remains for 65,536 is not explained; it needs a host with a PMU.
 - **Open on Cascade Lake:** complex 1,024 (1.19; four passes, which no frame
   kernel runs), the composites 1,000–1,920 (1.10–1.13; Round 39 found no
   better factorization of 1,080 or 1,920), complex and RFFT 65,536 (1.08,
