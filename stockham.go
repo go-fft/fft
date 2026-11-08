@@ -123,7 +123,11 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	// kernels (fmaSplit): elsewhere its Go passes, which read interleaved
 	// data, run them.
 	if hswSplitKept(n) && (!fma || fmaSplit) {
-		for k, m := range kernels.StockhamSplitModes(rs, idos, l1s) {
+		modes := kernels.StockhamSplitModes(rs, idos, l1s)
+		if zen4Split512[n] {
+			modes = zen4Modes(rs, idos, l1s)
+		}
+		for k, m := range modes {
 			p.stages[k].split = m
 		}
 	}

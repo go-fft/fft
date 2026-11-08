@@ -1,0 +1,122 @@
+ 13:46:15 up 56 days, 23:41,  3 users,  load average: 0,42, 0,41, 0,28
+mode=sb
+BenchmarkRound51/256         	 1443086	       223.7 ns/op
+BenchmarkRound51/512         	  916957	       402.6 ns/op
+BenchmarkRound51/1024        	  380163	       952.1 ns/op
+BenchmarkRound51/2048        	  140649	      2525 ns/op
+BenchmarkRound51/4096        	   60463	      5942 ns/op
+BenchmarkRound51/65536       	    2770	    127774 ns/op
+BenchmarkRound51/262144      	     598	    591672 ns/op
+mode=sw
+BenchmarkRound51/256         	 2135931	       168.4 ns/op
+BenchmarkRound51/512         	  939051	       382.1 ns/op
+BenchmarkRound51/1024        	  387914	       930.0 ns/op
+BenchmarkRound51/2048        	  142447	      2517 ns/op
+BenchmarkRound51/4096        	   63992	      5622 ns/op
+BenchmarkRound51/65536       	    2821	    128100 ns/op
+BenchmarkRound51/262144      	     625	    579781 ns/op
+mode=sn
+BenchmarkRound51/256         	 2309881	       155.8 ns/op
+BenchmarkRound51/512         	  976228	       350.5 ns/op
+BenchmarkRound51/1024        	  414673	       872.4 ns/op
+BenchmarkRound51/2048        	  143238	      2489 ns/op
+BenchmarkRound51/4096        	   61320	      5865 ns/op
+BenchmarkRound51/65536       	    2774	    129538 ns/op
+BenchmarkRound51/262144      	     619	    579833 ns/op
+mode=sb
+BenchmarkRound51/256         	 1948160	       184.6 ns/op
+BenchmarkRound51/512         	  887898	       406.2 ns/op
+BenchmarkRound51/1024        	  379450	       952.1 ns/op
+BenchmarkRound51/2048        	  151975	      2346 ns/op
+BenchmarkRound51/4096        	   59715	      5997 ns/op
+BenchmarkRound51/65536       	    2793	    129258 ns/op
+BenchmarkRound51/262144      	     621	    581153 ns/op
+mode=sw
+BenchmarkRound51/256         	 2119579	       169.6 ns/op
+BenchmarkRound51/512         	  948944	       379.9 ns/op
+BenchmarkRound51/1024        	  399824	       905.1 ns/op
+BenchmarkRound51/2048        	  145134	      2477 ns/op
+BenchmarkRound51/4096        	   60946	      5894 ns/op
+BenchmarkRound51/65536       	    2788	    128922 ns/op
+BenchmarkRound51/262144      	     628	    572860 ns/op
+mode=sn
+BenchmarkRound51/256         	 2311648	       155.7 ns/op
+BenchmarkRound51/512         	 1000000	       345.1 ns/op
+BenchmarkRound51/1024        	  419354	       860.8 ns/op
+BenchmarkRound51/2048        	  143221	      2510 ns/op
+BenchmarkRound51/4096        	   60693	      5934 ns/op
+BenchmarkRound51/65536       	    2787	    128735 ns/op
+BenchmarkRound51/262144      	     626	    573035 ns/op
+mode=sb
+BenchmarkRound51/256         	 1949418	       184.6 ns/op
+BenchmarkRound51/512         	  867568	       413.1 ns/op
+BenchmarkRound51/1024        	  377520	       958.2 ns/op
+BenchmarkRound51/2048        	  142748	      2514 ns/op
+BenchmarkRound51/4096        	   61011	      5898 ns/op
+BenchmarkRound51/65536       	    2824	    128059 ns/op
+BenchmarkRound51/262144      	     624	    576887 ns/op
+mode=sw
+BenchmarkRound51/256         	 2132107	       168.7 ns/op
+BenchmarkRound51/512         	  956313	       370.6 ns/op
+BenchmarkRound51/1024        	  395142	       914.2 ns/op
+BenchmarkRound51/2048        	  147560	      2430 ns/op
+BenchmarkRound51/4096        	   62475	      5709 ns/op
+BenchmarkRound51/65536       	    2794	    128370 ns/op
+BenchmarkRound51/262144      	     628	    573512 ns/op
+mode=sn
+BenchmarkRound51/256         	 2282205	       157.5 ns/op
+BenchmarkRound51/512         	 1000000	       347.4 ns/op
+BenchmarkRound51/1024        	  416870	       866.8 ns/op
+BenchmarkRound51/2048        	  145324	      2491 ns/op
+BenchmarkRound51/4096        	   60098	      5994 ns/op
+BenchmarkRound51/65536       	    2798	    128114 ns/op
+BenchmarkRound51/262144      	     621	    585865 ns/op
+mode=sb
+BenchmarkRound51/256         	 1951123	       184.3 ns/op
+BenchmarkRound51/512         	  896374	       400.3 ns/op
+BenchmarkRound51/1024        	  381141	       948.2 ns/op
+BenchmarkRound51/2048        	  142953	      2505 ns/op
+BenchmarkRound51/4096        	   60762	      5913 ns/op
+BenchmarkRound51/65536       	    2802	    128641 ns/op
+BenchmarkRound51/262144      	     621	    578675 ns/op
+mode=sw
+BenchmarkRound51/256         	 2071460	       173.8 ns/op
+BenchmarkRound51/512         	  966901	       371.1 ns/op
+BenchmarkRound51/1024        	  401307	       898.9 ns/op
+BenchmarkRound51/2048        	  142138	      2520 ns/op
+BenchmarkRound51/4096        	   63626	      5620 ns/op
+BenchmarkRound51/65536       	    2796	    128107 ns/op
+BenchmarkRound51/262144      	     628	    578711 ns/op
+mode=sn
+BenchmarkRound51/256         	 1947692	       183.8 ns/op
+BenchmarkRound51/512         	 1000000	       345.0 ns/op
+BenchmarkRound51/1024        	  422524	       858.7 ns/op
+BenchmarkRound51/2048        	  146307	      2447 ns/op
+BenchmarkRound51/4096        	   60990	      5913 ns/op
+BenchmarkRound51/65536       	    2758	    129841 ns/op
+BenchmarkRound51/262144      	     627	    573618 ns/op
+mode=sb
+BenchmarkRound51/256         	 1802548	       199.4 ns/op
+BenchmarkRound51/512         	  903610	       401.0 ns/op
+BenchmarkRound51/1024        	  378144	       954.8 ns/op
+BenchmarkRound51/2048        	  144178	      2489 ns/op
+BenchmarkRound51/4096        	   59798	      6021 ns/op
+BenchmarkRound51/65536       	    2811	    128851 ns/op
+BenchmarkRound51/262144      	     620	    576177 ns/op
+mode=sw
+BenchmarkRound51/256         	 2050105	       175.2 ns/op
+BenchmarkRound51/512         	  915063	       378.4 ns/op
+BenchmarkRound51/1024        	  395076	       914.4 ns/op
+BenchmarkRound51/2048        	  142911	      2505 ns/op
+BenchmarkRound51/4096        	   63931	      5628 ns/op
+BenchmarkRound51/65536       	    2802	    127857 ns/op
+BenchmarkRound51/262144      	     627	    570360 ns/op
+mode=sn
+BenchmarkRound51/256         	 2192136	       164.3 ns/op
+BenchmarkRound51/512         	  932097	       387.6 ns/op
+BenchmarkRound51/1024        	  413842	       872.5 ns/op
+BenchmarkRound51/2048        	  144538	      2464 ns/op
+BenchmarkRound51/4096        	   61609	      5854 ns/op
+BenchmarkRound51/65536       	    2792	    128052 ns/op
+BenchmarkRound51/262144      	     620	    574481 ns/op
+ 13:46:59 up 56 days, 23:42,  3 users,  load average: 0,73, 0,50, 0,31
