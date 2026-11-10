@@ -54,6 +54,9 @@ func TestSpectrogramBitIdenticalToPSDFrames(t *testing.T) {
 // whatever the frame count. It was 2 per frame plus append growth (262 at 127
 // frames).
 func TestSpectrogramAllocs(t *testing.T) {
+	if raceEnabled {
+		t.Skip("under -race sync.Pool drops items on purpose, so allocation counts are not meaningful")
+	}
 	x := make([]float64, 16384)
 	for i := range x {
 		x[i] = math.Sin(0.1 * float64(i))
