@@ -74,8 +74,15 @@ func PSD(x []float64, d float64) []float64 {
 		return []float64{}
 	}
 	spec := RFFT(x)
+	out := make([]float64, len(spec))
+	psdFromSpectrum(out, spec, n, d)
+	return out
+}
+
+// psdFromSpectrum writes the PSD of an n-sample signal whose RFFT is spec
+// into out (len(out) == len(spec) == n/2+1); PSD and Spectrogram share it.
+func psdFromSpectrum(out []float64, spec []complex128, n int, d float64) {
 	m := len(spec)
-	out := make([]float64, m)
 	// Density scale: 1 / (fs·N) with fs = 1/d, i.e. d / N.
 	scale := d / float64(n)
 	for k := 0; k < m; k++ {
@@ -88,7 +95,6 @@ func PSD(x []float64, d float64) []float64 {
 		}
 		out[k] = p
 	}
-	return out
 }
 
 // Spectrogram computes a sequence of one-sided power spectra over successive,
@@ -117,13 +123,28 @@ func Spectrogram(x []float64, segment, overlap int, window []float64, d float64)
 		panic("fft: overlap must satisfy 0 <= overlap < segment")
 	}
 	step := segment - overlap
-	var frames [][]float64
+	if len(x) < segment {
+		return nil
+	}
+	count := (len(x)-segment)/step + 1
+	m := segment/2 + 1
+	checkAlloc("Spectrogram", count, 8*m) // count·m·8 bytes of frames must fit an int
+	// A fixed number of allocations whatever the frame count: the windowed
+	// segment, the spectrum scratch, one backing array cut into frames, and
+	// the frame list. Each frame is what PSD(seg, d) returns, bit for bit.
+	plan := cachedRealPlan(segment)
 	seg := make([]float64, segment)
-	for start := 0; start+segment <= len(x); start += step {
+	spec := make([]complex128, m)
+	backing := make([]float64, count*m)
+	frames := make([][]float64, count)
+	for f := range frames {
+		start := f * step
 		for i := 0; i < segment; i++ {
 			seg[i] = x[start+i] * window[i]
 		}
-		frames = append(frames, PSD(seg, d))
+		out := backing[f*m : (f+1)*m : (f+1)*m]
+		psdFromSpectrum(out, plan.RFFT(spec, seg), segment, d)
+		frames[f] = out
 	}
 	return frames
 }
