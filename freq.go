@@ -1,7 +1,5 @@
 package fft
 
-import "math"
-
 // This file provides the bin-frequency helpers and convenience spectral
 // estimators, mirroring numpy.fft.fftfreq / rfftfreq and the textbook
 // periodogram / spectrogram definitions.
@@ -130,10 +128,7 @@ func Spectrogram(x []float64, segment, overlap int, window []float64, d float64)
 	}
 	count := (len(x)-segment)/step + 1
 	m := segment/2 + 1
-	if count > math.MaxInt/m {
-		checkAlloc("Spectrogram", math.MaxInt, 8) // count·m overflows int
-	}
-	checkAlloc("Spectrogram", count*m, 8)
+	checkAlloc("Spectrogram", count, 8*m) // count·m·8 bytes of frames must fit an int
 	// A fixed number of allocations whatever the frame count: the windowed
 	// segment, the spectrum scratch, one backing array cut into frames, and
 	// the frame list. Each frame is what PSD(seg, d) returns, bit for bit.
