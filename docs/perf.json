@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-08T12:05:32+01:00",
+  "date": "2026-11-10T15:31:12+01:00",
   "commit": "",
   "repo": "go-fft/fft",
   "go_version": "go1.27.3",
@@ -2539,7 +2539,7 @@
       "func": "Spectrogram",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x, w: (lambda W: (np.abs(F.rfft(W * w, axis=1)) ** 2) * (np.r_[1.0, np.full(127, 2.0), 1.0] / (1000.0 * 256)))(np.lib.stride_tricks.sliding_window_view(x, 256)[::128]))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
-      "allocs": 262,
+      "allocs": 4,
       "go": {
         "median": 0,
         "q1": 0,
