@@ -12,11 +12,12 @@ gonum columns, dated rounds); the optimisation narrative before it is
 
 - **One core on both sides.** refbench sets `GOMAXPROCS=1` around the run and
   starts the Python worker with `OMP/OPENBLAS/MKL/VECLIB_*_THREADS=1`. go-fft
-  reads `GOMAXPROCS` once, when the package is initialised (`parallel.go`,
-  go-fft/fft#107), so the process itself must start with `GOMAXPROCS=1`
-  in the environment; `bench/perf_test.go` refuses to run without it. (Without it
-  the N-D rows allocate 26 to 36 objects per call for goroutine spawns instead
-  of 0 to 1.)
+  reads `GOMAXPROCS` when a transform runs (`parWorkerCount` in `parallel.go`,
+  fixed by go-fft/fft#107; before v0.28.16 it was read once at package
+  initialisation), so `-cpu 1`, the environment or `runtime.GOMAXPROCS(1)` all
+  give a one-core run; `bench/perf_test.go` refuses to run on more than one core.
+  (On several cores the N-D rows allocate 26 to 36 objects per call for
+  goroutine spawns instead of 0 to 1.)
 - **Same transform, same data, checked first.** Every row builds its input from
   `frac(i*k) - 0.5` (k the golden ratio's and the plastic number's fractional
   parts; real part, imaginary part), identically in Go and in the NumPy
@@ -72,7 +73,9 @@ What the counts show, without timing:
   allocate nothing, in float64 and float32, at 1000 and 1024 points, 256x256.
 - The one-shot 2-D and N-D rows allocate 1 to 3 times (float32 2-D and N-D: 3;
   `RFFTN`, `IRFFTN`: 6 to 8), the 1-D ones once.
-- Filed from these counts: go-fft/fft#107 (GOMAXPROCS read at init),
-  go-fft/fft#108 (`FFTReal` runs a full complex transform; the odd-length real
-  plan allocates 2 per call at 1009), go-fft/fft#109 (`Spectrogram`: 262
-  allocations per call at 127 frames).
+- Filed from these counts, and fixed in v0.28.16: go-fft/fft#107 (GOMAXPROCS
+  read at init), go-fft/fft#108 (the odd-length real plan allocated 2 per call at
+  1009, now 0; `RFFT` 3 to 1; `FFTReal` 2 to 1, output bit-identical) and
+  go-fft/fft#109 (`Spectrogram`: 262 allocations per call at 127 frames, now 4).
+  Still open: go-fft/fft#116, `FFTReal` and odd real lengths still run a full
+  complex transform, because a real-input algorithm changes the output bits.
