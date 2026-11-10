@@ -264,7 +264,8 @@ jobs:
   # refbench CI mode (go-scikit/roadmap#27, W3): the allocation count of every
   # case equals docs/perf.json, docs/perf-table.md is what perf.json generates,
   # and every public function has a case or an entry in docs/perf-exempt.md.
-  # GOMAXPROCS=1 must be in the environment: parallel.go reads it at init.
+  # One core is required (-cpu 1 or GOMAXPROCS=1); parallel.go reads GOMAXPROCS
+  # when a transform runs (go-fft/fft#107), so either is honoured.
   # Timing runs by hand at a 1-minute load below 8:
   #   cd bench && GOMAXPROCS=1 go test -run TestPerf -cpu 1 -perf.run .
   perf:

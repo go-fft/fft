@@ -13,9 +13,22 @@ import (
 // scheduling cost. Below the threshold everything runs inline on the caller's
 // goroutine so small transforms pay nothing.
 
-// parWorkers is the goroutine count used by the parallel helpers, fixed at
-// construction to GOMAXPROCS. A value <= 1 disables parallelism.
-var parWorkers = runtime.GOMAXPROCS(0)
+// parWorkers overrides the goroutine count of the parallel helpers; it is 0
+// (no override) outside tests, which set it to run the serial and parallel
+// branches on any host. A count <= 1 disables parallelism.
+var parWorkers = 0
+
+// parWorkerCount is the goroutine count the parallel helpers use: GOMAXPROCS
+// as it is when a transform runs, not when the package was initialised, so a
+// program that lowers it afterwards (runtime.GOMAXPROCS(1), go test -cpu 1, a
+// container-aware runtime) gets inline transforms on one core. The read is
+// one atomic load.
+func parWorkerCount() int {
+	if parWorkers > 0 {
+		return parWorkers
+	}
+	return runtime.GOMAXPROCS(0)
+}
 
 // parThreshold is the minimum total work (line count × per-line length, i.e.
 // roughly the element count touched) below which parallelization is skipped.
@@ -36,13 +49,13 @@ var parMinChunk = parMinChunkDefault()
 
 // parChunks splits the half-open range [0,n) of items, each touching itemLen
 // elements, into contiguous chunks and invokes body(lo, hi) for each,
-// concurrently, blocking until all return. It uses at most parWorkers chunks,
+// concurrently, blocking until all return. It uses at most parWorkerCount() chunks,
 // and no more than the work can feed: every chunk gets at least parMinChunk
 // elements. When that leaves one chunk, body is called once inline as
 // body(0, n) — no goroutine is spawned. body must be safe to run concurrently
 // across disjoint index ranges.
 func parChunks(n, itemLen int, body func(lo, hi int)) {
-	w := parWorkers
+	w := parWorkerCount()
 	if w > n {
 		w = n
 	}
@@ -72,11 +85,11 @@ func parChunks(n, itemLen int, body func(lo, hi int)) {
 // parallelizeLines reports whether a set of lineCount independent transforms of
 // length lineLen each is large enough to be worth running across goroutines.
 func parallelizeLines(lineCount, lineLen int) bool {
-	return parWorkers > 1 && lineCount > 1 && lineCount*lineLen >= parThreshold
+	return parWorkerCount() > 1 && lineCount > 1 && lineCount*lineLen >= parThreshold
 }
 
 // parallelizeAxis is parallelizeLines for an axis of a complex128 PlanN, with
 // parThresholdN.
 func parallelizeAxis(lineCount, lineLen int) bool {
-	return parWorkers > 1 && lineCount > 1 && lineCount*lineLen >= parThresholdN
+	return parWorkerCount() > 1 && lineCount > 1 && lineCount*lineLen >= parThresholdN
 }

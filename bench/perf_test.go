@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/go-scikit/refbench"
@@ -84,13 +85,11 @@ func cases(w *refbench.Worker) []refbench.Case {
 }
 
 func TestPerf(t *testing.T) {
-	// go-fft reads GOMAXPROCS once, when the package is initialised (parWorkers
-	// in parallel.go), so refbench's own GOMAXPROCS=1 comes too late to stop the
-	// N-D transforms from fanning out over every core. The process must start
-	// with GOMAXPROCS=1 in its environment; a count or a timing taken without
-	// it is a multi-core one (go-fft/fft issue filed with this change).
-	if os.Getenv("GOMAXPROCS") != "1" {
-		t.Fatal("run with GOMAXPROCS=1 in the environment: GOMAXPROCS=1 go test -run TestPerf -cpu 1 .")
+	// go-fft reads GOMAXPROCS when a transform runs (parWorkerCount in
+	// parallel.go, go-fft/fft#107), so one core set by -cpu 1, the environment
+	// or runtime.GOMAXPROCS is honoured; refuse to count or time a multi-core run.
+	if runtime.GOMAXPROCS(0) != 1 {
+		t.Fatal("run on one core: go test -run TestPerf -cpu 1 .")
 	}
 	var w *refbench.Worker
 	if running() {
