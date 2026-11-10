@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-10T15:31:12+01:00",
+  "date": "2026-11-10T16:09:10+01:00",
   "commit": "",
   "repo": "go-fft/fft",
   "go_version": "go1.27.3",
@@ -379,7 +379,7 @@
       "func": "RFFT",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
-      "allocs": 3,
+      "allocs": 1,
       "go": {
         "median": 0,
         "q1": 0,
@@ -397,7 +397,7 @@
       "func": "RealPlan.RFFT",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
-      "allocs": 2,
+      "allocs": 0,
       "go": {
         "median": 0,
         "q1": 0,
@@ -487,7 +487,7 @@
       "func": "FFTReal",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
-      "allocs": 2,
+      "allocs": 1,
       "go": {
         "median": 0,
         "q1": 0,
