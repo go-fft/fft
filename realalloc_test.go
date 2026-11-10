@@ -90,6 +90,9 @@ func TestRealPlanOddConcurrent(t *testing.T) {
 // Exact allocation counts (testing.AllocsPerRun), after a warm-up call that
 // builds the cached plan and primes the plan's scratch pool.
 func TestRealAllocs(t *testing.T) {
+	if raceEnabled {
+		t.Skip("under -race sync.Pool drops items on purpose, so allocation counts are not meaningful")
+	}
 	for _, c := range []struct {
 		name string
 		n    int
