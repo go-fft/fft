@@ -41,13 +41,19 @@ func IFFT(x []complex128) []complex128 {
 
 // FFTReal returns the forward discrete Fourier transform of a real-valued
 // signal as the full complex spectrum (length len(x)). It is a convenience
-// wrapper that promotes x to complex128 and calls FFT.
+// wrapper that promotes x to complex128 and calls FFT: the result is bit for
+// bit FFT of the promoted signal (it is not RFFT plus a conjugate mirror,
+// which rounds differently), computed in place in the one slice it returns.
 func FFTReal(x []float64) []complex128 {
-	c := make([]complex128, len(x))
+	n := len(x)
+	out := make([]complex128, n)
 	for i, v := range x {
-		c[i] = complex(v, 0)
+		out[i] = complex(v, 0)
 	}
-	return FFT(c)
+	if n > 1 {
+		cachedPlan(n).FFT(out, out)
+	}
+	return out
 }
 
 // complexConj returns the complex conjugate of z.
