@@ -52,6 +52,9 @@ func TestParWorkersFollowsGOMAXPROCS(t *testing.T) {
 // call on a 256x256 matrix). On one core it runs inline and, in steady state,
 // allocates nothing, as the PlanN documentation says.
 func TestPlanNOneCoreAllocatesNothing(t *testing.T) {
+	if raceEnabled {
+		t.Skip("under -race sync.Pool drops items on purpose, so allocation counts are not meaningful")
+	}
 	prev := runtime.GOMAXPROCS(1)
 	defer runtime.GOMAXPROCS(prev)
 	shape := []int{256, 256}
