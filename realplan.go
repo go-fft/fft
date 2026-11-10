@@ -34,6 +34,9 @@ type RealPlan struct {
 
 	// Odd path: full complex plan of length n.
 	full *Plan
+	// oddScratch pools one 2n complex128 buffer (promoted signal, then full
+	// spectrum) per concurrent caller of the odd path; nil otherwise.
+	oddScratch *sync.Pool
 
 	// fma: the complex plans (half, full) are FMA plans (Options.FMA).
 	fma bool
@@ -62,6 +65,12 @@ func newRealPlanF(n int, fma bool) *RealPlan {
 		// Trivial or odd: defer to a full complex plan of length n.
 		if n >= 1 {
 			p.full = cachedPlanF(n, fma)
+		}
+		if n > 1 {
+			p.oddScratch = &sync.Pool{New: func() any {
+				s := make([]complex128, 2*n)
+				return &s
+			}}
 		}
 		return p
 	}
@@ -113,13 +122,16 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	}
 	if p.half == nil {
 		// Odd length: full complex transform, keep the lower bins.
-		c := make([]complex128, n)
-		for i, v := range src {
+		// The promoted signal and the full spectrum live in the plan's pooled 2n
+		// buffer, so a steady-state call allocates nothing.
+		buf := p.oddScratch.Get().(*[]complex128)
+		c, full := (*buf)[:n:n], (*buf)[n:2*n:2*n]
+		for i, v := range src[:n] {
 			c[i] = complex(v, 0)
 		}
-		full := make([]complex128, n)
 		p.full.FFT(full, c)
 		copy(dst, full[:n/2+1])
+		p.oddScratch.Put(buf)
 		return dst[:n/2+1]
 	}
 
