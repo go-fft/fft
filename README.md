@@ -174,6 +174,16 @@ raises); an axis listed twice is refused (numpy's `fftn` transforms it twice);
 `IRFFTN`/`IRFFTNWith` take the real output's shape instead of numpy's
 `s`, and the N-D transforms do not pad or crop axes (numpy's `s` argument).
 
+### Accuracy
+
+Every transform, in both precisions, with the default arithmetic and with
+`Options.FMA`, stays within `c·ε·log2(n)` of the exact result in relative RMS
+error, with `ε` 2^-52 (float64) or 2^-23 (float32) and `c` between 0.5 and 2
+per function family (the worst measured is 0.95). "Exact" is a double-double
+oracle (twiddles from `math/big`) in the test suite; the constants, the lengths
+measured and what the check can and cannot see are in
+**[docs/accuracy.md](docs/accuracy.md)**.
+
 ### Opt-in fused multiply-add: `Options.FMA` (v0.28.0)
 
 By default every amd64 kernel is bit-identical to the package's Go code, so a
