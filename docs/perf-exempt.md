@@ -27,6 +27,8 @@ therefore have no row of their own; scipy.fft has no constructor to compare with
 - `NewDCTPlan32`: as `NewPlan`.
 - `NewDSTPlan`: as `NewPlan`.
 - `NewDSTPlan32`: as `NewPlan`.
+- `NewMDCTPlan`: as `NewPlan`.
+- `NewMDCTPlan32`: as `NewPlan`.
 
 ## Accessors
 
@@ -40,6 +42,8 @@ therefore have no row of their own; scipy.fft has no constructor to compare with
 - `RealPlan32.Len`: as `Plan.Len`.
 - `RealPlan2.SpectrumLen`: as `Plan.Len`.
 - `RealPlan2_32.SpectrumLen`: as `Plan.Len`.
+- `MDCTPlan.Len`: as `Plan.Len`.
+- `MDCTPlan32.Len`: as `Plan.Len`.
 - `DCTPlan.Len`: as `Plan.Len`.
 - `DCTPlan.Type`: as `Plan.Len`.
 - `DCTPlan32.Len`: as `Plan.Len`.
@@ -48,3 +52,14 @@ therefore have no row of their own; scipy.fft has no constructor to compare with
 - `DSTPlan.Type`: as `Plan.Len`.
 - `DSTPlan32.Len`: as `Plan.Len`.
 - `DSTPlan32.Type`: as `Plan.Len`.
+
+## Transforms with no SciPy or NumPy counterpart
+
+SciPy and NumPy have no MDCT. The oracle is the O(N²) definition (`mdct_test.go`),
+the cost is `BenchmarkMDCT`, and the transform is a fold plus the DCT-IV, which has
+its own rows.
+
+- `MDCTPlan.MDCT`: no reference tool; see above.
+- `MDCTPlan.IMDCT`: as `MDCTPlan.MDCT`.
+- `MDCTPlan32.MDCT`: as `MDCTPlan.MDCT`.
+- `MDCTPlan32.IMDCT`: as `MDCTPlan.MDCT`.

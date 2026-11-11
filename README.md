@@ -229,6 +229,14 @@ Y := fft.DCTN(img, []int{rows, cols}, 2, fft.NormOrtho)
 dp := fft.NewDCTPlan(n, 2)             // also NewDSTPlan(n, typ)
 dp.DCT(dst, src, fft.NormOrtho)
 dp.IDCT(dst, src, fft.NormOrtho)
+
+// The MDCT of the audio codecs (AAC, Vorbis, Opus CELT): 2N samples to N
+// coefficients and back, N even, float64 or float32 (NewMDCTPlan32), checked
+// against the O(N^2) definition. A scale of 2/N on the inverse, with a
+// Princen-Bradley window on both sides, makes the overlap-add exact.
+mp := fft.NewMDCTPlan(n)
+mp.MDCT(coef, samples, 1)          // len(coef) >= n, len(samples) >= 2n
+mp.IMDCT(out, coef, 2/float64(n))  // len(out) >= 2n
 ```
 
 `NormOrtho` applies scipy's default orthogonalisation (`orthogonalize=True`),
