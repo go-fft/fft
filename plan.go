@@ -48,9 +48,12 @@ func NewPlan(n int) *Plan { return newPlanF(n, false) }
 
 // NewPlanWith is NewPlan with options: o.FMA asks for an FMA plan (see
 // Options.FMA), which is built where the CPU has FMA3 and is otherwise the
-// plan NewPlan builds. The other fields of Options have no meaning for a
-// plan and must be zero: the length is n, and the plan's methods take a
-// Norm each (FFTNorm, IFFTNorm). NewPlanWith(n, Options{}) is NewPlan(n).
+// plan NewPlan builds. o.Exact asks for the reference arithmetic (see
+// Options.Exact): the plan NewPlan builds today, whatever the default later
+// becomes; it excludes FMA (both set panics). The other fields of Options have
+// no meaning for a plan and must be zero: the length is n, and the plan's
+// methods take a Norm each (FFTNorm, IFFTNorm). NewPlanWith(n, Options{}) is
+// NewPlan(n).
 func NewPlanWith(n int, o Options) *Plan {
 	return newPlanF(n, o.checkPlan("NewPlanWith"))
 }

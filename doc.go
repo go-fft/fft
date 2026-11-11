@@ -60,4 +60,19 @@
 // passes for 1,024 and 2,048 points, which only FMA plans have. Elsewhere
 // every pass fuses. A transform of a length the table leaves unfused is the
 // default transform, bit for bit.
+//
+// # Reproducible bits (Options.Exact)
+//
+// The package's contract is a stated error bound against an
+// extended-precision result, not bit identity with another implementation
+// (docs/accuracy.md): the relative RMS error is at most c·ε·log2(n), with c
+// between 0.5 and 2 per function family. Today the default arithmetic is also
+// the package's Go reference, bit for bit on amd64. Options{Exact: true}
+// names that arithmetic: separately rounded multiplies and adds, no fused
+// multiply-add, the order of operations of the reference. It is accepted by
+// every ...With function (the float32 ones included) and by NewPlanWith,
+// NewRealPlanWith, NewPlanNWith and NewRealPlan2With, and it changes nothing
+// today. A later release may let the default fuse or reorder inside the
+// bound; Exact then keeps the reference bits for callers who need them. It
+// excludes Options.FMA: setting both panics.
 package fft

@@ -48,8 +48,9 @@ func NewRealPlan(n int) *RealPlan { return newRealPlanF(n, false) }
 
 // NewRealPlanWith is NewRealPlan with options: o.FMA asks for an FMA plan
 // (see Options.FMA), whose complex half (or, for an odd n, full) transform
-// is an FMA plan; the untangle is the default one. The other fields must be
-// zero, as for NewPlanWith. NewRealPlanWith(n, Options{}) is NewRealPlan(n).
+// is an FMA plan; the untangle is the default one. o.Exact asks for the
+// reference arithmetic (see Options.Exact) and excludes FMA. The other fields
+// must be zero, as for NewPlanWith. NewRealPlanWith(n, Options{}) is NewRealPlan(n).
 func NewRealPlanWith(n int, o Options) *RealPlan {
 	return newRealPlanF(n, o.checkPlan("NewRealPlanWith"))
 }

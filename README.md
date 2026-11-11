@@ -220,6 +220,28 @@ On those two CPUs the plan fuses only the passes measured faster fused, so no
 row measured slower than the default beyond noise (lowest 0.99). Other amd64
 CPUs (Haswell, Zen 2/4) were not measured: there every pass fuses.
 
+### Reproducible bits: `Options.Exact`
+
+go-fft's contract is an error bound against an extended-precision result
+(`c·ε·log2(n)`, [docs/accuracy.md](docs/accuracy.md)), not bit identity with
+another implementation. `Options{Exact: true}` names the package's reference
+arithmetic for callers who need the last bits to be reproducible: separately
+rounded multiplies and adds, no fused multiply-add, the reference's order of
+operations. It is accepted by every `...With` function (float32 included) and
+by `NewPlanWith`, `NewRealPlanWith`, `NewPlanNWith` and `NewRealPlan2With`.
+
+```go
+X := fft.FFTWith(x, fft.Options{Exact: true})
+p := fft.NewPlanWith(1024, fft.Options{Exact: true})
+```
+
+Today the default arithmetic is this one, so `Exact` changes nothing: the
+tests that hold the transforms to the Go reference bit for bit now build their
+plans with it. A later release may let the default fuse multiply-adds or
+reorder its kernels, inside the bound; `Exact` keeps the reference bits
+available whatever the default becomes. It excludes `Options.FMA`: setting both
+panics.
+
 ### DCT and DST (scipy.fft.dct / dst)
 
 The discrete cosine and sine transforms of types I–IV, forward and inverse,

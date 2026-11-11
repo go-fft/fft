@@ -34,7 +34,7 @@ func armrealLines(p *PlanN, src []complex128, inverse bool) []complex128 {
 func withRotate(on bool, shape ...int) *PlanN {
 	defer func(v bool) { armrealRotateND = v }(armrealRotateND)
 	armrealRotateND = on
-	return NewPlanN(shape...)
+	return NewPlanNWith(shape, exactOpts)
 }
 
 // TestRotateMatchesLines holds the rotating passes to the lines, bit for bit

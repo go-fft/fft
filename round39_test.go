@@ -6,7 +6,7 @@ import "testing"
 func withWideStrips(on bool, shape ...int) *PlanN {
 	defer func(v bool) { cl3WideStrips = v }(cl3WideStrips)
 	cl3WideStrips = on
-	return NewPlanN(shape...)
+	return NewPlanNWith(shape, exactOpts)
 }
 
 // TestCl3StripWidth pins cl3StripWidth: with cl3WideStrips, 128 lines up to
@@ -125,9 +125,9 @@ func TestCl3WideStripsMatch(t *testing.T) {
 		x[i] = float64(i%17) - 8.5
 	}
 	cl3WideStrips = true
-	a := NewRealPlan2(512, 1024)
+	a := NewRealPlan2With(512, 1024, exactOpts)
 	cl3WideStrips = false
-	b := NewRealPlan2(512, 1024)
+	b := NewRealPlan2With(512, 1024, exactOpts)
 	if a.col.sw[0] != 64 || b.col.sw[0] != stripWidth(512) {
 		t.Fatalf("real 512×1024 columns: widths %d, %d", a.col.sw[0], b.col.sw[0])
 	}
