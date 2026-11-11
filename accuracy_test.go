@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"runtime"
 	"sort"
 	"sync"
 	"testing"
@@ -101,6 +102,16 @@ func oracleMemo(key string, f func() []cdd) []cdd {
 	return v
 }
 
+// accLarge reports whether the long lengths run: not under -race or -short,
+// and not on the emulated architectures (loong64, ppc64le, riscv64, s390x
+// under qemu), where the whole suite already takes most of the CI timeout.
+func accLarge() bool {
+	if raceEnabled || testing.Short() {
+		return false
+	}
+	return runtime.GOARCH == "amd64" || runtime.GOARCH == "arm64"
+}
+
 func accLengths() []int {
 	pow2 := []int{2, 4, 8, 16, 64, 256, 1024, 4096}
 	pow3 := []int{3, 9, 27, 243, 2187}
@@ -111,7 +122,7 @@ func accLengths() []int {
 	bluestein := []int{19, 323, 1013, 2018, 2039} // everything else with a large prime factor
 	all := append(append(append(append(append(append([]int{}, pow2...), pow3...), pow5...), pow7...), mixed...), rader...)
 	all = append(all, bluestein...)
-	if raceEnabled || testing.Short() {
+	if !accLarge() {
 		var small []int
 		for _, n := range all {
 			if n <= 1100 {
@@ -129,7 +140,7 @@ func accRealLengths() []int {
 	odd := []int{9, 15, 105, 343, 1001, 1009, 1013, 3125}
 	var out []int
 	for _, n := range append(accLengths(), odd...) {
-		if n <= 1100 || (!raceEnabled && !testing.Short()) {
+		if n <= 1100 || accLarge() {
 			out = append(out, n)
 		}
 	}
@@ -138,7 +149,7 @@ func accRealLengths() []int {
 
 func accShapesND() [][]int {
 	s := [][]int{{4, 4}, {32, 32}, {30, 31}, {64, 48}, {127, 33}, {15, 21}, {8, 9, 10}, {16, 16, 16}, {7, 5, 16}, {17, 3, 5, 4}}
-	if !raceEnabled && !testing.Short() {
+	if accLarge() {
 		s = append(s, []int{128, 128}, []int{1009, 3})
 	}
 	return s
@@ -163,7 +174,7 @@ func accLines(ns []int) [][]int {
 }
 
 func accR2RLengths() []int {
-	if raceEnabled || testing.Short() {
+	if !accLarge() {
 		return []int{2, 3, 8, 17, 100, 257}
 	}
 	return []int{2, 3, 8, 17, 100, 257, 1000, 1009}
