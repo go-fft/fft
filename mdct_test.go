@@ -35,7 +35,10 @@ func oMDCT(x []cdd, m int, inverse bool) []cdd {
 // mdctLens are block lengths N: m = N/2 even takes the DCT-IV route, odd the
 // N-point route.
 func mdctLens() []int {
-	l := []int{2, 4, 6, 8, 10, 12, 14, 16, 18, 30, 64, 100, 126, 128, 256}
+	l := []int{2, 4, 6, 8, 10, 12, 14, 16, 18, 30, 64}
+	if !accEmulated() { // the qemu lanes are the CI's slowest: keep one length per route and size class
+		l = append(l, 100, 126, 128, 256)
+	}
 	if accLarge() { // not under -race, -short or qemu, where the suite is near the timeout
 		l = append(l, 258, 512, 1010, 1024, 2048, 4096)
 	}
@@ -123,7 +126,10 @@ func TestMDCTOracle(t *testing.T) {
 // and odd M, to the bound.
 func TestMDCTPerfectReconstruction(t *testing.T) {
 	rng := rand.New(rand.NewSource(12))
-	lens := []int{2, 4, 6, 16, 64, 100, 128}
+	lens := []int{2, 4, 6, 16, 64}
+	if !accEmulated() {
+		lens = append(lens, 100, 128)
+	}
 	if accLarge() {
 		lens = append(lens, 2048)
 	}
