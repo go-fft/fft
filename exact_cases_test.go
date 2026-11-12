@@ -35,6 +35,12 @@ func exactCases() []exactCase {
 		// Under qemu the whole set takes most of the CI timeout (no golden
 		// digests exist for these architectures either).
 		lengths, shapes = lengths[:7], shapes[:4]
+	default:
+		if raceEnabled {
+			// -race with coverage on a slow runner: the suite is near the 10
+			// minutes go test allows; the long lengths run in the other lanes.
+			lengths, shapes = lengths[:9], shapes[:5]
+		}
 	}
 	for _, n := range lengths {
 		key = "n=" + strconv.Itoa(n)
