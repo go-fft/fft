@@ -122,7 +122,7 @@ func TestFMAOn(t *testing.T) {
 	}
 }
 
-// TestFMAPlanOptionsRefused: only FMA applies to a plan constructor.
+// TestFMAPlanOptionsRefused: only FMA and Exact apply to a plan constructor.
 func TestFMAPlanOptionsRefused(t *testing.T) {
 	for _, o := range []Options{{N: 4}, {Norm: NormOrtho}, {Axes: []int{0}}} {
 		for name, f := range map[string]func(){
@@ -133,7 +133,7 @@ func TestFMAPlanOptionsRefused(t *testing.T) {
 		} {
 			func() {
 				defer func() {
-					if r, _ := recover().(string); !strings.Contains(r, name+": only Options.FMA applies to a plan") {
+					if r, _ := recover().(string); !strings.Contains(r, name+": only Options.FMA and Options.Exact apply to a plan") {
 						t.Errorf("%s(%+v): panic %q", name, o, r)
 					}
 				}()
@@ -156,11 +156,11 @@ func TestFMAUnavailableIsDefault(t *testing.T) {
 		if p := NewPlanWith(n, o); p.sk != nil && p.sk.fma || p.rader != nil && p.rader.fma || p.bluestein != nil && p.bluestein.fma {
 			t.Fatalf("n=%d: an FMA plan was built without FMA", n)
 		}
-		if !sameAll(FFTWith(x, o), FFT(x)) || !sameAll(IFFTWith(x, o), IFFT(x)) {
-			t.Fatalf("n=%d: FFTWith/IFFTWith with FMA unavailable differ from the default", n)
+		if !sameAll(FFTWith(x, o), FFTWith(x, exactOpts)) || !sameAll(IFFTWith(x, o), IFFTWith(x, exactOpts)) {
+			t.Fatalf("n=%d: FFTWith/IFFTWith with FMA unavailable differ from the exact ones", n)
 		}
 		r := fmaReal(n, 1)
-		if !sameAll(RFFTWith(r, o), RFFT(r)) || NewRealPlanWith(n, o).fma {
+		if !sameAll(RFFTWith(r, o), RFFTWith(r, exactOpts)) || NewRealPlanWith(n, o).fma {
 			t.Fatalf("n=%d: RFFTWith with FMA unavailable differs", n)
 		}
 	}

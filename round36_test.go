@@ -43,7 +43,7 @@ func TestZmRowsMatchRun(t *testing.T) {
 	shapes = append(shapes, []int{128, 128}, []int{256, 256})
 	onFrame, axisByAxis := 0, 0
 	for _, sh := range shapes {
-		p := NewPlanN(sh...)
+		p := NewPlanNWith(sh, exactOpts)
 		if p.rot != nil {
 			continue // arm64's rotating passes (armreal_nd.go): no axis by axis
 		}
@@ -114,7 +114,7 @@ func zmBlueLoops(p *bluesteinPlan, dst, src []complex128, inverse bool) {
 func TestZmBluesteinMatchesLoops(t *testing.T) {
 	exact := runtime.GOARCH == "amd64"
 	for _, n := range []int{23, 46, 47, 59, 94, 4099, 10007} {
-		p := NewPlan(n)
+		p := NewPlanWith(n, exactOpts)
 		if p.bluestein == nil {
 			t.Fatalf("%d does not run Bluestein", n)
 		}

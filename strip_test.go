@@ -21,7 +21,7 @@ var stripShapes = [][]int{
 func withStrips(on bool, shape ...int) *PlanN {
 	defer func(v bool) { stripAxes = v }(stripAxes)
 	stripAxes = on
-	return NewPlanN(shape...)
+	return NewPlanNWith(shape, exactOpts)
 }
 
 // stripsExact: on arm64 the strips run the NEON batched kernels, which copy
@@ -121,7 +121,7 @@ func TestStripsMatchLinesReal(t *testing.T) {
 		var imgs [2][]float64
 		for i, on := range []bool{false, true} {
 			stripAxes = on
-			p := NewRealPlan2(rows, cols)
+			p := NewRealPlan2With(rows, cols, exactOpts)
 			specs[i] = p.RFFT(make([]complex128, p.SpectrumLen()), x)
 			imgs[i] = p.IRFFT(make([]float64, rows*cols), specs[i])
 		}

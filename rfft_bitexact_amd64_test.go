@@ -23,7 +23,7 @@ func TestRealPlanRFFTMatchesScalarStages(t *testing.T) {
 func realPlanRFFTMatchesScalarStages(t *testing.T) {
 	rng := rand.New(rand.NewSource(1024))
 	for _, n := range []int{4, 8, 16, 64, 256, 512, 1024, 2048, 4096, 16384} {
-		p := NewRealPlan(n)
+		p := NewRealPlanWith(n, exactOpts)
 		for trial := range 5 {
 			x := make([]float64, n)
 			for i := range x {

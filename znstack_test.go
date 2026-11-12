@@ -47,13 +47,13 @@ func TestZnFrameMatchesPool(t *testing.T) {
 	taken := map[int]int{}
 	for n := 2; n <= 512; n++ {
 		znSetMax(0, 0)
-		p0 := NewPlan(n)
+		p0 := NewPlanWith(n, exactOpts)
 		znForget(n)
-		r0 := NewRealPlan(2 * n)
+		r0 := NewRealPlanWith(2*n, exactOpts)
 		znSetMax(256, 512)
-		p := NewPlan(n)
+		p := NewPlanWith(n, exactOpts)
 		znForget(n)
-		r := NewRealPlan(2 * n)
+		r := NewRealPlanWith(2*n, exactOpts)
 		znForget(n)
 		if p.sk == nil {
 			continue

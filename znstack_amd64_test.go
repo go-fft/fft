@@ -86,13 +86,13 @@ func TestCsZnFrameHostRoute(t *testing.T) {
 	wideTaken := 0
 	for _, n := range []int{16, 64, 128, 256, 512, 18, 81, 162, 324, 192, 240, 288, 500} {
 		znSetMax(0, 0)
-		p0 := NewPlan(n)
+		p0 := NewPlanWith(n, exactOpts)
 		znForget(n)
-		r0 := NewRealPlan(2 * n)
+		r0 := NewRealPlanWith(2*n, exactOpts)
 		znSetMax(kernels.ZnTwoPassMax, kernels.ZnThreePassMax)
-		p := NewPlan(n)
+		p := NewPlanWith(n, exactOpts)
 		znForget(n)
-		r := NewRealPlan(2 * n)
+		r := NewRealPlanWith(2*n, exactOpts)
 		znForget(n)
 		if p.sk == nil || p0.sk.zn != nil || r0.half.sk.zn != nil {
 			t.Fatalf("n=%d: no Stockham plan, or the pool plans took a frame", n)

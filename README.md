@@ -186,8 +186,11 @@ measured and what the check can and cannot see are in
 
 ### Opt-in fused multiply-add: `Options.FMA` (v0.28.0)
 
-By default every amd64 kernel is bit-identical to the package's Go code, so a
-result never depends on which CPU ran it. `Options{FMA: true}` trades that for
+By default every amd64 kernel is bit-identical to the package's Go code for the
+route it runs: the same machine and route give the same bits, and every route
+stays within the stated bound. Different amd64 CPUs can choose different routes
+for some lengths (165 of 417 cases measured at v0.28.16 differ between Zen 3/4/5
+and a Xeon), so the bits are not promised to match across CPUs. `Options{FMA: true}` trades that for
 speed on amd64 CPUs with FMA3: twiddle products and butterfly constants are
 fused, and on Cascade Lake class CPUs (AVX-512) 1,024 and 2,048 points take
 radix-32 passes that only the FMA plans have. Results differ from the default
@@ -219,6 +222,33 @@ Rounds 41 and 42):
 On those two CPUs the plan fuses only the passes measured faster fused, so no
 row measured slower than the default beyond noise (lowest 0.99). Other amd64
 CPUs (Haswell, Zen 2/4) were not measured: there every pass fuses.
+
+### Reproducible bits: `Options.Exact`
+
+go-fft's contract is an error bound against an extended-precision result
+(`c·ε·log2(n)`, [docs/accuracy.md](docs/accuracy.md)), not bit identity with
+another implementation. `Options{Exact: true}` names the package's reference
+arithmetic for callers who need the last bits to be reproducible: the
+reference arithmetic as compiled by gc (the SIMD kernels round every multiply
+and add separately; on arm64 gc fuses multiply-adds in the Go reference, so
+amd64 and arm64 differ), in the reference's order of operations. It
+reproduces v0.28.16's bits on the same machine; it does not promise the same
+bits on every CPU, because v0.28.16 itself gave different bits on different
+amd64 CPUs for some lengths (#121). It is accepted by every `...With` function (float32 included) and
+by `NewPlanWith`, `NewRealPlanWith`, `NewPlanNWith` and `NewRealPlan2With`.
+
+```go
+X := fft.FFTWith(x, fft.Options{Exact: true})
+p := fft.NewPlanWith(1024, fft.Options{Exact: true})
+```
+
+Today the default arithmetic is this one, so `Exact` changes nothing, and the
+tests pin it to digests of v0.28.16's outputs (amd64 and arm64): the
+tests that hold the transforms to the Go reference bit for bit now build their
+plans with it. A later release may let the default fuse multiply-adds or
+reorder its kernels, inside the bound; `Exact` keeps the reference bits
+available whatever the default becomes. It excludes `Options.FMA`: setting both
+panics.
 
 ### DCT and DST (scipy.fft.dct / dst)
 

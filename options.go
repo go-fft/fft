@@ -54,20 +54,55 @@ type Options struct {
 	// ignore it. NewPlanWith, NewRealPlanWith, NewPlanNWith and
 	// NewRealPlan2With take it for plans.
 	FMA bool
+
+	// Exact asks for the package's reference arithmetic, the one the Go code
+	// and the SIMD kernels computed up to v0.28.16: the reference arithmetic
+	// as compiled by gc (separately rounded multiplies and adds in the SIMD
+	// kernels, whose amd64 and arm64 passes copy the Go reference; gc itself
+	// fuses multiply-adds in that reference on arm64, so the bits differ
+	// between architectures), in the same order of operations. Use it when
+	// the last bits must be reproducible from one run to the next on the same
+	// machine. It is not a promise of the same bits on every CPU: v0.28.16's
+	// default, which Exact reproduces, chose different routes on different
+	// amd64 CPUs for some lengths and gave different bits (go-fft/fft#121).
+	// The tests pin it to digests of v0.28.16's outputs on amd64 (the cases
+	// that agree across CPUs) and arm64.
+	//
+	// Today the default arithmetic is this one, so Exact changes nothing. The
+	// package's contract is a stated error bound against an
+	// extended-precision result (docs/accuracy.md), not bit identity, and a
+	// later release may let the default fuse multiply-adds or reorder its
+	// kernels inside that bound; Exact keeps the reference arithmetic
+	// available whatever the default becomes. Exact applies to every
+	// transform that takes Options, float32 included, and to NewPlanWith,
+	// NewRealPlanWith, NewPlanNWith and NewRealPlan2With. It excludes FMA:
+	// Options{Exact: true, FMA: true} asks for two arithmetics and panics.
+	Exact bool
+}
+
+// checkExact panics if o asks for both the reference arithmetic and fused
+// multiply-adds, which cannot both be honoured, naming the function that was
+// called.
+func (o Options) checkExact(name string) {
+	if o.Exact && o.FMA {
+		panic("fft: " + name + ": Options.Exact and Options.FMA are mutually exclusive")
+	}
 }
 
 // checkPlan validates o for a plan constructor called name, where only FMA
-// has a meaning, and reports whether the plan is an FMA plan (fmaOn). It
-// panics before anything is allocated.
+// and Exact have a meaning, and reports whether the plan is an FMA plan
+// (fmaOn). It panics before anything is allocated.
 func (o Options) checkPlan(name string) bool {
 	if o.N != 0 || o.Norm != NormBackward || o.Axes != nil {
-		panic("fft: " + name + ": only Options.FMA applies to a plan")
+		panic("fft: " + name + ": only Options.FMA and Options.Exact apply to a plan")
 	}
-	return fmaOn(o.FMA, fmaAvailable)
+	o.checkExact(name)
+	return o.fma()
 }
 
-// fma reports whether a transform called with o runs on an FMA plan.
-func (o Options) fma() bool { return fmaOn(o.FMA, fmaAvailable) }
+// fma reports whether a transform called with o runs on an FMA plan. Exact
+// and FMA are exclusive (checkExact), so Exact never reaches an FMA plan.
+func (o Options) fma() bool { return fmaOn(o.FMA && !o.Exact, fmaAvailable) }
 
 // check1D validates o for a 1-D transform called name and returns the number
 // of points it transforms: o.N, or def when o.N is zero. It panics before
@@ -76,6 +111,7 @@ func (o Options) check1D(name string, def int) int {
 	if o.Axes != nil {
 		panic("fft: " + name + ": Options.Axes applies only to the multi-dimensional transforms")
 	}
+	o.checkExact(name)
 	o.Norm.scale(0, false) // panics on an unknown Norm
 	if o.N < 0 {
 		panic("fft: " + name + ": Options.N must not be negative, got " + strconv.Itoa(o.N))
@@ -93,6 +129,7 @@ func (o Options) checkND(name string, ndim int) []int {
 	if o.N != 0 {
 		panic("fft: " + name + ": Options.N applies only to the 1-D transforms")
 	}
+	o.checkExact(name)
 	o.Norm.scale(0, false) // panics on an unknown Norm
 	return resolveAxes(name, o.Axes, ndim)
 }
