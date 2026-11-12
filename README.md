@@ -174,7 +174,13 @@ raises); an axis listed twice is refused (numpy's `fftn` transforms it twice);
 `IRFFTN`/`IRFFTNWith` take the real output's shape instead of numpy's
 `s`, and the N-D transforms do not pad or crop axes (numpy's `s` argument).
 
-### Accuracy
+### Accuracy contract
+
+Bound: relative RMS error <= c·ε·log2(n), c from 0.5 to 2.25 per function family, measured (docs/accuracy.md)
+
+Oracle: double-double, twiddles from math/big at 200 bits; asserted by TestAccuracyBound
+
+Exact: Options.Exact keeps the reference arithmetic, v0.28.16's bits on the same machine
 
 Every transform, in both precisions, with the default arithmetic and with
 `Options.FMA`, stays within `c·ε·log2(n)` of the exact result in relative RMS
