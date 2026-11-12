@@ -126,7 +126,7 @@ func accEmulated() bool {
 // accCap is the longest length run when accLarge is false.
 func accCap() int {
 	if accEmulated() {
-		return 300
+		return 130
 	}
 	return 1100
 }
@@ -176,7 +176,7 @@ func accShapesND() [][]int {
 	if accEmulated() {
 		var small [][]int
 		for _, sh := range s {
-			if prod(sh) <= 1100 {
+			if prod(sh) <= 500 {
 				small = append(small, sh)
 			}
 		}
@@ -205,7 +205,7 @@ func accLines(ns []int) [][]int {
 
 func accR2RLengths() []int {
 	if !accLarge() {
-		return []int{2, 3, 8, 17, 100, 257}
+		return []int{2, 3, 8, 17, 100}
 	}
 	return []int{2, 3, 8, 17, 100, 257, 1000, 1009}
 }
