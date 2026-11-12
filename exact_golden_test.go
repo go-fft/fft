@@ -70,6 +70,12 @@ func TestExactGolden(t *testing.T) {
 		t.Logf("wrote %d digests to %s", len(lines), goldenPath())
 		return
 	}
+	if runtime.GOARCH == "arm64" && (raceEnabled || testing.CoverMode() != "") {
+		// gc fuses multiply-adds differently when it instruments the code
+		// (round36_test.go saw an ulp on macOS arm64 under -race and -coverpkg):
+		// the arm64 digests are those of the plain build.
+		t.Skip("arm64 digests are for the build without -race or -cover")
+	}
 	golden := readGolden(t)
 	if golden == nil {
 		t.Skipf("no golden digests for %s", runtime.GOARCH)
