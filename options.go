@@ -59,12 +59,14 @@ type Options struct {
 	// and the SIMD kernels computed up to v0.28.16: the reference arithmetic
 	// as compiled by gc (separately rounded multiplies and adds in the SIMD
 	// kernels, whose amd64 and arm64 passes copy the Go reference; gc itself
-	// fuses multiply-adds in that reference on arm64, so the bits are the
-	// same on every CPU of one architecture, not between architectures), in
-	// the same order of operations. Use it when the last bits must be
-	// reproducible (a stored digest of an output, a bit-for-bit comparison
-	// with another run on the same architecture). The tests pin it to
-	// digests of v0.28.16's outputs on amd64 and arm64.
+	// fuses multiply-adds in that reference on arm64, so the bits differ
+	// between architectures), in the same order of operations. Use it when
+	// the last bits must be reproducible from one run to the next on the same
+	// machine. It is not a promise of the same bits on every CPU: v0.28.16's
+	// default, which Exact reproduces, chose different routes on different
+	// amd64 CPUs for some lengths and gave different bits (go-fft/fft#121).
+	// The tests pin it to digests of v0.28.16's outputs on amd64 (the cases
+	// that agree across CPUs) and arm64.
 	//
 	// Today the default arithmetic is this one, so Exact changes nothing. The
 	// package's contract is a stated error bound against an

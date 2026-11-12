@@ -71,7 +71,9 @@
 // amd64. Options{Exact: true} names that arithmetic: the reference arithmetic
 // as compiled by gc (the SIMD kernels round every multiply and add
 // separately; on arm64 gc fuses multiply-adds in the Go reference), in the
-// order of operations of the reference, the bits of v0.28.16. It is accepted by
+// order of operations of the reference, the bits of v0.28.16 on the same
+// machine (v0.28.16 itself gave different bits on different amd64 CPUs for
+// some lengths). It is accepted by
 // every ...With function (the float32 ones included) and by NewPlanWith,
 // NewRealPlanWith, NewPlanNWith and NewRealPlan2With, and it changes nothing
 // today. A later release may let the default fuse or reorder inside the

@@ -227,9 +227,11 @@ go-fft's contract is an error bound against an extended-precision result
 another implementation. `Options{Exact: true}` names the package's reference
 arithmetic for callers who need the last bits to be reproducible: the
 reference arithmetic as compiled by gc (the SIMD kernels round every multiply
-and add separately; on arm64 gc fuses multiply-adds in the Go reference, so the
-bits are the same on every CPU of one architecture, not between amd64 and
-arm64), in the reference's order of operations. It is accepted by every `...With` function (float32 included) and
+and add separately; on arm64 gc fuses multiply-adds in the Go reference, so
+amd64 and arm64 differ), in the reference's order of operations. It
+reproduces v0.28.16's bits on the same machine; it does not promise the same
+bits on every CPU, because v0.28.16 itself gave different bits on different
+amd64 CPUs for some lengths (#121). It is accepted by every `...With` function (float32 included) and
 by `NewPlanWith`, `NewRealPlanWith`, `NewPlanNWith` and `NewRealPlan2With`.
 
 ```go
