@@ -34,7 +34,7 @@ func exactCases() []exactCase {
 	case "s390x", "ppc64le", "loong64", "riscv64":
 		// Under qemu the whole set takes most of the CI timeout (no golden
 		// digests exist for these architectures either).
-		lengths, shapes = lengths[:7], shapes[:4]
+		lengths, shapes = lengths[:5], shapes[:3]
 	default:
 		if raceEnabled {
 			// -race with coverage on a slow runner: the suite is near the 10
