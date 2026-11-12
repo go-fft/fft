@@ -64,7 +64,8 @@ func mdctTwiddles(m int) (pre, post []complex128) {
 		pre[i] = complex(c, s)
 	}
 	for k := range post {
-		r := ((m + 1) * (2*k + 1)) % (8 * m)
+		// int64: (m+1)(2k+1) reaches 2·m² and overflows a 32-bit int from m = 32,769
+		r := int((int64(m+1) * int64(2*k+1)) % int64(8*m))
 		s, c := math.Sincos(-2 * math.Pi * float64(r) / float64(8*m))
 		post[k] = complex(c, s)
 	}
@@ -297,11 +298,15 @@ func SineWindow(n int) []float64 {
 //	w[k] = sqrt( Σ_{j<=k} K[j] / Σ_{j<=n/2} K[j] ),  k < n/2,   w[n-1-k] = w[k],
 //
 // K being the Kaiser window of length n/2+1 with parameter πα. It satisfies the
-// Princen-Bradley condition. It panics if n is odd; n <= 0 returns an empty
-// slice.
+// Princen-Bradley condition. It panics if n is odd, or if alpha is NaN, infinite
+// or |alpha| > 200 (the Bessel function I0(π·alpha) overflows float64 beyond
+// 227, and a NaN window would follow); n <= 0 returns an empty slice.
 func KBDWindow(n int, alpha float64) []float64 {
 	if n%2 != 0 {
 		panic("fft: KBDWindow needs an even length")
+	}
+	if !(math.Abs(alpha) <= kbdMaxAlpha) { // false for NaN
+		panic("fft: KBDWindow needs a finite alpha with |alpha| at most 200")
 	}
 	w := make([]float64, max(n, 0))
 	h := n / 2
@@ -323,6 +328,10 @@ func KBDWindow(n int, alpha float64) []float64 {
 	}
 	return w
 }
+
+// kbdMaxAlpha keeps π·alpha at 628, where I0 is about 1e270, so the sum of any
+// number of them that fits in memory stays finite (I0 itself overflows at 713.9).
+const kbdMaxAlpha = 200
 
 // besselI0 is the modified Bessel function of the first kind of order 0, by its
 // power series Σ ((x/2)^j / j!)², which converges for every x and has positive

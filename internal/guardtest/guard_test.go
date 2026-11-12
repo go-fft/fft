@@ -76,6 +76,11 @@ func TestHugeLengthsPanicWithAMessage(t *testing.T) {
 		{"BlackmanHarris", "fft: window: length ", func() { fft.BlackmanHarris(huge) }},
 		{"Bartlett", "fft: Bartlett: length ", func() { fft.Bartlett(huge) }},
 	}
+	cases = append(cases,
+		tc{"NewMDCTPlan", "fft: ", func() { fft.NewMDCTPlan(huge - 1) }},
+		tc{"NewMDCTPlan32", "fft: ", func() { fft.NewMDCTPlan32(huge - 1) }},
+		tc{"NewMDCTPlan even m", "fft: ", func() { fft.NewMDCTPlan(huge - 3) }},
+	)
 	for typ := 1; typ <= 4; typ++ {
 		typ := typ
 		cases = append(cases,
@@ -87,6 +92,30 @@ func TestHugeLengthsPanicWithAMessage(t *testing.T) {
 	}
 	for _, c := range cases {
 		mustPanicWith(t, c.name, c.want, c.f)
+	}
+}
+
+// TestMDCTTwiddlesDoNotOverflow: for odd N/2 the MDCT's post-twiddle angle is
+// built from (m+1)(2k+1), which exceeds 2^31 from m = 32,769 (N = 65,538). The
+// IMDCT of a single coefficient is one cosine of the definition, so every output
+// is checked against it with the argument reduced in int64. This is the one place
+// the 32-bit lanes (386) exercise the MDCT.
+func TestMDCTTwiddlesDoNotOverflow(t *testing.T) {
+	const n = 65538
+	const m = n / 2
+	p := fft.NewMDCTPlan(n)
+	out := make([]float64, n)
+	for _, k := range []int{m - 1, 20000, 1} {
+		src := make([]float64, m)
+		src[k] = 1
+		p.IMDCT(out, src, 1)
+		for i, got := range out {
+			r := (int64(2*i+1+m) * int64(2*k+1)) % int64(8*m)
+			want := math.Cos(2 * math.Pi * float64(r) / float64(8*m))
+			if math.Abs(got-want) > 1e-9 {
+				t.Fatalf("k=%d: IMDCT[%d] = %g, want %g", k, i, got, want)
+			}
+		}
 	}
 }
 

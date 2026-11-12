@@ -201,6 +201,19 @@ func TestMDCTWindows(t *testing.T) {
 		}
 	}
 	mustPanicWith(t, "KBDWindow", "fft: KBDWindow", func() { KBDWindow(7, 4) })
+	// the largest alpha is finite and satisfies Princen-Bradley; beyond it (and
+	// for NaN and infinities) the window is refused instead of returning NaN
+	for _, a := range []float64{200, -200} {
+		w := KBDWindow(64, a)
+		for i := 0; i < 32; i++ {
+			if s := w[i]*w[i] + w[i+32]*w[i+32]; math.IsNaN(s) || math.Abs(s-1) > 1e-14 {
+				t.Fatalf("KBD(64, %g) violates Princen-Bradley at %d: %g", a, i, s)
+			}
+		}
+	}
+	for _, a := range []float64{300, 201, math.NaN(), math.Inf(1), math.Inf(-1)} {
+		mustPanicWith(t, "KBDWindow alpha", "fft: KBDWindow needs a finite alpha", func() { KBDWindow(64, a) })
+	}
 }
 
 // TestMDCTAlias: dst may overlap src, for both routes and precisions.
@@ -304,7 +317,7 @@ func TestMDCTAllocs(t *testing.T) {
 	}
 }
 
-// FuzzMDCT: for any even block length 2..120 and any input bytes, both
+// FuzzMDCT: for any even block length 2..600 and any input bytes, both
 // precisions return finite values within the absolute-sum bound of the
 // definition computed in float64.
 func FuzzMDCT(f *testing.F) {
@@ -314,7 +327,7 @@ func FuzzMDCT(f *testing.F) {
 	f.Add(30, []byte("fuzz the odd route"))
 	f.Add(59, []byte{})
 	f.Fuzz(func(t *testing.T, k int, data []byte) {
-		n := 2 * (int(uint(k)%60) + 1)
+		n := 2 * (int(uint(k)%300) + 1) // block lengths 2 to 600, both routes
 		m := n / 2
 		x := make([]float64, n)
 		c := make([]float64, m)
