@@ -35,9 +35,9 @@ func oMDCT(x []cdd, m int, inverse bool) []cdd {
 // mdctLens are block lengths N: m = N/2 even takes the DCT-IV route, odd the
 // N-point route.
 func mdctLens() []int {
-	l := []int{2, 4, 6, 8, 10, 12, 14, 16, 18, 30, 64, 100, 126, 128, 256, 258, 512, 1010, 1024, 2048}
-	if !testing.Short() && !raceEnabled {
-		l = append(l, 4096)
+	l := []int{2, 4, 6, 8, 10, 12, 14, 16, 18, 30, 64, 100, 126, 128, 256}
+	if accLarge() { // not under -race, -short or qemu, where the suite is near the timeout
+		l = append(l, 258, 512, 1010, 1024, 2048, 4096)
 	}
 	return l
 }
