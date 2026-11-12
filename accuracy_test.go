@@ -112,6 +112,24 @@ func accLarge() bool {
 	return runtime.GOARCH == "amd64" || runtime.GOARCH == "arm64"
 }
 
+// accEmulated: the architectures CI runs under qemu, where the sweep must
+// fit well inside the 10-minute go test timeout (s390x took 10m38s at 1,100).
+func accEmulated() bool {
+	switch runtime.GOARCH {
+	case "s390x", "ppc64le", "loong64", "riscv64":
+		return true
+	}
+	return false
+}
+
+// accCap is the longest length run when accLarge is false.
+func accCap() int {
+	if accEmulated() {
+		return 300
+	}
+	return 1100
+}
+
 func accLengths() []int {
 	pow2 := []int{2, 4, 8, 16, 64, 256, 1024, 4096}
 	pow3 := []int{3, 9, 27, 243, 2187}
@@ -125,7 +143,7 @@ func accLengths() []int {
 	if !accLarge() {
 		var small []int
 		for _, n := range all {
-			if n <= 1100 {
+			if n <= accCap() {
 				small = append(small, n)
 			}
 		}
@@ -140,7 +158,7 @@ func accRealLengths() []int {
 	odd := []int{9, 15, 105, 343, 1001, 1009, 1013, 3125}
 	var out []int
 	for _, n := range append(accLengths(), odd...) {
-		if n <= 1100 || accLarge() {
+		if n <= accCap() || accLarge() {
 			out = append(out, n)
 		}
 	}
@@ -151,6 +169,15 @@ func accShapesND() [][]int {
 	s := [][]int{{4, 4}, {32, 32}, {30, 31}, {64, 48}, {127, 33}, {15, 21}, {8, 9, 10}, {16, 16, 16}, {7, 5, 16}, {17, 3, 5, 4}}
 	if accLarge() {
 		s = append(s, []int{128, 128}, []int{1009, 3})
+	}
+	if accEmulated() {
+		var small [][]int
+		for _, sh := range s {
+			if prod(sh) <= 1100 {
+				small = append(small, sh)
+			}
+		}
+		return small
 	}
 	return s
 }
@@ -752,7 +779,7 @@ func TestAccuracyBound(t *testing.T) {
 				for _, shape := range f.shapes {
 					n := f.points(shape)
 					for _, seed := range []uint64{1, 2} {
-						if n > 1100 && seed == 2 {
+						if (n > 1100 || accEmulated()) && seed == 2 {
 							continue
 						}
 						err := f.run(shape, seed, fma)
