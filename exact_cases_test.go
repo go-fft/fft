@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"runtime"
 	"strconv"
 )
 
@@ -27,7 +28,15 @@ func exactCases() []exactCase {
 	add := func(name string, def, exact func() any) {
 		cs = append(cs, exactCase{name + "/" + key, def, exact})
 	}
-	for _, n := range []int{1, 2, 17, 64, 360, 1000, 1001, 1009, 2018, 4096, 4099, 16384} {
+	lengths := []int{1, 2, 17, 64, 360, 1000, 1001, 1009, 2018, 4096, 4099, 16384}
+	shapes := [][]int{{12, 20}, {8, 8, 8}, {17, 9}, {30, 31}, {1009, 3}, {64, 64}, {16, 16, 16}}
+	switch runtime.GOARCH {
+	case "s390x", "ppc64le", "loong64", "riscv64":
+		// Under qemu the whole set takes most of the CI timeout (no golden
+		// digests exist for these architectures either).
+		lengths, shapes = lengths[:7], shapes[:4]
+	}
+	for _, n := range lengths {
 		key = "n=" + strconv.Itoa(n)
 		x := fmaSignal(n, uint64(n))
 		r := fmaReal(n, uint64(n))
@@ -71,7 +80,7 @@ func exactCases() []exactCase {
 		add("IHFFT32With", func() any { return IHFFT32(r32) }, func() any { return IHFFT32With(r32, ex) })
 		add("Plan32", func() any { return NewPlan32(n).FFT(make([]complex64, n), x32) }, func() any { return FFT32With(x32, ex) })
 	}
-	for _, sh := range [][]int{{12, 20}, {8, 8, 8}, {17, 9}, {30, 31}, {1009, 3}, {64, 64}, {16, 16, 16}} {
+	for _, sh := range shapes {
 		key = fmt.Sprint("shape=", sh)
 		size := shapeProduct(sh...)
 		x := fmaSignal(size, uint64(size))
