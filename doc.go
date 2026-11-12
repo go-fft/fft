@@ -66,10 +66,12 @@
 // The package's contract is a stated error bound against an
 // extended-precision result, not bit identity with another implementation
 // (docs/accuracy.md): the relative RMS error is at most c·ε·log2(n), with c
-// between 0.5 and 2 per function family. Today the default arithmetic is also
-// the package's Go reference, bit for bit on amd64. Options{Exact: true}
-// names that arithmetic: separately rounded multiplies and adds, no fused
-// multiply-add, the order of operations of the reference. It is accepted by
+// between 0.5 and 2.25 per function family (measured, not proved). Today the
+// default arithmetic is also the package's Go reference, bit for bit on
+// amd64. Options{Exact: true} names that arithmetic: the reference arithmetic
+// as compiled by gc (the SIMD kernels round every multiply and add
+// separately; on arm64 gc fuses multiply-adds in the Go reference), in the
+// order of operations of the reference, the bits of v0.28.16. It is accepted by
 // every ...With function (the float32 ones included) and by NewPlanWith,
 // NewRealPlanWith, NewPlanNWith and NewRealPlan2With, and it changes nothing
 // today. A later release may let the default fuse or reorder inside the

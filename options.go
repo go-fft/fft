@@ -56,13 +56,15 @@ type Options struct {
 	FMA bool
 
 	// Exact asks for the package's reference arithmetic, the one the Go code
-	// and the SIMD kernels have always computed: separately rounded
-	// multiplies and adds, no fused multiply-add, the same order of
-	// operations, so that a result is bit-identical from one run, one CPU and
-	// one release of the same version to the next, and equal to the Go
-	// reference on every architecture that does not fuse. Use it when the
-	// last bits must be reproducible (a stored digest of an output, a
-	// bit-for-bit comparison with another run).
+	// and the SIMD kernels computed up to v0.28.16: the reference arithmetic
+	// as compiled by gc (separately rounded multiplies and adds in the SIMD
+	// kernels, whose amd64 and arm64 passes copy the Go reference; gc itself
+	// fuses multiply-adds in that reference on arm64, so the bits are the
+	// same on every CPU of one architecture, not between architectures), in
+	// the same order of operations. Use it when the last bits must be
+	// reproducible (a stored digest of an output, a bit-for-bit comparison
+	// with another run on the same architecture). The tests pin it to
+	// digests of v0.28.16's outputs on amd64 and arm64.
 	//
 	// Today the default arithmetic is this one, so Exact changes nothing. The
 	// package's contract is a stated error bound against an

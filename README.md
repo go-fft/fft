@@ -225,9 +225,11 @@ CPUs (Haswell, Zen 2/4) were not measured: there every pass fuses.
 go-fft's contract is an error bound against an extended-precision result
 (`c·ε·log2(n)`, [docs/accuracy.md](docs/accuracy.md)), not bit identity with
 another implementation. `Options{Exact: true}` names the package's reference
-arithmetic for callers who need the last bits to be reproducible: separately
-rounded multiplies and adds, no fused multiply-add, the reference's order of
-operations. It is accepted by every `...With` function (float32 included) and
+arithmetic for callers who need the last bits to be reproducible: the
+reference arithmetic as compiled by gc (the SIMD kernels round every multiply
+and add separately; on arm64 gc fuses multiply-adds in the Go reference, so the
+bits are the same on every CPU of one architecture, not between amd64 and
+arm64), in the reference's order of operations. It is accepted by every `...With` function (float32 included) and
 by `NewPlanWith`, `NewRealPlanWith`, `NewPlanNWith` and `NewRealPlan2With`.
 
 ```go
@@ -235,7 +237,8 @@ X := fft.FFTWith(x, fft.Options{Exact: true})
 p := fft.NewPlanWith(1024, fft.Options{Exact: true})
 ```
 
-Today the default arithmetic is this one, so `Exact` changes nothing: the
+Today the default arithmetic is this one, so `Exact` changes nothing, and the
+tests pin it to digests of v0.28.16's outputs (amd64 and arm64): the
 tests that hold the transforms to the Go reference bit for bit now build their
 plans with it. A later release may let the default fuse multiply-adds or
 reorder its kernels, inside the bound; `Exact` keeps the reference bits
