@@ -123,7 +123,11 @@ func TestMDCTOracle(t *testing.T) {
 // and odd M, to the bound.
 func TestMDCTPerfectReconstruction(t *testing.T) {
 	rng := rand.New(rand.NewSource(12))
-	for _, n := range []int{2, 4, 6, 16, 64, 100, 128, 2048} {
+	lens := []int{2, 4, 6, 16, 64, 100, 128}
+	if accLarge() {
+		lens = append(lens, 2048)
+	}
+	for _, n := range lens {
 		m := n / 2
 		for name, w := range map[string][]float64{"sine": SineWindow(n), "kbd4": KBDWindow(n, 4)} {
 			blocks := 6
