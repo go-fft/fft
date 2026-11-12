@@ -55,8 +55,8 @@ permissions:
 # its RVV comparison ("no RVV") — so this qemu job stays green while the RVV
 # proof is supplied by cfarm95. loong64/ppc64le keep the validated scalar path
 # (the Go assembler has no loong64 vector FMA, and no ppc64le vector double
-# arithmetic — see cmul_generic.go). Shipping even a 1-ULP-different kernel is a
-# correctness divergence the project rejects. See docs/plan-fft.md (Phase 4).
+# arithmetic — see cmul_generic.go; a loong64 kernel from separately rounded
+# products is possible and is go-fft/fft#137). See docs/plan-fft.md (Phase 4).
 # These kernels ship and are tested, but none is on the transforms' hot path:
 # the scalar loop measured as fast (README, BENCHMARKS.md).
 jobs:
