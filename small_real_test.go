@@ -73,7 +73,7 @@ func TestUntangleInPlace(t *testing.T) {
 // for complete, short and over-long spectra.
 func TestRealPlanInPlaceMatchesBuffered(t *testing.T) {
 	for _, n := range []int{2, 4, 6, 8, 10, 16, 30, 64, 100, 128, 256, 512, 1000, 1024, 2048, 4096, 8192, 2 * 1009, 2 * 1201, 2 * 10007} {
-		p := NewRealPlan(n)
+		p := NewRealPlanWith(n, exactOpts)
 		m := n / 2
 		for s, x := range smallSignals(m) {
 			src := make([]float64, n)

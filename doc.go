@@ -38,7 +38,8 @@
 //
 // By default every amd64 kernel is bit-identical to the package's Go passes
 // compiled without fused multiply-add, so a result does not depend on which
-// kernel ran. Options{FMA: true} (FFTWith and the other ...With functions,
+// kernel ran on a given route; different amd64 CPUs can choose different
+// routes for some lengths, so the bits are not promised across CPUs. Options{FMA: true} (FFTWith and the other ...With functions,
 // NewPlanWith, NewRealPlanWith, NewPlanNWith, NewRealPlan2With) gives that up
 // for speed on amd64 CPUs with FMA3: every twiddle product between passes,
 // the √2/2 products of the radix-8 butterfly and the internal twiddles of
@@ -60,4 +61,23 @@
 // passes for 1,024 and 2,048 points, which only FMA plans have. Elsewhere
 // every pass fuses. A transform of a length the table leaves unfused is the
 // default transform, bit for bit.
+//
+// # Reproducible bits (Options.Exact)
+//
+// The package's contract is a stated error bound against an
+// extended-precision result, not bit identity with another implementation
+// (docs/accuracy.md): the relative RMS error is at most c·ε·log2(n), with c
+// between 0.5 and 2.25 per function family (measured, not proved). Today the
+// default arithmetic is also the package's Go reference, bit for bit on
+// amd64. Options{Exact: true} names that arithmetic: the reference arithmetic
+// as compiled by gc (the SIMD kernels round every multiply and add
+// separately; on arm64 gc fuses multiply-adds in the Go reference), in the
+// order of operations of the reference, the bits of v0.28.16 on the same
+// machine (v0.28.16 itself gave different bits on different amd64 CPUs for
+// some lengths). It is accepted by
+// every ...With function (the float32 ones included) and by NewPlanWith,
+// NewRealPlanWith, NewPlanNWith and NewRealPlan2With, and it changes nothing
+// today. A later release may let the default fuse or reorder inside the
+// bound; Exact then keeps the reference bits for callers who need them. It
+// excludes Options.FMA: setting both panics.
 package fft

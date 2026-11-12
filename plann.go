@@ -96,8 +96,9 @@ func NewPlanN(shape ...int) *PlanN { return newPlanNF(shape, false) }
 
 // NewPlanNWith is NewPlanN with options: o.FMA asks for an FMA plan (see
 // Options.FMA), whose every axis, the ones transformed as strips of
-// batched passes included, runs on FMA plans. The other fields must be zero,
-// as for NewPlanWith. NewPlanNWith(shape, Options{}) is NewPlanN(shape...).
+// batched passes included, runs on FMA plans; o.Exact asks for the reference
+// arithmetic (see Options.Exact) and excludes FMA. The other fields must be
+// zero, as for NewPlanWith. NewPlanNWith(shape, Options{}) is NewPlanN(shape...).
 func NewPlanNWith(shape []int, o Options) *PlanN {
 	return newPlanNF(shape, o.checkPlan("NewPlanNWith"))
 }

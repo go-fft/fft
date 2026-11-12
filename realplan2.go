@@ -20,8 +20,9 @@ type RealPlan2 struct {
 func NewRealPlan2(rows, cols int) *RealPlan2 { return newRealPlan2F(rows, cols, false) }
 
 // NewRealPlan2With is NewRealPlan2 with options: o.FMA asks for an FMA plan
-// (see Options.FMA), whose row and column transforms are FMA plans. The
-// other fields must be zero, as for NewPlanWith. NewRealPlan2With(rows,
+// (see Options.FMA), whose row and column transforms are FMA plans;
+// o.Exact asks for the reference arithmetic (see Options.Exact) and excludes
+// FMA. The other fields must be zero, as for NewPlanWith. NewRealPlan2With(rows,
 // cols, Options{}) is NewRealPlan2(rows, cols).
 func NewRealPlan2With(rows, cols int, o Options) *RealPlan2 {
 	return newRealPlan2F(rows, cols, o.checkPlan("NewRealPlan2With"))
