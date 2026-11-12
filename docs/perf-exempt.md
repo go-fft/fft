@@ -57,9 +57,23 @@ therefore have no row of their own; scipy.fft has no constructor to compare with
 
 SciPy and NumPy have no MDCT. The oracle is the O(N²) definition (`mdct_test.go`),
 the cost is `BenchmarkMDCT`, and the transform is a fold plus the DCT-IV, which has
-its own rows.
+its own rows. FFTW has no MDCT either: the comparison is FFTW's `REDFT11` (the
+DCT-IV) of `N/2` points plus the same fold and unfold, single thread, Apple M4 Max,
+1-min load 4.5 (2026-11-12), float64, ns per call, MDCT / IMDCT:
+
+| N (samples) | go-fft | FFTW REDFT11 + fold |
+|--:|:--|:--|
+| 128 | 138 / 134 | 90 / 90 |
+| 256 | 231 / 227 | 166 / 168 |
+| 2048 | 1,727 / 1,698 | 1,670 / 1,660 |
+
+At the AAC long block (2,048 samples, 1,024 coefficients) go-fft is within 4 % of
+the FFTW-built transform; at 128 and 256 it is 1.4 to 1.5 times slower, which is
+the small-size DCT-IV, tracked separately.
 
 - `MDCTPlan.MDCT`: no reference tool; see above.
 - `MDCTPlan.IMDCT`: as `MDCTPlan.MDCT`.
 - `MDCTPlan32.MDCT`: as `MDCTPlan.MDCT`.
 - `MDCTPlan32.IMDCT`: as `MDCTPlan.MDCT`.
+- `SineWindow`: a closed form computed once per block length and kept by the caller; no SciPy function (`scipy.signal.windows` has none for the MDCT sine window).
+- `KBDWindow`: computed once per block length and kept by the caller, like `SineWindow`; `scipy.signal.windows.kaiser_bessel_derived` is its counterpart, and the one-time cost is not a row.

@@ -79,6 +79,17 @@ differs by a few tens of percent stays inside.
 | `c2cN/32` | FFTN32, IFFTN32, FFT2_32, IFFT2_32, PlanN32 | 0.15 | 0.5 |
 | `r2cN/32` | RFFTN32, IRFFTN32, RFFT2_32, IRFFT2_32, RealPlan2_32 | 0.14 | 0.5 |
 | `r2r/32` | the float32 DCT/DST family | 0.86 | 1.75 |
+| `mdct` | MDCTPlan.MDCT/IMDCT, `N` samples to `N/2` coefficients | 0.83 | 1.75 |
+| `mdct/32` | MDCTPlan32.MDCT/IMDCT | 0.30 | 0.75 |
+
+The `mdct` rows are measured by `TestMDCTAccuracy` against the `O(N·N/2)`
+definition `X[k] = Σ x[n]·cos(2π/N·(n + 1/2 + N/4)(k + 1/2))` in double-double
+(the 200-bit cosine table of the oracle, the argument reduced exactly in
+integers), for `N` from 2 to 4,096 (both routes: `N/2` even through the DCT-IV,
+`N/2` odd through the `N`-point FFT, which is the worse one, 0.83 against 0.36 in
+float64), two seeds, and the scales 1 and `2/(N/2)`. `n` in the bound is `N`.
+`TestMDCTPerfectReconstruction` holds the windowed overlap-add round trip (sine
+and Kaiser-Bessel-derived windows) to twice that bound.
 
 Measured on arm64 (Apple silicon, Go 1.27); the amd64 kernels and the FMA plans
 are asserted by the same test in CI. FMA is not less accurate: its worst ratio

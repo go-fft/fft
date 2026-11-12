@@ -123,15 +123,12 @@ func (p *MDCTPlan) MDCT(dst, src []float64, scale float64) []float64 {
 	}
 	sp := p.pool.Get().(*[]float64)
 	u := *sp
+	f := scale / 2 // the package's DCT-IV is twice the sum; the scale is applied while folding
 	for i := 0; i < h; i++ {
-		u[i] = -src[m+h-1-i] - src[m+h+i]
-		u[h+i] = src[i] - src[m-1-i]
+		u[i] = (-src[m+h-1-i] - src[m+h+i]) * f
+		u[h+i] = (src[i] - src[m-1-i]) * f
 	}
-	p.dct.DCT(u, u, NormBackward)
-	f := scale / 2 // the package's DCT-IV is twice the sum
-	for i := 0; i < m; i++ {
-		dst[i] = u[i] * f
-	}
+	p.dct.DCT(dst[:m], u, NormBackward)
 	p.pool.Put(sp)
 	return dst[:m]
 }
@@ -236,15 +233,12 @@ func (p *MDCTPlan32) MDCT(dst, src []float32, scale float32) []float32 {
 	}
 	sp := p.pool.Get().(*[]float32)
 	u := *sp
-	for i := 0; i < h; i++ {
-		u[i] = -src[m+h-1-i] - src[m+h+i]
-		u[h+i] = src[i] - src[m-1-i]
-	}
-	p.dct.DCT(u, u, NormBackward)
 	f := scale / 2
-	for i := 0; i < m; i++ {
-		dst[i] = u[i] * f
+	for i := 0; i < h; i++ {
+		u[i] = (-src[m+h-1-i] - src[m+h+i]) * f
+		u[h+i] = (src[i] - src[m-1-i]) * f
 	}
+	p.dct.DCT(dst[:m], u, NormBackward)
 	p.pool.Put(sp)
 	return dst[:m]
 }
