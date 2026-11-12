@@ -50,7 +50,7 @@ func newBluesteinPlanOpt(n int, fma bool) *bluesteinPlan {
 	p.wF = make([]complex128, n)
 	p.wI = make([]complex128, n)
 	for j := 0; j < n; j++ {
-		jj := (j * j) % (2 * n) // keep the angle accurate for large N
+		jj := int((int64(j) * int64(j)) % int64(2*n)) // keep the angle accurate for large N; int64: j*j overflows a 32-bit int from j = 46,341
 		ang := math.Pi * float64(jj) / float64(n)
 		// Forward chirp uses sign -1, inverse uses +1.
 		p.wF[j] = complex(math.Cos(-ang), math.Sin(-ang))

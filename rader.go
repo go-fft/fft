@@ -62,7 +62,7 @@ func newRaderPlanOpt(n int, fma bool) *raderPlan {
 	x := 1
 	for k := 0; k < q; k++ {
 		p.perm[k] = x
-		x = x * g % n
+		x = int(int64(x) * int64(g) % int64(n)) // int64: x*g overflows a 32-bit int from n = 46,341
 	}
 	// g^{-q} = g^{(n-1)-q} for q in 1..n-1; iperm[q] = perm[(n-1-q) mod (n-1)].
 	for qi := 0; qi < q; qi++ {
@@ -191,10 +191,10 @@ func modPow(base, exp, m int) int {
 	base %= m
 	for exp > 0 {
 		if exp&1 == 1 {
-			result = result * base % m
+			result = int(int64(result) * int64(base) % int64(m)) // int64: the product overflows a 32-bit int from m = 46,341
 		}
 		exp >>= 1
-		base = base * base % m
+		base = int(int64(base) * int64(base) % int64(m))
 	}
 	return result
 }
