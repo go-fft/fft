@@ -200,7 +200,12 @@ floating-point form the gc compiler gives the oracle differs by arch**:
     `FMADDD`; verified by disassembly), so a bit-identical kernel needs a vector
     fused multiply-add. As of Go 1.26 the loong64 assembler has vector double
     add, subtract and multiply (`VADDD`/`VSUBD`/`VMULD` and their 256-bit `XV`
-    forms) but **no vector FMA**, which would have to be encoded by hand.
+    forms) but **no vector FMA**, which would have to be encoded by hand. So a
+    kernel that reproduces the fused scalar code bit for bit cannot be written,
+    while one from separately rounded products is possible and stays inside the
+    accuracy bound ([#121](https://github.com/go-fft/fft/issues/121)); whether it
+    is faster is unmeasured and tracked in
+    [#137](https://github.com/go-fft/fft/issues/137).
     (Until Go 1.26 it exposed vector floating point only as unary ops.)
   - **ppc64le**: the gc compiler fuses the oracle (`FMUL`, then `FMSUB` /
     `FMADD`), and the Go ppc64 assembler exposes **no vector double
@@ -261,9 +266,10 @@ job; the gate is never lowered and there is no coverage-gaming knob.
   `FNMSUBD`/`FMADDD`), with **run-time V detection**, **hardware-validated on
   cfarm95** (SpacemiT X60, RVV 1.0); under CI's non-V qemu it runs scalar and the
   SIMD test skips. ✅
-- **loong64 / ppc64le** — validated scalar fallback (qemu jobs); no SIMD kernel,
-  each for a concrete checked reason (no assemblable vector FMA, and on ppc64le
-  no vector double arithmetic at all — see above). 🔒
+- **loong64 / ppc64le** — validated scalar fallback (qemu jobs); no SIMD kernel.
+  ppc64le: no vector double arithmetic at all in the Go assembler. loong64: no
+  assemblable vector FMA; a kernel from separately rounded products is possible
+  and unmeasured (#137) — see above. 🔒
 
 ### What the transforms run today (v0.19.0)
 

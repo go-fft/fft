@@ -2,8 +2,8 @@
 
 package kernels
 
-// loong64 and ppc64le expose no vector DOUBLE arithmetic in the Go assembler
-// (see cmul_generic.go for the detailed reason), so like arm64/s390x/riscv64
+// ppc64le exposes no vector DOUBLE arithmetic in the Go assembler and loong64 no
+// vector FMA (see cmul_generic.go and go-fft/fft#137), so like arm64/s390x/riscv64
 // they run the butterfly STAGES through a plain Go loop (scalar code: gc does not
 // vectorize), not a hand-written kernel. The bodies are identical to
 // Radix2StageScalar/Radix4StageScalar and are deliberately inlinable, so they

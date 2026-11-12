@@ -33,9 +33,11 @@ package kernels
 // can diverge across arches: amd64's GOAMD64=v1 oracle does NOT fuse
 // (separately-rounded MULPD/ADDPD match it), while arm64, s390x and riscv64 fuse,
 // so their kernels must reproduce that exact fusion. The radix add/subs and the
-// ∓i rotation are exact on every arch. Where no bit-identical kernel is
-// expressible (loong64/ppc64le, no vector double arithmetic in the Go assembler)
-// the scalar oracle stands.
+// ∓i rotation are exact on every arch. loong64 and ppc64le have no kernel and
+// run the scalar oracle: ppc64le because the Go assembler has no vector double
+// arithmetic at all, loong64 because it has no vector FMA, so a kernel that
+// matches the fused scalar code bit for bit cannot be written; one from
+// separately rounded VMULD/VADDD is possible and is go-fft/fft#137.
 
 // Radix2StageScalar runs one radix-2 decimation-in-time pass in place over a
 // (length n). span is the sub-transform length entering the stage; groups of
