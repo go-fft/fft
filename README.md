@@ -178,8 +178,8 @@ raises); an axis listed twice is refused (numpy's `fftn` transforms it twice);
 
 Every transform, in both precisions, with the default arithmetic and with
 `Options.FMA`, stays within `c·ε·log2(n)` of the exact result in relative RMS
-error, with `ε` 2^-52 (float64) or 2^-23 (float32) and `c` between 0.5 and 2
-per function family (the worst measured is 0.95). "Exact" is a double-double
+error, with `ε` 2^-52 (float64) or 2^-23 (float32) and `c` between 0.5 and 2.25
+per function family (measured, not proved; the worst ratio seen is 1.03). "Exact" is a double-double
 oracle (twiddles from `math/big`) in the test suite; the constants, the lengths
 measured and what the check can and cannot see are in
 **[docs/accuracy.md](docs/accuracy.md)**.
