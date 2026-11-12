@@ -15,6 +15,7 @@ import (
 // 33, so every remainder of ido mod 4 (the 256- and 128-bit tails) with and
 // without four-point groups, and l1 from 1 to 9.
 func TestComp12EachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, l1 := range []int{1, 2, 3, 4, 5, 9} {
@@ -60,6 +61,7 @@ func TestComp12EachPassMatchesScalar(t *testing.T) {
 // TestComp12TransformMatchesScalar runs whole transforms with radix-12
 // passes, kernels on and off, in place and not.
 func TestComp12TransformMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, f := range comp12FactorLists {

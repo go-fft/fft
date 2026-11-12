@@ -180,6 +180,7 @@ func BenchmarkAB(b *testing.B) {
 
 // BenchmarkFanout times 2-D plans on all cores for several parMinChunk values.
 func BenchmarkFanout(b *testing.B) {
+	isolatePlans(b)
 	defer func(v int) { parMinChunk = v }(parMinChunk)
 	for _, n := range []int{64, 128, 256, 512} {
 		p := NewPlanN(n, n)

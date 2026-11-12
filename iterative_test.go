@@ -77,6 +77,7 @@ func TestIterativeRoundTrip(t *testing.T) {
 // (one block = the whole array), and requires identical bits: a block is
 // transformed by exactly the operations the same points get in a full sweep.
 func TestCacheBlockingIsBitIdentical(t *testing.T) {
+	isolatePlans(t)
 	saved := itBlock
 	defer func() { itBlock = saved }()
 	for _, n := range []int{2, 4, 8, 64, 512, 2048, 1 << 13, 1 << 16} {

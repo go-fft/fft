@@ -57,6 +57,7 @@ func splitOn(on bool) func() {
 // several, the first group only), on radix16Signals' seven signals, radix
 // 4 and 8 and, since Round 36, 3 and 5.
 func TestSplitEachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go passes run and there is nothing to compare")
 	}
@@ -126,6 +127,7 @@ var splitFactorLists = [][]int{
 // TestSplitTransformMatchesScalar runs whole transforms with split runs,
 // kernels on and off, in place and not, bit for bit.
 func TestSplitTransformMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	defer splitOn(true)()
@@ -170,6 +172,7 @@ func TestSplitTransformMatchesScalar(t *testing.T) {
 // TestHswSplitFloorAMD64: 512 on Haswell's route, none elsewhere; a plan
 // below it, or a composite, runs interleaved there.
 func TestHswSplitFloorAMD64(t *testing.T) {
+	isolatePlans(t)
 	if hswSplitFloorAMD64(false) != 0 || hswSplitFloorAMD64(true) != 512 {
 		t.Error("hswSplitFloorAMD64")
 	}

@@ -43,6 +43,7 @@ func withRotate(on bool, shape ...int) *PlanN {
 // three and four dimensions, on neonSignals (generic, signed zeros, ±0/−1, an
 // infinity, a constant, ±0 and ±1 draws, subnormals).
 func TestRotateMatchesLines(t *testing.T) {
+	isolatePlans(t)
 	ran := 0
 	for _, shape := range [][]int{
 		{2, 2}, {4, 8}, {8, 4}, {16, 16}, {64, 64}, {5, 7}, {7, 9}, {49, 6},
@@ -79,6 +80,7 @@ func TestRotateMatchesLines(t *testing.T) {
 // column strips they replace, to rounding (the axes run in the other order),
 // through the public FFT and IFFT.
 func TestRotateAgainstOldPath(t *testing.T) {
+	isolatePlans(t)
 	for _, shape := range [][]int{{64, 64}, {128, 64}, {10, 24, 6}} {
 		a, b := withRotate(true, shape...), withRotate(false, shape...)
 		x := cmplxSignal(a.Len())
@@ -106,6 +108,7 @@ func TestRotateAgainstOldPath(t *testing.T) {
 // such axes, fewer than 2^18 elements and one goroutine; with the switch off no plan
 // takes them.
 func TestRotateWhen(t *testing.T) {
+	isolatePlans(t)
 	for _, c := range []struct {
 		shape []int
 		want  bool

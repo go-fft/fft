@@ -86,6 +86,7 @@ func TestR42DefaultRefusesRadix32(t *testing.T) {
 // a row plan's) fuses every pass; a length absent from the table takes
 // skFactorize's factors, every pass fused.
 func TestR42FMATable(t *testing.T) {
+	isolatePlans(t)
 	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
 	fmaTable = map[int]fmaChoice{
 		1024: {factors: []int{32, 4, 8}, fuse: 0b100},

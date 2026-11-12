@@ -102,6 +102,7 @@ func (p *skPlan) csCascadeParts(dst, src, buf []complex128, pair, groups, last b
 // without the blocked schedule), and the blocked schedule's three parts
 // alone, in rotated rounds.
 func TestCsCascadeParts(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := csRounds(t)
 	ns, sets := comp2Variants(t)
 	for _, n := range ns {
@@ -145,6 +146,7 @@ func TestCsCascadeParts(t *testing.T) {
 // them), against the first, in rotated rounds; per variant its shape and
 // median ns per point.
 func TestCsOrders(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := csRounds(t)
 	ns, sets := comp2Variants(t)
 	for _, n := range ns {
@@ -363,6 +365,7 @@ var csE2E = flag.String("cs.e2e", "C65536,C524288,C1048576,R1048576,I1048576,R13
 // process, rotated every round. Rows the table does not reach build the same
 // plan twice: their ratio is the noise.
 func TestCsCascadeE2E(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := csRounds(t)
 	old := map[int][]int{}
 	for n, f := range splitTable {
@@ -583,6 +586,7 @@ var csExport = flag.String("cs.export", "", "TestCsExport: directory the inputs 
 // kernels off, the 512-bit untangle to 16384), as little-endian float64, so
 // numpy can judge both on the bytes this code received.
 func TestCsExport(t *testing.T) {
+	isolatePlans(t)
 	if *csExport == "" {
 		t.Skip("set -cs.export=dir")
 	}
@@ -663,6 +667,7 @@ var csND = flag.String("cs.nd", "64x64,128x128,256x256,512x512", "TestCsFrameND:
 // Cascade Lake) and on, in one process, rotated: their rows are 1-D plans
 // the frame now serves.
 func TestCsFrameND(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := csRounds(t)
 	defer znSetMax(znTwoPassMax, znThreePassMax)()
 	for _, s := range strings.Split(*csND, ",") {

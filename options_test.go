@@ -555,6 +555,7 @@ func testSpectrumN(n int) []complex128 { return testSpectrum(n) }
 // fft(x, axis=-1) on a matrix of signals — every row is FFT(row). Large enough
 // to take the parallel path, and checked on the serial one too.
 func TestBatchedTransforms(t *testing.T) {
+	isolatePlans(t)
 	const rows, n = 300, 96 // 28800 elements, above parThreshold
 	x := complexGrid([]int{rows, n})
 	r := realGridN([]int{rows, n})

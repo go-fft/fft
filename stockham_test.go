@@ -91,6 +91,7 @@ func withPow2Route(on bool, f func()) {
 // its fused real packing) — and checks they agree. Whichever route this
 // architecture uses by default, the other one stays tested here.
 func TestPow2RoutesAgree(t *testing.T) {
+	isolatePlans(t)
 	for _, n := range []int{2, 4, 8, 16, 32, 64, 128, 256, 1024, 4096, 8192, 65536} {
 		x := cmplxSignal(n)
 		r := make([]float64, n)
@@ -181,6 +182,7 @@ func TestPow2Radices(t *testing.T) {
 }
 
 func TestWide512(t *testing.T) {
+	isolatePlans(t)
 	defer func(v int) { zen3RouteMax = v }(zen3RouteMax)
 	zen3RouteMax = 0
 	for n, want := range map[int]bool{128: false, 256: true, 4096: true, 1 << 20: true, 1000: false, 768: false, 20160: false} {
@@ -220,6 +222,7 @@ func TestScratchSitsOffTheSets(t *testing.T) {
 // whatever this machine's r8MaxPow2 is: with AVX-512 it is unbounded, so the
 // rule above it would otherwise go untested (and uncovered) there.
 func TestSkFactorizeAroundR8Max(t *testing.T) {
+	isolatePlans(t)
 	saved := r8MaxPow2
 	defer func() { r8MaxPow2 = saved }()
 	const e = 13
@@ -240,6 +243,7 @@ func TestSkFactorizeAroundR8Max(t *testing.T) {
 // TestSkFactorizeOrder pins both orders: powers of two first then the odd
 // primes ascending, or the odd primes first then the powers of two reversed.
 func TestSkFactorizeOrder(t *testing.T) {
+	isolatePlans(t)
 	saved := r8MaxPow2
 	defer func() { r8MaxPow2 = saved }()
 	r8MaxPow2 = 4096

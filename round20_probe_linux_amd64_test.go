@@ -202,6 +202,7 @@ func r20Env(k string, d int) int {
 // TestRound20Probe is the experiment driver of Round 20; it runs only with
 // R20MODE set.
 func TestRound20Probe(t *testing.T) {
+	isolatePlans(t)
 	mode := os.Getenv("R20MODE")
 	if mode == "" {
 		t.Skip("R20MODE not set")

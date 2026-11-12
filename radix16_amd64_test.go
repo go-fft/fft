@@ -62,6 +62,7 @@ func radix16Modes(t *testing.T) []struct {
 // 33, so every remainder of ido mod 4 (the 256- and 128-bit tails) with and
 // without four-point groups, and l1 from 1 to 9.
 func TestRadix16EachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, l1 := range []int{1, 2, 3, 4, 5, 9} {
@@ -107,6 +108,7 @@ func TestRadix16EachPassMatchesScalar(t *testing.T) {
 // TestRadix16TransformMatchesScalar runs whole transforms with radix-16
 // passes, kernels on and off, in place and not.
 func TestRadix16TransformMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, f := range radix16FactorLists {

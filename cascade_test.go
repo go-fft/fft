@@ -161,6 +161,7 @@ func TestCascadeIsBitIdentical(t *testing.T) {
 // TestCascadeThroughThePlan runs a Plan on the blocked schedule, with this
 // machine's radix rule, against the DFT at a few bins and through the inverse.
 func TestCascadeThroughThePlan(t *testing.T) {
+	isolatePlans(t)
 	save := cascadeMin
 	defer func() { cascadeMin = save }()
 	cascadeMin = 1 << 14

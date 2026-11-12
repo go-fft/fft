@@ -69,6 +69,7 @@ func TestRadix16GoPass(t *testing.T) {
 // TestRadix16Table checks that skFactorize takes a power of two's radix-16
 // factorization from radix16Table, as a copy, wherever the table has one.
 func TestRadix16Table(t *testing.T) {
+	isolatePlans(t)
 	defer func(m, s map[int][]int) { radix16Table, splitTable = m, s }(radix16Table, splitTable)
 	splitTable = nil // it comes first (TestSplitTable)
 	radix16Table = map[int][]int{256: {16, 16}}
@@ -89,6 +90,7 @@ func TestRadix16Table(t *testing.T) {
 // factorization without radix 16 and its last axis the table's, and that the
 // result is still the DFT.
 func TestRadix16Columns(t *testing.T) {
+	isolatePlans(t)
 	defer func(m map[int][]int) { radix16Table = m }(radix16Table)
 	// 48 rather than a power of two: on amd64 without AVX2 powers of two
 	// take the pow2 kernel, and only a Stockham plan has passes to inspect.

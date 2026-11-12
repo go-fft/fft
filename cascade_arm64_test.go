@@ -8,6 +8,7 @@ import (
 
 // TestCascadeKernelModes runs the identity check on the Go passes too.
 func TestCascadeKernelModes(t *testing.T) {
+	isolatePlans(t)
 	if testing.Short() {
 		t.Skip("large transforms")
 	}

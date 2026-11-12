@@ -8,6 +8,7 @@ import "testing"
 // "Stockham" plan of the smooth part only. Without the sk != nil guard in
 // initScratch this test fails on 9·p lengths on every amd64 CPU.
 func TestNDStripAxisRadix9Route(t *testing.T) {
+	isolatePlans(t)
 	defer func(o bool) { csRadix9On = o; ndForgetPlans() }(csRadix9On)
 	csRadix9On = true
 	ndForgetPlans()

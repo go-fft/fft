@@ -17,6 +17,7 @@ import (
 // restricted to GOAMD64 < v3, where the scalar oracle does not fuse multiply-
 // adds; the kernels never do.
 func TestStockhamPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamAVX2 {
 		t.Skip("no AVX2 on this CPU: the scalar passes run and there is nothing to compare")
 	}
@@ -69,6 +70,7 @@ func TestStockhamPassMatchesScalar(t *testing.T) {
 // smallSignals (the pass kernels' generic, signed-zero and infinite signals,
 // random sign draws and subnormals of mixed parity).
 func TestUntangleMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseUntangleAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
 	}
@@ -101,6 +103,7 @@ func TestUntangleMatchesScalar(t *testing.T) {
 // TestRetangleMatchesScalar holds the AVX2 inverse untangle to the Go loop,
 // bit for bit, the same way.
 func TestRetangleMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseUntangleAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go loop runs and there is nothing to compare")
 	}
@@ -140,6 +143,7 @@ func TestRetangleMatchesScalar(t *testing.T) {
 // infinite signals. Outputs start as a sentinel, so a kernel that wrote
 // between the rows of the strip would fail too.
 func TestStockhamBatchMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamBatchAVX2 {
 		t.Skip("no AVX2 on this CPU: the Go batched pass runs and there is nothing to compare")
 	}

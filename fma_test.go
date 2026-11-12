@@ -54,24 +54,9 @@ func fmaRoutes(n int) []string {
 // routing, its caches, and that every path honours it. forceFMA (per
 // architecture) builds FMA plans whatever the CPU.
 
-// forgetFMAPlans empties the FMA plans' caches.
-func forgetFMAPlans() {
-	planMu.Lock()
-	planCacheFMA, planNo16CacheFMA, clRowCacheFMA = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
-	planMu.Unlock()
-	realPlanMu.Lock()
-	realPlanCacheFMA = map[int]*RealPlan{}
-	realPlanMu.Unlock()
-	realPlan2Mu.Lock()
-	realPlan2CacheFMA = map[[2]int]*RealPlan2{}
-	realPlan2Mu.Unlock()
-	planNMu.Lock()
-	planNCacheFMA = map[string]*PlanN{}
-	planNMu.Unlock()
-	planNAxesMu.Lock()
-	planNAxesCache = map[string]*PlanN{}
-	planNAxesMu.Unlock()
-}
+// forgetFMAPlans empties the plan caches (the FMA ones, and with them every
+// other: see forgetAllPlans).
+func forgetFMAPlans() { forgetAllPlans() }
 
 func fmaSignal(n int, seed uint64) []complex128 {
 	r := rand.New(rand.NewPCG(seed, 41))
@@ -147,6 +132,7 @@ func TestFMAPlanOptionsRefused(t *testing.T) {
 // builds the default plan, and every transform is the default one bit for
 // bit. Forced both ways, so it does not depend on the machine.
 func TestFMAUnavailableIsDefault(t *testing.T) {
+	isolatePlans(t)
 	defer func(a bool) { fmaAvailable = a; forgetFMAPlans() }(fmaAvailable)
 	fmaAvailable = false
 	forgetFMAPlans()

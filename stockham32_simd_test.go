@@ -107,6 +107,7 @@ func f32simdTol(y []complex64) float64 {
 }
 
 func TestStockham32PassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockham32 {
 		t.Skip("no float32 pass kernels on this machine")
 	}
@@ -153,6 +154,7 @@ func TestStockham32PassMatchesScalar(t *testing.T) {
 // its own, output for output: through a whole transform a zero's sign that
 // differs inside one pass is mostly absorbed by later sums.
 func TestStockham32EachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockham32 {
 		t.Skip("no float32 pass kernels on this machine")
 	}

@@ -77,6 +77,7 @@ func intelSplit512Plans(t *testing.T, on bool) func() {
 // mix, an infinity, random draws from {±0} and {±0, ±1}, odd multiples of the
 // smallest subnormal).
 func TestIntelSplit512EachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer intelSplit512Plans(t, true)()
 	for _, r := range []int{4, 8} {
 		for _, l1 := range []int{1, 2, 3, 4, 5, 9} {
@@ -138,6 +139,7 @@ var intelSplit512FactorLists = [][]int{
 // 512-bit split runs, the kernels on and off, in place and not, bit for bit,
 // forward and inverse, through plans built by NewPlan's path too.
 func TestIntelSplit512TransformMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	defer intelSplit512Plans(t, true)()
 	for _, f := range intelSplit512FactorLists {

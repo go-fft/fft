@@ -42,6 +42,7 @@ func hwShape(t *testing.T, s string) []int {
 // row in place on dst, with each row plan variant, in rounds whose variant
 // order rotates; the rows meet the cache the other axes leave.
 func TestHwRows(t *testing.T) {
+	isolatePlans(t)
 	if *hwRows == "" {
 		t.Skip("set -hw.rows=rounds,iters")
 	}
@@ -111,6 +112,7 @@ func TestHwRows(t *testing.T) {
 // (the reference) and on -hw.roworder's factorization through clRowOrder,
 // the two plans sharing one src and one dst, in rotated rounds.
 func TestHwWhole(t *testing.T) {
+	isolatePlans(t)
 	if *hwWhole == "" {
 		t.Skip("set -hw.whole=rounds,iters")
 	}

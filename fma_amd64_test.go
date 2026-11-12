@@ -67,6 +67,7 @@ func withLayout(avx512, split, sp512 bool, f func()) {
 // holds every FMA kernel (interleaved at 256 and 512 bits, split at both
 // widths, radix 9, 10, 12, 15, 16 and 20, the frame plans) to cmulFMA.
 func TestFMAPassMatchesReference(t *testing.T) {
+	isolatePlans(t)
 	fmaKernelsHere(t)
 	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
 	// Every route of the lengths to 2,100 (routeSample: an FMA plan's
@@ -116,6 +117,7 @@ func TestFMAPassMatchesReference(t *testing.T) {
 // radix, the final pass (radix 8 fuses its √2/2 products there too) and
 // twiddled ones, batches of 1 to 9 lines, forward and inverse.
 func TestFMABatchMatchesReference(t *testing.T) {
+	isolatePlans(t)
 	fmaKernelsHere(t)
 	defer func(b bool) { kernels.UseStockhamBatchAVX2 = b }(kernels.UseStockhamBatchAVX2)
 	for _, f := range [][]int{{8, 8}, {2, 8, 4}, {3, 8}, {5, 8}, {4, 4, 8}, {8, 3, 5}} {
@@ -149,6 +151,7 @@ func TestFMABatchMatchesReference(t *testing.T) {
 // TestFMARotatingPassFallback: arm64's rotating passes on an FMA stage fall
 // back to its Go reference when the kernels are off, and agree with them.
 func TestFMARotatingPassFallback(t *testing.T) {
+	isolatePlans(t)
 	fmaKernelsHere(t)
 	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
 	st := &newSKPlanFactorsOpt(32, []int{4, 8}, true).stages[0]
@@ -166,6 +169,7 @@ func TestFMARotatingPassFallback(t *testing.T) {
 // kernels off (its Go passes over l1 blocks, strided pieces and final runs)
 // is its kernels' bits.
 func TestFMACascadeGoPasses(t *testing.T) {
+	isolatePlans(t)
 	fmaKernelsHere(t)
 	defer func(a int, b bool) { cascadeMin, kernels.UseStockhamAVX2 = a, b }(cascadeMin, kernels.UseStockhamAVX2)
 	cascadeMin = 1

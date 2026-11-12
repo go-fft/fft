@@ -44,6 +44,7 @@ func hswR24(n int) []int {
 // It prints each variant's median and the median of its per-round ratios to
 // r24/i, with their range.
 func TestHswComp(t *testing.T) {
+	isolatePlans(t)
 	if *hswComp == "" {
 		t.Skip("set -hsw.comp=rounds,ms,min,max")
 	}

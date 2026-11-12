@@ -14,6 +14,7 @@ import (
 // BenchmarkR25Untangle32 times f32Untangle and f32rRetangle with the kernels
 // off ("go") and on ("simd"), where the platform has them.
 func BenchmarkR25Untangle32(b *testing.B) {
+	isolatePlans(b)
 	defer func(v bool) { kernels.UseUntangle32 = v }(kernels.UseUntangle32)
 	simd := kernels.UseUntangle32
 	for _, n := range []int{256, 1024, 4096, 65536, 1000, 1920} {
@@ -49,6 +50,7 @@ func BenchmarkR25Untangle32(b *testing.B) {
 // columns on one goroutine, next to the float64 plan's rows, gathered
 // columns and batched strips (where they run).
 func BenchmarkR25Parts2D32(b *testing.B) {
+	isolatePlans(b)
 	for _, n := range []int{64, 128, 256, 512, 1024} {
 		p32, p64 := withStrips32(false, n, n), NewPlanN(n, n)
 		p32.strips = withStrips32(true, n, n).strips
@@ -102,6 +104,7 @@ func BenchmarkR25Parts2D32(b *testing.B) {
 // BenchmarkR25StripWidth32 times the columns of an n×n float32 plan as strips
 // of w lines, for several w, on one goroutine.
 func BenchmarkR25StripWidth32(b *testing.B) {
+	isolatePlans(b)
 	defer func(f func(int) int) { stripWidth32 = f }(stripWidth32)
 	for _, n := range []int{64, 128, 256, 512, 1024} {
 		d := make([]complex64, n*n)
@@ -125,6 +128,7 @@ func BenchmarkR25StripWidth32(b *testing.B) {
 // with the shared fan-out rule ("rule": parallelizeLines, parMinChunk) and
 // on one goroutine ("serial"), on all GOMAXPROCS cores.
 func BenchmarkR25Fanout32(b *testing.B) {
+	isolatePlans(b)
 	defer func(v int) { parMinChunk = v }(parMinChunk)
 	def := parMinChunk
 	for _, n := range []int{64, 96, 128, 160, 192, 224, 256, 512} {

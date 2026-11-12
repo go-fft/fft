@@ -241,8 +241,7 @@ func newR2RKernel(cosine bool, typ, n int) *r2rKernel {
 				s, c := math.Sincos(-math.Pi * float64(i) / float64(n))
 				k.pre[i] = complex(c, s)
 				s, c = math.Sincos(-math.Pi * float64(4*i+1) / float64(4*n))
-				k.post[i] = complex(2*c, 2*s)
-			}
+				k.post[i] = complex(2*c, 2*s)			}
 			nc = h
 		} else {
 			k.mk = newMakhoul(2 * n)
