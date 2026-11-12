@@ -1,9 +1,6 @@
 package fft
 
-import (
-	"math"
-	"sync"
-)
+import "math"
 
 // The modified discrete cosine transform (MDCT) and its inverse, the lapped
 // transform of the audio codecs (AAC, Vorbis, Opus CELT, MP3). N is the number of
@@ -46,11 +43,11 @@ import (
 // steady state.
 type MDCTPlan struct {
 	n    int
-	dct  *DCTPlan     // even N/2
-	fft  *Plan        // odd N/2: length N
-	pre  []complex128 // odd: e^{-iπ n/M}^{1/2}, n < N
-	post []complex128 // odd: e^{-iπ n0 (k+1/2)/M}, k < M
-	pool sync.Pool    // *[]float64 of length N/2, or *[]complex128 of length N
+	k    *r2rKernel                 // even N/2: the DCT-IV kernel (N/4-point plan and twiddles)
+	fft  *Plan                      // odd N/2: length N
+	pre  []complex128               // odd: e^{-iπ n/M}^{1/2}, n < N
+	post []complex128               // odd: e^{-iπ n0 (k+1/2)/M}, k < M
+	pool scratchCache[[]complex128] // length N/4 (even N/2) or N
 }
 
 // mdctTwiddles returns the pre and post twiddles of the odd route; the angles
@@ -84,12 +81,12 @@ func NewMDCTPlan(n int) *MDCTPlan {
 	checkMDCT(n)
 	p := &MDCTPlan{n: n}
 	if m := n / 2; m%2 == 0 {
-		p.dct = NewDCTPlan(m, 4)
-		p.pool.New = func() any { s := make([]float64, m); return &s }
+		p.k = newR2RKernel(true, 4, m)
+		p.pool.init(func() *[]complex128 { s := make([]complex128, m/2); return &s })
 	} else {
 		p.fft = NewPlan(n)
 		p.pre, p.post = mdctTwiddles(m)
-		p.pool.New = func() any { s := make([]complex128, n); return &s }
+		p.pool.init(func() *[]complex128 { s := make([]complex128, n); return &s })
 	}
 	return p
 }
@@ -108,8 +105,8 @@ func (p *MDCTPlan) MDCT(dst, src []float64, scale float64) []float64 {
 	if len(dst) < m || len(src) < n {
 		panic("fft: MDCTPlan slice shorter than the plan's length")
 	}
-	if p.dct == nil {
-		sp := p.pool.Get().(*[]complex128)
+	if p.k == nil {
+		sp := p.pool.get()
 		z := *sp
 		for i := 0; i < n; i++ {
 			z[i] = complex(src[i], 0) * p.pre[i]
@@ -119,19 +116,40 @@ func (p *MDCTPlan) MDCT(dst, src []float64, scale float64) []float64 {
 			a, b := p.post[k], z[k]
 			dst[k] = scale * (real(a)*real(b) - imag(a)*imag(b))
 		}
-		p.pool.Put(sp)
+		p.pool.put(sp)
 		return dst[:m]
 	}
-	sp := p.pool.Get().(*[]float64)
-	u := *sp
-	f := scale / 2 // the package's DCT-IV is twice the sum; the scale is applied while folding
-	for i := 0; i < h; i++ {
-		u[i] = (-src[m+h-1-i] - src[m+h+i]) * f
-		u[h+i] = (src[i] - src[m-1-i]) * f
+	sp := p.pool.get()
+	c := (*sp)[:h]
+	k := p.k
+	// The fold (a, b, c, d) → (−c_r − d, a − b_r) of the article is read in place:
+	// the DCT-IV's pre-twiddle pairs the folded values u[2j] and u[m-1-2j]; for
+	// j < j1 = ceil(h/2) the first lies in the first half of u (from c and d) and
+	// the second in the other (from a and b), for j >= j1 the reverse.
+	j1 := (h + 1) / 2
+	src = src[:n]
+	pre := k.pre[:h]
+	for j := 0; j < j1; j++ {
+		ua := -(src[m+h-1-2*j] + src[m+h+2*j])
+		ub := src[h-1-2*j] - src[h+2*j]
+		c[j] = complex(ua, ub) * pre[j]
 	}
-	p.dct.DCT(dst[:m], u, NormBackward)
-	p.pool.Put(sp)
-	return dst[:m]
+	for j := j1; j < h; j++ {
+		ua := src[2*j-h] - src[3*h-1-2*j]
+		ub := -(src[h+2*j] + src[5*h-1-2*j])
+		c[j] = complex(ua, ub) * pre[j]
+	}
+	k.half.FFT(c, c)
+	f := scale / 2 // the package's DCT-IV is twice the sum
+	dst = dst[:m]
+	post := k.post[:h]
+	for i := 0; i < h; i++ {
+		w := post[i] * c[i]
+		dst[2*i] = real(w) * f
+		dst[m-1-2*i] = -imag(w) * f
+	}
+	p.pool.put(sp)
+	return dst
 }
 
 // IMDCT writes scale times the inverse MDCT of the N/2 coefficients of src into
@@ -145,8 +163,8 @@ func (p *MDCTPlan) IMDCT(dst, src []float64, scale float64) []float64 {
 	if len(dst) < n || len(src) < m {
 		panic("fft: MDCTPlan slice shorter than the plan's length")
 	}
-	if p.dct == nil {
-		sp := p.pool.Get().(*[]complex128)
+	if p.k == nil {
+		sp := p.pool.get()
 		z := *sp
 		for k := 0; k < m; k++ {
 			z[k] = complex(src[k], 0) * p.post[k]
@@ -157,32 +175,57 @@ func (p *MDCTPlan) IMDCT(dst, src []float64, scale float64) []float64 {
 			a, b := p.pre[i], z[i]
 			dst[i] = scale * (real(a)*real(b) - imag(a)*imag(b))
 		}
-		p.pool.Put(sp)
+		p.pool.put(sp)
 		return dst[:n]
 	}
-	sp := p.pool.Get().(*[]float64)
-	u := *sp
-	p.dct.DCT(u, src, NormBackward)
-	f := scale / 2
-	for i := 0; i < h; i++ {
-		s, t := u[i]*f, u[h+i]*f
-		dst[i] = t
-		dst[m-1-i] = -t
-		dst[m+h-1-i] = -s
-		dst[m+h+i] = -s
+	sp := p.pool.get()
+	c := (*sp)[:h]
+	k := p.k
+	src = src[:m]
+	pre := k.pre[:h]
+	for j := 0; j < h; j++ {
+		c[j] = complex(src[2*j], src[m-1-2*j]) * pre[j]
 	}
-	p.pool.Put(sp)
-	return dst[:n]
+	k.half.FFT(c, c)
+	// The DCT-IV output u[k] is the unfolded (u, v) → (v, −v_r, −u_r, −u) of the
+	// article, written where it belongs: u[k] with k < h goes to dst[m+h-1-k] and
+	// dst[m+h+k] negated, u[h+j] to dst[j] and, negated, dst[m-1-j]. The outputs
+	// k = 2i and k = m-1-2i of one post-twiddle fall in the first half for
+	// i < j1 and the second half for the other, and the reverse.
+	f := scale / 2
+	dst = dst[:n]
+	post := k.post[:h]
+	j1 := (h + 1) / 2
+	for i := 0; i < j1; i++ {
+		w := post[i] * c[i]
+		s := real(w) * f  // u[2i], 2i < h
+		t := -imag(w) * f // u[m-1-2i], in the second half: index j = h-1-2i
+		dst[m+h-1-2*i] = -s
+		dst[m+h+2*i] = -s
+		dst[h-1-2*i] = t
+		dst[m-h+2*i] = -t
+	}
+	for i := j1; i < h; i++ {
+		w := post[i] * c[i]
+		t := real(w) * f  // u[2i], 2i >= h: j = 2i-h
+		s := -imag(w) * f // u[m-1-2i], m-1-2i < h
+		dst[2*i-h] = t
+		dst[m-1-2*i+h] = -t
+		dst[m+h-1-(m-1-2*i)] = -s
+		dst[m+h+(m-1-2*i)] = -s
+	}
+	p.pool.put(sp)
+	return dst
 }
 
 // MDCTPlan32 is the single-precision counterpart of MDCTPlan.
 type MDCTPlan32 struct {
 	n    int
-	dct  *DCTPlan32
+	k    *f32ndR2RKernel // even N/2: the DCT-IV kernel
 	fft  *Plan32
 	pre  []complex64
 	post []complex64
-	pool sync.Pool // *[]float32 of length N/2, or *[]complex64 of length N
+	pool scratchCache[[]complex64] // length N/4 (even N/2) or N
 }
 
 // NewMDCTPlan32 returns a single-precision plan for blocks of n samples. It
@@ -191,8 +234,8 @@ func NewMDCTPlan32(n int) *MDCTPlan32 {
 	checkMDCT(n)
 	p := &MDCTPlan32{n: n}
 	if m := n / 2; m%2 == 0 {
-		p.dct = NewDCTPlan32(m, 4)
-		p.pool.New = func() any { s := make([]float32, m); return &s }
+		p.k = f32ndNewR2RKernel(true, 4, m)
+		p.pool.init(func() *[]complex64 { s := make([]complex64, m/2); return &s })
 	} else {
 		p.fft = NewPlan32(n)
 		pre, post := mdctTwiddles(m)
@@ -203,7 +246,7 @@ func NewMDCTPlan32(n int) *MDCTPlan32 {
 		for i, v := range post {
 			p.post[i] = complex64(v)
 		}
-		p.pool.New = func() any { s := make([]complex64, n); return &s }
+		p.pool.init(func() *[]complex64 { s := make([]complex64, n); return &s })
 	}
 	return p
 }
@@ -218,8 +261,8 @@ func (p *MDCTPlan32) MDCT(dst, src []float32, scale float32) []float32 {
 	if len(dst) < m || len(src) < n {
 		panic("fft: MDCTPlan32 slice shorter than the plan's length")
 	}
-	if p.dct == nil {
-		sp := p.pool.Get().(*[]complex64)
+	if p.k == nil {
+		sp := p.pool.get()
 		z := *sp
 		for i := 0; i < n; i++ {
 			z[i] = complex(src[i], 0) * p.pre[i]
@@ -229,19 +272,37 @@ func (p *MDCTPlan32) MDCT(dst, src []float32, scale float32) []float32 {
 			a, b := p.post[k], z[k]
 			dst[k] = scale * (real(a)*real(b) - imag(a)*imag(b))
 		}
-		p.pool.Put(sp)
+		p.pool.put(sp)
 		return dst[:m]
 	}
-	sp := p.pool.Get().(*[]float32)
-	u := *sp
-	f := scale / 2
-	for i := 0; i < h; i++ {
-		u[i] = (-src[m+h-1-i] - src[m+h+i]) * f
-		u[h+i] = (src[i] - src[m-1-i]) * f
+	sp := p.pool.get()
+	c := (*sp)[:h]
+	k := p.k
+	// The fold is read in place, as in MDCTPlan.MDCT.
+	j1 := (h + 1) / 2
+	src = src[:n]
+	pre := k.pre[:h]
+	for j := 0; j < j1; j++ {
+		ua := -(src[m+h-1-2*j] + src[m+h+2*j])
+		ub := src[h-1-2*j] - src[h+2*j]
+		c[j] = f32Mul(complex(ua, ub), pre[j])
 	}
-	p.dct.DCT(dst[:m], u, NormBackward)
-	p.pool.Put(sp)
-	return dst[:m]
+	for j := j1; j < h; j++ {
+		ua := src[2*j-h] - src[3*h-1-2*j]
+		ub := -(src[h+2*j] + src[5*h-1-2*j])
+		c[j] = f32Mul(complex(ua, ub), pre[j])
+	}
+	k.half.execute(c, c, false)
+	f := scale / 2
+	dst = dst[:m]
+	post := k.post[:h]
+	for i := 0; i < h; i++ {
+		w := f32Mul(post[i], c[i])
+		dst[2*i] = real(w) * f
+		dst[m-1-2*i] = -imag(w) * f
+	}
+	p.pool.put(sp)
+	return dst
 }
 
 // IMDCT is MDCTPlan.IMDCT on float32 values.
@@ -251,8 +312,8 @@ func (p *MDCTPlan32) IMDCT(dst, src []float32, scale float32) []float32 {
 	if len(dst) < n || len(src) < m {
 		panic("fft: MDCTPlan32 slice shorter than the plan's length")
 	}
-	if p.dct == nil {
-		sp := p.pool.Get().(*[]complex64)
+	if p.k == nil {
+		sp := p.pool.get()
 		z := *sp
 		for k := 0; k < m; k++ {
 			z[k] = complex(src[k], 0) * p.post[k]
@@ -263,22 +324,43 @@ func (p *MDCTPlan32) IMDCT(dst, src []float32, scale float32) []float32 {
 			a, b := p.pre[i], z[i]
 			dst[i] = scale * (real(a)*real(b) - imag(a)*imag(b))
 		}
-		p.pool.Put(sp)
+		p.pool.put(sp)
 		return dst[:n]
 	}
-	sp := p.pool.Get().(*[]float32)
-	u := *sp
-	p.dct.DCT(u, src, NormBackward)
-	f := scale / 2
-	for i := 0; i < h; i++ {
-		s, t := u[i]*f, u[h+i]*f
-		dst[i] = t
-		dst[m-1-i] = -t
-		dst[m+h-1-i] = -s
-		dst[m+h+i] = -s
+	sp := p.pool.get()
+	c := (*sp)[:h]
+	k := p.k
+	src = src[:m]
+	pre := k.pre[:h]
+	for j := 0; j < h; j++ {
+		c[j] = f32Mul(complex(src[2*j], src[m-1-2*j]), pre[j])
 	}
-	p.pool.Put(sp)
-	return dst[:n]
+	k.half.execute(c, c, false)
+	// The unfolding is written from the post-twiddle, as in MDCTPlan.IMDCT.
+	f := scale / 2
+	dst = dst[:n]
+	post := k.post[:h]
+	j1 := (h + 1) / 2
+	for i := 0; i < j1; i++ {
+		w := f32Mul(post[i], c[i])
+		s := real(w) * f
+		t := -imag(w) * f
+		dst[m+h-1-2*i] = -s
+		dst[m+h+2*i] = -s
+		dst[h-1-2*i] = t
+		dst[m-h+2*i] = -t
+	}
+	for i := j1; i < h; i++ {
+		w := f32Mul(post[i], c[i])
+		t := real(w) * f
+		s := -imag(w) * f
+		dst[2*i-h] = t
+		dst[m-1-2*i+h] = -t
+		dst[m+h-1-(m-1-2*i)] = -s
+		dst[m+h+(m-1-2*i)] = -s
+	}
+	p.pool.put(sp)
+	return dst
 }
 
 // SineWindow returns the length-n sine window w[k] = sin(π(k+1/2)/n), which
