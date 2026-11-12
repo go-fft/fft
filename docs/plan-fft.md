@@ -214,9 +214,12 @@ floating-point form the gc compiler gives the oracle differs by arch**:
     assemblable), so a bit-identical vector kernel would have to be encoded by
     hand entirely.
 
-  Per "on n'a pas le droit de se tromper", a 1-ULP-different kernel is a
-  correctness divergence the project rejects; partial-arch SIMD with identical
-  results beats full-arch SIMD with a divergence.
+  The kernels above were built under the rule that a kernel matches the scalar
+  oracle bit for bit. That was a porting step: the contract is the stated error
+  bound against an extended-precision oracle ([#121](https://github.com/go-fft/fft/issues/121),
+  `docs/accuracy.md`), and `Options.Exact` keeps the reference arithmetic for
+  callers who need its bits. A new kernel therefore has to be inside the bound
+  and faster, not identical; the existing ones stay bit-identical.
 
 ### Measured perf (honest delta)
 
