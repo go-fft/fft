@@ -186,8 +186,11 @@ measured and what the check can and cannot see are in
 
 ### Opt-in fused multiply-add: `Options.FMA` (v0.28.0)
 
-By default every amd64 kernel is bit-identical to the package's Go code, so a
-result never depends on which CPU ran it. `Options{FMA: true}` trades that for
+By default every amd64 kernel is bit-identical to the package's Go code for the
+route it runs: the same machine and route give the same bits, and every route
+stays within the stated bound. Different amd64 CPUs can choose different routes
+for some lengths (165 of 417 cases measured at v0.28.16 differ between Zen 3/4/5
+and a Xeon), so the bits are not promised to match across CPUs. `Options{FMA: true}` trades that for
 speed on amd64 CPUs with FMA3: twiddle products and butterfly constants are
 fused, and on Cascade Lake class CPUs (AVX-512) 1,024 and 2,048 points take
 radix-32 passes that only the FMA plans have. Results differ from the default

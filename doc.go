@@ -38,7 +38,8 @@
 //
 // By default every amd64 kernel is bit-identical to the package's Go passes
 // compiled without fused multiply-add, so a result does not depend on which
-// kernel ran. Options{FMA: true} (FFTWith and the other ...With functions,
+// kernel ran on a given route; different amd64 CPUs can choose different
+// routes for some lengths, so the bits are not promised across CPUs. Options{FMA: true} (FFTWith and the other ...With functions,
 // NewPlanWith, NewRealPlanWith, NewPlanNWith, NewRealPlan2With) gives that up
 // for speed on amd64 CPUs with FMA3: every twiddle product between passes,
 // the √2/2 products of the radix-8 butterfly and the internal twiddles of

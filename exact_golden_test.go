@@ -80,11 +80,23 @@ func TestExactGolden(t *testing.T) {
 	if golden == nil {
 		t.Skipf("no golden digests for %s", runtime.GOARCH)
 	}
-	checked := 0
+	dep := readCPUDependent(t)
+	for name := range dep {
+		if _, both := golden[name]; both {
+			t.Errorf("%s is in the golden file and in the CPU-dependent list", name)
+		}
+	}
+	checked, skipped := 0, 0
 	for _, c := range cases {
 		want, ok := golden[c.name]
 		if !ok {
-			continue // no digest: the case varies with the CPU (see above)
+			if !dep[c.name] {
+				t.Errorf("%s: in neither the golden file nor the CPU-dependent list: regenerate from v0.28.16", c.name)
+				continue
+			}
+			skipped++
+			t.Logf("skip %s: its output at v0.28.16 depends on the CPU", c.name)
+			continue
 		}
 		checked++
 		if got := digestAny(c.exact()); got != want {
@@ -94,5 +106,35 @@ func TestExactGolden(t *testing.T) {
 	if checked == 0 {
 		t.Errorf("none of the %d golden digests matched a case: regenerate from v0.28.16", len(golden))
 	}
-	t.Logf("%d of %d cases checked against v0.28.16", checked, len(cases))
+	// The full case set is exactly the golden digests plus the CPU-dependent
+	// names; a shortened one (-race, qemu) is a subset of it.
+	if len(cases) == len(golden)+len(dep) && checked+skipped != len(cases) {
+		t.Errorf("%d checked + %d skipped != %d cases", checked, skipped, len(cases))
+	}
+	if len(cases) > len(golden)+len(dep) {
+		t.Errorf("%d cases but only %d golden and %d CPU-dependent names", len(cases), len(golden), len(dep))
+	}
+	t.Logf("%d of %d cases checked against v0.28.16, %d skipped as CPU-dependent", checked, len(cases), skipped)
+}
+
+// readCPUDependent reads the names of the cases whose v0.28.16 output varied
+// between CPUs of the architecture (testdata/exact_golden_<GOARCH>_cpu_dependent.txt).
+func readCPUDependent(t *testing.T) map[string]bool {
+	t.Helper()
+	m := map[string]bool{}
+	f, err := os.Open(strings.TrimSuffix(goldenPath(), ".txt") + "_cpu_dependent.txt")
+	if err != nil {
+		return m
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		if name, _, ok := strings.Cut(sc.Text(), "\t"); ok {
+			m[name] = true
+		}
+	}
+	if err := sc.Err(); err != nil {
+		t.Fatal(err)
+	}
+	return m
 }
