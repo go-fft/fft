@@ -88,7 +88,11 @@ func checkR2R(cosine bool, typ, n int, norm Norm) {
 	if typ == 1 || typ == 4 {
 		bytes = 32
 	}
-	checkAlloc(r2rName(cosine, typ), n, bytes)
+	// The name is built only for the message: concatenating it on every call
+	// cost 10 ns of a 100 ns transform (go-fft/fft#132).
+	if n > math.MaxInt/bytes {
+		checkAlloc(r2rName(cosine, typ), n, bytes)
+	}
 }
 
 // inverseType is the type whose transform inverts type typ: I and IV are their
@@ -202,7 +206,7 @@ type r2rKernel struct {
 	half      *Plan
 	pre, post []complex128
 
-	pool sync.Pool // *r2rScratch
+	pool scratchCache[r2rScratch]
 }
 
 // r2rScratch is one call's working memory: r and c for the kernel, t for the
@@ -245,9 +249,9 @@ func newR2RKernel(cosine bool, typ, n int) *r2rKernel {
 			nr, nc = 4*n, n+1
 		}
 	}
-	k.pool.New = func() any {
+	k.pool.init(func() *r2rScratch {
 		return &r2rScratch{r: make([]float64, nr), c: make([]complex128, nc), t: make([]float64, n)}
-	}
+	})
 	return k
 }
 
@@ -326,12 +330,14 @@ func (k *r2rKernel) dct4Even(dst, src []float64, s *r2rScratch) {
 	n := k.n
 	h := n / 2
 	c := s.c[:h]
+	src, dst = src[:n], dst[:n] // one bounds check each, then none inside the loops
+	pre, post := k.pre[:h], k.post[:h]
 	for m := 0; m < h; m++ {
-		c[m] = complex(src[2*m], src[n-1-2*m]) * k.pre[m]
+		c[m] = complex(src[2*m], src[n-1-2*m]) * pre[m]
 	}
 	k.half.FFT(c, c)
 	for i := 0; i < h; i++ {
-		z := k.post[i] * c[i]
+		z := post[i] * c[i]
 		dst[2*i] = real(z)
 		dst[n-1-2*i] = -imag(z)
 	}
@@ -393,7 +399,7 @@ func (p *DCTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 	if ortho {
 		a = sqrt2
 	}
-	s := k.pool.Get().(*r2rScratch)
+	s := k.pool.get()
 	switch typ {
 	case 1:
 		k.dct1(dst, src, a, s)
@@ -411,7 +417,7 @@ func (p *DCTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 	default:
 		k.dct4(dst, src, s)
 	}
-	k.pool.Put(s)
+	k.pool.put(s)
 	scaleReal(dst[:n], f)
 	return dst[:n]
 }

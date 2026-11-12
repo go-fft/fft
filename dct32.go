@@ -90,7 +90,7 @@ type f32ndR2RKernel struct {
 	mk        f32ndMakhoul
 	half      *Plan32 // DCT-IV, even n
 	pre, post []complex64
-	pool      sync.Pool // *f32ndR2RScratch
+	pool      scratchCache[f32ndR2RScratch]
 }
 
 type f32ndR2RScratch struct {
@@ -129,9 +129,9 @@ func f32ndNewR2RKernel(cosine bool, typ, n int) *f32ndR2RKernel {
 			nr, nc = 4*n, n+1
 		}
 	}
-	k.pool.New = func() any {
+	k.pool.init(func() *f32ndR2RScratch {
 		return &f32ndR2RScratch{r: make([]float32, nr), c: make([]complex64, nc), t: make([]float32, n)}
-	}
+	})
 	return k
 }
 
@@ -250,7 +250,7 @@ func (p *DCTPlan32) run(dst, src []float32, norm Norm, inverse bool) []float32 {
 	if ortho {
 		a = f32ndSqrt2
 	}
-	s := k.pool.Get().(*f32ndR2RScratch)
+	s := k.pool.get()
 	switch typ {
 	case 1:
 		k.dct1(dst, src, a, s)
@@ -268,7 +268,7 @@ func (p *DCTPlan32) run(dst, src []float32, norm Norm, inverse bool) []float32 {
 	default:
 		k.dct4(dst, src, s)
 	}
-	k.pool.Put(s)
+	k.pool.put(s)
 	scaleReal32(dst[:n], f)
 	return dst[:n]
 }
@@ -321,7 +321,7 @@ func (p *DSTPlan32) run(dst, src []float32, norm Norm, inverse bool) []float32 {
 	}
 	f := norm.scale(logicalSize(false, typ, n), inverse)
 	ortho := norm == NormOrtho
-	s := k.pool.Get().(*f32ndR2RScratch)
+	s := k.pool.get()
 	t := s.t
 	alternate := false
 	switch typ {
@@ -356,7 +356,7 @@ func (p *DSTPlan32) run(dst, src []float32, norm Norm, inverse bool) []float32 {
 		k.dct4(dst, t, s)
 		alternate = true
 	}
-	k.pool.Put(s)
+	k.pool.put(s)
 	scaleReal32(dst[:n], f)
 	if alternate {
 		for i := 1; i < n; i += 2 {

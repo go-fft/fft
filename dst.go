@@ -73,7 +73,7 @@ func (p *DSTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 	}
 	f := norm.scale(logicalSize(false, typ, n), inverse)
 	ortho := norm == NormOrtho
-	s := k.pool.Get().(*r2rScratch)
+	s := k.pool.get()
 	t := s.t
 	alternate := false
 	switch typ {
@@ -107,7 +107,7 @@ func (p *DSTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 		k.dct4(dst, t, s)
 		alternate = true
 	}
-	k.pool.Put(s)
+	k.pool.put(s)
 	if alternate {
 		scaleAlternating(dst[:n], f)
 	} else {
