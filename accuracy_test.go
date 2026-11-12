@@ -41,21 +41,22 @@ const (
 // every function of the family, every length, both seeds, the default and the
 // FMA arithmetic.
 //
-// Worst measured ratios (arm64, Go 1.27, 2026-11-11; default and FMA arithmetic
-// alike, the FMA ones within 0.05 of the default: c2c 0.64 against 0.60) and
-// the constant chosen:
+// Worst measured ratios (arm64, Go 1.27, 2026-11-12; default and FMA arithmetic
+// alike, the FMA ones within 0.05 of the default) and the constant chosen
+// (twice the worst, rounded up to a multiple of 0.25):
 //
 //	family    what                                   worst   c
-//	c2c       FFT, IFFT, Plan, FFTReal                0.64   1.5
-//	r2c       RFFT, IRFFT, HFFT, IHFFT, RealPlan      0.54   1.25
-//	c2cN      FFTN, IFFTN, FFT2, IFFT2, PlanN         0.30   0.75
-//	r2cN      RFFTN, IRFFTN, RFFT2, IRFFT2, RealPlan2 0.28   0.75
-//	r2r       DCT/DST I-IV, inverses, plans, N-D      0.95   2.0
-//	c2c/32    the float32 counterparts                0.34   0.75
-//	r2c/32                                            0.43   1.0
-//	c2cN/32                                           0.15   0.5
-//	r2cN/32                                           0.14   0.5
-//	r2r/32                                            0.86   1.75
+//	c2c       FFT, IFFT, Plan, FFTReal, N/Norm      0.74   1.5
+//	r2c       RFFT, IRFFT, HFFT, IHFFT, RealPlan    0.92   2.0
+//	c2cN      FFTN, IFFTN, FFT2, IFFT2, PlanN       0.30   0.75
+//	r2cN      RFFTN, IRFFTN, RFFT2, IRFFT2, RealPlan2 0.28 0.75
+//	r2r       DCT/DST I-IV, inverses, plans, N-D    0.95   2.0
+//	psd       PSD, Spectrogram                      1.03   2.25
+//	c2c/32    the float32 counterparts              0.42   1.0
+//	r2c/32                                          0.51   1.25
+//	c2cN/32                                         0.15   0.5
+//	r2cN/32                                         0.15   0.5
+//	r2r/32                                          0.86   1.75
 //
 // The worst ratios sit at the shortest lengths (19, 3, 2), where log2(n) is
 // smallest and the error does not shrink with it; the long lengths, Rader and
