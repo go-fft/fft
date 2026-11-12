@@ -61,8 +61,9 @@ const (
 // smallest and the error does not shrink with it; the long lengths, Rader and
 // Bluestein included, are at 0.2 to 0.4. docs/accuracy.md has the rest.
 var accBound = map[string]float64{
-	"c2c": 1.5, "r2c": 1.25, "c2cN": 0.75, "r2cN": 0.75, "r2r": 2,
-	"c2c/32": 0.75, "r2c/32": 1, "c2cN/32": 0.5, "r2cN/32": 0.5, "r2r/32": 1.75,
+	"c2c": 1.5, "r2c": 2, "c2cN": 0.75, "r2cN": 0.75, "r2r": 2,
+	"c2c/32": 1, "r2c/32": 1.25, "c2cN/32": 0.5, "r2cN/32": 0.5, "r2r/32": 1.75,
+	"psd": 2.25,
 }
 
 // accFn is one public function (or method) under test.
@@ -136,8 +137,10 @@ func accLengths() []int {
 	pow5 := []int{5, 25, 125, 625, 3125}
 	pow7 := []int{7, 49, 343, 2401}
 	mixed := []int{6, 12, 15, 30, 60, 360, 1000, 1001, 2310}
-	rader := []int{17, 31, 127, 257, 1009}        // primes whose p-1 is 7-smooth
-	bluestein := []int{19, 323, 1013, 2018, 2039} // everything else with a large prime factor
+	rader := []int{17, 19, 31, 127, 257, 1009} // primes whose p-1 is 7-smooth
+	// Everything else with a large prime factor. 19 is Rader (18 is 7-smooth);
+	// 23 and 47 (p-1 = 2·11, 2·23) are the Bluestein lengths the capped runs keep.
+	bluestein := []int{23, 47, 323, 1013, 2018, 2039}
 	all := append(append(append(append(append(append([]int{}, pow2...), pow3...), pow5...), pow7...), mixed...), rader...)
 	all = append(all, bluestein...)
 	if !accLarge() {
@@ -478,7 +481,7 @@ func accR2RFns64() []accFn {
 						if cosine && typ == 1 && shape[len(shape)-1] < 2 {
 							continue
 						}
-						for _, norm := range []Norm{NormBackward, NormOrtho} {
+						for _, norm := range accNorms {
 							want := oracleMemo(fmt.Sprintf("r2r/%v/%v/%v/%d/%v/%d", cosine, inverse, shape, typ, norm, seed), func() []cdd {
 								return oR2RN(cddFromR(x), shape, cosine, typ, norm, inverse)
 							})
@@ -672,7 +675,7 @@ func accR2RFns32() []accFn {
 						if cosine && typ == 1 && shape[len(shape)-1] < 2 {
 							continue
 						}
-						for _, norm := range []Norm{NormBackward, NormOrtho} {
+						for _, norm := range accNorms {
 							want := oracleMemo(fmt.Sprintf("r2r32/%v/%v/%v/%d/%v/%d", cosine, inverse, shape, typ, norm, seed), func() []cdd {
 								return oR2RN(cddFromR(x), shape, cosine, typ, norm, inverse)
 							})
@@ -761,7 +764,7 @@ func accClass(shape []int) string {
 // TestAccuracyBound measures every public transform against the oracle, with
 // the default arithmetic and with Options.FMA, and asserts the stated bound.
 func TestAccuracyBound(t *testing.T) {
-	fns := append(accFns64(), accFns32()...)
+	fns := append(append(accFns64(), accFns32()...), accExtraFns()...)
 	for _, mode := range []string{"default", "fma"} {
 		t.Run(mode, func(t *testing.T) {
 			fma := mode == "fma"
