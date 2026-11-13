@@ -3,8 +3,8 @@ module github.com/go-fft/fft/bench
 go 1.27.3
 
 require (
-	github.com/go-fft/fft v0.28.15
-	github.com/go-scikit/refbench v0.1.2
+	github.com/go-fft/fft v0.30.2
+	github.com/go-scikit/refbench v0.4.0
 )
 
 require (
