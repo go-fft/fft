@@ -81,7 +81,7 @@ func TestR2RGolden(t *testing.T) {
 		}
 		checked++
 		if got := digestAny(c.run()); got != want {
-			t.Errorf("%s: output differs from the released one", c.name)
+			t.Errorf("%s: output differs from the released one (got %s)", c.name, got)
 		}
 	}
 	if checked == 0 {
