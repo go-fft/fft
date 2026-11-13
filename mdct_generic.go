@@ -1,5 +1,7 @@
 package fft
 
+import "github.com/go-simd/floats"
+
 // floatT is the element type of the data a float64-arithmetic transform reads
 // or writes: float64 for the plain methods, float32 for the Mixed ones, which
 // convert while reading and round once while writing.
@@ -51,11 +53,13 @@ func mdctForward[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 	k.half.FFT(c, c)
 	f := scale / 2 // the package's DCT-IV is twice the sum
 	dst = dst[:m]
-	post := k.post[:h]
-	for i := 0; i < h; i++ {
-		w := post[i] * c[i]
-		dst[2*i] = D(real(w) * f)
-		dst[m-1-2*i] = D(-imag(w) * f)
+	// the post-twiddle and the scatter: dst[2i] = f·Re, dst[m-1-2i] = -f·Im of
+	// post[i]·c[i], a go-simd/floats kernel (rounded once to float32 for D = float32)
+	switch d := any(dst).(type) {
+	case []float64:
+		floats.CMulScatter(d, asFloats(c), k.postF, f)
+	case []float32:
+		floats.CMulScatterTo32(d, asFloats(c), k.postF, f)
 	}
 	p.pool.put(sp)
 	return dst
@@ -87,9 +91,13 @@ func mdctInverse[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 	c := (*sp)[:h]
 	k := p.k
 	src = src[:m]
-	pre := k.pre[:h]
-	for j := 0; j < h; j++ {
-		c[j] = complex(float64(src[2*j]), float64(src[m-1-2*j])) * pre[j]
+	// the pre-twiddle: c[j] = (src[2j], src[m-1-2j])·pre[j], a go-simd/floats
+	// gather kernel (widening src for S = float32)
+	switch s := any(src).(type) {
+	case []float64:
+		floats.CMulGather(asFloats(c), s, k.preF)
+	case []float32:
+		floats.CMulGatherFrom32(asFloats(c), s, k.preF)
 	}
 	k.half.FFT(c, c)
 	// The DCT-IV output u[k] is the unfolded (u, v) → (v, −v_r, −u_r, −u) of the
