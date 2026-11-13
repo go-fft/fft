@@ -7,6 +7,18 @@ import "github.com/go-simd/floats"
 // convert while reading and round once while writing.
 type floatT interface{ ~float32 | ~float64 }
 
+// The MDCT's fold and the IMDCT's unfold run on go-simd/floats kernels for the block
+// lengths N from the Min to the Max (inclusive) and on the fused Go loops
+// otherwise: the kernels cost what the loops do below the window (a pass the more
+// over a short block) and lose above it (the folded block no longer fits the cache
+// with the data). Variables so the tests and the benchmark can force either path.
+// Measured with BenchmarkMDCTFoldPath on an Apple M4 Max; the amd64 AVX2 kernels
+// share the window until a measurement says otherwise.
+var (
+	mdctFoldMin, mdctFoldMax     = 512, 4096
+	mdctUnfoldMin, mdctUnfoldMax = 256, 4096
+)
+
 // mdctForward is MDCTPlan.MDCT and MDCTPlan.MDCTMixed: the arithmetic is float64
 // whatever S and D are, so MDCTMixed's result is float32 of MDCT's on the same
 // values, exactly.
@@ -33,22 +45,37 @@ func mdctForward[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 	sp := p.pool.get()
 	c := (*sp)[:h]
 	k := p.k
-	// The fold (a, b, c, d) → (−c_r − d, a − b_r) of the article is read in place:
-	// the DCT-IV's pre-twiddle pairs the folded values u[2j] and u[m-1-2j]; for
-	// j < j1 = ceil(h/2) the first lies in the first half of u (from c and d) and
-	// the second in the other (from a and b), for j >= j1 the reverse.
-	j1 := (h + 1) / 2
 	src = src[:n]
-	pre := k.pre[:h]
-	for j := 0; j < j1; j++ {
-		ua := -(float64(src[m+h-1-2*j]) + float64(src[m+h+2*j]))
-		ub := float64(src[h-1-2*j]) - float64(src[h+2*j])
-		c[j] = complex(ua, ub) * pre[j]
-	}
-	for j := j1; j < h; j++ {
-		ua := float64(src[2*j-h]) - float64(src[3*h-1-2*j])
-		ub := -(float64(src[h+2*j]) + float64(src[5*h-1-2*j]))
-		c[j] = complex(ua, ub) * pre[j]
+	if n >= mdctFoldMin && n <= mdctFoldMax {
+		// The fold of the article, (a, b, c, d) → (−c_r − d, a − b_r), by the
+		// go-simd/floats kernel into the scratch's second half (widening src for
+		// S = float32), then the pre-twiddle gather kernel.
+		u := asFloats((*sp)[h : 2*h])
+		switch s := any(src).(type) {
+		case []float64:
+			floats.MDCTFold(u, s)
+		case []float32:
+			floats.MDCTFoldFrom32(u, s)
+		}
+		floats.CMulGather(asFloats(c), u, k.preF)
+	} else {
+		// Outside the kernel window the fold is read in place, fused with the twiddle in
+		// one Go loop: the DCT-IV's pre-twiddle pairs the folded values u[2j] and
+		// u[m-1-2j]; for j < j1 = ceil(h/2) the first lies in the first half of u
+		// (from c and d) and the second in the other (from a and b), for j >= j1
+		// the reverse. The kernels cost about the same there.
+		j1 := (h + 1) / 2
+		pre := k.pre[:h]
+		for j := 0; j < j1; j++ {
+			ua := -(float64(src[m+h-1-2*j]) + float64(src[m+h+2*j]))
+			ub := float64(src[h-1-2*j]) - float64(src[h+2*j])
+			c[j] = complex(ua, ub) * pre[j]
+		}
+		for j := j1; j < h; j++ {
+			ua := float64(src[2*j-h]) - float64(src[3*h-1-2*j])
+			ub := -(float64(src[h+2*j]) + float64(src[5*h-1-2*j]))
+			c[j] = complex(ua, ub) * pre[j]
+		}
 	}
 	k.half.FFT(c, c)
 	f := scale / 2 // the package's DCT-IV is twice the sum
@@ -100,13 +127,30 @@ func mdctInverse[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 		floats.CMulGatherFrom32(asFloats(c), s, k.preF)
 	}
 	k.half.FFT(c, c)
-	// The DCT-IV output u[k] is the unfolded (u, v) → (v, −v_r, −u_r, −u) of the
-	// article, written where it belongs: u[k] with k < h goes to dst[m+h-1-k] and
-	// dst[m+h+k] negated, u[h+j] to dst[j] and, negated, dst[m-1-j]. The outputs
-	// k = 2i and k = m-1-2i of one post-twiddle fall in the first half for
-	// i < j1 and the second half for the other, and the reverse.
 	f := scale / 2
 	dst = dst[:n]
+	if n >= mdctUnfoldMin && n <= mdctUnfoldMax {
+		// The post-twiddle scatter kernel writes the DCT-IV output u (scaled by f) into
+		// the scratch's second half and the go-simd/floats unfold kernel arranges it,
+		// (u, v) → (v, −v_r, −u_r, −u) of the article, into dst (rounded to float32
+		// for D = float32).
+		u := asFloats((*sp)[h : 2*h])
+		floats.CMulScatter(u, asFloats(c), k.postF, f)
+		switch d := any(dst).(type) {
+		case []float64:
+			floats.MDCTUnfold(d, u)
+		case []float32:
+			floats.MDCTUnfoldTo32(d, u)
+		}
+		p.pool.put(sp)
+		return dst
+	}
+	// Outside the kernel window the output u[k] is written where it belongs straight from
+	// the post-twiddle, in one Go loop (the kernels cost about the same there):
+	// u[k] with k < h goes to dst[m+h-1-k] and dst[m+h+k] negated, u[h+j] to dst[j]
+	// and, negated, dst[m-1-j]. The outputs k = 2i and k = m-1-2i of one post-twiddle
+	// fall in the first half for i < j1 and the second half for the other, and the
+	// reverse.
 	post := k.post[:h]
 	j1 := (h + 1) / 2
 	for i := 0; i < j1; i++ {

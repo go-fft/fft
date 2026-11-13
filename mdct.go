@@ -82,7 +82,9 @@ func NewMDCTPlan(n int) *MDCTPlan {
 	p := &MDCTPlan{n: n}
 	if m := n / 2; m%2 == 0 {
 		p.k = newR2RKernel(true, 4, m)
-		p.pool.init(func() *[]complex128 { s := make([]complex128, m/2); return &s })
+		// h complex values for the FFT and h more (m float64) for the folded block
+		// or the DCT-IV output of the fold and unfold kernels
+		p.pool.init(func() *[]complex128 { s := make([]complex128, m); return &s })
 	} else {
 		p.fft = NewPlan(n)
 		p.pre, p.post = mdctTwiddles(m)

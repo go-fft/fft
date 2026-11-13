@@ -257,7 +257,8 @@ available whatever the default becomes. It excludes `Options.FMA`: setting both
 panics.
 
 `Exact` does not cover the DCT, DST and MDCT plans, which take no `Options`.
-Their twiddle passes are [go-simd/floats](https://github.com/go-simd/floats)
+Their twiddle passes, and the MDCT's fold and unfold from 256 samples up, are
+[go-simd/floats](https://github.com/go-simd/floats)
 kernels that fuse multiply-adds (NEON on arm64, AVX2+FMA on amd64) and the
 portable loops elsewhere, so their bits differ from v0.30.0's and between a CPU
 with and without FMA; they are held to the accuracy bound and to digests of this
@@ -516,8 +517,9 @@ was tried, kept or dropped, and why) are in
 `benchmarks/run.sh`, which gates on correctness first: every transform must
 match `numpy.fft` within `rtol=1e-9`. gonum lives in the separate `benchmarks/`
 module, so the library's only dependency is
-[go-simd/floats](https://github.com/go-simd/floats) (v0.18.0), which supplies the
-DCT-IV and MDCT twiddle kernels, itself needing `golang.org/x/sys` for CPU detection.
+[go-simd/floats](https://github.com/go-simd/floats) (v0.19.0), which supplies the
+DCT-IV and MDCT twiddle, fold and unfold kernels, itself needing `golang.org/x/sys`
+for CPU detection.
 
 ## Why not cgo / FFTW?
 
