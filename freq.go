@@ -1,5 +1,7 @@
 package fft
 
+import "github.com/go-simd/floats"
+
 // This file provides the bin-frequency helpers and convenience spectral
 // estimators, mirroring numpy.fft.fftfreq / rfftfreq and the textbook
 // periodogram / spectrogram definitions.
@@ -85,15 +87,21 @@ func psdFromSpectrum(out []float64, spec []complex128, n int, d float64) {
 	m := len(spec)
 	// Density scale: 1 / (fs·N) with fs = 1/d, i.e. d / N.
 	scale := d / float64(n)
-	for k := 0; k < m; k++ {
-		re, im := real(spec[k]), imag(spec[k])
-		p := (re*re + im*im) * scale
-		// Double every bin except DC and (for even N) the Nyquist bin, to account
-		// for the folded negative-frequency half.
-		if k != 0 && !(n%2 == 0 && k == m-1) {
-			p *= 2
-		}
-		out[k] = p
+	// |X[k]|²·scale with the go-simd/floats kernel, in up to three runs: DC and (for
+	// even N) the Nyquist bin keep the scale, every bin between is doubled to account
+	// for the folded negative-frequency half. (p·scale)·2 and p·(2·scale) are the same
+	// double: scaling by 2 is exact.
+	f := asFloats(spec)
+	hi := m
+	if n%2 == 0 {
+		hi = m - 1 // the Nyquist bin is the last
+	}
+	floats.SquaredMagnitude(out[:1], f[:2], scale)
+	if hi > 1 {
+		floats.SquaredMagnitude(out[1:hi], f[2:2*hi], 2*scale)
+	}
+	if hi < m && m > 1 {
+		floats.SquaredMagnitude(out[hi:m], f[2*hi:2*m], scale)
 	}
 }
 
@@ -133,17 +141,23 @@ func Spectrogram(x []float64, segment, overlap int, window []float64, d float64)
 	// segment, the spectrum scratch, one backing array cut into frames, and
 	// the frame list. Each frame is what PSD(seg, d) returns, bit for bit.
 	plan := cachedRealPlan(segment)
-	seg := make([]float64, segment)
+	var seg []float64 // the windowed segment, for the plans the window cannot ride on
+	if !plan.windowedPacked() {
+		seg = make([]float64, segment)
+	}
 	spec := make([]complex128, m)
 	backing := make([]float64, count*m)
 	frames := make([][]float64, count)
+	fused := plan.windowedPacked() // a power-of-two half: the window rides on the packing gather
 	for f := range frames {
 		start := f * step
-		for i := 0; i < segment; i++ {
-			seg[i] = x[start+i] * window[i]
-		}
 		out := backing[f*m : (f+1)*m : (f+1)*m]
-		psdFromSpectrum(out, plan.RFFT(spec, seg), segment, d)
+		if fused {
+			psdFromSpectrum(out, plan.rfftWindowed(spec, x[start:start+segment], window), segment, d)
+		} else {
+			floats.Mul(seg, x[start:start+segment], window) // x·w: one multiply per sample, exactly
+			psdFromSpectrum(out, plan.RFFT(spec, seg), segment, d)
+		}
 		frames[f] = out
 	}
 	return frames
