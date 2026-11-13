@@ -22,6 +22,35 @@ import (
 //
 // Package state is every package-level variable the non-test files declare,
 // except the plan caches and their locks, plus the kernels.Use... switches.
+// stateWritten names the package state an assignment target writes, or "": a
+// package variable (a name another file declares, so Obj is nil), an element
+// of one (passWeight[8] = 9.9, splitTable[n] = ...), a field of one, or any
+// kernels.X variable and element of it.
+func stateWritten(e ast.Expr, pkgVars map[string]bool) string {
+	switch e := e.(type) {
+	case *ast.Ident:
+		if e.Obj == nil && pkgVars[e.Name] {
+			return e.Name
+		}
+	case *ast.SelectorExpr:
+		if id, ok := e.X.(*ast.Ident); ok && id.Name == "kernels" {
+			return "kernels." + e.Sel.Name
+		}
+		if inner := stateWritten(e.X, pkgVars); inner != "" {
+			return inner + "." + e.Sel.Name
+		}
+	case *ast.IndexExpr:
+		if inner := stateWritten(e.X, pkgVars); inner != "" {
+			return inner + "[...]"
+		}
+	case *ast.StarExpr:
+		return stateWritten(e.X, pkgVars)
+	case *ast.ParenExpr:
+		return stateWritten(e.X, pkgVars)
+	}
+	return ""
+}
+
 func TestRoutingStateIsolated(t *testing.T) {
 	fset := token.NewFileSet()
 	pkgVars := map[string]bool{}
@@ -70,18 +99,14 @@ func TestRoutingStateIsolated(t *testing.T) {
 			x := &fn{file: f, name: fd.Name.Name, calls: map[string]bool{}}
 			ast.Inspect(fd.Body, func(n ast.Node) bool {
 				switch n := n.(type) {
+				case *ast.IncDecStmt:
+					if name := stateWritten(n.X, pkgVars); name != "" {
+						x.assigns = append(x.assigns, name)
+					}
 				case *ast.AssignStmt:
 					for _, l := range n.Lhs {
-						switch e := l.(type) {
-						case *ast.Ident:
-							// Obj is nil for a name declared in another file: a package variable.
-							if e.Obj == nil && pkgVars[e.Name] {
-								x.assigns = append(x.assigns, e.Name)
-							}
-						case *ast.SelectorExpr:
-							if id, ok := e.X.(*ast.Ident); ok && id.Name == "kernels" && strings.HasPrefix(e.Sel.Name, "Use") {
-								x.assigns = append(x.assigns, "kernels."+e.Sel.Name)
-							}
+						if name := stateWritten(l, pkgVars); name != "" {
+							x.assigns = append(x.assigns, name)
 						}
 					}
 				case *ast.CallExpr:

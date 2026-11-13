@@ -489,6 +489,7 @@ var zmOddSets = flag.String("r36.odd", "1000:rule,5x5x5x8,5x5x4x10;1080:rule,3x3
 // runs (on), all rotated; ratios are against the first factorization with
 // ZmSplitOdd off.
 func TestZmOddAB(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := zmRounds(t)
 	old := *comp2Sets
 	*comp2Sets = *zmOddSets
@@ -632,6 +633,7 @@ func TestZmSweep(t *testing.T) {
 // skFactorizeOrder's for e >= 11, radix-3 and -5 passes interleaved) against
 // the current one (skFactorize, kernels.ZmSplitOdd on), rotated.
 func TestZmCompAll(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := zmRounds(t)
 	defer func(v bool) { kernels.ZmSplitOdd = v }(kernels.ZmSplitOdd)
 	for n := 6; n <= *zmSweepMax; n += 2 {

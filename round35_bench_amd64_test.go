@@ -549,6 +549,7 @@ var csReals = flag.String("cs.reals", "65536,131072,1048576,32768", "TestCsUntan
 // retangle bounded at m = 16384 (main) and unbounded, in one process,
 // rotated.
 func TestCsUntangleMax(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := csRounds(t)
 	defer func(a, b int) { kernels.UntangleWideMax, kernels.RetangleWideMax = a, b }(kernels.UntangleWideMax, kernels.RetangleWideMax)
 	for _, n := range csInts(t, *csReals) {
