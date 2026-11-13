@@ -69,9 +69,13 @@ jobs:
   # to a 600 s timeout on the same code), so it runs as three deterministic shards
   # of the root package's tests (GOFFT_SHARD=i/N, a name hash), each leaving at
   # least 30% of the timeout. A shard sees a third of the tests, so it cannot hold
-  # the 100% gate: the gate runs on the UNSHARDED ubuntu (amd64) and macos (arm64)
-  # lanes, the two that each compile a different cmulSIMD wrapper, and Windows
-  # (amd64, the same wrapper as ubuntu) runs its shards under -race without it.
+  # the 100% gate: the gate runs on the UNSHARDED ubuntu (amd64) and ubuntu-24.04-arm
+  # (arm64) lanes, the two that each compile a different cmulSIMD wrapper, and
+  # Windows (amd64, the same wrapper as ubuntu) and macOS (arm64, the same wrapper
+  # as ubuntu-arm) run their shards under -race without it. macOS was unsharded
+  # with the gate and reached its job limit twice (402 s of the suite alone, then
+  # a cancellation after the FFTReal change); two shards leave it about half of
+  # the time.
   test:
     name: test (${{ matrix.os }}${{ matrix.shard != '' && format(', shard {0}', matrix.shard) || '' }})
     runs-on: ${{ matrix.os }}
@@ -81,8 +85,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest,  shard: '' }
-          - { os: macos-latest,   shard: '' }
+          - { os: ubuntu-latest,    shard: '' }
+          - { os: ubuntu-24.04-arm, shard: '' }
+          - { os: macos-latest,   shard: '0/2' }
+          - { os: macos-latest,   shard: '1/2' }
           - { os: windows-latest, shard: '0/3' }
           - { os: windows-latest, shard: '1/3' }
           - { os: windows-latest, shard: '2/3' }
