@@ -89,6 +89,7 @@ func specs() []spec {
 			mk("Plan.FFTNorm", "Plan.FFTNorm", su, py("lambda x: F.fft(x, norm='ortho')"), tol64, in, func() []complex128 { return p.FFTNorm(dst, x, fft.NormOrtho) }),
 			mk("Plan.IFFTNorm", "Plan.IFFTNorm", su, py("lambda x: F.ifft(x, norm='ortho')"), tol64, in, func() []complex128 { return p.IFFTNorm(dst, x, fft.NormOrtho) }),
 			mk("FFTReal", "FFTReal", list(er), py("lambda x: F.fft(x)"), tol64, inr, func() []complex128 { return fft.FFTReal(xr) }),
+			mk("FFTRealWith", "FFTRealWith", list(er), py("lambda x: F.fft(x, norm='ortho')"), tol64, inr, func() []complex128 { return fft.FFTRealWith(xr, ortho) }),
 			mk("RFFTWith", "RFFTWith", list(er), py("lambda x: F.rfft(x, norm='ortho')"), tol64, inr, func() []complex128 { return fft.RFFTWith(xr, ortho) }),
 			mk("RealPlan.RFFTNorm", "RealPlan.RFFTNorm", list(er), py("lambda x: F.rfft(x, norm='ortho')"), tol64, inr, func() []complex128 { return rp.RFFTNorm(rdst, xr, fft.NormOrtho) }),
 			mk("IRFFTWith", "IRFFTWith", list(eh), py("lambda x: F.irfft(x, norm='ortho')"), tol64, inh, func() []float64 { return fft.IRFFTWith(h, ortho) }),
