@@ -51,6 +51,7 @@ func cmplxAbs(z complex128) float64 { return math.Hypot(real(z), imag(z)) }
 
 // TestRealPlan2ParallelMatchesSerial forces the worker pool on and off.
 func TestRealPlan2ParallelMatchesSerial(t *testing.T) {
+	isolatePlans(t)
 	for _, s := range [][2]int{{256, 256}, {300, 70}, {70, 301}} {
 		p := NewRealPlan2(s[0], s[1])
 		x := realMatrix(s[0], s[1])
@@ -80,6 +81,7 @@ func TestRealPlan2ParallelMatchesSerial(t *testing.T) {
 // TestRealPlan2AllocatesNothing: an even-width plan allocates nothing in
 // steady state, forward or inverse.
 func TestRealPlan2AllocatesNothing(t *testing.T) {
+	isolatePlans(t)
 	if raceEnabled {
 		t.Skip("-race makes sync.Pool drop items on purpose; the arch CI jobs run this without it")
 	}

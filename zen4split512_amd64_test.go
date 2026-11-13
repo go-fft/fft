@@ -63,6 +63,7 @@ func TestZen4RouteRules(t *testing.T) {
 // TestZen4Split512Hooks: a length in zen4Split512 keeps the split modes
 // zen4Modes gives it and is not on the AVX2 route, whatever the CPU runs.
 func TestZen4Split512Hooks(t *testing.T) {
+	isolatePlans(t)
 	defer func(z map[int]bool, m func(r, ido, l1 []int) []uint8, mx int, sk map[int]bool, f int) {
 		zen4Split512, zen4Modes, zen3RouteMax, zen3RouteSkip, hswSplitFloor = z, m, mx, sk, f
 	}(zen4Split512, zen4Modes, zen3RouteMax, zen3RouteSkip, hswSplitFloor)
@@ -86,6 +87,7 @@ func TestZen4Split512Hooks(t *testing.T) {
 // layouts move data, the arithmetic is the same), and its passes do run split
 // at 512 bits.
 func TestZen4Split512Bits(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamAVX2 || !kernels.UseStockhamAVX512 {
 		t.Skip("needs AVX2 and AVX-512")
 	}

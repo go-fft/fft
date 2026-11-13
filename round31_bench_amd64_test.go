@@ -37,6 +37,8 @@ var (
 // columns leave, as inside FFT. With -r31.span > 0 the row sweep covers only
 // that many rows, repeated to n rows' worth, so they run from cache.
 func TestR31Rows2D(t *testing.T) {
+	isolatePlans(t)
+	isolatePlans(t)
 	if *r31Rows == "" {
 		t.Skip("set -r31.rows=rounds,iters,n")
 	}
@@ -107,6 +109,7 @@ var r31Comp = flag.String("r31.comp", "", "TestR31Comp: rounds,ms,min,max (e.g. 
 // split layout on its radix-4/8 runs (s256: the 512-bit layout, which never
 // takes a composite, turned off), in rotated rounds.
 func TestR31Comp(t *testing.T) {
+	isolatePlans(t)
 	if *r31Comp == "" {
 		t.Skip("set -r31.comp=rounds,ms,min,max")
 	}
@@ -188,6 +191,7 @@ var (
 // rotated rounds: the change alone, without the allocation placement that
 // separates two binaries.
 func TestR31Whole(t *testing.T) {
+	isolatePlans(t)
 	if *r31Whole == "" {
 		t.Skip("set -r31.whole=rounds,iters")
 	}
@@ -242,6 +246,7 @@ var (
 // the whole RFFT and IRFFT, with the 512-bit untangle off (Round 30's AVX2
 // kernel, the reference) and on, in rotated rounds in one process.
 func TestR31Untangle(t *testing.T) {
+	isolatePlans(t)
 	if *r31Untangle == "" {
 		t.Skip("set -r31.untangle=rounds,ms")
 	}
@@ -300,6 +305,7 @@ var r31Export = flag.String("r31.export", "", "TestR31Export: directory the inpu
 // the bytes this code received: 2-D 1024² and 512×1024, complex 1000, 1920,
 // 2000, 6000, 10000, and RFFT and IRFFT 1024, 4096, 32768.
 func TestR31Export(t *testing.T) {
+	isolatePlans(t)
 	if *r31Export == "" {
 		t.Skip("set -r31.export=dir")
 	}

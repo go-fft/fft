@@ -13,6 +13,7 @@ var gapSpec = flag.String("r43.gaps", "", `"n1,n2:gap1,gap2,..." whole-transform
 // TestR43Gap times whole complex transforms with the scratch gap set to each
 // listed value, rotated.
 func TestR43Gap(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := smallRounds(t)
 	if *gapSpec == "" {
 		t.Skip("set -r43.gaps")

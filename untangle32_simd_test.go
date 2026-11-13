@@ -40,6 +40,7 @@ func f32rSignals(n int) [][]complex64 {
 }
 
 func TestUntangle32MatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseUntangle32 {
 		t.Skip("no float32 untangle kernel on this CPU")
 	}
@@ -64,6 +65,7 @@ func TestUntangle32MatchesScalar(t *testing.T) {
 }
 
 func TestRetangle32MatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseUntangle32 {
 		t.Skip("no float32 untangle kernel on this CPU")
 	}
@@ -97,6 +99,7 @@ func TestRetangle32MatchesScalar(t *testing.T) {
 // per-bin path) agree bit for bit, and a short spectrum gives what the
 // complete one zero-filled gives.
 func TestRealPlan32KernelsEndToEnd(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseUntangle32 {
 		t.Skip("no float32 untangle kernel on this CPU")
 	}

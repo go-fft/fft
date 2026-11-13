@@ -51,6 +51,7 @@ func TestPlanNAgainstNaive(t *testing.T) {
 // must be identical, including at block edges (a last axis that is not a
 // multiple of the 8-line gather block).
 func TestPlanNParallelMatchesSerial(t *testing.T) {
+	isolatePlans(t)
 	for _, shape := range [][]int{{256, 256}, {300, 70}, {70, 300}, {40, 41, 43}, {512, 37}} {
 		p := NewPlanN(shape...)
 		x := complexGrid(shape)
@@ -68,6 +69,7 @@ func TestPlanNParallelMatchesSerial(t *testing.T) {
 // TestPlanNAllocatesNothing is the point of PlanN: in steady state a serial
 // transform allocates nothing.
 func TestPlanNAllocatesNothing(t *testing.T) {
+	isolatePlans(t)
 	if raceEnabled {
 		t.Skip("-race makes sync.Pool drop items on purpose; the arch CI jobs run this without it")
 	}

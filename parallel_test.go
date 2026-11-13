@@ -23,6 +23,7 @@ func withWorkers(w int, fn func()) {
 // for both the inline (w<=1) and multi-goroutine (w>1) paths, including a worker
 // count exceeding n (clamped) and a chunk boundary that does not divide evenly.
 func TestParChunksCoversRange(t *testing.T) {
+	isolatePlans(t)
 	for _, tc := range []struct{ n, w int }{
 		{0, 1}, {1, 1}, {7, 1}, {7, 3}, {10, 4}, {5, 8}, {16, 2}, {17, 4},
 	} {
@@ -47,6 +48,7 @@ func TestParChunksCoversRange(t *testing.T) {
 // on a 128-thread host a 128×128 transform used to run as 128 goroutines of
 // one 128-point line each, 8.5× slower than FFTW (see BENCHMARKS.md).
 func TestParChunksCapsWorkersByWork(t *testing.T) {
+	isolatePlans(t)
 	for _, tc := range []struct{ n, itemLen, w, wantChunks int }{
 		{128, parMinChunk / 64, 128, 2}, // two chunks of work: two chunks, not 128
 		{100, 1, 8, 1},                  // far below one chunk: inline
@@ -71,6 +73,7 @@ func TestParChunksCapsWorkersByWork(t *testing.T) {
 
 // TestParallelizeLinesThreshold exercises both sides of the work-size gate.
 func TestParallelizeLinesThreshold(t *testing.T) {
+	isolatePlans(t)
 	withWorkers(4, func() {
 		if parallelizeLines(1, 1<<20) {
 			t.Error("single line must never parallelize")
@@ -95,6 +98,7 @@ func TestParallelizeLinesThreshold(t *testing.T) {
 // independent of the host's core count. The grids are sized above parThreshold so
 // the parallel branch is genuinely taken when workers > 1.
 func TestNDParallelMatchesSerial(t *testing.T) {
+	isolatePlans(t)
 	shapes := [][]int{{256, 256}, {128, 200}, {300, 1, 60}}
 	for _, shape := range shapes {
 		x := complexGrid(shape)

@@ -67,6 +67,7 @@ func znRow(t *testing.T, row string) func() {
 // kernels' stack frame (built with them at the kernels package's limits),
 // rotated, in one process.
 func TestZnFrame(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := znRounds(t)
 	defer znSetMax(0, 0)()
 	for _, row := range strings.Split(*znRows, ",") {

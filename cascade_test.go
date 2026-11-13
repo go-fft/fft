@@ -100,6 +100,7 @@ func cascadeSame(a, b complex128, n int) bool {
 // and inverse, out of place, in place and through run, and fails on the first
 // value whose bits differ.
 func checkCascade(t *testing.T, mode string) {
+	isolatePlans(t)
 	t.Helper()
 	for _, c := range []struct {
 		n       int
@@ -161,6 +162,7 @@ func TestCascadeIsBitIdentical(t *testing.T) {
 // TestCascadeThroughThePlan runs a Plan on the blocked schedule, with this
 // machine's radix rule, against the DFT at a few bins and through the inverse.
 func TestCascadeThroughThePlan(t *testing.T) {
+	isolatePlans(t)
 	save := cascadeMin
 	defer func() { cascadeMin = save }()
 	cascadeMin = 1 << 14

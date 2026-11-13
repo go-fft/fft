@@ -14,6 +14,7 @@ func withWideStrips(on bool, shape ...int) *PlanN {
 // lines are at least 256 elements apart, stripWidth(n) on any other; and
 // stripWidth(n) everywhere without it.
 func TestCl3StripWidth(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { cl3WideStrips = v }(cl3WideStrips)
 	for _, c := range []struct {
 		n, st, wide int
@@ -49,6 +50,7 @@ func TestCl3StripWidth(t *testing.T) {
 // axis cl3StripWidth's width and its strip count, and the scratch it
 // allocates holds two strips of it.
 func TestCl3WideStripsPlans(t *testing.T) {
+	isolatePlans(t)
 	if !stripAxes {
 		t.Skip("no batched kernels here")
 	}
@@ -76,6 +78,7 @@ func TestCl3WideStripsPlans(t *testing.T) {
 // strip narrower than the width (300×1000: 1000 = 15·64 + 40), composites,
 // three axes, and the real 2-D transform's columns.
 func TestCl3WideStripsMatch(t *testing.T) {
+	isolatePlans(t)
 	if !stripAxes {
 		t.Skip("no batched kernels here")
 	}

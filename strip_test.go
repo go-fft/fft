@@ -68,6 +68,7 @@ func maxPart(x []complex128) float64 {
 // generic, signed-zero and infinite signals. Each line of a strip gets its own
 // 1-D transform's arithmetic, so nothing may differ.
 func TestStripsMatchLines(t *testing.T) {
+	isolatePlans(t)
 	for _, shape := range stripShapes {
 		lines, strips := withStrips(false, shape...), withStrips(true, shape...)
 		for ax := range shape[:len(shape)-1] {
@@ -110,6 +111,7 @@ func TestStripsMatchLines(t *testing.T) {
 // TestStripsMatchLinesReal does the same through RealPlan2, whose column
 // transform is a PlanN axis.
 func TestStripsMatchLinesReal(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { stripAxes = v }(stripAxes)
 	for _, shape := range [][2]int{{16, 16}, {40, 9}, {6, 3}, {1, 8}} {
 		rows, cols := shape[0], shape[1]
@@ -142,6 +144,7 @@ func TestStripsMatchLinesReal(t *testing.T) {
 // TestStripsAcrossGoroutines runs a shape large enough to fan its strips out
 // (parChunks), and checks it against the line-by-line path.
 func TestStripsAcrossGoroutines(t *testing.T) {
+	isolatePlans(t)
 	defer func(w, m int) { parWorkers, parMinChunk = w, m }(parWorkers, parMinChunk)
 	parWorkers, parMinChunk = 4, 64
 	shape := []int{256, 128}

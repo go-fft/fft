@@ -54,6 +54,7 @@ func TestCompRadix16For(t *testing.T) {
 // TestCompFactorize takes skFactorize through both routes of compRadix16On,
 // without csRadix9For (TestCsRadix9For).
 func TestCompFactorize(t *testing.T) {
+	isolatePlans(t)
 	defer func(v, w, x, y bool) { compRadix16On, comp2On, hswCompOn, csRadix9On = v, w, x, y }(compRadix16On, comp2On, hswCompOn, csRadix9On)
 	compRadix16On, comp2On, hswCompOn, csRadix9On = true, false, false, false
 	for n, want := range map[int][]int{1296: {3, 3, 12, 12}, 2000: {5, 5, 5, 16}, 1000: skFactorizeOrder(1000, compOddFirst)} {
@@ -171,6 +172,7 @@ func TestCompRadix12For(t *testing.T) {
 // TestHswComp2Factors pins Round 29's Haswell composite rule: comp2Factors,
 // with 16 for a 4·4 tail and 8·16 for a 4·4·8 one.
 func TestHswComp2Factors(t *testing.T) {
+	isolatePlans(t)
 	for _, c := range []struct {
 		n    int
 		on   bool
@@ -207,6 +209,7 @@ func TestHswComp2Factors(t *testing.T) {
 // TestHswE11Factors: 6144 and 10240 take p·8·16·16 on Haswell, nothing else
 // does, and skFactorize follows it.
 func TestHswE11Factors(t *testing.T) {
+	isolatePlans(t)
 	for n := 2; n <= 1<<15; n++ {
 		got := hswE11Factors(n, true)
 		var want []int
@@ -253,6 +256,7 @@ func TestHswE11Default(t *testing.T) {
 // with fewer than two; and that compFactorize applies it exactly when
 // csRadix9On is set.
 func TestCsRadix9For(t *testing.T) {
+	isolatePlans(t)
 	for _, c := range []struct {
 		f, want []int
 		on      bool

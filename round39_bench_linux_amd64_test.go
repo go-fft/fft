@@ -208,6 +208,7 @@ func TestCl3Pages(t *testing.T) {
 // TestCl3FrameRowsAB times N-D plans with their last axis on the frame kernels
 // (zmFrameRows, Round 36) and off it, in one process, rotated.
 func TestCl3FrameRowsAB(t *testing.T) {
+	isolatePlans(t)
 	rounds, ms := cl3Rounds(t)
 	defer func(v bool) { zmFrameRows = v }(zmFrameRows)
 	for _, s := range strings.Split(*cl3Shapes, ",") {
@@ -574,6 +575,7 @@ var cl3Export = flag.String("cl3.export", "", "TestCl3Export: directory")
 // RealPlan2's RFFT, as raw little-endian float64, for numpy to check on the
 // same bytes (acc39.py).
 func TestCl3Export(t *testing.T) {
+	isolatePlans(t)
 	if *cl3Export == "" {
 		t.Skip("set -cl3.export=dir")
 	}

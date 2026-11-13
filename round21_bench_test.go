@@ -11,6 +11,7 @@ import (
 // BenchmarkR21Fanout times n×n plans on all cores for several parMinChunk
 // values; "serial" is a floor no plan reaches.
 func BenchmarkR21Fanout(b *testing.B) {
+	isolatePlans(b)
 	defer func(v int) { parMinChunk = v }(parMinChunk)
 	for _, n := range []int{64, 128, 256, 512, 1024} {
 		p := NewPlanN(n, n)
@@ -35,6 +36,7 @@ func BenchmarkR21Fanout(b *testing.B) {
 // the columns gathered and transformed line by line, the columns as strips of
 // batched passes, and the whole transform each way.
 func BenchmarkR21Parts2D(b *testing.B) {
+	isolatePlans(b)
 	defer func(v bool) { stripAxes = v }(stripAxes)
 	for _, n := range []int{64, 128, 256, 512, 1024} {
 		stripAxes = false
@@ -84,6 +86,7 @@ func BenchmarkR21Parts2D(b *testing.B) {
 // and, for reference, RealPlan2 and complex64 PlanN32, which keep
 // parThreshold (both rows of each should agree).
 func BenchmarkR21Threshold(b *testing.B) {
+	isolatePlans(b)
 	defer func(v int) { parThresholdN = v }(parThresholdN)
 	for _, n := range []int{128, 192, 256, 512} {
 		p := NewPlanN(n, n)

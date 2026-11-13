@@ -84,6 +84,7 @@ func BenchmarkR27Parts2D(b *testing.B) {
 // BenchmarkR27ND times complex128 PlanN forward transforms; R27ROT=0 in the
 // environment builds the plans without the rotating passes.
 func BenchmarkR27ND(b *testing.B) {
+	isolatePlans(b)
 	if os.Getenv("R27ROT") == "0" {
 		defer func(v bool) { armrealRotateND = v }(armrealRotateND)
 		armrealRotateND = false

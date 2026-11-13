@@ -36,6 +36,7 @@ func armrealSignals(n int) [][]complex128 {
 }
 
 func TestUntangleMatchesScalarNEON(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseUntangleNEON = v }(kernels.UseUntangleNEON)
 	for _, m := range armrealSizes() {
 		tw := NewRealPlan(2 * m).tw
@@ -56,6 +57,7 @@ func TestUntangleMatchesScalarNEON(t *testing.T) {
 }
 
 func TestRetangleMatchesScalarNEON(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseUntangleNEON = v }(kernels.UseUntangleNEON)
 	for _, m := range armrealSizes() {
 		tw := NewRealPlan(2 * m).tw
@@ -84,6 +86,7 @@ func TestRetangleMatchesScalarNEON(t *testing.T) {
 // and off: RFFT and IRFFT (complete spectrum: kernel; one bin short: the
 // per-bin path) agree, bit for bit outside -race.
 func TestRealPlanUntangleNEONEndToEnd(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseUntangleNEON = v }(kernels.UseUntangleNEON)
 	for _, n := range []int{10, 12, 18, 20, 64, 100, 256, 1000, 1024, 1080, 1920, 4096, 65536} {
 		p := NewRealPlan(n)

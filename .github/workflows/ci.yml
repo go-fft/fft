@@ -181,6 +181,13 @@ jobs:
           go vet ./...
           go build ./...
           go test ./...
+      - name: Shuffled test run (the seed is printed; reproduce with -shuffle=SEED)
+        # Test order must not matter: a test that overrides a routing table and
+        # leaves a plan in a cache fails the golden digests of whichever test
+        # runs next (#139). `go test -shuffle=on` prints "-test.shuffle SEED".
+        run: |
+          echo "::notice::shuffled run; on a failure, reproduce with: go test -count=1 -shuffle=<the seed printed below> ."
+          go test -count=1 -shuffle=on .
 
   # qemu-user execution for the targets without a hosted runner. s390x ships a
   # vector-facility SIMD kernel (regen-checked below, then the qemu run asserts

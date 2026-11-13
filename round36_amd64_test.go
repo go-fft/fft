@@ -11,6 +11,7 @@ import (
 // length, and that the transform those passes run agrees with the
 // factorization it replaces.
 func TestZmPow2Tail(t *testing.T) {
+	isolatePlans(t)
 	for _, c := range []struct {
 		n    int
 		on   bool
@@ -71,6 +72,7 @@ func TestZmPow2Tail(t *testing.T) {
 // comp2On or Intel's rule; it differs from comp2Factors; and each
 // transform agrees with the factorization it replaces.
 func TestZmCompTable(t *testing.T) {
+	isolatePlans(t)
 	defer func(c, h, r, e, n bool) { comp2On, hswCompOn, compRadix16On, hswE11On, csRadix9On = c, h, r, e, n }(comp2On, hswCompOn, compRadix16On, hswE11On, csRadix9On)
 	// Nor the Intel rules: Cascade Lake's radix-9 merge (Round 35) too, or the
 	// test depends on the CPU it runs on (Round 39 found it failing there).

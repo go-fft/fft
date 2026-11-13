@@ -59,6 +59,7 @@ func splitCandidates(e int) [][]int {
 // current factorization interleaved ("cur") and each candidate split ("s-")
 // and, with -split.twins, interleaved ("i-").
 func BenchmarkSplitRules(b *testing.B) {
+	isolatePlans(b)
 	defer splitBench(false)()
 	for e := splitMinE; e <= splitMaxE; e++ {
 		n := 1 << e
@@ -111,6 +112,7 @@ func init() {
 // interleaved, on buffers placed as the transform places them (the scratch
 // off dst's sets).
 func BenchmarkSplitPasses(b *testing.B) {
+	isolatePlans(b)
 	defer splitBench(false)()
 	for _, f := range [][]int{{4, 4, 4, 4}, {4, 8, 8}, {8, 8, 4}, {8, 8, 8}, {4, 4, 4, 4, 4}, {4, 8, 8, 4}, {8, 8, 16}, {4, 4, 8, 8, 8}, {8, 8, 8, 8}, {4, 4, 4, 4, 4, 4, 4, 4}} {
 		n := 1
@@ -177,6 +179,7 @@ var splitABSets = map[int][]string{
 // order rotated every round, and prints each one's median time and its
 // ratio to the first, with the max/min spread of the per-round ratios.
 func TestSplitAB(t *testing.T) {
+	isolatePlans(t)
 	if *splitAB == "" {
 		t.Skip("set -split.ab=rounds,ms")
 	}

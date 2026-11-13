@@ -14,6 +14,7 @@ import (
 // Plan32 uses: the per-pass measurement of Round 22. Names are
 // n/r=R/ido=I/l1=L/{go,simd}.
 func BenchmarkSK32Pass(b *testing.B) {
+	isolatePlans(b)
 	if !kernels.UseStockham32 {
 		b.Skip("no float32 pass kernels on this machine")
 	}

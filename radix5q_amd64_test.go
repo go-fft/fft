@@ -16,6 +16,7 @@ import (
 // tails) with and without four-point groups, and l1 from 1 to 9: the pass
 // first (l1 = 1), between and last (ido = 1).
 func TestComp2EachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, r := range []int{10, 15, 20} {
@@ -63,6 +64,7 @@ func TestComp2EachPassMatchesScalar(t *testing.T) {
 // TestComp2TransformMatchesScalar runs whole transforms with radix-10, -15
 // and -20 passes, kernels on and off, in place and not.
 func TestComp2TransformMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, f := range comp2FactorLists {

@@ -35,6 +35,7 @@ func znAVX2Route() func() {
 // transform, on the pool's buffer, when the kernels cannot run (the AVX2
 // kernels turned off after the plans were built).
 func TestZnFrameFallsBack(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamAVX2 {
 		t.Skip("no AVX2")
 	}
@@ -71,6 +72,7 @@ func TestZnFrameFallsBack(t *testing.T) {
 // radix-9 composites, for the transforms and the real transforms of twice
 // their length, forward and inverse, in place and not.
 func TestCsZnFrameHostRoute(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamAVX2 {
 		t.Skip("no AVX2")
 	}

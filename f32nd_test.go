@@ -128,6 +128,7 @@ func axesPoints(shape, axes []int) int {
 // and Norm), FFTN32/IFFTN32, FFT2_32/IFFT2_32 and PlanN32 to bound32 against
 // the float64 N-D transforms, serially and across goroutines.
 func TestFFTN32AgainstFloat64(t *testing.T) {
+	isolatePlans(t)
 	var w f32ndWorst
 	for _, workers := range []int{1, 4} {
 		withWorkers(workers, func() {
@@ -179,6 +180,7 @@ func TestFFTN32AgainstFloat64(t *testing.T) {
 // TestRFFTN32AgainstFloat64 holds the real N-D pair, the real 2-D functions
 // and RealPlan2_32 to bound32 against their float64 counterparts.
 func TestRFFTN32AgainstFloat64(t *testing.T) {
+	isolatePlans(t)
 	var w f32ndWorst
 	for _, workers := range []int{1, 4} {
 		withWorkers(workers, func() {

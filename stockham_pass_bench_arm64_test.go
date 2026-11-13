@@ -14,6 +14,7 @@ import (
 // per-pass measurement the arm64 routing rule was decided on; names are
 // n/r=R/ido=I/l1=L/{go,neon}.
 func BenchmarkSKPassNEON(b *testing.B) {
+	isolatePlans(b)
 	defer func(v bool) { kernels.UseStockhamNEON = v }(kernels.UseStockhamNEON)
 	for _, n := range []int{64, 256, 1024, 4096, 16384, 65536, 1 << 18, 1 << 20, 512, 2048, 8192, 32768, 1000, 1080, 1296, 1920, 20160} {
 		p := newSKPlan(n)

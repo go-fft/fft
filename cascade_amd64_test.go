@@ -9,6 +9,7 @@ import (
 // TestCascadeKernelModes runs the identity check with each kernel family the
 // machine has forced: AVX-512, AVX2 alone, and the Go passes.
 func TestCascadeKernelModes(t *testing.T) {
+	isolatePlans(t)
 	if testing.Short() {
 		t.Skip("large transforms")
 	}

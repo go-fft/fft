@@ -34,6 +34,7 @@ func TestSplitPow2Factors(t *testing.T) {
 // TestSplitTable checks that skFactorize takes a power of two's split
 // factorization from splitTable, as a copy, before radix16Table.
 func TestSplitTable(t *testing.T) {
+	isolatePlans(t)
 	defer func(m, r map[int][]int) { splitTable, radix16Table = m, r }(splitTable, radix16Table)
 	splitTable = map[int][]int{256: {8, 8, 4}}
 	radix16Table = map[int][]int{256: {16, 16}}
@@ -50,6 +51,7 @@ func TestSplitTable(t *testing.T) {
 // TestIntelStripOrder: a length in intelStripOrder runs its N-D strip axes
 // with skFactorizeOrder's factorization, and the plan stays correct.
 func TestIntelStripOrder(t *testing.T) {
+	isolatePlans(t)
 	defer func(m map[int]bool, s map[int][]int) { intelStripOrder, splitTable = m, s }(intelStripOrder, splitTable)
 	const n = 64
 	splitTable = map[int][]int{n: {2, 4, 8}}
@@ -89,6 +91,7 @@ func TestIntelStripOrder(t *testing.T) {
 // TestHswSplitKept: without a floor every plan keeps its split modes; with
 // Round 29's, only the powers of two from the floor up.
 func TestHswSplitKept(t *testing.T) {
+	isolatePlans(t)
 	defer func(v, m int) { hswSplitFloor, zen3RouteMax = v, m }(hswSplitFloor, zen3RouteMax)
 	hswSplitFloor, zen3RouteMax = 0, 0 // a Zen 4's ceiling has its own test
 	for _, n := range []int{64, 1000, 4096} {
@@ -107,6 +110,7 @@ func TestHswSplitKept(t *testing.T) {
 // TestZen3RouteMax: with a ceiling, the lengths above it keep neither the
 // split modes nor the AVX2 route, the lengths up to it do (Round 49).
 func TestZen3RouteMax(t *testing.T) {
+	isolatePlans(t)
 	defer func(f, m int, s, z map[int]bool) {
 		hswSplitFloor, zen3RouteMax, zen3RouteSkip, zen4Split512 = f, m, s, z
 	}(hswSplitFloor, zen3RouteMax, zen3RouteSkip, zen4Split512)
@@ -134,6 +138,7 @@ func TestZen3RouteMax(t *testing.T) {
 // elements takes clRowOrder's factorization, a smaller one its 1-D plan's;
 // the large plan reuses one cached row plan and stays correct.
 func TestClRowPlan(t *testing.T) {
+	isolatePlans(t)
 	defer func(m map[int][]int) { clRowOrder = m }(clRowOrder)
 	defer func(v int) { clRowMin = v }(clRowMin)
 	clRowMin = 1 << 19

@@ -32,6 +32,7 @@ func zmRowsByRun(p *PlanN, dst, src []complex128, ax int, inverse bool) {
 // (znTwoPassMax > 0) it first asserts that some of these axes take them.
 // zmFrameRows is turned on for it, so an Intel CPU runs the same route.
 func TestZmRowsMatchRun(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { zmFrameRows = v }(zmFrameRows)
 	zmFrameRows = true // the Round 36 route, whatever the vendor
 	// A 1-D shape, or one whose other axes have length 1, runs its last

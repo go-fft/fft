@@ -14,6 +14,7 @@ import (
 // (passScalarFMA with bfly32FMA), in place and not, both directions, on the
 // generic, signed-zero and infinite signals.
 func TestR42R32MatchesReference(t *testing.T) {
+	isolatePlans(t)
 	fmaKernelsHere(t)
 	defer func(a bool) { kernels.UseStockhamAVX2 = a }(kernels.UseStockhamAVX2)
 	for _, l := range r41Layouts() {
@@ -66,6 +67,7 @@ func TestR42R32MatchesReference(t *testing.T) {
 // only some passes runs each pass on the kernel its stage says, bit for bit
 // what the stages' own passes give one after the other, for every mask.
 func TestR42FrameMasks(t *testing.T) {
+	isolatePlans(t)
 	fmaKernelsHere(t)
 	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
 	framed := 0

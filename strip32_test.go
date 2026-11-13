@@ -87,6 +87,7 @@ func f32rMaxPart(x []complex64) float64 {
 // where gc does not fuse (scalarFuses) and held to rounding where it may fuse
 // otherwise than the lines.
 func TestStrips32MatchLines(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseStockhamBatch32 = v }(kernels.UseStockhamBatch32)
 	modes := []bool{false}
 	if kernels.UseStockhamBatch32 {
@@ -145,6 +146,7 @@ func TestStrips32MatchLines(t *testing.T) {
 // TestStrips32MatchLinesReal does the same through RealPlan2_32, whose column
 // transform is a PlanN32 axis.
 func TestStrips32MatchLinesReal(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { stripAxes32 = v }(stripAxes32)
 	exact := !scalarFuses || (runtime.GOARCH == "arm64" && kernels.UseStockhamBatch32 && !raceEnabled)
 	for _, shape := range [][2]int{{16, 16}, {40, 9}, {6, 3}, {1, 8}, {256, 30}} {
@@ -178,6 +180,7 @@ func TestStrips32MatchLinesReal(t *testing.T) {
 // TestStrips32AcrossGoroutines runs a shape large enough to fan its strips
 // out (parChunks), against the line-by-line path.
 func TestStrips32AcrossGoroutines(t *testing.T) {
+	isolatePlans(t)
 	defer func(w, m int) { parWorkers, parMinChunk = w, m }(parWorkers, parMinChunk)
 	parWorkers, parMinChunk = 4, 64
 	shape := []int{256, 128}
@@ -242,6 +245,7 @@ func TestStrips32Fit(t *testing.T) {
 // pass may fuse otherwise than the kernel (which copies the 1-D passes, the
 // strips test holds it to them bit for bit), so there they agree to rounding.
 func TestBatchPass32MatchesGo(t *testing.T) {
+	isolatePlans(t)
 	if !kernels.UseStockhamBatch32 {
 		t.Skip("no float32 batched kernels on this CPU")
 	}

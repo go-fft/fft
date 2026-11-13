@@ -17,6 +17,7 @@ import (
 // many and few blocks, and the lengths whose radix-4 passes the kernels leave
 // to Go (odd ido, odd l1).
 func TestStockhamPassMatchesScalarNEON(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseStockhamNEON = v }(kernels.UseStockhamNEON)
 	factorings := func(n int) [][]int {
 		var fs [][]int
@@ -152,6 +153,7 @@ func neonSameBits(a, b complex128) bool {
 // zero's sign that differs inside one pass is mostly absorbed by later sums,
 // so only a pass-level comparison holds the kernels to it.
 func TestStockhamEachPassMatchesScalarNEON(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseStockhamNEON = v }(kernels.UseStockhamNEON)
 	kernels.UseStockhamNEON = true
 	for _, n := range []int{8, 16, 32, 64, 128, 256, 512, 2048, 4096, 8192, 960, 1000, 1080, 4000, 20160, 15, 45, 75, 120, 135, 375, 1296, 1920, 2000, 6000} {
@@ -211,6 +213,7 @@ func neonMatch(a, b complex128) bool {
 // batch's output for that line. Outputs start as a sentinel, so a kernel that
 // wrote between the rows of the strip fails too.
 func TestStockhamBatchMatchesLinesNEON(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseStockhamBatchNEON = v }(kernels.UseStockhamBatchNEON)
 	kernels.UseStockhamBatchNEON = true
 	sentinel := complex(-7.25, 3.5)
@@ -313,6 +316,7 @@ func fromSplit(y []complex128) []complex128 {
 // the 1-D passes (scalarFuses), so the two agree to rounding, not to the bit,
 // and exactly where a value is not finite.
 func TestStockhamBatchGoPassNEON(t *testing.T) {
+	isolatePlans(t)
 	defer func(v bool) { kernels.UseStockhamBatchNEON = v }(kernels.UseStockhamBatchNEON)
 	for _, r := range []int{2, 3, 4, 5, 8} {
 		for _, f := range [][]int{{r, 3}, {2, r}} {

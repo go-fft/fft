@@ -17,6 +17,7 @@ import (
 // pow2 kernel, whose fused real packing this checks; up to 4096 amd64 routes
 // them to the Stockham engine by default (route_amd64.go).
 func TestRealPlanRFFTMatchesScalarStages(t *testing.T) {
+	isolatePlans(t)
 	withPow2Route(false, func() { realPlanRFFTMatchesScalarStages(t) })
 }
 

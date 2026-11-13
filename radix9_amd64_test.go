@@ -14,6 +14,7 @@ import (
 // pass) to 33, every remainder of ido mod 4 with and without four-point
 // groups, l1 from 1 to 9, on Round 19's signals.
 func TestCs9EachPassMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, l1 := range []int{1, 2, 3, 4, 5, 9} {
@@ -59,6 +60,7 @@ func TestCs9EachPassMatchesScalar(t *testing.T) {
 // TestCs9TransformMatchesScalar runs whole transforms with radix-9 passes,
 // kernels on and off, in place and not.
 func TestCs9TransformMatchesScalar(t *testing.T) {
+	isolatePlans(t)
 	defer func(a, b bool) { kernels.UseStockhamAVX2, kernels.UseStockhamAVX512 = a, b }(kernels.UseStockhamAVX2, kernels.UseStockhamAVX512)
 	modes := radix16Modes(t)
 	for _, f := range cs9FactorLists {
@@ -94,6 +96,7 @@ func TestCs9TransformMatchesScalar(t *testing.T) {
 // the factorization without radix 9 (no batched radix-9 kernel: compTakes16)
 // and its last axis the rule's, and the result is still the DFT.
 func TestCs9Columns(t *testing.T) {
+	isolatePlans(t)
 	defer func(v, w, x, y bool) { compRadix16On, comp2On, hswCompOn, csRadix9On = v, w, x, y }(compRadix16On, comp2On, hswCompOn, csRadix9On)
 	compRadix16On, comp2On, hswCompOn, csRadix9On = true, false, true, true
 	forget := func() { planMu.Lock(); delete(planCache, 18); delete(planNo16Cache, 18); planMu.Unlock() }
