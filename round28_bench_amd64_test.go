@@ -161,6 +161,7 @@ func TestIntelSweep(t *testing.T) {
 }
 
 func intelReport(t *testing.T, n int, names []string, rounds, ms int) {
+	isolatePlans(t)
 	plans := make([]*skPlan, len(names))
 	for v, name := range names {
 		p, err := intelVariant(n, name)
@@ -200,6 +201,7 @@ func intelReport(t *testing.T, n int, names []string, rounds, ms int) {
 // prints each one's median and its ratio to the first (median of per-round
 // ratios), with their spread.
 func TestIntelAB(t *testing.T) {
+	isolatePlans(t)
 	isolatePlans(t)
 	if *intelAB == "" || *intelSet == "" {
 		t.Skip("set -intel.ab=rounds,ms and -intel.set")

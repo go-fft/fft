@@ -43,6 +43,7 @@ func hwShape(t *testing.T, s string) []int {
 // order rotates; the rows meet the cache the other axes leave.
 func TestHwRows(t *testing.T) {
 	isolatePlans(t)
+	isolatePlans(t)
 	if *hwRows == "" {
 		t.Skip("set -hw.rows=rounds,iters")
 	}

@@ -38,6 +38,7 @@ var (
 // that many rows, repeated to n rows' worth, so they run from cache.
 func TestR31Rows2D(t *testing.T) {
 	isolatePlans(t)
+	isolatePlans(t)
 	if *r31Rows == "" {
 		t.Skip("set -r31.rows=rounds,iters,n")
 	}

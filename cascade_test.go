@@ -100,6 +100,7 @@ func cascadeSame(a, b complex128, n int) bool {
 // and inverse, out of place, in place and through run, and fails on the first
 // value whose bits differ.
 func checkCascade(t *testing.T, mode string) {
+	isolatePlans(t)
 	t.Helper()
 	for _, c := range []struct {
 		n       int
