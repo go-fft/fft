@@ -517,8 +517,8 @@ was tried, kept or dropped, and why) are in
 `benchmarks/run.sh`, which gates on correctness first: every transform must
 match `numpy.fft` within `rtol=1e-9`. gonum lives in the separate `benchmarks/`
 module, so the library's only dependency is
-[go-simd/floats](https://github.com/go-simd/floats) (v0.19.0), which supplies the
-DCT-IV and MDCT twiddle, fold and unfold kernels, itself needing `golang.org/x/sys`
+[go-simd/floats](https://github.com/go-simd/floats) (v0.20.0), which supplies the
+DCT-IV and MDCT twiddle, fold and unfold kernels and the PSD power pass, itself needing `golang.org/x/sys`
 for CPU detection.
 
 ## Why not cgo / FFTW?

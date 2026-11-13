@@ -171,6 +171,22 @@ func (p *RealPlan) RFFT(dst []complex128, src []float64) []complex128 {
 	return dst[:m+1]
 }
 
+// windowedPacked reports whether rfftWindowed applies: an even length whose half is
+// a power of two, the plans that pack through the iterative kernel's gather.
+func (p *RealPlan) windowedPacked() bool { return p.n > 1 && p.half != nil && p.half.it != nil }
+
+// rfftWindowed is RFFT of the product src·win (both of length Len()), the window
+// multiplied while the packing gather reads src: no windowed copy. It requires
+// windowedPacked and dst of length Len()/2+1 that does not overlap src.
+func (p *RealPlan) rfftWindowed(dst []complex128, src, win []float64) []complex128 {
+	m := p.n / 2
+	buf, _, Z := p.getScratch()
+	p.half.it.transformRealPackedWindowed(Z, src[:p.n], win[:p.n])
+	rfftUntangle(dst, Z, p.tw, p.ktw, m)
+	p.putScratch(buf)
+	return dst[:m+1]
+}
+
 // realOverlap reports whether the byte ranges [a, a+an) and [b, b+bn)
 // share memory. Pointers become integers only for this comparison, as in
 // offTheSets; they are never turned back into pointers.

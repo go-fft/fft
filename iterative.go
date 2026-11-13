@@ -252,6 +252,20 @@ func (p *itPlan) transformRealPacked(dst []complex128, src []float64) {
 	p.stagesOn(dst, p.nSmall, len(p.stages), false)
 }
 
+// transformRealPackedWindowed is transformRealPacked of the product src·win: the
+// window multiply rides on the gather (one multiply per sample, the same double as
+// a separate product), so a spectrogram frame needs no windowed copy of its segment.
+func (p *itPlan) transformRealPackedWindowed(dst []complex128, src, win []float64) {
+	for lo := 0; lo < p.n; lo += p.blk {
+		blk := dst[lo : lo+p.blk]
+		for i, j := range p.revPos[lo : lo+p.blk] {
+			blk[i] = complex(src[2*j]*win[2*j], src[2*j+1]*win[2*j+1])
+		}
+		p.stagesOn(blk, 0, p.nSmall, false)
+	}
+	p.stagesOn(dst, p.nSmall, len(p.stages), false)
+}
+
 // stagesOn applies DIT stages from..to-1 in place on a, a bit-reversed buffer
 // or one block of one (len(a) a multiple of every one of those stages' group
 // size, so each stage's groups tile it exactly). A stage's twiddles depend only
