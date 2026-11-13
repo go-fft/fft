@@ -66,12 +66,16 @@ func TestSpectrogramAllocs(t *testing.T) {
 		w[i] = 1
 	}
 	Spectrogram(x, 256, 128, w, 1) // warm the plan cache
+	want := 4.0
+	if cachedRealPlan(256).windowedPacked() {
+		want = 3 // the window is fused into the real transform: no windowed segment
+	}
 	got := testing.AllocsPerRun(20, func() { Spectrogram(x, 256, 128, w, 1) })
-	if got != 4 {
-		t.Fatalf("Spectrogram: %v allocations per call, want 4", got)
+	if got != want {
+		t.Fatalf("Spectrogram: %v allocations per call, want %v", got, want)
 	}
 	long := make([]float64, 4*len(x))
-	if g := testing.AllocsPerRun(20, func() { Spectrogram(long, 256, 128, w, 1) }); g != 4 {
-		t.Fatalf("Spectrogram (4x the frames): %v allocations per call, want 4", g)
+	if g := testing.AllocsPerRun(20, func() { Spectrogram(long, 256, 128, w, 1) }); g != want {
+		t.Fatalf("Spectrogram (4x the frames): %v allocations per call, want %v", g, want)
 	}
 }
