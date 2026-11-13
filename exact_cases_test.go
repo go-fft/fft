@@ -56,6 +56,17 @@ func exactCases() []exactCase {
 		add("FFT", func() any { return FFT(x) }, func() any { return FFTWith(x, ex) })
 		add("IFFT", func() any { return IFFT(x) }, func() any { return IFFTWith(x, ex) })
 		add("RFFT", func() any { return RFFT(r) }, func() any { return RFFTWith(r, ex) })
+		// FFTReal of promote-then-FFT: FFTRealWith with Exact at every length; FFTReal
+		// itself only where it is that (an odd or trivial length), since the even
+		// lengths run the real transform by default.
+		add("FFTRealWith", func() any { return fftRealWithRef(r, Options{}) }, func() any { return fftRealWithRef(r, ex) })
+		if n%2 != 0 || n < 2 {
+			add("FFTReal", func() any { return FFTReal(r) }, func() any { return fftRealWithRef(r, ex) })
+		}
+		for _, norm := range []Norm{NormOrtho, NormForward} {
+			pad := Options{N: n + 7, Norm: norm}
+			add("FFTRealWith/pad/"+norm.String(), func() any { return fftRealWithRef(r, pad) }, func() any { return fftRealWithRef(r, exact(pad)) })
+		}
 		add("IRFFT", func() any { return IRFFT(h, n) }, func() any { return IRFFTWith(h, exN) })
 		add("HFFT", func() any { return HFFT(h, n) }, func() any { return HFFTWith(h, exN) })
 		add("IHFFT", func() any { return IHFFT(r) }, func() any { return IHFFTWith(r, ex) })
