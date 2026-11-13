@@ -284,6 +284,12 @@ dp.IDCT(dst, src, fft.NormOrtho)
 mp := fft.NewMDCTPlan(n)
 mp.MDCT(coef, samples, 1)            // len(coef) >= n/2, len(samples) >= n
 mp.IMDCT(out, coef, 4/float64(n))    // len(out) >= n
+
+// float32 data with float64 arithmetic, rounded once on output: no conversion
+// passes, and a float32 rounding of error instead of the float32 plans'
+// log2(n) stages (docs/accuracy.md). Also dp.DCTMixed / IDCTMixed for a DCT-IV plan.
+mp.MDCTMixed(coef32, samples32, 1)
+mp.IMDCTMixed(out32, coef32, 4/float64(n))
 ```
 
 `NormOrtho` applies scipy's default orthogonalisation (`orthogonalize=True`),

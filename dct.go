@@ -327,20 +327,86 @@ func (k *r2rKernel) dct4(dst, src []float64, s *r2rScratch) {
 // with S[k] = Σ_m c[m]·exp(-iφ(k,m)). Since φ = 2πkm/(n/2) + π(4k+1)/(4n) +
 // πm/n, S[k] = exp(-iπ(4k+1)/(4n)) · DFT_{n/2}(c[m]·exp(-iπm/n))[k].
 func (k *r2rKernel) dct4Even(dst, src []float64, s *r2rScratch) {
+	dct4EvenT(k, dst, src, 1, s)
+}
+
+// dct4EvenT is dct4Even with the element types of the data free (float64, or
+// float32 for DCTPlan.DCTMixed, which converts while the pre-twiddle reads and
+// rounds once while the post-twiddle writes) and a factor f multiplying each
+// output in float64 before the rounding. The arithmetic is float64 whatever S
+// and D are.
+func dct4EvenT[S, D floatT](k *r2rKernel, dst []D, src []S, f float64, s *r2rScratch) {
 	n := k.n
 	h := n / 2
 	c := s.c[:h]
 	src, dst = src[:n], dst[:n] // one bounds check each, then none inside the loops
 	pre, post := k.pre[:h], k.post[:h]
 	for m := 0; m < h; m++ {
-		c[m] = complex(src[2*m], src[n-1-2*m]) * pre[m]
+		c[m] = complex(float64(src[2*m]), float64(src[n-1-2*m])) * pre[m]
 	}
 	k.half.FFT(c, c)
+	if f == 1 { // no multiply pass for the common scale
+		for i := 0; i < h; i++ {
+			z := post[i] * c[i]
+			dst[2*i] = D(real(z))
+			dst[n-1-2*i] = D(-imag(z))
+		}
+		return
+	}
 	for i := 0; i < h; i++ {
 		z := post[i] * c[i]
-		dst[2*i] = real(z)
-		dst[n-1-2*i] = -imag(z)
+		dst[2*i] = D(real(z) * f)
+		dst[n-1-2*i] = D(-imag(z) * f)
 	}
+}
+
+// DCTMixed is DCT on float32 data with the arithmetic of the float64 plan, for
+// a DCT-IV plan (Type() == 4): src is converted to float64 while the pre-twiddle
+// reads it, the transform and the normalisation run in float64, and each output
+// is rounded to float32 once, as the post-twiddle writes it, with no pass of its
+// own and no allocation. The result is exactly float32 of what DCT returns for
+// the same values converted to float64, so its relative RMS error against the
+// exact transform is the float64 bound plus one rounding to float32,
+// c·ε64·log2 n + ε32/2 (docs/accuracy.md). DCTPlan32 computes in float32 and is
+// less accurate. dst and src must have at least Len() elements and may overlap.
+// It panics if the plan is not a DCT-IV.
+func (p *DCTPlan) DCTMixed(dst, src []float32, norm Norm) []float32 {
+	return p.runMixed(dst, src, norm, false)
+}
+
+// IDCTMixed is IDCT on float32 data with the arithmetic of the float64 plan; see
+// DCTMixed.
+func (p *DCTPlan) IDCTMixed(dst, src []float32, norm Norm) []float32 {
+	return p.runMixed(dst, src, norm, true)
+}
+
+func (p *DCTPlan) runMixed(dst, src []float32, norm Norm, inverse bool) []float32 {
+	k := p.k
+	n := k.n
+	if p.typ != 4 {
+		panic("fft: DCTPlan.DCTMixed needs a DCT-IV plan")
+	}
+	checkR2R(true, 4, n, norm)
+	if len(dst) < n || len(src) < n {
+		panic("fft: DCTPlan slice shorter than the plan's length")
+	}
+	f := norm.scale(logicalSize(true, 4, n), inverse)
+	s := k.pool.get()
+	if k.half != nil {
+		dct4EvenT(k, dst, src, f, s)
+	} else {
+		// Odd n has no fused path: through the scratch's float64 buffer.
+		t := s.t[:n]
+		for i := range t {
+			t[i] = float64(src[i])
+		}
+		k.dct4(t, t, s)
+		for i := range t {
+			dst[i] = float32(t[i] * f)
+		}
+	}
+	k.pool.put(s)
+	return dst[:n]
 }
 
 // A DCTPlan is a reusable discrete cosine transform of a fixed length and

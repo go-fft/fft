@@ -366,6 +366,9 @@ func FuzzMDCT(f *testing.F) {
 		gI := p.IMDCT(make([]float64, n), c, 1)
 		g32F := p32.MDCT(make([]float32, m), x32, 1)
 		g32I := p32.IMDCT(make([]float32, n), c32, 1)
+		// the mixed methods are float32 of the float64 ones on the rounded inputs
+		sameBits32(t, "MDCTMixed", p.MDCTMixed(make([]float32, m), x32, 1), p.MDCT(make([]float64, m), widenF32(x32), 1))
+		sameBits32(t, "IMDCTMixed", p.IMDCTMixed(make([]float32, n), c32, 1), p.IMDCT(make([]float64, n), widenF32(c32), 1))
 		wF, wI := oMDCT(cddFromR(x), m, false), oMDCT(cddFromR(c), m, true)
 		for i, w := range wF {
 			if math.Abs(gF[i]-w.re.hi) > 1e-13*(sx+1) || math.Abs(float64(g32F[i])-w.re.hi) > 1e-4*(sx+1) {
