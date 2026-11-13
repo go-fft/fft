@@ -75,5 +75,9 @@ the small-size DCT-IV, tracked in [#132](https://github.com/go-fft/fft/issues/13
 - `MDCTPlan.IMDCT`: as `MDCTPlan.MDCT`.
 - `MDCTPlan32.MDCT`: as `MDCTPlan.MDCT`.
 - `MDCTPlan32.IMDCT`: as `MDCTPlan.MDCT`.
+- `MDCTPlan.MDCTMixed`: float32 data with float64 arithmetic; no reference tool (neither SciPy nor FFTW offers it); timed against `MDCTPlan.MDCT` with two manual conversion passes and against `MDCTPlan32.MDCT` by `BenchmarkMixed`.
+- `MDCTPlan.IMDCTMixed`: as `MDCTPlan.MDCTMixed`.
+- `DCTPlan.DCTMixed`: as `MDCTPlan.MDCTMixed`.
+- `DCTPlan.IDCTMixed`: as `MDCTPlan.MDCTMixed`.
 - `SineWindow`: a closed form computed once per block length and kept by the caller, so no timed row; `scipy.signal.windows.cosine` is the same window (`sin(π(n+1/2)/M)`), and is the reference if a row is ever added.
 - `KBDWindow`: computed once per block length and kept by the caller, like `SineWindow`; `scipy.signal.windows.kaiser_bessel_derived` is its counterpart, and the one-time cost is not a row.

@@ -91,6 +91,18 @@ differs by a few tens of percent stays inside.
 | `r2r/32` | the float32 DCT/DST family | 0.86 | 1.75 |
 | `mdct` | MDCTPlan.MDCT/IMDCT, `N` samples to `N/2` coefficients | 0.83 | 1.75 |
 | `mdct/32` | MDCTPlan32.MDCT/IMDCT | 0.30 | 0.75 |
+| `mixed` | MDCTPlan.MDCTMixed/IMDCTMixed, DCTPlan.DCTMixed/IDCTMixed (DCT-IV): float32 in and out, float64 arithmetic | 0.56, 0.84 of the bound | `mdct` or `r2r` c, plus ε32/2 |
+
+The `mixed` methods round once to float32 on output, so the stated bound is the
+float64 one plus that rounding, `err ≤ c64·ε64·log2 n + ε32/2` in relative RMS
+(`ε32/2 = 2^-24`), and the output is exactly the float32 of the float64
+method's output (`TestMixedIsFloat32OfFloat64`). `TestMixedAccuracy` holds the
+MDCT (N from 2 to 4,096) and the DCT-IV (n from 2 to 1,009, all three norms,
+both directions) to it against the double-double oracle: the worst ratios to the
+bound are 0.56 (MDCT) and 0.84 (DCT-IV). On the same inputs the float32 MDCT
+plan's worst error is 1.9e-7, three times the float32 rounding alone (6e-8): it
+accumulates `log2 N` float32 stages, which is what these methods avoid.
+
 
 The `mdct` rows are measured by `TestMDCTAccuracy` against the `O(N·N/2)`
 definition `X[k] = Σ x[n]·cos(2π/N·(n + 1/2 + N/4)(k + 1/2))` in double-double

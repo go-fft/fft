@@ -100,56 +100,7 @@ func (p *MDCTPlan) Len() int { return p.n }
 // read completely before dst is written, so dst may overlap src; src is not
 // modified otherwise.
 func (p *MDCTPlan) MDCT(dst, src []float64, scale float64) []float64 {
-	n := p.n
-	m, h := n/2, n/4
-	if len(dst) < m || len(src) < n {
-		panic("fft: MDCTPlan slice shorter than the plan's length")
-	}
-	if p.k == nil {
-		sp := p.pool.get()
-		z := *sp
-		for i := 0; i < n; i++ {
-			z[i] = complex(src[i], 0) * p.pre[i]
-		}
-		p.fft.FFT(z, z)
-		for k := 0; k < m; k++ {
-			a, b := p.post[k], z[k]
-			dst[k] = scale * (real(a)*real(b) - imag(a)*imag(b))
-		}
-		p.pool.put(sp)
-		return dst[:m]
-	}
-	sp := p.pool.get()
-	c := (*sp)[:h]
-	k := p.k
-	// The fold (a, b, c, d) → (−c_r − d, a − b_r) of the article is read in place:
-	// the DCT-IV's pre-twiddle pairs the folded values u[2j] and u[m-1-2j]; for
-	// j < j1 = ceil(h/2) the first lies in the first half of u (from c and d) and
-	// the second in the other (from a and b), for j >= j1 the reverse.
-	j1 := (h + 1) / 2
-	src = src[:n]
-	pre := k.pre[:h]
-	for j := 0; j < j1; j++ {
-		ua := -(src[m+h-1-2*j] + src[m+h+2*j])
-		ub := src[h-1-2*j] - src[h+2*j]
-		c[j] = complex(ua, ub) * pre[j]
-	}
-	for j := j1; j < h; j++ {
-		ua := src[2*j-h] - src[3*h-1-2*j]
-		ub := -(src[h+2*j] + src[5*h-1-2*j])
-		c[j] = complex(ua, ub) * pre[j]
-	}
-	k.half.FFT(c, c)
-	f := scale / 2 // the package's DCT-IV is twice the sum
-	dst = dst[:m]
-	post := k.post[:h]
-	for i := 0; i < h; i++ {
-		w := post[i] * c[i]
-		dst[2*i] = real(w) * f
-		dst[m-1-2*i] = -imag(w) * f
-	}
-	p.pool.put(sp)
-	return dst
+	return mdctForward(p, dst, src, scale)
 }
 
 // IMDCT writes scale times the inverse MDCT of the N/2 coefficients of src into
@@ -158,64 +109,7 @@ func (p *MDCTPlan) MDCT(dst, src []float64, scale float64) []float64 {
 // of 2/M, M = N/2, is the one that makes the overlap-add of windowed blocks
 // reconstruct the signal when the MDCT scale is 1 (see above).
 func (p *MDCTPlan) IMDCT(dst, src []float64, scale float64) []float64 {
-	n := p.n
-	m, h := n/2, n/4
-	if len(dst) < n || len(src) < m {
-		panic("fft: MDCTPlan slice shorter than the plan's length")
-	}
-	if p.k == nil {
-		sp := p.pool.get()
-		z := *sp
-		for k := 0; k < m; k++ {
-			z[k] = complex(src[k], 0) * p.post[k]
-		}
-		clear(z[m:])
-		p.fft.FFT(z, z)
-		for i := 0; i < n; i++ {
-			a, b := p.pre[i], z[i]
-			dst[i] = scale * (real(a)*real(b) - imag(a)*imag(b))
-		}
-		p.pool.put(sp)
-		return dst[:n]
-	}
-	sp := p.pool.get()
-	c := (*sp)[:h]
-	k := p.k
-	src = src[:m]
-	pre := k.pre[:h]
-	for j := 0; j < h; j++ {
-		c[j] = complex(src[2*j], src[m-1-2*j]) * pre[j]
-	}
-	k.half.FFT(c, c)
-	// The DCT-IV output u[k] is the unfolded (u, v) → (v, −v_r, −u_r, −u) of the
-	// article, written where it belongs: u[k] with k < h goes to dst[m+h-1-k] and
-	// dst[m+h+k] negated, u[h+j] to dst[j] and, negated, dst[m-1-j]. The outputs
-	// k = 2i and k = m-1-2i of one post-twiddle fall in the first half for
-	// i < j1 and the second half for the other, and the reverse.
-	f := scale / 2
-	dst = dst[:n]
-	post := k.post[:h]
-	j1 := (h + 1) / 2
-	for i := 0; i < j1; i++ {
-		w := post[i] * c[i]
-		s := real(w) * f  // u[2i], 2i < h
-		t := -imag(w) * f // u[m-1-2i], in the second half: index j = h-1-2i
-		dst[m+h-1-2*i] = -s
-		dst[m+h+2*i] = -s
-		dst[h-1-2*i] = t
-		dst[m-h+2*i] = -t
-	}
-	for i := j1; i < h; i++ {
-		w := post[i] * c[i]
-		t := real(w) * f  // u[2i], 2i >= h: j = 2i-h
-		s := -imag(w) * f // u[m-1-2i], m-1-2i < h
-		dst[2*i-h] = t
-		dst[m-1-2*i+h] = -t
-		dst[m+h-1-(m-1-2*i)] = -s
-		dst[m+h+(m-1-2*i)] = -s
-	}
-	p.pool.put(sp)
-	return dst
+	return mdctInverse(p, dst, src, scale)
 }
 
 // MDCTPlan32 is the single-precision counterpart of MDCTPlan.
