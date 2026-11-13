@@ -1,32 +1,44 @@
 DCT/typ=1/backward/n=100	2 digests
 DCT/typ=1/backward/n=1000	2 digests
 DCT/typ=1/backward/n=1009	2 digests
+DCT/typ=1/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=1/backward/n=4096	2 digests
 DCT/typ=1/forward/n=100	2 digests
 DCT/typ=1/forward/n=1000	2 digests
 DCT/typ=1/forward/n=1009	2 digests
+DCT/typ=1/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=1/forward/n=4096	2 digests
 DCT/typ=1/ortho/n=100	2 digests
 DCT/typ=1/ortho/n=1000	2 digests
 DCT/typ=1/ortho/n=1009	2 digests
+DCT/typ=1/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=1/ortho/n=4096	2 digests
 DCT/typ=2/backward/n=1009	2 digests
+DCT/typ=2/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=2/backward/n=4096	2 digests
 DCT/typ=2/forward/n=1009	2 digests
+DCT/typ=2/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=2/forward/n=4096	2 digests
 DCT/typ=2/ortho/n=1009	2 digests
+DCT/typ=2/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=2/ortho/n=4096	2 digests
 DCT/typ=3/backward/n=1009	2 digests
+DCT/typ=3/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=3/backward/n=4096	2 digests
 DCT/typ=3/forward/n=1009	2 digests
+DCT/typ=3/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=3/forward/n=4096	2 digests
 DCT/typ=3/ortho/n=1009	2 digests
+DCT/typ=3/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=3/ortho/n=4096	2 digests
 DCT/typ=4/backward/n=1009	2 digests
+DCT/typ=4/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=4/backward/n=4096	2 digests
 DCT/typ=4/forward/n=1009	2 digests
+DCT/typ=4/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=4/forward/n=4096	2 digests
 DCT/typ=4/ortho/n=1009	2 digests
+DCT/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=4/ortho/n=4096	2 digests
 DCTN/typ=1/backward/shape=[64 64]	2 digests
 DCTN/typ=1/ortho/shape=[64 64]	2 digests
@@ -39,32 +51,44 @@ DCTN/typ=4/ortho/shape=[8 9]	2 digests
 DCTPlan/typ=1/backward/n=100	2 digests
 DCTPlan/typ=1/backward/n=1000	2 digests
 DCTPlan/typ=1/backward/n=1009	2 digests
+DCTPlan/typ=1/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=1/backward/n=4096	2 digests
 DCTPlan/typ=1/forward/n=100	2 digests
 DCTPlan/typ=1/forward/n=1000	2 digests
 DCTPlan/typ=1/forward/n=1009	2 digests
+DCTPlan/typ=1/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=1/forward/n=4096	2 digests
 DCTPlan/typ=1/ortho/n=100	2 digests
 DCTPlan/typ=1/ortho/n=1000	2 digests
 DCTPlan/typ=1/ortho/n=1009	2 digests
+DCTPlan/typ=1/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=1/ortho/n=4096	2 digests
 DCTPlan/typ=2/backward/n=1009	2 digests
+DCTPlan/typ=2/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=2/backward/n=4096	2 digests
 DCTPlan/typ=2/forward/n=1009	2 digests
+DCTPlan/typ=2/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=2/forward/n=4096	2 digests
 DCTPlan/typ=2/ortho/n=1009	2 digests
+DCTPlan/typ=2/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=2/ortho/n=4096	2 digests
 DCTPlan/typ=3/backward/n=1009	2 digests
+DCTPlan/typ=3/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=3/backward/n=4096	2 digests
 DCTPlan/typ=3/forward/n=1009	2 digests
+DCTPlan/typ=3/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=3/forward/n=4096	2 digests
 DCTPlan/typ=3/ortho/n=1009	2 digests
+DCTPlan/typ=3/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=3/ortho/n=4096	2 digests
 DCTPlan/typ=4/backward/n=1009	2 digests
+DCTPlan/typ=4/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=4/backward/n=4096	2 digests
 DCTPlan/typ=4/forward/n=1009	2 digests
+DCTPlan/typ=4/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=4/forward/n=4096	2 digests
 DCTPlan/typ=4/ortho/n=1009	2 digests
+DCTPlan/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCTPlan/typ=4/ortho/n=4096	2 digests
 DST/typ=1/backward/n=1009	2 digests
 DST/typ=1/backward/n=17	2 digests
@@ -82,22 +106,31 @@ DST/typ=1/ortho/n=257	2 digests
 DST/typ=1/ortho/n=4096	2 digests
 DST/typ=1/ortho/n=8	2 digests
 DST/typ=2/backward/n=1009	2 digests
+DST/typ=2/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=2/backward/n=4096	2 digests
 DST/typ=2/forward/n=1009	2 digests
+DST/typ=2/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=2/forward/n=4096	2 digests
 DST/typ=2/ortho/n=1009	2 digests
+DST/typ=2/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=2/ortho/n=4096	2 digests
 DST/typ=3/backward/n=1009	2 digests
+DST/typ=3/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=3/backward/n=4096	2 digests
 DST/typ=3/forward/n=1009	2 digests
+DST/typ=3/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=3/forward/n=4096	2 digests
 DST/typ=3/ortho/n=1009	2 digests
+DST/typ=3/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=3/ortho/n=4096	2 digests
 DST/typ=4/backward/n=1009	2 digests
+DST/typ=4/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=4/backward/n=4096	2 digests
 DST/typ=4/forward/n=1009	2 digests
+DST/typ=4/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=4/forward/n=4096	2 digests
 DST/typ=4/ortho/n=1009	2 digests
+DST/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DST/typ=4/ortho/n=4096	2 digests
 DSTN/typ=1/backward/shape=[16 17]	2 digests
 DSTN/typ=1/backward/shape=[8 9]	2 digests
@@ -125,52 +158,73 @@ DSTPlan.IDST/typ=1/ortho/n=257	2 digests
 DSTPlan.IDST/typ=1/ortho/n=4096	2 digests
 DSTPlan.IDST/typ=1/ortho/n=8	2 digests
 DSTPlan.IDST/typ=2/backward/n=1009	2 digests
+DSTPlan.IDST/typ=2/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=2/backward/n=4096	2 digests
 DSTPlan.IDST/typ=2/forward/n=1009	2 digests
+DSTPlan.IDST/typ=2/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=2/forward/n=4096	2 digests
 DSTPlan.IDST/typ=2/ortho/n=1009	2 digests
+DSTPlan.IDST/typ=2/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=2/ortho/n=4096	2 digests
 DSTPlan.IDST/typ=3/backward/n=1009	2 digests
+DSTPlan.IDST/typ=3/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=3/backward/n=4096	2 digests
 DSTPlan.IDST/typ=3/forward/n=1009	2 digests
+DSTPlan.IDST/typ=3/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=3/forward/n=4096	2 digests
 DSTPlan.IDST/typ=3/ortho/n=1009	2 digests
+DSTPlan.IDST/typ=3/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=3/ortho/n=4096	2 digests
 DSTPlan.IDST/typ=4/backward/n=1009	2 digests
+DSTPlan.IDST/typ=4/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=4/backward/n=4096	2 digests
 DSTPlan.IDST/typ=4/forward/n=1009	2 digests
+DSTPlan.IDST/typ=4/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=4/forward/n=4096	2 digests
 DSTPlan.IDST/typ=4/ortho/n=1009	2 digests
+DSTPlan.IDST/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DSTPlan.IDST/typ=4/ortho/n=4096	2 digests
 IDCT/typ=1/backward/n=100	2 digests
 IDCT/typ=1/backward/n=1000	2 digests
 IDCT/typ=1/backward/n=1009	2 digests
+IDCT/typ=1/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=1/backward/n=4096	2 digests
 IDCT/typ=1/forward/n=100	2 digests
 IDCT/typ=1/forward/n=1000	2 digests
 IDCT/typ=1/forward/n=1009	2 digests
+IDCT/typ=1/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=1/forward/n=4096	2 digests
 IDCT/typ=1/ortho/n=100	2 digests
 IDCT/typ=1/ortho/n=1000	2 digests
 IDCT/typ=1/ortho/n=1009	2 digests
+IDCT/typ=1/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=1/ortho/n=4096	2 digests
 IDCT/typ=2/backward/n=1009	2 digests
+IDCT/typ=2/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=2/backward/n=4096	2 digests
 IDCT/typ=2/forward/n=1009	2 digests
+IDCT/typ=2/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=2/forward/n=4096	2 digests
 IDCT/typ=2/ortho/n=1009	2 digests
+IDCT/typ=2/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=2/ortho/n=4096	2 digests
 IDCT/typ=3/backward/n=1009	2 digests
+IDCT/typ=3/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=3/backward/n=4096	2 digests
 IDCT/typ=3/forward/n=1009	2 digests
+IDCT/typ=3/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=3/forward/n=4096	2 digests
 IDCT/typ=3/ortho/n=1009	2 digests
+IDCT/typ=3/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=3/ortho/n=4096	2 digests
 IDCT/typ=4/backward/n=1009	2 digests
+IDCT/typ=4/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=4/backward/n=4096	2 digests
 IDCT/typ=4/forward/n=1009	2 digests
+IDCT/typ=4/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=4/forward/n=4096	2 digests
 IDCT/typ=4/ortho/n=1009	2 digests
+IDCT/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=4/ortho/n=4096	2 digests
 IDCTN/typ=1/backward/shape=[64 64]	2 digests
 IDCTN/typ=1/ortho/shape=[64 64]	2 digests
@@ -196,22 +250,31 @@ IDST/typ=1/ortho/n=257	2 digests
 IDST/typ=1/ortho/n=4096	2 digests
 IDST/typ=1/ortho/n=8	2 digests
 IDST/typ=2/backward/n=1009	2 digests
+IDST/typ=2/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=2/backward/n=4096	2 digests
 IDST/typ=2/forward/n=1009	2 digests
+IDST/typ=2/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=2/forward/n=4096	2 digests
 IDST/typ=2/ortho/n=1009	2 digests
+IDST/typ=2/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=2/ortho/n=4096	2 digests
 IDST/typ=3/backward/n=1009	2 digests
+IDST/typ=3/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=3/backward/n=4096	2 digests
 IDST/typ=3/forward/n=1009	2 digests
+IDST/typ=3/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=3/forward/n=4096	2 digests
 IDST/typ=3/ortho/n=1009	2 digests
+IDST/typ=3/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=3/ortho/n=4096	2 digests
 IDST/typ=4/backward/n=1009	2 digests
+IDST/typ=4/backward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=4/backward/n=4096	2 digests
 IDST/typ=4/forward/n=1009	2 digests
+IDST/typ=4/forward/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=4/forward/n=4096	2 digests
 IDST/typ=4/ortho/n=1009	2 digests
+IDST/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDST/typ=4/ortho/n=4096	2 digests
 IDSTN/typ=1/backward/shape=[16 17]	2 digests
 IDSTN/typ=1/backward/shape=[8 9]	2 digests
@@ -223,7 +286,11 @@ IDSTN/typ=3/backward/shape=[8 9]	2 digests
 IDSTN/typ=3/ortho/shape=[8 9]	2 digests
 IDSTN/typ=4/backward/shape=[8 9]	2 digests
 IDSTN/typ=4/ortho/shape=[8 9]	2 digests
+IMDCT/scale=0.5/n=2048	3 digests (qemu, CI runner, Rosetta)
 IMDCT/scale=0.5/n=30	2 digests
+IMDCT/scale=1/n=2048	3 digests (qemu, CI runner, Rosetta)
 IMDCT/scale=1/n=30	2 digests
+MDCT/scale=0.5/n=2048	3 digests (qemu, CI runner, Rosetta)
 MDCT/scale=0.5/n=30	2 digests
+MDCT/scale=1/n=2048	3 digests (qemu, CI runner, Rosetta)
 MDCT/scale=1/n=30	2 digests
