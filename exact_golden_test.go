@@ -24,12 +24,13 @@ import (
 // v0.28.16's default is NOT the same on every amd64 CPU. The amd64 digests
 // were generated on 12 GitHub runners (AMD EPYC 7763 / Zen 3, 9V74 / Zen 4,
 // 9V45 / Zen 5, Intel Xeon Platinum 8573C) and kept only where all twelve
-// agree: 252 of 417 cases. The other 165 (FFT at 1000, 1009, 2018, 4096,
+// agree: 269 of 458 cases (the 41 FFTReal and FFTRealWith cases were added later,
+// from the same v0.28.16 tree and the same twelve runners). The other 189 (FFT at 1000, 1009, 2018, 4096,
 // 4099, 16384 points, most N-D shapes, padded and truncated lengths, ...) gave
 // two or three different outputs depending on the CPU, which contradicts "a
 // result never depends on which CPU ran it"; they are listed in
 // testdata/exact_golden_amd64_cpu_dependent.txt and filed on #121. The arm64
-// file has all 417 (one NEON route). An architecture
+// file has all 458 (one NEON route). An architecture
 // without a file (s390x, ppc64le, riscv64, loong64, 386) is skipped.
 
 var goldenWrite = flag.Bool("golden.write", false, "write testdata/exact_golden_<GOARCH>.txt from the default calls (run against v0.28.16)")

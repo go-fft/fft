@@ -9,6 +9,11 @@ import (
 // of this file that runs against v0.28.16 returns o, which has no such field.)
 func exact(o Options) Options { o.Exact = true; return o }
 
+// fftRealWithRef is FFTRealWith with the reference arithmetic. (The copy of this
+// file that runs against v0.28.16, which has no FFTRealWith, returns FFTWith of
+// the promoted signal, which is what FFTReal and the padded forms were.)
+func fftRealWithRef(x []float64, o Options) []complex128 { return FFTRealWith(x, exact(o)) }
+
 // exactOpts is Options{Exact: true}. The tests that hold a transform to the Go
 // reference bit for bit build their plans with it, so that they keep guarding
 // that arithmetic when the default stops being it (#121).
