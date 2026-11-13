@@ -40,18 +40,49 @@ func IFFT(x []complex128) []complex128 {
 }
 
 // FFTReal returns the forward discrete Fourier transform of a real-valued
-// signal as the full complex spectrum (length len(x)). It is a convenience
-// wrapper that promotes x to complex128 and calls FFT: the result is bit for
-// bit FFT of the promoted signal (it is not RFFT plus a conjugate mirror,
-// which rounds differently), computed in place in the one slice it returns.
+// signal as the full complex spectrum (length len(x)). For an even length it
+// runs the real transform (RealPlan.RFFT, a half-length complex FFT) into the
+// lower half of the result and fills the upper half with the conjugate mirror
+// X[N-k] = conj(X[k]), so the result is exactly Hermitian and about twice as
+// fast as transforming the promoted signal; its error is the real transform's
+// (see docs/accuracy.md), and the bits differ from FFT of the promoted signal
+// in the last place. An odd length cannot be packed and runs the complex FFT of
+// the promoted signal in place, as before. FFTRealWith with Options.Exact
+// always promotes and transforms, bit for bit FFT of the promoted signal.
 func FFTReal(x []float64) []complex128 {
-	n := len(x)
+	return fftReal(x, len(x), false, false)
+}
+
+// fftReal is the full spectrum of x truncated or zero-padded to n points:
+// promote-then-FFT when exact or n is odd, the real transform plus the
+// conjugate mirror otherwise.
+func fftReal(x []float64, n int, exact, fma bool) []complex128 {
 	out := make([]complex128, n)
-	for i, v := range x {
-		out[i] = complex(v, 0)
+	if n <= 1 || exact || n%2 != 0 {
+		for i, v := range x[:min(len(x), n)] {
+			out[i] = complex(v, 0)
+		}
+		if n > 1 {
+			cachedPlanF(n, fma).FFT(out, out)
+		}
+		return out
 	}
-	if n > 1 {
-		cachedPlan(n).FFT(out, out)
+	in := x
+	if len(x) != n {
+		in = make([]float64, n)
+		copy(in, x)
+	}
+	m := n / 2
+	cachedRealPlanF(n, fma).RFFT(out[:m+1], in)
+	// The conjugate mirror: out[n-k] = conj(out[k]) for k = 1 .. m-1, written as a
+	// walk over two equal-length slices so the loop carries no bounds check.
+	lo := out[1:m]
+	hi := out[m+1 : n]
+	hi = hi[:len(lo)]
+	j := len(hi) - 1
+	for _, v := range lo {
+		hi[j] = complexConj(v)
+		j--
 	}
 	return out
 }

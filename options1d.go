@@ -42,6 +42,23 @@ func complexWith(name string, x []complex128, o Options, inverse bool) []complex
 	return out
 }
 
+// FFTRealWith is FFTReal with numpy.fft.fft's n and norm arguments applied to a
+// real signal: x is truncated or zero-padded to o.N points (len(x) when o.N is
+// zero) and the full spectrum is scaled as o.Norm says. FFTRealWith(x,
+// Options{}) equals FFTReal(x). o.FMA runs the real transform on FMA plans.
+// o.Exact asks for the reference arithmetic: the signal is promoted to complex
+// and transformed by the complex FFT, bit for bit FFT of the promoted signal,
+// where the default runs the real transform and mirrors it (see FFTReal). The
+// input is not modified. o.Axes must be nil.
+func FFTRealWith(x []float64, o Options) []complex128 {
+	n := o.check1D("FFTRealWith", len(x))
+	f := o.Norm.scale(n, false)
+	checkAlloc("FFTRealWith", n, 16)
+	out := fftReal(x, n, o.Exact, o.fma())
+	scaleComplex(out, f)
+	return out
+}
+
 // RFFTWith is RFFT with numpy.fft.rfft's n and norm arguments: the real input
 // is truncated or zero-padded to o.N points (len(x) when o.N is zero), the
 // result holds o.N/2+1 bins, and the transform is scaled as o.Norm says.

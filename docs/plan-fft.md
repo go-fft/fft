@@ -34,7 +34,10 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
     power-of-two convolution.
   - Unnormalized forward convention; IFFT divides by `N` so
     `IFFT(FFT(x)) ≈ x`.
-- `FFTReal(x []float64) []complex128` — full complex spectrum.
+- `FFTReal(x []float64) []complex128` — full complex spectrum. At an even length
+  it is `RealPlan.RFFT` into the lower half plus the conjugate mirror; at an odd
+  length, and under `FFTRealWith(x, Options{Exact: true})`, it promotes to complex
+  and runs the complex FFT.
 - Edge cases: empty input, length 1; inputs are never mutated.
 - Butterfly/bit-reversal loops isolated in `internal/kernels` so SIMD variants
   can drop in behind the same signatures.
