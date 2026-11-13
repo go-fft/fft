@@ -259,7 +259,13 @@ func accFns64() []accFn {
 		want := oracleMemo(fmt.Sprintf("fftreal/%d/%d", n, seed), func() []cdd { return ddDFT(cddFromR(x), false) })
 		return errC(FFTReal(x), want)
 	}}
-	cfns = append(cfns, fftReal)
+	fftRealWith := accFn{family: "c2c", name: "FFTRealWith", hasFMA: true, shapes: accLines(accLengths()), run: func(shape []int, seed uint64, fma bool) float64 {
+		n := shape[0]
+		x := accRealF64(n, seed)
+		want := oracleMemo(fmt.Sprintf("fftreal/%d/%d", n, seed), func() []cdd { return ddDFT(cddFromR(x), false) })
+		return errC(FFTRealWith(x, Options{FMA: fma}), want)
+	}}
+	cfns = append(cfns, fftReal, fftRealWith)
 
 	// Real 1-D.
 	realFwd := func(name string, f func(x []float64, fma bool) []complex128) accFn {

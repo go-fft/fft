@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"math/cmplx"
 	"sync"
 	"testing"
 )
@@ -35,8 +36,11 @@ func firstBitDiff(a, b []complex128) int {
 	return len(a)
 }
 
-// FFTReal is documented as promote-then-FFT; it stays bit-identical to that
-// on every engine (iterative pow2, Stockham, Rader, Bluestein, trivial).
+// FFTRealWith with Options.Exact is promote-then-FFT, bit for bit, on every
+// engine (iterative pow2, Stockham, Rader, Bluestein, trivial); FFTReal is the
+// same for an odd or trivial length, and for an even one the real transform
+// plus the conjugate mirror: exactly Hermitian, and within a few ulp of the
+// promoted transform's spectrum.
 func TestFFTRealBitIdenticalToPromotedFFT(t *testing.T) {
 	lens := []int{0, 1, 2, 3, 4, 5, 7, 8, 9, 12, 13, 17, 31, 64, 97, 100, 127, 211, 256, 509, 1000, 1009, 1024, 1125, 2003, 4096, 4099, 8192}
 	for n := 0; n <= 130; n++ {
@@ -44,11 +48,58 @@ func TestFFTRealBitIdenticalToPromotedFFT(t *testing.T) {
 	}
 	for _, n := range lens {
 		x := realAllocSignal(n)
-		got, want := FFTReal(x), FFT(promote(x))
-		if i := firstBitDiff(got, want); i != len(want) {
-			t.Fatalf("n=%d: FFTReal differs from FFT(promoted) at bin %d", n, i)
+		want := FFT(promote(x))
+		if i := firstBitDiff(FFTRealWith(x, Options{Exact: true}), want); i != len(want) {
+			t.Fatalf("n=%d: FFTRealWith(Exact) differs from FFT(promoted) at bin %d", n, i)
+		}
+		got := FFTReal(x)
+		if n%2 != 0 || n < 2 {
+			if i := firstBitDiff(got, want); i != len(want) {
+				t.Fatalf("n=%d: FFTReal differs from FFT(promoted) at bin %d", n, i)
+			}
+			continue
+		}
+		var norm, diff float64
+		for k := range want {
+			norm = math.Max(norm, cmplx.Abs(want[k]))
+			diff = math.Max(diff, cmplx.Abs(got[k]-want[k]))
+			if k > 0 && got[n-k] != complexConj(got[k]) {
+				t.Fatalf("n=%d: FFTReal is not Hermitian at bin %d", n, k)
+			}
+		}
+		if diff > 1e-13*norm*math.Log2(float64(n)+2) {
+			t.Fatalf("n=%d: FFTReal differs from FFT(promoted) by %g (norm %g)", n, diff, norm)
 		}
 	}
+}
+
+// FFTRealWith: n and norm as numpy.fft.fft on a real signal, Exact and FMA.
+func TestFFTRealWith(t *testing.T) {
+	x := realAllocSignal(100)
+	for _, o := range []Options{{}, {N: 64}, {N: 130}, {N: 101}, {Norm: NormOrtho}, {N: 64, Norm: NormForward}, {FMA: true}, {Exact: true, N: 96}} {
+		want := FFTWith(promote(x), o)
+		got := FFTRealWith(x, o)
+		if len(got) != len(want) {
+			t.Fatalf("%+v: length %d, want %d", o, len(got), len(want))
+		}
+		var norm, diff float64
+		for k := range want {
+			norm = math.Max(norm, cmplx.Abs(want[k]))
+			diff = math.Max(diff, cmplx.Abs(got[k]-want[k]))
+		}
+		if diff > 1e-13*norm {
+			t.Fatalf("%+v: differs by %g (norm %g)", o, diff, norm)
+		}
+	}
+	if got := FFTRealWith(nil, Options{}); len(got) != 0 {
+		t.Fatalf("empty: %v", got)
+	}
+	defer func() {
+		if recover() == nil {
+			t.Fatal("Exact with FMA did not panic")
+		}
+	}()
+	FFTRealWith(x, Options{Exact: true, FMA: true})
 }
 
 // The odd path of RealPlan.RFFT keeps the lower bins of the full complex

@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-10T16:09:10+01:00",
+  "date": "2026-11-13T21:04:30+01:00",
   "commit": "",
   "repo": "go-fft/fft",
-  "go_version": "go1.27.3",
+  "go_version": "go1.27.4",
   "machine": "darwin/arm64, 16 CPUs",
   "max_load": 8,
   "load": {
@@ -486,6 +486,24 @@
       "name": "FFTReal",
       "func": "FFTReal",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FFTRealWith",
+      "func": "FFTRealWith",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
       "allocs": 1,
       "go": {

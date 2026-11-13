@@ -47,7 +47,7 @@ import "github.com/go-fft/fft"
 
 X := fft.FFT(x)          // forward DFT of []complex128, any length
 y := fft.IFFT(X)         // inverse DFT, normalized by N (IFFT(FFT(x)) ≈ x)
-S := fft.FFTReal(r)      // forward DFT of a []float64 signal (full spectrum)
+S := fft.FFTReal(r)      // forward DFT of a []float64 signal (full spectrum; real FFT + mirror at even lengths, FFTRealWith Exact keeps promote-then-FFT)
 
 R := fft.RFFT(r)         // real-input DFT, non-redundant N/2+1 bins (numpy.fft.rfft)
 z := fft.IRFFT(R, len(r)) // back to []float64 (numpy.fft.irfft)

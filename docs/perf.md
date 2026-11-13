@@ -77,5 +77,8 @@ What the counts show, without timing:
   read at init), go-fft/fft#108 (the odd-length real plan allocated 2 per call at
   1009, now 0; `RFFT` 3 to 1; `FFTReal` 2 to 1, output bit-identical) and
   go-fft/fft#109 (`Spectrogram`: 262 allocations per call at 127 frames, now 4).
-  Still open: go-fft/fft#116, `FFTReal` and odd real lengths still run a full
-  complex transform, because a real-input algorithm changes the output bits.
+  Since go-fft/fft#122, `FFTReal` at an even length runs the real transform and
+  mirrors it (about 1.5x faster than promote-then-FFT at 1024 and 4096 points; the
+  bits differ in the last place, within the accuracy bound); `FFTRealWith` with
+  `Options{Exact: true}` keeps promote-then-FFT. Still open: go-fft/fft#116, odd
+  real lengths still run a full complex transform.
