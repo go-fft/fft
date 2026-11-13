@@ -4,6 +4,9 @@ import (
 	"math"
 	"strconv"
 	"sync"
+	"unsafe"
+
+	"github.com/go-simd/floats"
 )
 
 // This file implements the discrete cosine transforms of types I–IV, and the
@@ -205,6 +208,8 @@ type r2rKernel struct {
 	// pre[m] = exp(-iπm/n), post[k] = 2·exp(-iπ(4k+1)/(4n)).
 	half      *Plan
 	pre, post []complex128
+	preF      []float64 // the same tables as interleaved float64, for go-simd/floats
+	postF     []float64
 
 	pool scratchCache[r2rScratch]
 }
@@ -242,6 +247,11 @@ func newR2RKernel(cosine bool, typ, n int) *r2rKernel {
 				k.pre[i] = complex(c, s)
 				s, c = math.Sincos(-math.Pi * float64(4*i+1) / float64(4*n))
 				k.post[i] = complex(2*c, 2*s)
+			}
+			k.preF, k.postF = make([]float64, n), make([]float64, n)
+			for i := 0; i < h; i++ {
+				k.preF[2*i], k.preF[2*i+1] = real(k.pre[i]), imag(k.pre[i])
+				k.postF[2*i], k.postF[2*i+1] = real(k.post[i]), imag(k.post[i])
 			}
 			nc = h
 		} else {
@@ -326,38 +336,36 @@ func (k *r2rKernel) dct4(dst, src []float64, s *r2rScratch) {
 //
 // with S[k] = Σ_m c[m]·exp(-iφ(k,m)). Since φ = 2πkm/(n/2) + π(4k+1)/(4n) +
 // πm/n, S[k] = exp(-iπ(4k+1)/(4n)) · DFT_{n/2}(c[m]·exp(-iπm/n))[k].
+//
+// The pre- and post-twiddle passes are go-simd/floats kernels (CMulGather and
+// CMulScatter: a stride-2 deinterleave with a lane reversal, a complex multiply by
+// the table, and the inverse scatter), NEON on arm64 and AVX2+FMA on amd64, the
+// portable loops elsewhere. The kernels read src and write the scratch c, then read
+// c and write dst, so dst may still alias src.
 func (k *r2rKernel) dct4Even(dst, src []float64, s *r2rScratch) {
-	dct4EvenT(k, dst, src, 1, s)
+	n := k.n
+	c := s.c[:n/2]
+	cf := asFloats(c)
+	floats.CMulGather(cf, src[:n], k.preF)
+	k.half.FFT(c, c)
+	floats.CMulScatter(dst[:n], cf, k.postF, 1)
 }
 
-// dct4EvenT is dct4Even with the element types of the data free (float64, or
-// float32 for DCTPlan.DCTMixed, which converts while the pre-twiddle reads and
-// rounds once while the post-twiddle writes) and a factor f multiplying each
-// output in float64 before the rounding. The arithmetic is float64 whatever S
-// and D are.
-func dct4EvenT[S, D floatT](k *r2rKernel, dst []D, src []S, f float64, s *r2rScratch) {
+// dct4EvenMixed is dct4Even on float32 data with float64 arithmetic: the gather
+// widens src in the kernel, the scatter multiplies by f in float64 and rounds each
+// output once to float32.
+func dct4EvenMixed(k *r2rKernel, dst, src []float32, f float64, s *r2rScratch) {
 	n := k.n
-	h := n / 2
-	c := s.c[:h]
-	src, dst = src[:n], dst[:n] // one bounds check each, then none inside the loops
-	pre, post := k.pre[:h], k.post[:h]
-	for m := 0; m < h; m++ {
-		c[m] = complex(float64(src[2*m]), float64(src[n-1-2*m])) * pre[m]
-	}
+	c := s.c[:n/2]
+	cf := asFloats(c)
+	floats.CMulGatherFrom32(cf, src[:n], k.preF)
 	k.half.FFT(c, c)
-	if f == 1 { // no multiply pass for the common scale
-		for i := 0; i < h; i++ {
-			z := post[i] * c[i]
-			dst[2*i] = D(real(z))
-			dst[n-1-2*i] = D(-imag(z))
-		}
-		return
-	}
-	for i := 0; i < h; i++ {
-		z := post[i] * c[i]
-		dst[2*i] = D(real(z) * f)
-		dst[n-1-2*i] = D(-imag(z) * f)
-	}
+	floats.CMulScatterTo32(dst[:n], cf, k.postF, f)
+}
+
+// asFloats views a []complex128 as its 2·len interleaved float64.
+func asFloats(c []complex128) []float64 {
+	return unsafe.Slice((*float64)(unsafe.Pointer(&c[0])), 2*len(c))
 }
 
 // DCTMixed is DCT on float32 data with the arithmetic of the float64 plan, for
@@ -393,7 +401,7 @@ func (p *DCTPlan) runMixed(dst, src []float32, norm Norm, inverse bool) []float3
 	f := norm.scale(logicalSize(true, 4, n), inverse)
 	s := k.pool.get()
 	if k.half != nil {
-		dct4EvenT(k, dst, src, f, s)
+		dct4EvenMixed(k, dst, src, f, s)
 	} else {
 		// Odd n has no fused path: through the scratch's float64 buffer.
 		t := s.t[:n]

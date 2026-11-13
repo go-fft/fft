@@ -18,7 +18,12 @@ import (
 // clean v0.29.1 tree: amd64 on 12 GitHub runners (AMD EPYC 7763, 9V74, 9V45,
 // Intel Xeon Platinum 8370C and 6973P-C), keeping the 883 cases on which all
 // twelve agree and listing the 229 that differ with the CPU; arm64 on one
-// host, all 1,112. Written with -r2rgolden.write.
+// host, all 1,112. Written with -r2rgolden.write. Since the DCT-IV and MDCT
+// twiddle passes became go-simd/floats kernels, 67 more amd64 cases (DCT, DST and
+// their plans at n = 257, MDCT and IMDCT at 2,048) are listed as CPU-dependent: a
+// qemu run, the CI runner and Rosetta gave three digests, so one machine's digest
+// would fail on another route. Every skipped case is named in the -v output, and
+// the golden and CPU-dependent files together must name every case.
 
 var r2rGoldenWrite = flag.Bool("r2rgolden.write", false, "write testdata/r2r_golden_<GOARCH>.txt from the current outputs")
 
@@ -81,7 +86,7 @@ func TestR2RGolden(t *testing.T) {
 		}
 		checked++
 		if got := digestAny(c.run()); got != want {
-			t.Errorf("%s: output differs from the released one", c.name)
+			t.Errorf("%s: output differs from the released one (got %s)", c.name, got)
 		}
 	}
 	if checked == 0 {

@@ -19,8 +19,10 @@ versioning; while it is at v0, a fix ships as a patch release.
 
 ## What deserves a report
 
-go-fft is pure Go with no dependencies, but three places step outside Go's
-memory safety. A way to reach any of them with inconsistent lengths is a
+go-fft is pure Go with one dependency, [go-simd/floats](https://github.com/go-simd/floats)
+(pinned in `go.mod`, with `golang.org/x/sys` under it; it supplies the DCT-IV
+and MDCT twiddle kernels, assembly that checks its own lengths and overlap), and
+four places of its own step outside Go's memory safety. A way to reach any of them with inconsistent lengths is a
 vulnerability:
 
 - **The assembly kernels** (`internal/kernels/*_amd64.s` and
@@ -31,6 +33,8 @@ vulnerability:
   `StockhamStrided`, `StockhamLastRun`, `StockhamPass32`,
   `StockhamBatchPass32`, `Untangle`, `Retangle`, `Untangle32`, `Retangle32`,
   `Radix2Stage`, `Radix4Stage`.
+- **`asFloats`** (`dct.go`). It views the DCT-IV's `[]complex128` scratch as
+  its interleaved `[]float64` through `unsafe.Slice` for the twiddle kernels.
 - **`asComplex`** (`realplan.go`) and its single-precision twin
   (`realplan32.go`). They view a `[]float64` as a `[]complex128` (a `[]float32`
   as a `[]complex64`) through `unsafe.Slice`.

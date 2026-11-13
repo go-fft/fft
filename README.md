@@ -256,6 +256,15 @@ reorder its kernels, inside the bound; `Exact` keeps the reference bits
 available whatever the default becomes. It excludes `Options.FMA`: setting both
 panics.
 
+`Exact` does not cover the DCT, DST and MDCT plans, which take no `Options`.
+Their twiddle passes are [go-simd/floats](https://github.com/go-simd/floats)
+kernels that fuse multiply-adds (NEON on arm64, AVX2+FMA on amd64) and the
+portable loops elsewhere, so their bits differ from v0.30.0's and between a CPU
+with and without FMA; they are held to the accuracy bound and to digests of this
+arithmetic, not to the reference's bits. An `Exact` mode for them (the third
+arithmetic beside the default and `FMA`) is a step 3 item of
+[#121](https://github.com/go-fft/fft/issues/121).
+
 ### DCT and DST (scipy.fft.dct / dst)
 
 The discrete cosine and sine transforms of types I–IV, forward and inverse,
@@ -506,7 +515,9 @@ was tried, kept or dropped, and why) are in
 [`benchmarks/results/`](benchmarks/results/). Reproduce them with
 `benchmarks/run.sh`, which gates on correctness first: every transform must
 match `numpy.fft` within `rtol=1e-9`. gonum lives in the separate `benchmarks/`
-module, so the library itself has no dependencies.
+module, so the library's only dependency is
+[go-simd/floats](https://github.com/go-simd/floats) (v0.18.0), which supplies the
+DCT-IV and MDCT twiddle kernels, itself needing `golang.org/x/sys` for CPU detection.
 
 ## Why not cgo / FFTW?
 
