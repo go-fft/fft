@@ -80,5 +80,9 @@ What the counts show, without timing:
   Since go-fft/fft#122, `FFTReal` at an even length runs the real transform and
   mirrors it (about 1.5x faster than promote-then-FFT at 1024 and 4096 points; the
   bits differ in the last place, within the accuracy bound); `FFTRealWith` with
-  `Options{Exact: true}` keeps promote-then-FFT. Still open: go-fft/fft#116, odd
-  real lengths still run a full complex transform.
+  `Options{Exact: true}` keeps promote-then-FFT. A real-input algorithm for odd
+  lengths (go-fft/fft#116, closed) was measured unnecessary: `RealPlan.RFFT` at
+  odd lengths, which runs the complex plan and keeps the lower half, already
+  takes 0.65 to 0.90 times FFTW's r2c time (1009, 1125, 2187 and 3125 points on a
+  Zen 4; table in
+  https://github.com/go-fft/fft/issues/116#issuecomment-6863918426).
