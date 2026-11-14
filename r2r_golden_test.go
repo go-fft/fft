@@ -24,6 +24,8 @@ import (
 // qemu run, the CI runner and Rosetta gave three digests, so one machine's digest
 // would fail on another route. Every skipped case is named in the -v output, and
 // the golden and CPU-dependent files together must name every case.
+// The Intel AVX2 window uses the separate fold/gather at MDCT n=256. Its two
+// FMA digests override the common file; the other CPUs retain their old goldens.
 
 var r2rGoldenWrite = flag.Bool("r2rgolden.write", false, "write testdata/r2r_golden_<GOARCH>.txt from the current outputs")
 
@@ -52,7 +54,15 @@ func readNameMap(t *testing.T, path string) map[string]string {
 func TestR2RGolden(t *testing.T) {
 	isolatePlans(t)
 	cases := r2rCases()
+	intelWindow := runtime.GOARCH == "amd64" && mdctFoldMin <= 256 && mdctFoldMax >= 256
+	const intelPath = "testdata/r2r_golden_amd64_intel_avx2.txt"
 	if *r2rGoldenWrite {
+		sf, sfx, su, sux := mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax
+		defer func() { mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax = sf, sfx, su, sux }()
+		if intelWindow {
+			// Keep the common file on the original window for the other CPUs.
+			mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax = 512, 4096, 256, 4096
+		}
 		var lines []string
 		for _, c := range cases {
 			lines = append(lines, c.name+"\t"+digestAny(c.run()))
@@ -62,6 +72,19 @@ func TestR2RGolden(t *testing.T) {
 			t.Fatal(err)
 		}
 		t.Logf("wrote %d digests to %s", len(lines), r2rGoldenPath())
+		if intelWindow {
+			mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax = sf, sfx, su, sux
+			lines = nil
+			for _, c := range cases {
+				if strings.HasPrefix(c.name, "MDCT/") && strings.HasSuffix(c.name, "/n=256") {
+					lines = append(lines, c.name+"\t"+digestAny(c.run()))
+				}
+			}
+			sort.Strings(lines)
+			if err := os.WriteFile(intelPath, []byte(strings.Join(lines, "\n")+"\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
 		return
 	}
 	if runtime.GOARCH == "arm64" && (raceEnabled || testing.CoverMode() != "") {
@@ -70,6 +93,18 @@ func TestR2RGolden(t *testing.T) {
 	golden := readNameMap(t, r2rGoldenPath())
 	if golden == nil {
 		t.Skipf("no golden digests for %s", runtime.GOARCH)
+	}
+	if intelWindow {
+		variant := readNameMap(t, intelPath)
+		if variant == nil {
+			t.Fatal("missing Intel AVX2 MDCT goldens")
+		}
+		for name, digest := range variant {
+			if _, ok := golden[name]; !ok {
+				t.Fatalf("Intel AVX2 golden %s has no common case", name)
+			}
+			golden[name] = digest
+		}
 	}
 	dep := readNameMap(t, strings.TrimSuffix(r2rGoldenPath(), ".txt")+"_cpu_dependent.txt")
 	checked, skipped := 0, 0
