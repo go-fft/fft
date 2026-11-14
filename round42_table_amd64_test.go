@@ -62,6 +62,9 @@ func TestZen4FMATable(t *testing.T) {
 	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
 	fmaTable = z
 	isolatePlans(t)
+	if hasScalarRadix32(newSKPlanFactorsOpt(1024, []int{32, 32}, true)) {
+		t.Skip("no radix-32 split kernel on this CPU: the planner refuses the table's plan and takes skFactorize's")
+	}
 	p := newSKPlanOpt(1024, true)
 	if len(p.stages) != 2 {
 		t.Fatalf("an FMA plan of 1024 points has %d passes under the Zen 4 table, want 2", len(p.stages))
