@@ -86,7 +86,7 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-latest,    shard: '' }
-          - { os: ubuntu-24.04-arm, shard: '', race: 'off' }
+          - { os: ubuntu-24.04-arm, shard: '' }
           - { os: macos-latest,   shard: '0/2' }
           - { os: macos-latest,   shard: '1/2' }
           - { os: windows-latest, shard: '0/3' }
@@ -117,11 +117,10 @@ jobs:
         shell: bash
         run: |
           COVERPKG=$(go list ./... | paste -sd, -)
-          # The arm64 gate runs without -race: with it the lane took 577 s, too
-          # close to the 600 s go test timeout; the arm64 shards on macOS run -race.
-          RACE=-race
-          [ "${{ matrix.race }}" = off ] && RACE=
-          go test $RACE -coverpkg="$COVERPKG" -coverprofile=cover.out ./...
+          # The gates run without -race: with it the arm64 lane took 577 s and the
+          # amd64 one 562 s of the 600 s go test timeout. -race runs on every shard
+          # (Windows amd64, macOS arm64), so both architectures keep it.
+          go test -coverpkg="$COVERPKG" -coverprofile=cover.out ./...
           go tool cover -func=cover.out | tail -n 25
           cov=$(go tool cover -func=cover.out | tail -1 | awk '{print $3}' | tr -d '%')
           echo "coverage: ${cov}%"
