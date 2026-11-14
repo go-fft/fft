@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-13T21:04:30+01:00",
+  "date": "2026-11-14T08:31:36+01:00",
   "commit": "",
   "repo": "go-fft/fft",
   "go_version": "go1.27.4",
@@ -72,6 +72,24 @@
       "name": "Plan.IFFT/1024",
       "func": "Plan.IFFT",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.FFTReal/1024",
+      "func": "RealPlan.FFTReal",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
       "allocs": 0,
       "go": {
@@ -231,6 +249,24 @@
       "ratio": 0
     },
     {
+      "name": "RealPlan.FFTReal/1000",
+      "func": "RealPlan.FFTReal",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
       "name": "RFFT/1000",
       "func": "RFFT",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.rfft(x))(__import__('scipy.fft', fromlist=['_']))",
@@ -360,6 +396,24 @@
       "name": "Plan.IFFT/1009",
       "func": "Plan.IFFT",
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.ifft(x))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "RealPlan.FFTReal/1009",
+      "func": "RealPlan.FFTReal",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.fft(x))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
       "allocs": 0,
       "go": {

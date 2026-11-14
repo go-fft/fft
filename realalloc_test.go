@@ -73,6 +73,54 @@ func TestFFTRealBitIdenticalToPromotedFFT(t *testing.T) {
 	}
 }
 
+// RealPlan.FFTReal is the package function FFTReal into a caller's slice, bit for
+// bit, and an Exact plan is promote-then-FFT; it allocates nothing, checks its
+// lengths, returns dst[:n] of a longer dst, and refuses a dst that shares memory
+// with src.
+func TestRealPlanFFTReal(t *testing.T) {
+	for _, n := range []int{0, 1, 2, 3, 4, 5, 8, 9, 64, 100, 1000, 1009, 1024} {
+		x := realAllocSignal(n)
+		dst := make([]complex128, n+3)
+		got := NewRealPlan(n).FFTReal(dst, x)
+		if len(got) != n {
+			t.Fatalf("n=%d: length %d", n, len(got))
+		}
+		if i := firstBitDiff(got, FFTReal(x)); i != n {
+			t.Fatalf("n=%d: RealPlan.FFTReal differs from FFTReal at bin %d", n, i)
+		}
+		ex := NewRealPlanWith(n, Options{Exact: true}).FFTReal(make([]complex128, n), x)
+		if i := firstBitDiff(ex, FFT(promote(x))); i != n {
+			t.Fatalf("n=%d: Exact plan differs from FFT(promoted) at bin %d", n, i)
+		}
+	}
+	if !raceEnabled {
+		for _, n := range []int{1024, 1009} {
+			x := realAllocSignal(n)
+			dst := make([]complex128, n)
+			for name, p := range map[string]*RealPlan{"default": NewRealPlan(n), "exact": NewRealPlanWith(n, Options{Exact: true})} {
+				p.FFTReal(dst, x)
+				if a := testing.AllocsPerRun(50, func() { p.FFTReal(dst, x) }); a != 0 {
+					t.Errorf("%s n=%d: %v allocations per call, want 0", name, n, a)
+				}
+			}
+		}
+	}
+	mustPanic := func(what string, f func()) {
+		t.Helper()
+		defer func() {
+			if recover() == nil {
+				t.Errorf("%s did not panic", what)
+			}
+		}()
+		f()
+	}
+	p := NewRealPlan(8)
+	mustPanic("short dst", func() { p.FFTReal(make([]complex128, 7), make([]float64, 8)) })
+	mustPanic("short src", func() { p.FFTReal(make([]complex128, 8), make([]float64, 7)) })
+	buf := make([]complex128, 8)
+	mustPanic("overlap", func() { p.FFTReal(buf, asFloats(buf)[:8]) })
+}
+
 // FFTRealWith: n and norm as numpy.fft.fft on a real signal, Exact and FMA.
 func TestFFTRealWith(t *testing.T) {
 	x := realAllocSignal(100)

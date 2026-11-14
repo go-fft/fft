@@ -72,19 +72,7 @@ func fftReal(x []float64, n int, exact, fma bool) []complex128 {
 		in = make([]float64, n)
 		copy(in, x)
 	}
-	m := n / 2
-	cachedRealPlanF(n, fma).RFFT(out[:m+1], in)
-	// The conjugate mirror: out[n-k] = conj(out[k]) for k = 1 .. m-1, written as a
-	// walk over two equal-length slices so the loop carries no bounds check.
-	lo := out[1:m]
-	hi := out[m+1 : n]
-	hi = hi[:len(lo)]
-	j := len(hi) - 1
-	for _, v := range lo {
-		hi[j] = complexConj(v)
-		j--
-	}
-	return out
+	return cachedRealPlanF(n, fma).FFTReal(out, in)
 }
 
 // complexConj returns the complex conjugate of z.

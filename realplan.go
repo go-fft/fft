@@ -40,6 +40,10 @@ type RealPlan struct {
 
 	// fma: the complex plans (half, full) are FMA plans (Options.FMA).
 	fma bool
+
+	// exact: the plan was built with Options.Exact, so FFTReal promotes and runs
+	// the complex FFT instead of the real transform plus the mirror.
+	exact bool
 }
 
 // NewRealPlan returns a real-input transform plan for length n, precomputing
@@ -52,7 +56,58 @@ func NewRealPlan(n int) *RealPlan { return newRealPlanF(n, false) }
 // reference arithmetic (see Options.Exact) and excludes FMA. The other fields
 // must be zero, as for NewPlanWith. NewRealPlanWith(n, Options{}) is NewRealPlan(n).
 func NewRealPlanWith(n int, o Options) *RealPlan {
-	return newRealPlanF(n, o.checkPlan("NewRealPlanWith"))
+	p := newRealPlanF(n, o.checkPlan("NewRealPlanWith"))
+	p.exact = o.Exact
+	return p
+}
+
+// FFTReal writes the full complex spectrum of the real signal src into dst and
+// returns dst[:Len()]: the plan form of the package function FFTReal, without
+// its result allocation. src must have length Len() and dst at least Len(), or
+// FFTReal panics. For an even length it runs RFFT into dst[:Len()/2+1] and
+// writes the conjugate mirror X[N-k] = conj(X[k]) above it, so the result is
+// exactly Hermitian; an odd length, and a plan built with Options.Exact, promote
+// src to complex and run the complex FFT in place in dst, bit for bit FFT of the
+// promoted signal. It allocates nothing in steady state.
+//
+// dst must not overlap src: FFTReal panics if their memory is shared, since dst
+// is written while src is still read. src is not modified.
+func (p *RealPlan) FFTReal(dst []complex128, src []float64) []complex128 {
+	n := p.n
+	if len(src) < n || len(dst) < n {
+		panic("fft: RealPlan slice shorter than the plan's length")
+	}
+	if n == 0 {
+		return dst[:0]
+	}
+	if realOverlap(unsafe.Pointer(unsafe.SliceData(dst)), 16*n, unsafe.Pointer(unsafe.SliceData(src)), 8*n) {
+		panic("fft: RealPlan.FFTReal: dst overlaps src")
+	}
+	dst = dst[:n]
+	if n == 1 {
+		dst[0] = complex(src[0], 0)
+		return dst
+	}
+	if p.half == nil || p.exact {
+		for i, v := range src[:n] {
+			dst[i] = complex(v, 0)
+		}
+		cachedPlanF(n, p.fma).FFT(dst, dst)
+		return dst
+	}
+	m := n / 2
+	p.RFFT(dst[:m+1], src)
+	// The conjugate mirror: dst[n-k] = conj(dst[k]) for k = 1 .. m-1, written as a
+	// walk over two equal-length slices so the loop carries no bounds check.
+	lo := dst[1:m]
+	hi := dst[m+1 : n]
+	hi = hi[:len(lo)]
+	j := len(hi) - 1
+	for _, v := range lo {
+		hi[j] = complexConj(v)
+		j--
+	}
+	return dst
 }
 
 // newRealPlanF is NewRealPlan on FMA complex plans when fma is set (already
