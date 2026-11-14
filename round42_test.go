@@ -89,7 +89,9 @@ func TestR42FMATable(t *testing.T) {
 	isolatePlans(t)
 	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
 	fmaTable = map[int]fmaChoice{
-		1024: {factors: []int{32, 4, 8}, fuse: 0b100},
+		// 4·8·32: the radix-32 pass is the final one, which has a kernel on every route
+		// (a first radix-32 pass without one is refused by newSKPlanOpt).
+		1024: {factors: []int{4, 8, 32}, fuse: 0b001},
 		4096: {fuse: 0},
 	}
 	marks := func(p *skPlan) []bool {
@@ -100,11 +102,11 @@ func TestR42FMATable(t *testing.T) {
 		return m
 	}
 	p := newSKPlanOpt(1024, true)
-	if got := r42Factors(p); !slices.Equal(got, []int{32, 4, 8}) {
+	if got := r42Factors(p); !slices.Equal(got, []int{4, 8, 32}) {
 		t.Fatalf("1024: factors %v", got)
 	}
 	if got := marks(p); !slices.Equal(got, []bool{true, false, true}) {
-		t.Errorf("1024: fused %v, want the radix-32 pass and the last", got)
+		t.Errorf("1024: fused %v, want the first pass (mask) and the radix-32 pass", got)
 	}
 	if got := marks(newSKPlanFactorsOpt(1024, []int{8, 8, 16}, true)); !slices.Equal(got, []bool{true, true, true}) {
 		t.Errorf("1024 as 8·8·16: fused %v, want every pass", got)
