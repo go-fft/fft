@@ -6,6 +6,23 @@ import (
 	"github.com/go-fft/fft/internal/kernels"
 )
 
+func mdctKernelWindowDefault() (foldMin, foldMax, unfoldMin, unfoldMax int) {
+	return mdctKernelWindowAMD64(kernels.IntelCPU, kernels.UseFMA, kernels.UseStockhamAVX512)
+}
+
+// mdctKernelWindowAMD64 keeps the M4 window except on Intel AVX2/FMA without
+// AVX-512. Six pinned rounds on each core type of an i5-14600K found the kernels
+// faster from 128 through 16384 samples, for float64 and Mixed in both directions.
+// At 256 samples MDCT saved 34% on a P core and 11% on an E core; at 8192, 20%
+// and 13%. Keep 64 on the loop (the E-core MDCT tied) and lengths above the last
+// measured size on their existing route. AVX-512 and other CPUs keep their tuning.
+func mdctKernelWindowAMD64(intel, avx2FMA, avx512 bool) (foldMin, foldMax, unfoldMin, unfoldMax int) {
+	if intel && avx2FMA && !avx512 {
+		return 128, 16384, 128, 16384
+	}
+	return 512, 4096, 256, 4096
+}
+
 // pow2StockhamMaxDefault routes every power of two to the Stockham engine on
 // amd64 when its AVX2 (or AVX-512) pass kernels run.
 //

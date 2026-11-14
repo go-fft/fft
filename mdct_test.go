@@ -3,6 +3,7 @@ package fft
 import (
 	"math"
 	"math/rand"
+	"strconv"
 	"testing"
 )
 
@@ -384,7 +385,7 @@ func FuzzMDCT(f *testing.F) {
 }
 
 func BenchmarkMDCT(b *testing.B) {
-	for _, n := range []int{128, 256, 2048} {
+	for _, n := range []int{64, 124, 128, 132, 256, 512, 2048, 4096, 6144, 8192, 16380, 16384, 16388} {
 		x, c, y := make([]float64, n), make([]float64, n/2), make([]float64, n)
 		x32, c32, y32 := make([]float32, n), make([]float32, n/2), make([]float32, n)
 		for i := range x {
@@ -392,7 +393,7 @@ func BenchmarkMDCT(b *testing.B) {
 			x32[i] = float32(x[i])
 		}
 		p, p32 := NewMDCTPlan(n), NewMDCTPlan32(n)
-		name := map[int]string{128: "128", 256: "256", 2048: "2048"}[n]
+		name := strconv.Itoa(n)
 		b.Run("MDCT/"+name, func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -415,6 +416,18 @@ func BenchmarkMDCT(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				p32.IMDCT(y32, c32, 1)
+			}
+		})
+		b.Run("MDCTMixed/"+name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				p.MDCTMixed(c32, x32, 1)
+			}
+		})
+		b.Run("IMDCTMixed/"+name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				p.IMDCTMixed(y32, c32, 1)
 			}
 		})
 	}
