@@ -78,7 +78,7 @@ differs by a few tens of percent stays inside.
 
 | family | functions | worst (measured) | c |
 |:--|:--|--:|--:|
-| `c2c` | FFT, IFFT, FFTReal (the real transform plus the conjugate mirror at an even length), FFTRealWith, Plan.FFT/IFFT, Plan.FFTNorm/IFFTNorm, FFTWith/IFFTWith with N (padded and truncated) and Norm | 0.74 | 1.5 |
+| `c2c` | FFT, IFFT, FFTReal (the real transform plus the conjugate mirror at an even length), FFTRealWith, RealPlan.FFTReal, Plan.FFT/IFFT, Plan.FFTNorm/IFFTNorm, FFTWith/IFFTWith with N (padded and truncated) and Norm | 0.74 | 1.5 |
 | `r2c` | RFFT, IRFFT, HFFT, IHFFT, RealPlan and its Norm methods, RFFTWith with N and Norm | 0.92 | 2.0 |
 | `c2cN` | FFTN, IFFTN, FFT2, IFFT2, PlanN and its Norm methods, FFTNWith with Axes and Norm | 0.30 | 0.75 |
 | `r2cN` | RFFTN, IRFFTN, RFFT2, IRFFT2, RealPlan2 and its Norm methods | 0.28 | 0.75 |

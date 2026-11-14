@@ -54,7 +54,9 @@ func specs() []spec {
 		inr := []any{xr}
 		rp := fft.NewRealPlan(n)
 		rdst := make([]complex128, n/2+1)
+		fdst := make([]complex128, n)
 		add(
+			mk(name("RealPlan.FFTReal", n), "RealPlan.FFTReal", list(er), py("lambda x: F.fft(x)"), tol64, inr, func() []complex128 { return rp.FFTReal(fdst, xr) }),
 			mk(name("RFFT", n), "RFFT", list(er), py("lambda x: F.rfft(x)"), tol64, inr, func() []complex128 { return fft.RFFT(xr) }),
 			mk(name("RealPlan.RFFT", n), "RealPlan.RFFT", list(er), py("lambda x: F.rfft(x)"), tol64, inr, func() []complex128 { return rp.RFFT(rdst, xr) }),
 		)
