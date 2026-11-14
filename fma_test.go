@@ -118,7 +118,7 @@ func TestFMAPlanOptionsRefused(t *testing.T) {
 		} {
 			func() {
 				defer func() {
-					if r, _ := recover().(string); !strings.Contains(r, name+": only Options.FMA and Options.Exact apply to a plan") {
+					if r, _ := recover().(string); !strings.Contains(r, name+": only Options.FMA, Options.NoFMA and Options.Exact apply to a plan") {
 						t.Errorf("%s(%+v): panic %q", name, o, r)
 					}
 				}()

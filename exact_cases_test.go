@@ -43,7 +43,7 @@ func exactCases() []exactCase {
 		key = "n=" + strconv.Itoa(n)
 		x := fmaSignal(n, uint64(n))
 		r := fmaReal(n, uint64(n))
-		h := RFFT(r)
+		h := RFFTWith(r, exact(Options{})) // the inverse cases' input, in the reference arithmetic: the default's bits depend on the CPU
 		x32 := make([]complex64, n)
 		r32 := make([]float32, n)
 		for i := range x {
@@ -99,7 +99,7 @@ func exactCases() []exactCase {
 		size := shapeProduct(sh...)
 		x := fmaSignal(size, uint64(size))
 		r := fmaReal(size, uint64(size))
-		sp := RFFTN(r, sh)
+		sp := RFFTNWith(r, sh, exact(Options{})) // as above
 		x32 := make([]complex64, size)
 		r32 := make([]float32, size)
 		for i := range x {

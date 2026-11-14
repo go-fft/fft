@@ -60,6 +60,8 @@ var (
 	realPlanCacheFMA = map[int]*RealPlan{}
 	// realPlanCacheExact holds the Exact plans (cachedRealPlanA).
 	realPlanCacheExact = map[int]*RealPlan{}
+	// realPlanCachePlain holds the NoFMA plans (cachedRealPlanA).
+	realPlanCachePlain = map[int]*RealPlan{}
 )
 
 // cachedRealPlan returns a shared real-input plan for length n, building and
@@ -78,6 +80,8 @@ func cachedRealPlanA(n int, a arith) *RealPlan {
 		cache = realPlanCacheFMA
 	case arithExact:
 		cache = realPlanCacheExact
+	case arithPlain:
+		cache = realPlanCachePlain
 	}
 	realPlanMu.Lock()
 	p, ok := cache[n]

@@ -20,7 +20,22 @@ func znFMABind(st []skStage) znBinder {
 
 // fmaTableDefault is fmaTableAMD64 for this machine.
 func fmaTableDefault() map[int]fmaChoice {
-	return fmaTableAMD64(kernels.UseStockhamSplit512, kernels.UseStockhamSplit && !kernels.IntelCPU)
+	return zen4FMATable(fmaTableAMD64(kernels.UseStockhamSplit512, kernels.UseStockhamSplit && !kernels.IntelCPU), kernels.AMDZen4)
+}
+
+// zen4FMATable is znFMATable's table on a Zen 4: complex 1024 takes the
+// two-pass radix-32 plan (32·32, r32fma_amd64.s). Measured on a Ryzen 9 7950X,
+// one pinned core, fifteen rotated rounds (#121): 903 ns against 913 for the
+// FMA plan of the default factorization (8·8·16) and 959 unfused; 512 stays 8·8·8
+// (353 ns against 418 for 32·16, 437 for 16·32, 366 for 4·8·16) and 2048 as
+// 32·8·8 is 4.8 times slower, so only 1024 changes. Zen 3 measured radix 32
+// slower (0.96 times) and keeps znFMATable.
+func zen4FMATable(t map[int]fmaChoice, zen4 bool) map[int]fmaChoice {
+	if !zen4 || t == nil {
+		return t
+	}
+	t[1024] = fmaChoice{factors: []int{32, 32}, fuse: fmaAll}
+	return t
 }
 
 // fmaTableAMD64 is fmaTable: Cascade Lake's (cl, the 512-bit split layout)

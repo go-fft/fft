@@ -67,6 +67,12 @@ func TestR2RGolden(t *testing.T) {
 	if runtime.GOARCH == "arm64" && (raceEnabled || testing.CoverMode() != "") {
 		t.Skip("arm64 digests are for the build without -race or -cover")
 	}
+	if runtime.GOARCH == "amd64" && !fmaAvailable {
+		// The DCT, DST and MDCT run complex plans of the default arithmetic, which
+		// fuses where the CPU has FMA3: the amd64 digests are those of CPUs that
+		// have it (every CI runner does).
+		t.Skip("the amd64 digests are for CPUs with FMA3")
+	}
 	golden := readNameMap(t, r2rGoldenPath())
 	if golden == nil {
 		t.Skipf("no golden digests for %s", runtime.GOARCH)
@@ -93,4 +99,46 @@ func TestR2RGolden(t *testing.T) {
 		t.Errorf("none of the %d golden digests matched a case", len(golden))
 	}
 	t.Logf("%d of %d cases checked, %d skipped as CPU-dependent", checked, len(cases), skipped)
+}
+
+// TestR2RCPUDependentFloor: the CPU-dependent list can only grow. A golden
+// regeneration from a few runners finds the cases whose output differs between
+// THOSE runners; the route-dependent cases the sample happened to agree on fall
+// out of the list and get pinned to whichever runner it was (#144, then #155,
+// both silently). testdata/r2r_known_cpu_dependent_<GOARCH>.txt is the floor:
+// every name in it must stay in the CPU-dependent list. Shrinking the floor is a
+// deliberate edit of that file in the same diff.
+func TestR2RCPUDependentFloor(t *testing.T) {
+	floor := readNames(t, filepath.Join("testdata", "r2r_known_cpu_dependent_"+runtime.GOARCH+".txt"))
+	if floor == nil {
+		t.Skipf("no floor for %s", runtime.GOARCH)
+	}
+	dep := readNameMap(t, strings.TrimSuffix(r2rGoldenPath(), ".txt")+"_cpu_dependent.txt")
+	golden := readNameMap(t, r2rGoldenPath())
+	for n := range floor {
+		if _, ok := dep[n]; !ok {
+			t.Errorf("%s is known to depend on the CPU and is missing from the CPU-dependent list", n)
+		}
+		if _, ok := golden[n]; ok {
+			t.Errorf("%s is known to depend on the CPU and is pinned in the golden file", n)
+		}
+	}
+	if len(floor) < 100 {
+		t.Errorf("the floor holds %d names: it was emptied", len(floor))
+	}
+}
+
+func readNames(t *testing.T, path string) map[string]bool {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	m := map[string]bool{}
+	for _, l := range strings.Split(string(b), "\n") {
+		if l = strings.TrimRight(l, "\r"); l != "" { // Windows checkouts may use CRLF
+			m[l] = true
+		}
+	}
+	return m
 }

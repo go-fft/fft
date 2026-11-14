@@ -48,6 +48,8 @@ func cachedPlanNo16A(n int, a arith) *Plan {
 		cache = planNo16CacheFMA
 	case arithExact:
 		cache = planNo16CacheExact
+	case arithPlain:
+		cache = planNo16CachePlain
 	}
 	planMu.Lock()
 	defer planMu.Unlock()
@@ -65,7 +67,7 @@ func cachedPlanNo16A(n int, a arith) *Plan {
 	return p
 }
 
-var planNo16Cache, planNo16CacheFMA, planNo16CacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
+var planNo16Cache, planNo16CacheFMA, planNo16CacheExact, planNo16CachePlain = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
 
 // stockhamCovers reports whether skFactorizeOrder's passes multiply to n,
 // that is whether a Stockham plan without radix 16 can transform n points.

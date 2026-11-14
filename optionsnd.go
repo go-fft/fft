@@ -300,6 +300,8 @@ func planNForA(shape, axes []int, a arith) *PlanN {
 		key = append(key, 'f') // an FMA plan: never the default one's entry
 	case arithExact:
 		key = append(key, 'x') // an Exact plan: never the default's or the FMA's
+	case arithPlain:
+		key = append(key, 'p') // a NoFMA plan: never any other's
 	}
 	planNAxesMu.Lock()
 	defer planNAxesMu.Unlock()

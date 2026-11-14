@@ -55,6 +55,9 @@ func TestRoutingStateIsolated(t *testing.T) {
 	fset := token.NewFileSet()
 	pkgVars := map[string]bool{}
 	nonTest, _ := filepath.Glob("*.go")
+	if len(nonTest) == 0 {
+		t.Skip("the package's source is not here (a test binary run on another machine)")
+	}
 	var testFiles []string
 	for _, f := range nonTest {
 		if strings.HasSuffix(f, "_test.go") {

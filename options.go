@@ -43,17 +43,26 @@ type Options struct {
 	// transforms.
 	Axes []int
 
-	// FMA lets the transform fuse its twiddle products with fused
-	// multiply-add instructions, which is faster and, measured against
-	// numpy.fft, as accurate (see "Fused multiply-add" in the package
-	// documentation), but NOT bit-identical to the default: the results
-	// differ from FFT's in the last bits. The default (false) keeps every
-	// amd64 kernel bit-identical to the package's Go reference. FMA is a
-	// request: it takes effect on amd64 CPUs with FMA3, and elsewhere the
-	// transform is the default one, bit for bit. The float32 transforms
-	// ignore it. NewPlanWith, NewRealPlanWith, NewPlanNWith and
-	// NewRealPlan2With take it for plans.
+	// FMA asks for the fused multiply-add plans: twiddle products fused,
+	// which is faster and, measured against the double-double oracle, as
+	// accurate (docs/accuracy.md). Since the default arithmetic fuses on amd64
+	// CPUs with FMA3, FMA changes nothing there; it is kept as an explicit
+	// request (and for code written when fusing was opt-in). On CPUs without
+	// FMA3 and on other architectures it is the default arithmetic, bit for
+	// bit. The float32 transforms ignore it. NewPlanWith, NewRealPlanWith,
+	// NewPlanNWith and NewRealPlan2With take it for plans. To turn the fusing
+	// off, use NoFMA, or Exact for the reference arithmetic.
 	FMA bool
+
+	// NoFMA asks for the default arithmetic without fused multiply-adds: on
+	// amd64 CPUs with FMA3 the plans the default builds, built unfused; where
+	// the default does not fuse (no FMA3, other architectures) it changes
+	// nothing. Use it for output that must not depend on whether the CPU has
+	// FMA3. It is not the reference arithmetic: the default's other choices
+	// (routes, orders) are kept; Exact is the promise of v0.28.16's bits.
+	// NoFMA excludes FMA (both set panics) and is implied by Exact. The
+	// float32 transforms ignore it.
+	NoFMA bool
 
 	// Exact asks for the package's reference arithmetic, the one the Go code
 	// and the SIMD kernels computed up to v0.28.16: the reference arithmetic
@@ -68,41 +77,44 @@ type Options struct {
 	// The tests pin it to digests of v0.28.16's outputs on amd64 (the cases
 	// that agree across CPUs) and arm64.
 	//
-	// Today the default arithmetic is this one, so Exact changes nothing. The
-	// package's contract is a stated error bound against an
-	// extended-precision result (docs/accuracy.md), not bit identity, and a
-	// later release may let the default fuse multiply-adds or reorder its
-	// kernels inside that bound; Exact keeps the reference arithmetic
-	// available whatever the default becomes. Exact applies to every
+	// The package's contract is a stated error bound against an
+	// extended-precision result (docs/accuracy.md), not bit identity, so the
+	// default may fuse multiply-adds (it does on amd64 CPUs with FMA3) or
+	// reorder its kernels inside that bound; Exact keeps the reference
+	// arithmetic available whatever the default becomes. Exact applies to every
 	// transform that takes Options, float32 included, and to NewPlanWith,
 	// NewRealPlanWith, NewPlanNWith and NewRealPlan2With. It excludes FMA:
 	// Options{Exact: true, FMA: true} asks for two arithmetics and panics.
 	Exact bool
 }
 
-// checkExact panics if o asks for both the reference arithmetic and fused
-// multiply-adds, which cannot both be honoured, naming the function that was
-// called.
+// checkExact panics if o asks for fused multiply-adds and, at the same time,
+// for the reference arithmetic or no fusing, which cannot both be honoured,
+// naming the function that was called.
 func (o Options) checkExact(name string) {
 	if o.Exact && o.FMA {
 		panic("fft: " + name + ": Options.Exact and Options.FMA are mutually exclusive")
 	}
+	if o.NoFMA && o.FMA {
+		panic("fft: " + name + ": Options.NoFMA and Options.FMA are mutually exclusive")
+	}
 }
 
-// checkPlan validates o for a plan constructor called name, where only FMA
-// and Exact have a meaning, and returns the arithmetic of the plan. It panics
-// before anything is allocated.
+// checkPlan validates o for a plan constructor called name, where only FMA,
+// NoFMA and Exact have a meaning, and returns the arithmetic of the plan. It
+// panics before anything is allocated.
 func (o Options) checkPlan(name string) arith {
 	if o.N != 0 || o.Norm != NormBackward || o.Axes != nil {
-		panic("fft: " + name + ": only Options.FMA and Options.Exact apply to a plan")
+		panic("fft: " + name + ": only Options.FMA, Options.NoFMA and Options.Exact apply to a plan")
 	}
 	o.checkExact(name)
 	return o.arith()
 }
 
-// fma reports whether a transform called with o runs on an FMA plan. Exact
-// and FMA are exclusive (checkExact), so Exact never reaches an FMA plan.
-func (o Options) fma() bool { return fmaOn(o.FMA && !o.Exact, fmaAvailable) }
+// fma reports whether a transform called with o explicitly asks for, and can
+// run on, an FMA plan. Exact, NoFMA and FMA are exclusive (checkExact), so the
+// first two never reach an FMA plan.
+func (o Options) fma() bool { return fmaOn(o.FMA && !o.Exact && !o.NoFMA, fmaAvailable) }
 
 // check1D validates o for a 1-D transform called name and returns the number
 // of points it transforms: o.N, or def when o.N is zero. It panics before

@@ -35,3 +35,31 @@ func TestR42FMATableAMD64(t *testing.T) {
 		}
 	}
 }
+
+// TestZen4FMATable: only a Zen 4 changes the Zen 3 table, and only at 1024
+// (32·32, two radix-32 passes, every pass fused); the table of another CPU,
+// and nil, are returned as given.
+func TestZen4FMATable(t *testing.T) {
+	if zen4FMATable(nil, true) != nil {
+		t.Fatal("nil table")
+	}
+	if _, ok := zen4FMATable(fmaTableAMD64(false, true), false)[1024]; ok {
+		t.Fatal("a Zen 3 takes 32·32 at 1024")
+	}
+	z := zen4FMATable(fmaTableAMD64(false, true), true)
+	c, ok := z[1024]
+	if !ok || !slices.Equal(c.factors, []int{32, 32}) || c.fuse != fmaAll {
+		t.Fatalf("Zen 4 1024: %+v", c)
+	}
+	if _, ok := z[128]; !ok || len(z) != 2 {
+		t.Fatalf("Zen 4 table %v keeps Zen 3's 128 and adds only 1024", z)
+	}
+	// The table drives the plan: a Zen 4 FMA plan of 1024 points runs two passes.
+	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
+	fmaTable = z
+	isolatePlans(t)
+	p := newSKPlanOpt(1024, true)
+	if len(p.stages) != 2 {
+		t.Fatalf("an FMA plan of 1024 points has %d passes under the Zen 4 table, want 2", len(p.stages))
+	}
+}
