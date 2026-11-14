@@ -67,6 +67,12 @@ func TestR2RGolden(t *testing.T) {
 	if runtime.GOARCH == "arm64" && (raceEnabled || testing.CoverMode() != "") {
 		t.Skip("arm64 digests are for the build without -race or -cover")
 	}
+	if runtime.GOARCH == "amd64" && !fmaAvailable {
+		// The DCT, DST and MDCT run complex plans of the default arithmetic, which
+		// fuses where the CPU has FMA3: the amd64 digests are those of CPUs that
+		// have it (every CI runner does).
+		t.Skip("the amd64 digests are for CPUs with FMA3")
+	}
 	golden := readNameMap(t, r2rGoldenPath())
 	if golden == nil {
 		t.Skipf("no golden digests for %s", runtime.GOARCH)
