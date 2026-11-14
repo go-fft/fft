@@ -30,7 +30,7 @@ func TestMDCTBothPaths(t *testing.T) {
 		kernel bool
 	}{{"loop", false}, {"kernel", true}} {
 		forcePath(path.kernel)
-		for _, n := range []int{4, 8, 16, 20, 64, 100, 128, 252, 256, 512, 1024, 2048} {
+		for _, n := range []int{4, 8, 16, 20, 64, 100, 124, 128, 132, 252, 256, 512, 1024, 2048} {
 			m := n / 2
 			if m%2 != 0 {
 				continue // the odd route has no fold or unfold
@@ -58,6 +58,38 @@ func TestMDCTBothPaths(t *testing.T) {
 			if got := p.MDCT(bx[:m], bx, 0.5); !equalF(got, wantM) {
 				t.Errorf("%s N=%d: MDCT into the start of its src differs", path.name, n)
 			}
+		}
+	}
+}
+
+// The large Intel window must agree with the oracle-backed loop around its
+// upper boundary, including non-power-of-two blocks, without an O(N²) oracle run.
+func TestMDCTLargeKernelPaths(t *testing.T) {
+	isolatePlans(t)
+	sf, sfx, su, sux := mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax
+	defer func() { mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax = sf, sfx, su, sux }()
+	for _, n := range []int{16380, 16384, 16388} {
+		p := NewMDCTPlan(n)
+		x32, c32 := accRealF32(n, 93), accRealF32(n/2, 94)
+		x, c := widenF32(x32), widenF32(c32)
+		forcePath(false)
+		wantF := p.MDCT(make([]float64, n/2), x, 0.5)
+		wantI := p.IMDCT(make([]float64, n), c, 0.5)
+		forcePath(true)
+		gotF := p.MDCT(make([]float64, n/2), x, 0.5)
+		gotI := p.IMDCT(make([]float64, n), c, 0.5)
+		bound := 2 * mdctC64 * 0x1p-52 * math.Log2(float64(n))
+		if eF, eI := errR(gotF, cddFromR(wantF)), errR(gotI, cddFromR(wantI)); eF > bound || eI > bound {
+			t.Errorf("N=%d: kernel/loop MDCT %.3g IMDCT %.3g exceed %.3g", n, eF, eI, bound)
+		}
+		sameBits32(t, "large MDCTMixed", p.MDCTMixed(make([]float32, n/2), x32, 0.5), gotF)
+		sameBits32(t, "large IMDCTMixed", p.IMDCTMixed(make([]float32, n), c32, 0.5), gotI)
+		if got := p.MDCT(x[:n/2], x, 0.5); !equalF(got, gotF) {
+			t.Errorf("N=%d: kernel MDCT into its src differs", n)
+		}
+		buf := append(append([]float64(nil), c...), make([]float64, n/2)...)
+		if got := p.IMDCT(buf, buf, 0.5); !equalF(got, gotI) {
+			t.Errorf("N=%d: kernel IMDCT over its src differs", n)
 		}
 	}
 }
