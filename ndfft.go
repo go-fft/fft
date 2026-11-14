@@ -123,6 +123,8 @@ var (
 	planNCacheFMA = map[string]*PlanN{}
 	// planNCacheExact holds the Exact plans (cachedPlanNA).
 	planNCacheExact = map[string]*PlanN{}
+	// planNCachePlain holds the NoFMA plans (cachedPlanNA).
+	planNCachePlain = map[string]*PlanN{}
 )
 
 // cachedPlanN returns the shared plan for shape, building it on first use.
@@ -148,6 +150,8 @@ func cachedPlanNA(shape []int, a arith) *PlanN {
 		cache = planNCacheFMA
 	case arithExact:
 		cache = planNCacheExact
+	case arithPlain:
+		cache = planNCachePlain
 	}
 	planNMu.Lock()
 	defer planNMu.Unlock()

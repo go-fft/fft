@@ -71,6 +71,8 @@ var (
 	realPlan2CacheFMA = map[[2]int]*RealPlan2{}
 	// realPlan2CacheExact holds the Exact plans (cachedRealPlan2A).
 	realPlan2CacheExact = map[[2]int]*RealPlan2{}
+	// realPlan2CachePlain holds the NoFMA plans (cachedRealPlan2A).
+	realPlan2CachePlain = map[[2]int]*RealPlan2{}
 )
 
 // cachedRealPlan2 returns the shared plan for rows×cols, building it on first
@@ -91,6 +93,8 @@ func cachedRealPlan2A(rows, cols int, a arith) *RealPlan2 {
 		cache = realPlan2CacheFMA
 	case arithExact:
 		cache = realPlan2CacheExact
+	case arithPlain:
+		cache = realPlan2CachePlain
 	}
 	realPlan2Mu.Lock()
 	defer realPlan2Mu.Unlock()

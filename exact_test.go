@@ -7,7 +7,11 @@ import (
 
 // exact returns o with Options.Exact set: the reference arithmetic. (The copy
 // of this file that runs against v0.28.16 returns o, which has no such field.)
-func exact(o Options) Options { o.Exact = true; return o }
+func exact(o Options) Options { return exactMode(o) }
+
+// exactMode is what exact applies: Exact, except while a test swaps it for
+// NoFMA to run the same case set on the other unfused arithmetic.
+var exactMode = func(o Options) Options { o.Exact = true; return o }
 
 // fftRealWithRef is FFTRealWith with the reference arithmetic. (The copy of this
 // file that runs against v0.28.16, which has no FFTRealWith, returns FFTWith of
@@ -19,15 +23,20 @@ func fftRealWithRef(x []float64, o Options) []complex128 { return FFTRealWith(x,
 // that arithmetic when the default stops being it (#121).
 var exactOpts = exact(Options{})
 
-// TestExactIsTheDefaultToday: Options.Exact is the reference arithmetic, which
-// is what every transform computes by default today, so each transform with
-// Exact set gives the default's bits, for every function that takes Options
-// (float32 and plan constructors included), on every route (Stockham, the
-// iterative power-of-two kernel, Rader, Bluestein, strips, real and 2-D). The
-// day the default changes, this test is the one that says so, and the
-// comparison moves to the reference (#121 step 3). The golden digests of
-// v0.28.16 (exact_golden_test.go) tie both to the released bits.
-func TestExactIsTheDefaultToday(t *testing.T) {
+// TestExactIsTheDefaultWhereItDoesNotFuse: Options.Exact is the reference
+// arithmetic. Where the default does not fuse (no FMA3, other architectures:
+// arith.fused()) it is what every transform computes by default, so each
+// transform with Exact set gives the default's bits, for every function that
+// takes Options (float32 and plan constructors included), on every route
+// (Stockham, the iterative power-of-two kernel, Rader, Bluestein, strips, real
+// and 2-D). Where the default fuses (amd64 with FMA3) the two differ in the
+// last bits, inside the bound, and TestDefaultFusesWhereItCan says so. The
+// golden digests of v0.28.16 (exact_golden_test.go) tie Exact to the released
+// bits either way.
+func TestExactIsTheDefaultWhereItDoesNotFuse(t *testing.T) {
+	if arithDefault.fused() {
+		t.Skip("the default fuses on this CPU: see TestDefaultFusesWhereItCan")
+	}
 	for _, c := range exactCases() {
 		if !sameAny(c.def(), c.exact()) {
 			t.Errorf("%s: Options{Exact: true} differs from the default", c.name)
@@ -35,11 +44,58 @@ func TestExactIsTheDefaultToday(t *testing.T) {
 	}
 }
 
-// TestExactIgnoresFMAAvailability: Exact never builds an FMA plan, whatever
-// the CPU offers, and with FMA forced available it still gives the bits of the
-// default plan, which an FMA request does not.
-func TestExactIgnoresFMAAvailability(t *testing.T) {
+// TestDefaultFusesWhereItCan: the default arithmetic is the fused one where the
+// CPU has FMA3, and differs from Exact in the last bits somewhere over the case
+// set; NoFMA and Exact never fuse; FMA is the default there.
+func TestDefaultFusesWhereItCan(t *testing.T) {
+	isolatePlans(t)
+	// As shipped: the default fuses exactly where FMA3 runs.
+	if !defaultFuses || arithDefault.fused() != fmaAvailable {
+		t.Fatalf("defaultFuses = %v, default fuses = %v, FMA3 available = %v", defaultFuses, arithDefault.fused(), fmaAvailable)
+	}
+	// With FMA forced available (any architecture) and the default's fusing on.
 	forceFMA(t)
+	defaultFuses = true
+	forgetAllPlans()
+	if !cachedPlanA(1000, arithDefault).sk.fma {
+		t.Fatal("the default plan of 1000 points does not fuse")
+	}
+	if cachedPlanA(1000, arithPlain).sk.fma || cachedPlanA(1000, arithExact).sk.fma {
+		t.Fatal("a NoFMA or Exact plan fuses")
+	}
+	if (Options{}).arith() != arithDefault || (Options{NoFMA: true}).arith() != arithPlain || (Options{FMA: true}).arith() != arithFMA {
+		t.Fatal("Options.arith")
+	}
+	differ := 0
+	for _, c := range exactCases() {
+		if !strings.Contains(c.name, "32") && !strings.HasPrefix(c.name, "FFTRealWith") && !sameAny(c.def(), c.exact()) {
+			differ++
+		}
+	}
+	if differ == 0 {
+		t.Error("the default fuses and equals Exact on every case: the flip did nothing")
+	}
+}
+
+// TestExactIgnoresFMAAvailability: Exact never builds an FMA plan, whatever
+// the CPU offers, and its bits do not depend on whether FMA is available:
+// every case gives the same digest with FMA switched off and forced on.
+func TestExactIgnoresFMAAvailability(t *testing.T) {
+	isolatePlans(t)
+	cases := exactCases()
+	defer func(a bool) { fmaAvailable = a }(fmaAvailable)
+	fmaAvailable = false
+	forgetAllPlans()
+	off := make([]string, len(cases))
+	for i, c := range cases {
+		off[i] = digestAny(c.exact())
+	}
+	forceFMA(t)
+	for i, c := range cases {
+		if got := digestAny(c.exact()); got != off[i] {
+			t.Errorf("%s: Exact's bits depend on FMA being available", c.name)
+		}
+	}
 	for _, n := range []int{64, 256, 1000, 1009, 4099} {
 		p := NewPlanWith(n, exactOpts)
 		if p.sk != nil && p.sk.fma || p.rader != nil && p.rader.fma || p.bluestein != nil && p.bluestein.fma {
@@ -54,11 +110,6 @@ func TestExactIgnoresFMAAvailability(t *testing.T) {
 	}
 	if rp2 := NewRealPlan2With(8, 8, exactOpts); NewPlanNWith([]int{8, 8}, exactOpts).fma || rp2.col.fma || rp2.row.fma {
 		t.Fatal("an Exact N-D plan is an FMA plan")
-	}
-	for _, c := range exactCases() {
-		if !sameAny(c.def(), c.exact()) {
-			t.Errorf("%s: with FMA available, Options{Exact: true} differs from the default", c.name)
-		}
 	}
 }
 
@@ -118,5 +169,34 @@ func TestExactAndFMARefused(t *testing.T) {
 			}()
 			f()
 		}()
+	}
+}
+
+// TestNoFMAAndFMARefused: NoFMA and FMA together panic, naming the function, from
+// the validators every entry point shares (1-D, N-D, plan constructors and the
+// float32 ones); NoFMA with Exact is redundant and accepted.
+func TestNoFMAAndFMARefused(t *testing.T) {
+	both := Options{NoFMA: true, FMA: true}
+	x := make([]complex128, 8)
+	d := make([]complex128, 16)
+	x32 := make([]complex64, 8)
+	for name, f := range map[string]func(){
+		"FFTWith":         func() { FFTWith(x, both) },
+		"FFTNWith":        func() { FFTNWith(d, []int{4, 4}, both) },
+		"NewPlanWith":     func() { NewPlanWith(8, both) },
+		"NewRealPlanWith": func() { NewRealPlanWith(8, both) },
+		"FFT32With":       func() { FFT32With(x32, both) },
+	} {
+		func() {
+			defer func() {
+				if r, _ := recover().(string); !strings.Contains(r, name+": Options.NoFMA and Options.FMA are mutually exclusive") {
+					t.Errorf("%s: panic %q", name, r)
+				}
+			}()
+			f()
+		}()
+	}
+	if got := FFTWith(x, Options{NoFMA: true, Exact: true}); len(got) != 8 {
+		t.Fatal("NoFMA with Exact is accepted")
 	}
 }

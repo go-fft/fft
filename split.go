@@ -76,6 +76,8 @@ func clRowPlanA(n, size int, a arith) *Plan {
 		cache = clRowCacheFMA
 	case arithExact:
 		cache = clRowCacheExact
+	case arithPlain:
+		cache = clRowCachePlain
 	}
 	planMu.Lock()
 	defer planMu.Unlock()
@@ -87,7 +89,7 @@ func clRowPlanA(n, size int, a arith) *Plan {
 	return p
 }
 
-var clRowCache, clRowCacheFMA, clRowCacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
+var clRowCache, clRowCacheFMA, clRowCacheExact, clRowCachePlain = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
 
 // hswSplitFloor, when positive, keeps the split layout to the powers of two
 // of at least that many points: every other plan runs its passes

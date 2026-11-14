@@ -32,9 +32,10 @@ which random inputs do not approach. The bound is a regression gate, a way to
 see that a change did not make the transforms less accurate, and not a proof
 that no input exceeds it.
 
-Until the default changes, the arithmetic is also bit-identical to the package's
-Go reference on amd64 (README, "Opt-in fused multiply-add"); the tests that
-guard that are unchanged.
+The default arithmetic fuses multiply-adds on amd64 CPUs with FMA3 (README,
+"Fused multiply-add"); `Options.Exact` is the reference arithmetic, pinned to
+the bits of v0.28.16 by golden digests, and `Options.NoFMA` the default without
+the fusing. The bound holds for all of them, which is what the tests assert.
 
 ## The oracle
 

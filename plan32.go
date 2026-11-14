@@ -331,7 +331,7 @@ type raderPlan32 struct {
 }
 
 func newRaderPlan32(n int) *raderPlan32 {
-	d := newRaderPlan(n)
+	d := newRaderPlanA(n, arithPlain) // float32 plans take no arithmetic: the unfused tables, as before the default fused
 	q := n - 1
 	p := &raderPlan32{n: n, perm: d.perm, iperm: d.iperm, bF: toC64(d.bF), bI: toC64(d.bI), conv: newSKPlan32(q)}
 	p.scratch.New = func() any { b := make([]complex64, q); return &b }
@@ -384,7 +384,7 @@ type bluesteinPlan32 struct {
 }
 
 func newBluesteinPlan32(n int) *bluesteinPlan32 {
-	d := newBluesteinPlan(n)
+	d := newBluesteinPlanA(n, arithPlain) // as above
 	m := d.m
 	p := &bluesteinPlan32{n: n, m: m, wF: toC64(d.wF), wI: toC64(d.wI), bF: toC64(d.bF), bI: toC64(d.bI), conv: newSKPlan32(m)}
 	p.scratch.New = func() any { b := make([]complex64, m); return &b }

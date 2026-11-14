@@ -313,6 +313,8 @@ var (
 	planCacheFMA = map[int]*Plan{}
 	// planCacheExact holds the Exact plans (cachedPlanA).
 	planCacheExact = map[int]*Plan{}
+	// planCachePlain holds the NoFMA plans (cachedPlanA).
+	planCachePlain = map[int]*Plan{}
 )
 
 // cachedPlan returns a shared plan for length n, building and memoizing it on
@@ -346,6 +348,8 @@ func cachedPlanA(n int, a arith) *Plan {
 		return cachedPlanIn(planCacheFMA, n, newPlanFMA)
 	case arithExact:
 		return cachedPlanIn(planCacheExact, n, newPlanExact)
+	case arithPlain:
+		return cachedPlanIn(planCachePlain, n, newPlanPlain)
 	}
 	return cachedPlan(n)
 }
@@ -355,6 +359,9 @@ func newPlanFMA(n int) *Plan { return newPlanA(n, arithFMA) }
 
 // newPlanExact builds an Exact plan.
 func newPlanExact(n int) *Plan { return newPlanA(n, arithExact) }
+
+// newPlanPlain builds a NoFMA plan.
+func newPlanPlain(n int) *Plan { return newPlanA(n, arithPlain) }
 
 // cachedPlanIn is cachedPlanWith on the cache given.
 func cachedPlanIn(cache map[int]*Plan, n int, build func(int) *Plan) *Plan {

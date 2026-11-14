@@ -30,12 +30,79 @@ func planCounts() (def, fma, exact int) {
 			fma++
 		case strings.HasSuffix(k, "x"):
 			exact++
+		case strings.HasSuffix(k, "p"):
+			// a NoFMA plan: counted by plainPlans
 		default:
 			def++
 		}
 	}
 	planNAxesMu.Unlock()
 	return
+}
+
+// plainPlans is how many NoFMA plans the caches hold (planCounts' fourth
+// arithmetic).
+func plainPlans() int {
+	n := 0
+	planMu.Lock()
+	n += len(planCachePlain) + len(planNo16CachePlain) + len(clRowCachePlain)
+	planMu.Unlock()
+	realPlanMu.Lock()
+	n += len(realPlanCachePlain)
+	realPlanMu.Unlock()
+	realPlan2Mu.Lock()
+	n += len(realPlan2CachePlain)
+	realPlan2Mu.Unlock()
+	planNMu.Lock()
+	n += len(planNCachePlain)
+	planNMu.Unlock()
+	planNAxesMu.Lock()
+	for k := range planNAxesCache {
+		if strings.HasSuffix(k, "p") {
+			n++
+		}
+	}
+	planNAxesMu.Unlock()
+	return n
+}
+
+// TestNoFMACallsTouchOnlyPlainCaches: the same partition for Options.NoFMA: with
+// every cache empty, a NoFMA call of the case set leaves plans only in the
+// NoFMA caches, and, today, gives Exact's bits (the default without fusing is
+// the reference arithmetic; the day the default reorders its kernels this
+// equality is the thing to revisit).
+func TestNoFMACallsTouchOnlyPlainCaches(t *testing.T) {
+	isolatePlans(t)
+	defer func(m func(Options) Options) { exactMode = m }(exactMode)
+	ref := exactCases()
+	want := make([]string, len(ref))
+	for i, c := range ref {
+		want[i] = digestAny(c.exact())
+	}
+	// The cases call exact(o) when they run, so NoFMA stays in place for the loop.
+	exactMode = func(o Options) Options { o.NoFMA = true; return o }
+	cases := exactCases()
+	saw := 0
+	for i, c := range cases {
+		if strings.Contains(c.name, "32") || strings.HasPrefix(c.name, "FFTRealWith") {
+			continue // float32: one arithmetic; FFTRealWith's reference is Exact by definition
+		}
+		forgetAllPlans()
+		got := c.exact()
+		d, f, x := planCounts()
+		if d != 0 || f != 0 || x != 0 {
+			t.Errorf("%s: a NoFMA call left %d default, %d FMA and %d Exact plans in their caches", c.name, d, f, x)
+		}
+		if plainPlans() > 0 {
+			saw++
+		}
+		if digestAny(got) != want[i] {
+			t.Errorf("%s: NoFMA is not Exact's bits", c.name)
+		}
+	}
+	if saw < len(cases)/3 {
+		t.Errorf("only %d of %d cases used a NoFMA cache", saw, len(cases))
+	}
 }
 
 // TestExactCallsTouchOnlyExactCaches: with every cache empty, no Exact call of
@@ -58,8 +125,8 @@ func TestExactCallsTouchOnlyExactCaches(t *testing.T) {
 		forgetAllPlans()
 		c.exact()
 		d, f, x := planCounts()
-		if d != 0 || f != 0 {
-			t.Errorf("%s: an Exact call left %d default and %d FMA plans in their caches", c.name, d, f)
+		if d != 0 || f != 0 || plainPlans() != 0 {
+			t.Errorf("%s: an Exact call left %d default, %d FMA and %d NoFMA plans in their caches", c.name, d, f, plainPlans())
 		}
 		if x > 0 {
 			sawExact++
@@ -70,8 +137,8 @@ func TestExactCallsTouchOnlyExactCaches(t *testing.T) {
 		forgetAllPlans()
 		c.def()
 		d, f, x = planCounts()
-		if x != 0 || f != 0 {
-			t.Errorf("%s: a default call left %d Exact and %d FMA plans in their caches", c.name, x, f)
+		if x != 0 || f != 0 || plainPlans() != 0 {
+			t.Errorf("%s: a default call left %d Exact, %d FMA and %d NoFMA plans in their caches", c.name, x, f, plainPlans())
 		}
 		if d > 0 {
 			sawDefault++
