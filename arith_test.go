@@ -200,7 +200,7 @@ func TestArithPlansAreDistinct(t *testing.T) {
 			t.Fatalf("shape %v: 2-D real plans", sh)
 		}
 	}
-	if a, b, c := cachedPlanNo16A(48, arithDefault), cachedPlanNo16A(48, arithFMA), cachedPlanNo16A(48, arithExact); a == b || a == c || b == c {
+	if a, b, c, d := cachedPlanNo16A(48, arithDefault), cachedPlanNo16A(48, arithFMA), cachedPlanNo16A(48, arithExact), cachedPlanNo16A(48, arithPlain); a == b || a == c || b == c || d == a || d == b || d == c || cachedPlanNo16A(48, arithPlain) != d {
 		t.Fatal("no-radix-16 plans share an entry")
 	}
 	if (Options{Exact: true}).arith() != arithExact || (Options{FMA: true}).arith() != arithFMA || (Options{}).arith() != arithDefault {
@@ -218,6 +218,9 @@ func TestArithRowPlans(t *testing.T) {
 	d, f, x := clRowPlanA(64, 64*64, arithDefault), clRowPlanA(64, 64*64, arithFMA), clRowPlanA(64, 64*64, arithExact)
 	if d == nil || f == nil || x == nil || d == f || d == x || f == x {
 		t.Fatalf("row plans %p %p %p", d, f, x)
+	}
+	if pl := clRowPlanA(64, 64*64, arithPlain); pl == nil || pl == d || pl == f || pl == x || pl.sk.fma || clRowPlanA(64, 64*64, arithPlain) != pl {
+		t.Fatal("NoFMA row plan")
 	}
 	if x.sk.fma || !f.sk.fma || clRowPlanA(64, 64*64, arithExact) != x || clRowPlanA(64, 100, arithExact) != nil && clRowMin > 100 {
 		t.Fatal("row plan arithmetic or caching")

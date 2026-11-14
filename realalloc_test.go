@@ -49,7 +49,7 @@ func TestFFTRealBitIdenticalToPromotedFFT(t *testing.T) {
 	for _, n := range lens {
 		x := realAllocSignal(n)
 		want := FFT(promote(x))
-		if i := firstBitDiff(FFTRealWith(x, Options{Exact: true}), want); i != len(want) {
+		if i := firstBitDiff(FFTRealWith(x, Options{Exact: true}), FFTWith(promote(x), Options{Exact: true})); i != len(want) {
 			t.Fatalf("n=%d: FFTRealWith(Exact) differs from FFT(promoted) at bin %d", n, i)
 		}
 		got := FFTReal(x)
@@ -89,7 +89,7 @@ func TestRealPlanFFTReal(t *testing.T) {
 			t.Fatalf("n=%d: RealPlan.FFTReal differs from FFTReal at bin %d", n, i)
 		}
 		ex := NewRealPlanWith(n, Options{Exact: true}).FFTReal(make([]complex128, n), x)
-		if i := firstBitDiff(ex, FFT(promote(x))); i != n {
+		if i := firstBitDiff(ex, FFTWith(promote(x), Options{Exact: true})); i != n {
 			t.Fatalf("n=%d: Exact plan differs from FFT(promoted) at bin %d", n, i)
 		}
 	}
