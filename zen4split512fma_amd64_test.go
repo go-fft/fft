@@ -1,6 +1,7 @@
 package fft
 
 import (
+	"math"
 	"math/cmplx"
 	"testing"
 
@@ -30,8 +31,8 @@ func TestZen4Split512FMAPlans(t *testing.T) {
 	defer func(m map[int]bool, z map[int]bool, f map[int]fmaChoice) {
 		zen4Split512FMA, zen4Split512, fmaTable = m, z, f
 	}(zen4Split512FMA, zen4Split512, fmaTable)
-	if !kernels.UseStockhamAVX2 {
-		t.Skip("no AVX2 kernels")
+	if !kernels.UseStockhamAVX2 || !kernels.UseStockhamAVX512 {
+		t.Skip("the forced route runs the 512-bit split kernels, which need AVX-512 (absent here, e.g. Zen 3 or Rosetta)")
 	}
 	zen4Split512FMA = map[int]bool{1024: true, 2048: true}
 	if zen4Modes == nil {
@@ -62,6 +63,60 @@ func TestZen4Split512FMAPlans(t *testing.T) {
 		}
 		if worst > 1e-11*float64(n) {
 			t.Errorf("n=%d: error %g", n, worst)
+		}
+	}
+}
+
+// TestNoScalarRadix32: no default or FMA plan of the running CPU has a radix-32 pass
+// that no kernel runs (it would fall back to passScalarFMA, 4.8 times slower), at any
+// power of two, with the table as it is and with a table that asks for 32·8·8 where the
+// route has no kernel for it (the planner then refuses it and plans skFactorize's).
+func TestNoScalarRadix32(t *testing.T) {
+	isolatePlans(t)
+	defer func(f map[int]fmaChoice) { fmaTable = f }(fmaTable)
+	bad := map[int]fmaChoice{}
+	for k, v := range fmaTable {
+		bad[k] = v
+	}
+	for e := 5; e <= 16; e++ {
+		bad[1<<e] = fmaChoice{factors: append([]int{32}, skFactorize(1<<e/32)...), fuse: fmaAll}
+	}
+	for name, tab := range map[string]map[int]fmaChoice{"table": fmaTable, "asking for a first radix-32 pass everywhere": bad} {
+		fmaTable = tab
+		for e := 5; e <= 16; e++ {
+			n := 1 << e
+			for _, fma := range []bool{false, true} {
+				p := newSKPlanOpt(n, fma)
+				if hasScalarRadix32(p) {
+					t.Errorf("%s: n=%d fma=%v has a radix-32 pass with no kernel", name, n, fma)
+				}
+			}
+		}
+	}
+}
+
+// TestZen4Split512FMABound: the FMA plans of 1024 and 2048 points (the Zen 4's 512-bit
+// split route when run on one) hold the c2c bound of docs/accuracy.md against the
+// double-double oracle: err/(eps·log2 n) at most 1.5, forward and inverse.
+func TestZen4Split512FMABound(t *testing.T) {
+	for _, n := range []int{1024, 2048} {
+		for _, inverse := range []bool{false, true} {
+			for seed := uint64(1); seed <= 2; seed++ {
+				x := accComplexF64(n, seed)
+				want := oFFTN(cddFromC(x), []int{n}, []int{0}, inverse)
+				p := NewPlanWith(n, Options{FMA: true})
+				got := make([]complex128, n)
+				if inverse {
+					p.IFFT(got, x) // scaled by 1/n, as the oracle is
+				} else {
+					p.FFT(got, x)
+				}
+				r := errC(got, want) / (eps64 * math.Log2(float64(n)))
+				if r > 1.5 {
+					t.Errorf("n=%d inverse=%v seed=%d: err/(eps log2 n) = %.3f > 1.5", n, inverse, seed, r)
+				}
+				t.Logf("n=%d inverse=%v seed=%d: %.3f", n, inverse, seed, r)
+			}
 		}
 	}
 }

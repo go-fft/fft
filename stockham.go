@@ -67,9 +67,27 @@ func newSKPlan(n int) *skPlan { return newSKPlanOpt(n, false) }
 // Its factorization is fmaFactors' (fmaTable).
 func newSKPlanOpt(n int, fma bool) *skPlan {
 	if fma {
-		return newSKPlanFactorsOpt(n, fmaFactors(n), true)
+		p := newSKPlanFactorsOpt(n, fmaFactors(n), true)
+		if hasScalarRadix32(p) {
+			// The table's radix-32 pass has no kernel on this route (an interleaved
+			// radix-32 pass exists only as a final one): the Go pass would run, 4.8
+			// times slower than the plan it replaces. Plan the default factorization.
+			return newSKPlanFactorsOpt(n, skFactorize(n), true)
+		}
+		return p
 	}
 	return newSKPlanFactorsOpt(n, skFactorize(n), false)
+}
+
+// hasScalarRadix32 reports whether an FMA plan has a radix-32 pass that no kernel
+// runs: neither a split pass nor a final one (kernels.stockhamPass32FMA).
+func hasScalarRadix32(p *skPlan) bool {
+	for _, st := range p.stages {
+		if st.r == 32 && st.split == 0 && st.ido > 1 {
+			return true
+		}
+	}
+	return false
 }
 
 // newSKPlanFactors builds the plan for the given ordered radices, whose
