@@ -37,7 +37,7 @@ func TestR42FMATableAMD64(t *testing.T) {
 }
 
 // TestZen4FMATable: only a Zen 4 changes the Zen 3 table, and only at 1024
-// (32·32, two radix-32 passes, every pass fused); the table of another CPU,
+// (32·32, two radix-32 passes, every pass fused) and 2048 (32·8·8); the table of another CPU,
 // and nil, are returned as given.
 func TestZen4FMATable(t *testing.T) {
 	if zen4FMATable(nil, true) != nil {
@@ -51,13 +51,20 @@ func TestZen4FMATable(t *testing.T) {
 	if !ok || !slices.Equal(c.factors, []int{32, 32}) || c.fuse != fmaAll {
 		t.Fatalf("Zen 4 1024: %+v", c)
 	}
-	if _, ok := z[128]; !ok || len(z) != 2 {
-		t.Fatalf("Zen 4 table %v keeps Zen 3's 128 and adds only 1024", z)
+	c, ok = z[2048]
+	if !ok || !slices.Equal(c.factors, []int{32, 8, 8}) || c.fuse != fmaAll {
+		t.Fatalf("Zen 4 2048: %+v", c)
+	}
+	if _, ok := z[128]; !ok || len(z) != 3 {
+		t.Fatalf("Zen 4 table %v keeps Zen 3's 128 and adds only 1024 and 2048", z)
 	}
 	// The table drives the plan: a Zen 4 FMA plan of 1024 points runs two passes.
 	defer func(m map[int]fmaChoice) { fmaTable = m }(fmaTable)
 	fmaTable = z
 	isolatePlans(t)
+	if hasScalarRadix32(newSKPlanFactorsOpt(1024, []int{32, 32}, true)) {
+		t.Skip("no radix-32 split kernel on this CPU: the planner refuses the table's plan and takes skFactorize's")
+	}
 	p := newSKPlanOpt(1024, true)
 	if len(p.stages) != 2 {
 		t.Fatalf("an FMA plan of 1024 points has %d passes under the Zen 4 table, want 2", len(p.stages))
