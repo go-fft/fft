@@ -105,6 +105,15 @@ func TestRealPlanFFTReal(t *testing.T) {
 			}
 		}
 	}
+	// A longer src is accepted and only its first Len() elements are read.
+	for _, n := range []int{8, 9} {
+		x := realAllocSignal(n)
+		long := append(append([]float64(nil), x...), 1e300, 1e300, 1e300)
+		got := NewRealPlan(n).FFTReal(make([]complex128, n), long)
+		if i := firstBitDiff(got, FFTReal(x)); i != n {
+			t.Errorf("n=%d: a longer src changed bin %d", n, i)
+		}
+	}
 	mustPanic := func(what string, f func()) {
 		t.Helper()
 		defer func() {
