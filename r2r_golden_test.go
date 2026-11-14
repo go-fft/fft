@@ -136,7 +136,7 @@ func readNames(t *testing.T, path string) map[string]bool {
 	}
 	m := map[string]bool{}
 	for _, l := range strings.Split(string(b), "\n") {
-		if l != "" {
+		if l = strings.TrimRight(l, "\r"); l != "" { // Windows checkouts may use CRLF
 			m[l] = true
 		}
 	}
