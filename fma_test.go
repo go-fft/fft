@@ -259,7 +259,7 @@ func TestFMAEveryEntryPoint(t *testing.T) {
 			t.Fatalf("n=%d: IRFFTWith does not run the FMA plan", n)
 		}
 		h := HFFTWith(spec, Options{N: n, FMA: true})
-		want := irfftF(conjAll(spec), n, true)
+		want := irfftA(conjAll(spec), n, arithFMA)
 		for i := range want {
 			want[i] *= float64(n)
 		}
@@ -588,7 +588,7 @@ func TestFMARealAndSubsetComposition(t *testing.T) {
 	r := fmaReal(240, 21)
 	half := halfShape(sh, 1)
 	want := make([]complex128, 12*half[1])
-	realAxisForward(want, r, sh, half, 1, true)
+	realAxisForward(want, r, sh, half, 1, arithFMA)
 	newPlanNAxes(half, []int{0}, true).transform(want, want, false)
 	if !sameAll(RFFTNWith(r, sh, Options{FMA: true}), want) {
 		t.Fatal("RFFTNWith is not its FMA plans' composition")

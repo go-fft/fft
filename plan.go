@@ -55,13 +55,17 @@ func NewPlan(n int) *Plan { return newPlanF(n, false) }
 // methods take a Norm each (FFTNorm, IFFTNorm). NewPlanWith(n, Options{}) is
 // NewPlan(n).
 func NewPlanWith(n int, o Options) *Plan {
-	return newPlanF(n, o.checkPlan("NewPlanWith"))
+	return newPlanA(n, o.checkPlan("NewPlanWith"))
 }
 
-// newPlanF is NewPlan, an FMA plan when fma is set (already resolved by
-// fmaOn): its Stockham plan, or the convolution plans of Rader and
-// Bluestein, fuse their twiddle products.
-func newPlanF(n int, fma bool) *Plan {
+// newPlanF is newPlanA for the bool-flag API: the default plan, or the FMA one.
+func newPlanF(n int, fma bool) *Plan { return newPlanA(n, arithFromFMA(fma)) }
+
+// newPlanA is NewPlan of arithmetic a: an FMA plan fuses its Stockham passes'
+// twiddle products and the convolutions of Rader and Bluestein; an Exact plan
+// and its convolutions' plans are Exact ones (arith.go).
+func newPlanA(n int, a arith) *Plan {
+	fma := a.fused()
 	p := &Plan{n: n}
 	if n <= 1 {
 		return p
@@ -91,11 +95,11 @@ func newPlanF(n int, fma bool) *Plan {
 	// engine in all but a handful of cases — see rader.go.
 	if isPrime(n) {
 		if _, ok := convCost(n - 1); ok {
-			p.rader = newRaderPlanOpt(n, fma)
+			p.rader = newRaderPlanA(n, a)
 			return p
 		}
 	}
-	p.bluestein = newBluesteinPlanOpt(n, fma)
+	p.bluestein = newBluesteinPlanA(n, a)
 	return p
 }
 
@@ -307,6 +311,8 @@ var (
 	planCache = map[int]*Plan{}
 	// planCacheFMA holds the FMA plans (cachedPlanF).
 	planCacheFMA = map[int]*Plan{}
+	// planCacheExact holds the Exact plans (cachedPlanA).
+	planCacheExact = map[int]*Plan{}
 )
 
 // cachedPlan returns a shared plan for length n, building and memoizing it on
@@ -330,15 +336,25 @@ func cachedPlanWith(n int, build func(int) *Plan) *Plan { return cachedPlanIn(pl
 // cachedPlanF is cachedPlan for an FMA plan when fma is set (already
 // resolved by fmaOn): FMA plans have a cache of their own, planCacheFMA, so
 // that a length never gets the other kind of plan.
-func cachedPlanF(n int, fma bool) *Plan {
-	if !fma {
-		return cachedPlan(n)
+func cachedPlanF(n int, fma bool) *Plan { return cachedPlanA(n, arithFromFMA(fma)) }
+
+// cachedPlanA is cachedPlan for arithmetic a: each arithmetic has a cache of
+// its own, so that a length never gets a plan of another one.
+func cachedPlanA(n int, a arith) *Plan {
+	switch a {
+	case arithFMA:
+		return cachedPlanIn(planCacheFMA, n, newPlanFMA)
+	case arithExact:
+		return cachedPlanIn(planCacheExact, n, newPlanExact)
 	}
-	return cachedPlanIn(planCacheFMA, n, newPlanFMA)
+	return cachedPlan(n)
 }
 
 // newPlanFMA builds an FMA plan.
-func newPlanFMA(n int) *Plan { return newPlanF(n, true) }
+func newPlanFMA(n int) *Plan { return newPlanA(n, arithFMA) }
+
+// newPlanExact builds an Exact plan.
+func newPlanExact(n int) *Plan { return newPlanA(n, arithExact) }
 
 // cachedPlanIn is cachedPlanWith on the cache given.
 func cachedPlanIn(cache map[int]*Plan, n int, build func(int) *Plan) *Plan {

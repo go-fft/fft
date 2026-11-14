@@ -21,15 +21,15 @@ import "sync"
 //
 // shape lengths must be positive and shape[0]*shape[1] must equal len(data);
 // RFFT2 panics otherwise. The input is not modified.
-func RFFT2(data []float64, shape [2]int) []complex128 { return rfft2F(data, shape, false) }
+func RFFT2(data []float64, shape [2]int) []complex128 { return rfft2A(data, shape, arithDefault) }
 
-// rfft2F is RFFT2 on an FMA plan when fma is set (already resolved by fmaOn).
-func rfft2F(data []float64, shape [2]int, fma bool) []complex128 {
+// rfft2A is RFFT2 on a plan of arithmetic a.
+func rfft2A(data []float64, shape [2]int, a arith) []complex128 {
 	rows, cols := shape[0], shape[1]
 	if shapeProduct(rows, cols) != len(data) {
 		panic("fft: shape product does not match len(data)")
 	}
-	p := cachedRealPlan2F(rows, cols, fma)
+	p := cachedRealPlan2A(rows, cols, a)
 	return p.RFFT(make([]complex128, p.SpectrumLen()), data)
 }
 
@@ -46,13 +46,13 @@ func rfft2F(data []float64, shape [2]int, fma bool) []complex128 {
 // is not modified. The output has shape[0]*shape[1] values whatever the
 // spectrum's length: bound the shape when it comes from untrusted input (see
 // SECURITY.md).
-func IRFFT2(data []complex128, shape [2]int) []float64 { return irfft2F(data, shape, false) }
+func IRFFT2(data []complex128, shape [2]int) []float64 { return irfft2A(data, shape, arithDefault) }
 
-// irfft2F is IRFFT2 on an FMA plan when fma is set.
-func irfft2F(data []complex128, shape [2]int, fma bool) []float64 {
+// irfft2A is IRFFT2 on a plan of arithmetic a.
+func irfft2A(data []complex128, shape [2]int, a arith) []float64 {
 	rows, cols := shape[0], shape[1]
 	shapeProduct(rows, cols)
-	p := cachedRealPlan2F(rows, cols, fma)
+	p := cachedRealPlan2A(rows, cols, a)
 	spec := data
 	if len(spec) != p.SpectrumLen() {
 		// Fewer bins than the layout holds read as zeros, extra bins are
@@ -69,6 +69,8 @@ var (
 	realPlan2Cache = map[[2]int]*RealPlan2{}
 	// realPlan2CacheFMA holds the FMA plans (cachedRealPlan2F).
 	realPlan2CacheFMA = map[[2]int]*RealPlan2{}
+	// realPlan2CacheExact holds the Exact plans (cachedRealPlan2A).
+	realPlan2CacheExact = map[[2]int]*RealPlan2{}
 )
 
 // cachedRealPlan2 returns the shared plan for rows×cols, building it on first
@@ -78,16 +80,24 @@ func cachedRealPlan2(rows, cols int) *RealPlan2 { return cachedRealPlan2F(rows, 
 // cachedRealPlan2F is cachedRealPlan2 for an FMA plan when fma is set, from
 // a cache of its own.
 func cachedRealPlan2F(rows, cols int, fma bool) *RealPlan2 {
+	return cachedRealPlan2A(rows, cols, arithFromFMA(fma))
+}
+
+// cachedRealPlan2A is cachedRealPlan2 for arithmetic a, from a cache of its own.
+func cachedRealPlan2A(rows, cols int, a arith) *RealPlan2 {
 	cache := realPlan2Cache
-	if fma {
+	switch a {
+	case arithFMA:
 		cache = realPlan2CacheFMA
+	case arithExact:
+		cache = realPlan2CacheExact
 	}
 	realPlan2Mu.Lock()
 	defer realPlan2Mu.Unlock()
 	key := [2]int{rows, cols}
 	p, ok := cache[key]
 	if !ok {
-		p = newRealPlan2F(rows, cols, fma)
+		p = newRealPlan2A(rows, cols, a)
 		cache[key] = p
 	}
 	return p

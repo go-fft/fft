@@ -38,10 +38,16 @@ func cachedPlanNo16(n int) *Plan { return cachedPlanNo16F(n, false) }
 
 // cachedPlanNo16F is cachedPlanNo16 for an FMA plan when fma is set, from a
 // cache of its own.
-func cachedPlanNo16F(n int, fma bool) *Plan {
+func cachedPlanNo16F(n int, fma bool) *Plan { return cachedPlanNo16A(n, arithFromFMA(fma)) }
+
+// cachedPlanNo16A is cachedPlanNo16 for arithmetic a, from a cache of its own.
+func cachedPlanNo16A(n int, a arith) *Plan {
 	cache := planNo16Cache
-	if fma {
+	switch a {
+	case arithFMA:
 		cache = planNo16CacheFMA
+	case arithExact:
+		cache = planNo16CacheExact
 	}
 	planMu.Lock()
 	defer planMu.Unlock()
@@ -53,13 +59,13 @@ func cachedPlanNo16F(n int, fma bool) *Plan {
 			// length silently; refuse it loudly instead.
 			panic(fmt.Sprintf("fft: internal: no-16 factorization of %d multiplies to %d", n, prod))
 		}
-		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, fma)}
+		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, a.fused())}
 		cache[n] = p
 	}
 	return p
 }
 
-var planNo16Cache, planNo16CacheFMA = map[int]*Plan{}, map[int]*Plan{}
+var planNo16Cache, planNo16CacheFMA, planNo16CacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
 
 // stockhamCovers reports whether skFactorizeOrder's passes multiply to n,
 // that is whether a Stockham plan without radix 16 can transform n points.

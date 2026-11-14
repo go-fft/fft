@@ -62,26 +62,32 @@ var clRowMin int
 // takes for lines of length n: clRowOrder's when the plan is large enough
 // and the length is in the table, else nil; an FMA plan when fma is set,
 // from a cache of its own.
-func clRowPlanF(n, size int, fma bool) *Plan {
+func clRowPlanF(n, size int, fma bool) *Plan { return clRowPlanA(n, size, arithFromFMA(fma)) }
+
+// clRowPlanA is clRowPlanF for arithmetic a, from a cache of its own.
+func clRowPlanA(n, size int, a arith) *Plan {
 	f := clRowOrder[n]
 	if f == nil || size < clRowMin {
 		return nil
 	}
 	cache := clRowCache
-	if fma {
+	switch a {
+	case arithFMA:
 		cache = clRowCacheFMA
+	case arithExact:
+		cache = clRowCacheExact
 	}
 	planMu.Lock()
 	defer planMu.Unlock()
 	p, ok := cache[n]
 	if !ok {
-		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, fma)}
+		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, a.fused())}
 		cache[n] = p
 	}
 	return p
 }
 
-var clRowCache, clRowCacheFMA = map[int]*Plan{}, map[int]*Plan{}
+var clRowCache, clRowCacheFMA, clRowCacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
 
 // hswSplitFloor, when positive, keeps the split layout to the powers of two
 // of at least that many points: every other plan runs its passes
