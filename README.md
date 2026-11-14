@@ -77,6 +77,7 @@ p.FFT(dst, src)               // dst and src are []complex128 of length n (may a
 p.IFFT(dst, src)              // normalized inverse
 rp  := fft.NewRealPlan(n)      // real-input transform plan
 rp.RFFT(dst, src)             // src []float64 (len n), dst []complex128 (len n/2+1)
+rp.FFTReal(full, src)         // the full spectrum, full []complex128 (len n), no allocation
 rp.IRFFT(out, spec)           // out []float64 (len n), spec the half spectrum
 
 // N-D and real 2-D plans: write into your slice, allocate nothing in steady

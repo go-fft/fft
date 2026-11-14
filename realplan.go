@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/go-fft/fft/internal/kernels"
+	"github.com/go-simd/floats"
 )
 
 // A RealPlan is a reusable, precomputed real-input transform of a fixed length
@@ -63,8 +64,9 @@ func NewRealPlanWith(n int, o Options) *RealPlan {
 
 // FFTReal writes the full complex spectrum of the real signal src into dst and
 // returns dst[:Len()]: the plan form of the package function FFTReal, without
-// its result allocation. src must have length Len() and dst at least Len(), or
-// FFTReal panics. For an even length it runs RFFT into dst[:Len()/2+1] and
+// its result allocation. src and dst must each have at least Len() elements, or
+// FFTReal panics; only the first Len() of src are read and the first Len() of
+// dst written. For an even length it runs RFFT into dst[:Len()/2+1] and
 // writes the conjugate mirror X[N-k] = conj(X[k]) above it, so the result is
 // exactly Hermitian; an odd length, and a plan built with Options.Exact, promote
 // src to complex and run the complex FFT in place in dst, bit for bit FFT of the
@@ -97,15 +99,11 @@ func (p *RealPlan) FFTReal(dst []complex128, src []float64) []complex128 {
 	}
 	m := n / 2
 	p.RFFT(dst[:m+1], src)
-	// The conjugate mirror: dst[n-k] = conj(dst[k]) for k = 1 .. m-1, written as a
-	// walk over two equal-length slices so the loop carries no bounds check.
-	lo := dst[1:m]
-	hi := dst[m+1 : n]
-	hi = hi[:len(lo)]
-	j := len(hi) - 1
-	for _, v := range lo {
-		hi[j] = complexConj(v)
-		j--
+	// The conjugate mirror: dst[n-k] = conj(dst[k]) for k = 1 .. m-1, the numbers
+	// dst[1:m] conjugated and in reverse order into dst[m+1:n] (a go-simd/floats
+	// kernel, exact: only copies and negations).
+	if m > 1 { // n = 2 has no interior bin
+		floats.ConjReverse(asFloats(dst[m+1:n]), asFloats(dst[1:m]))
 	}
 	return dst
 }
