@@ -96,7 +96,7 @@ func zmBlueLoops(p *bluesteinPlan, dst, src []complex128, inverse bool) {
 	for j := 0; j < n; j++ {
 		a[j] = src[j] * w[j]
 	}
-	plan := cachedPlan(p.m)
+	plan := cachedPlanA(p.m, p.ar)
 	plan.execute(a, a, false)
 	kernels.CMul(a, bSpec)
 	plan.execute(a, a, true)
