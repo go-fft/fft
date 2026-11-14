@@ -25,16 +25,20 @@ func NewRealPlan2(rows, cols int) *RealPlan2 { return newRealPlan2F(rows, cols, 
 // FMA. The other fields must be zero, as for NewPlanWith. NewRealPlan2With(rows,
 // cols, Options{}) is NewRealPlan2(rows, cols).
 func NewRealPlan2With(rows, cols int, o Options) *RealPlan2 {
-	return newRealPlan2F(rows, cols, o.checkPlan("NewRealPlan2With"))
+	return newRealPlan2A(rows, cols, o.checkPlan("NewRealPlan2With"))
 }
 
-// newRealPlan2F is NewRealPlan2 on FMA plans when fma is set (already
-// resolved by fmaOn).
+// newRealPlan2F is newRealPlan2A for the bool-flag API: the default plan, or the FMA one.
 func newRealPlan2F(rows, cols int, fma bool) *RealPlan2 {
+	return newRealPlan2A(rows, cols, arithFromFMA(fma))
+}
+
+// newRealPlan2A is NewRealPlan2 on plans of arithmetic a.
+func newRealPlan2A(rows, cols int, a arith) *RealPlan2 {
 	checkAlloc("NewRealPlan2", shapeProduct(rows, cols), 16)
 	p := &RealPlan2{rows: rows, cols: cols, rcols: cols/2 + 1}
-	p.row = cachedRealPlanF(cols, fma)
-	p.col = newPlanNF([]int{rows, p.rcols}, fma)
+	p.row = cachedRealPlanA(cols, a)
+	p.col = newPlanNA([]int{rows, p.rcols}, a)
 	p.col.colsOf2 = true
 	size := rows * p.rcols
 	p.scratch.New = func() any { b := make([]complex128, size); return &b }
