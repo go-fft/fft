@@ -140,3 +140,19 @@ func TestArithPlansAreDistinct(t *testing.T) {
 		t.Fatal("Options.arith")
 	}
 }
+
+// TestArithRowPlans: the row plans of an N-D plan's last axis (clRowOrder, the
+// lines Round 37 factorizes by table) are distinct per arithmetic too. The
+// table is empty on some architectures, so the test sets one.
+func TestArithRowPlans(t *testing.T) {
+	isolatePlans(t)
+	defer func(o map[int][]int, m int) { clRowOrder, clRowMin = o, m }(clRowOrder, clRowMin)
+	clRowOrder, clRowMin = map[int][]int{64: {8, 8}}, 0
+	d, f, x := clRowPlanA(64, 64*64, arithDefault), clRowPlanA(64, 64*64, arithFMA), clRowPlanA(64, 64*64, arithExact)
+	if d == nil || f == nil || x == nil || d == f || d == x || f == x {
+		t.Fatalf("row plans %p %p %p", d, f, x)
+	}
+	if x.sk.fma || !f.sk.fma || clRowPlanA(64, 64*64, arithExact) != x || clRowPlanA(64, 100, arithExact) != nil && clRowMin > 100 {
+		t.Fatal("row plan arithmetic or caching")
+	}
+}
