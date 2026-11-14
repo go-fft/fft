@@ -40,16 +40,16 @@ func RFFT(x []float64) []complex128 {
 // The output has n values whatever the spectrum's length, so n sets the
 // allocation, as it would for make: bound it when it comes from untrusted
 // input (see SECURITY.md).
-func IRFFT(spectrum []complex128, n int) []float64 { return irfftF(spectrum, n, false) }
+func IRFFT(spectrum []complex128, n int) []float64 { return irfftA(spectrum, n, arithDefault) }
 
-// irfftF is IRFFT on an FMA plan when fma is set (already resolved by fmaOn).
-func irfftF(spectrum []complex128, n int, fma bool) []float64 {
+// irfftA is IRFFT on a plan of arithmetic a.
+func irfftA(spectrum []complex128, n int, a arith) []float64 {
 	if n <= 0 {
 		return []float64{}
 	}
 	checkAlloc("IRFFT", n, 16)
 	dst := make([]float64, n)
-	return cachedRealPlanF(n, fma).IRFFT(dst, spectrum)
+	return cachedRealPlanA(n, a).IRFFT(dst, spectrum)
 }
 
 // realPlanCache memoizes RealPlans by length so RFFT/IRFFT reuse twiddle tables.
@@ -58,6 +58,8 @@ var (
 	realPlanCache = map[int]*RealPlan{}
 	// realPlanCacheFMA holds the FMA plans (cachedRealPlanF).
 	realPlanCacheFMA = map[int]*RealPlan{}
+	// realPlanCacheExact holds the Exact plans (cachedRealPlanA).
+	realPlanCacheExact = map[int]*RealPlan{}
 )
 
 // cachedRealPlan returns a shared real-input plan for length n, building and
@@ -66,15 +68,21 @@ func cachedRealPlan(n int) *RealPlan { return cachedRealPlanF(n, false) }
 
 // cachedRealPlanF is cachedRealPlan for an FMA plan when fma is set
 // (already resolved by fmaOn), from a cache of its own.
-func cachedRealPlanF(n int, fma bool) *RealPlan {
+func cachedRealPlanF(n int, fma bool) *RealPlan { return cachedRealPlanA(n, arithFromFMA(fma)) }
+
+// cachedRealPlanA is cachedRealPlan for arithmetic a, from a cache of its own.
+func cachedRealPlanA(n int, a arith) *RealPlan {
 	cache := realPlanCache
-	if fma {
+	switch a {
+	case arithFMA:
 		cache = realPlanCacheFMA
+	case arithExact:
+		cache = realPlanCacheExact
 	}
 	realPlanMu.Lock()
 	p, ok := cache[n]
 	if !ok {
-		p = newRealPlanF(n, fma)
+		p = newRealPlanA(n, a)
 		cache[n] = p
 	}
 	realPlanMu.Unlock()

@@ -71,6 +71,27 @@ func TestExactGolden(t *testing.T) {
 		t.Logf("wrote %d digests to %s", len(lines), goldenPath())
 		return
 	}
+	checkExactGolden(t, cases)
+}
+
+// TestExactGoldenAfterDefault: Exact's bits are v0.28.16's whatever the default
+// ran before it: every default call of the case set runs first, filling the
+// default plan caches, and only then are the Exact calls compared with the
+// digests. An Exact transform that took a plan from a default cache (arith.go)
+// would carry the default's arithmetic into the comparison.
+func TestExactGoldenAfterDefault(t *testing.T) {
+	isolatePlans(t)
+	cases := exactCases()
+	forgetAllPlans()
+	for _, c := range cases {
+		c.def()
+	}
+	checkExactGolden(t, cases)
+}
+
+// checkExactGolden compares the Exact call of every case with its golden digest.
+func checkExactGolden(t *testing.T, cases []exactCase) {
+	t.Helper()
 	if runtime.GOARCH == "arm64" && (raceEnabled || testing.CoverMode() != "") {
 		// gc fuses multiply-adds differently when it instruments the code
 		// (round36_test.go saw an ulp on macOS arm64 under -race and -coverpkg):

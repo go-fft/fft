@@ -50,20 +50,20 @@ func IFFT(x []complex128) []complex128 {
 // the promoted signal in place, as before. FFTRealWith with Options.Exact
 // always promotes and transforms, bit for bit FFT of the promoted signal.
 func FFTReal(x []float64) []complex128 {
-	return fftReal(x, len(x), false, false)
+	return fftReal(x, len(x), arithDefault)
 }
 
-// fftReal is the full spectrum of x truncated or zero-padded to n points:
-// promote-then-FFT when exact or n is odd, the real transform plus the
-// conjugate mirror otherwise.
-func fftReal(x []float64, n int, exact, fma bool) []complex128 {
+// fftReal is the full spectrum of x truncated or zero-padded to n points, on
+// plans of arithmetic a: promote-then-FFT when a is Exact or n is odd, the real
+// transform plus the conjugate mirror otherwise.
+func fftReal(x []float64, n int, a arith) []complex128 {
 	out := make([]complex128, n)
-	if n <= 1 || exact || n%2 != 0 {
+	if n <= 1 || a == arithExact || n%2 != 0 {
 		for i, v := range x[:min(len(x), n)] {
 			out[i] = complex(v, 0)
 		}
 		if n > 1 {
-			cachedPlanF(n, fma).FFT(out, out)
+			cachedPlanA(n, a).FFT(out, out)
 		}
 		return out
 	}
@@ -72,7 +72,7 @@ func fftReal(x []float64, n int, exact, fma bool) []complex128 {
 		in = make([]float64, n)
 		copy(in, x)
 	}
-	return cachedRealPlanF(n, fma).FFTReal(out, in)
+	return cachedRealPlanA(n, a).FFTReal(out, in)
 }
 
 // complexConj returns the complex conjugate of z.

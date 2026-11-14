@@ -39,12 +39,12 @@ type RealPlan struct {
 	// spectrum) per concurrent caller of the odd path; nil otherwise.
 	oddScratch *sync.Pool
 
-	// fma: the complex plans (half, full) are FMA plans (Options.FMA).
+	// fma: the complex plans (half, full) are FMA plans (Options.FMA); ar is
+	// their arithmetic (arith.go).
 	fma bool
-
-	// exact: the plan was built with Options.Exact, so FFTReal promotes and runs
-	// the complex FFT instead of the real transform plus the mirror.
-	exact bool
+	// ar == arithExact: the plan was built with Options.Exact, so FFTReal promotes
+	// and runs the complex FFT instead of the real transform plus the mirror.
+	ar arith
 }
 
 // NewRealPlan returns a real-input transform plan for length n, precomputing
@@ -57,9 +57,7 @@ func NewRealPlan(n int) *RealPlan { return newRealPlanF(n, false) }
 // reference arithmetic (see Options.Exact) and excludes FMA. The other fields
 // must be zero, as for NewPlanWith. NewRealPlanWith(n, Options{}) is NewRealPlan(n).
 func NewRealPlanWith(n int, o Options) *RealPlan {
-	p := newRealPlanF(n, o.checkPlan("NewRealPlanWith"))
-	p.exact = o.Exact
-	return p
+	return newRealPlanA(n, o.checkPlan("NewRealPlanWith"))
 }
 
 // FFTReal writes the full complex spectrum of the real signal src into dst and
@@ -90,11 +88,11 @@ func (p *RealPlan) FFTReal(dst []complex128, src []float64) []complex128 {
 		dst[0] = complex(src[0], 0)
 		return dst
 	}
-	if p.half == nil || p.exact {
+	if p.half == nil || p.ar == arithExact {
 		for i, v := range src[:n] {
 			dst[i] = complex(v, 0)
 		}
-		cachedPlanF(n, p.fma).FFT(dst, dst)
+		cachedPlanA(n, p.ar).FFT(dst, dst)
 		return dst
 	}
 	m := n / 2
@@ -108,17 +106,19 @@ func (p *RealPlan) FFTReal(dst []complex128, src []float64) []complex128 {
 	return dst
 }
 
-// newRealPlanF is NewRealPlan on FMA complex plans when fma is set (already
-// resolved by fmaOn).
-func newRealPlanF(n int, fma bool) *RealPlan {
-	p := &RealPlan{n: n, fma: fma}
+// newRealPlanF is newRealPlanA for the bool-flag API: the default plan, or the FMA one.
+func newRealPlanF(n int, fma bool) *RealPlan { return newRealPlanA(n, arithFromFMA(fma)) }
+
+// newRealPlanA is NewRealPlan on complex plans of arithmetic a.
+func newRealPlanA(n int, a arith) *RealPlan {
+	p := &RealPlan{n: n, fma: a.fused(), ar: a}
 	if n > 1 {
 		checkAlloc("NewRealPlan", n, 16) // the full complex buffer of an odd n
 	}
 	if n <= 1 || n%2 != 0 {
 		// Trivial or odd: defer to a full complex plan of length n.
 		if n >= 1 {
-			p.full = cachedPlanF(n, fma)
+			p.full = cachedPlanA(n, a)
 		}
 		if n > 1 {
 			p.oddScratch = &sync.Pool{New: func() any {
@@ -129,7 +129,7 @@ func newRealPlanF(n int, fma bool) *RealPlan {
 		return p
 	}
 	m := n / 2
-	p.half = cachedPlanF(m, fma)
+	p.half = cachedPlanA(m, a)
 	p.tw = make([]complex128, m+1)
 	for k := 0; k <= m; k++ {
 		ang := -2 * math.Pi * float64(k) / float64(n)
@@ -345,7 +345,7 @@ func (p *RealPlan) irfftFull(dst []float64, src []complex128) []float64 {
 		}
 	}
 	inv := make([]complex128, n)
-	cachedPlanF(n, p.fma).IFFT(inv, full)
+	cachedPlanA(n, p.ar).IFFT(inv, full)
 	for i := 0; i < n; i++ {
 		dst[i] = real(inv[i])
 	}

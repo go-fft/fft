@@ -36,7 +36,7 @@ func complexWith(name string, x []complex128, o Options, inverse bool) []complex
 	out := make([]complex128, n)
 	copy(out, x) // truncates to n, or leaves the zero padding past len(x)
 	if n > 1 {
-		cachedPlanF(n, o.fma()).execute(out, out, inverse)
+		cachedPlanA(n, o.arith()).execute(out, out, inverse)
 	}
 	scaleComplex(out, f)
 	return out
@@ -54,7 +54,7 @@ func FFTRealWith(x []float64, o Options) []complex128 {
 	n := o.check1D("FFTRealWith", len(x))
 	f := o.Norm.scale(n, false)
 	checkAlloc("FFTRealWith", n, 16)
-	out := fftReal(x, n, o.Exact, o.fma())
+	out := fftReal(x, n, o.arith())
 	scaleComplex(out, f)
 	return out
 }
@@ -66,12 +66,12 @@ func FFTRealWith(x []float64, o Options) []complex128 {
 // must be nil.
 func RFFTWith(x []float64, o Options) []complex128 {
 	n := o.check1D("RFFTWith", len(x))
-	return rfftScaled(x, n, o.Norm.scale(n, false), o.fma())
+	return rfftScaled(x, n, o.Norm.scale(n, false), o.arith())
 }
 
 // rfftScaled is the real forward transform of x truncated or zero-padded to n
-// points, multiplied by f.
-func rfftScaled(x []float64, n int, f float64, fma bool) []complex128 {
+// points on a plan of arithmetic a, multiplied by f.
+func rfftScaled(x []float64, n int, f float64, a arith) []complex128 {
 	if n == 0 {
 		return []complex128{}
 	}
@@ -81,7 +81,7 @@ func rfftScaled(x []float64, n int, f float64, fma bool) []complex128 {
 		in = make([]float64, n)
 		copy(in, x)
 	}
-	out := cachedRealPlanF(n, fma).RFFT(make([]complex128, n/2+1), in)
+	out := cachedRealPlanA(n, a).RFFT(make([]complex128, n/2+1), in)
 	scaleComplex(out, f)
 	return out
 }
@@ -102,7 +102,7 @@ func rfftScaled(x []float64, n int, f float64, fma bool) []complex128 {
 func IRFFTWith(spectrum []complex128, o Options) []float64 {
 	n := o.check1D("IRFFTWith", 2*(len(spectrum)-1))
 	f := unitInverseRescale(o.Norm.scale(n, true), n)
-	out := irfftF(spectrum, n, o.fma())
+	out := irfftA(spectrum, n, o.arith())
 	scaleReal(out, f)
 	return out
 }
@@ -142,7 +142,7 @@ func HFFTWith(x []complex128, o Options) []float64 {
 	for i := range c {
 		c[i] = complexConj(x[i])
 	}
-	out := irfftF(c, n, o.fma()) // normalized by 1/n: undo it into f
+	out := irfftA(c, n, o.arith()) // normalized by 1/n: undo it into f
 	scaleReal(out, unitInverseRescale(f, n))
 	return out
 }
@@ -165,7 +165,7 @@ func IHFFT(x []float64) []complex128 {
 // every o.Norm. o.Axes must be nil.
 func IHFFTWith(x []float64, o Options) []complex128 {
 	n := o.check1D("IHFFTWith", len(x))
-	out := rfftScaled(x, n, o.Norm.scale(n, true), o.fma())
+	out := rfftScaled(x, n, o.Norm.scale(n, true), o.arith())
 	for i, v := range out {
 		out[i] = complexConj(v)
 	}

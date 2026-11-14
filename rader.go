@@ -35,6 +35,7 @@ import (
 type raderPlan struct {
 	n     int
 	fma   bool         // the convolution runs on an FMA plan (cachedPlanF)
+	ar    arith        // the arithmetic of the convolution's plans (cachedPlanA)
 	perm  []int        // perm[p] = g^p mod N, p = 0 .. N-2 (input gather order)
 	iperm []int        // iperm[q] = g^{-q} mod N, q = 0 .. N-2 (output scatter order)
 	bF    []complex128 // FFT of the forward convolution kernel / q, length q
@@ -52,10 +53,13 @@ func newRaderPlan(n int) *raderPlan { return newRaderPlanOpt(n, false) }
 
 // newRaderPlanOpt is newRaderPlan whose convolution, kernel spectra
 // included, runs on an FMA plan when fma is set.
-func newRaderPlanOpt(n int, fma bool) *raderPlan {
+func newRaderPlanOpt(n int, fma bool) *raderPlan { return newRaderPlanA(n, arithFromFMA(fma)) }
+
+// newRaderPlanA is newRaderPlan whose convolution plans are of arithmetic a.
+func newRaderPlanA(n int, a arith) *raderPlan {
 	g := primitiveRoot(n)
 	q := n - 1
-	p := &raderPlan{n: n, fma: fma}
+	p := &raderPlan{n: n, fma: a.fused(), ar: a}
 
 	p.perm = make([]int, q)
 	p.iperm = make([]int, q)
@@ -92,7 +96,7 @@ func (p *raderPlan) buildKernel(n int, inverse bool) []complex128 {
 		ang := sign * 2 * math.Pi * float64(e) / float64(n)
 		b[m] = complex(math.Cos(ang), math.Sin(ang))
 	}
-	cachedPlanF(q, p.fma).FFT(b, b)
+	cachedPlanA(q, p.ar).FFT(b, b)
 	inv := complex(1/float64(q), 0)
 	for i := range b {
 		b[i] *= inv
@@ -128,7 +132,7 @@ func (p *raderPlan) transform(dst, src []complex128, inverse bool) {
 
 	// Cyclic convolution a ⊛ kernel via FFTs, in place: IFFT(FFT(a)·bSpec),
 	// with the 1/q carried by bSpec.
-	plan := cachedPlanF(q, p.fma)
+	plan := cachedPlanA(q, p.ar)
 	plan.execute(a, a, false)
 	bSpec = bSpec[:q]
 	for i := range a {

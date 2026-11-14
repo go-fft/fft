@@ -39,8 +39,10 @@ type PlanN struct {
 	// rot, when not nil, runs the whole transform as these rotating passes
 	// (armrealRotate).
 	rot []armrealPass
-	// fma: every axis plan is an FMA plan (Options.FMA).
+	// fma: every axis plan is an FMA plan (Options.FMA); ar is their
+	// arithmetic (arith.go).
 	fma bool
+	ar  arith
 }
 
 // stripAxes makes NewPlanN run a non-contiguous axis as batched Stockham
@@ -100,13 +102,15 @@ func NewPlanN(shape ...int) *PlanN { return newPlanNF(shape, false) }
 // arithmetic (see Options.Exact) and excludes FMA. The other fields must be
 // zero, as for NewPlanWith. NewPlanNWith(shape, Options{}) is NewPlanN(shape...).
 func NewPlanNWith(shape []int, o Options) *PlanN {
-	return newPlanNF(shape, o.checkPlan("NewPlanNWith"))
+	return newPlanNA(shape, o.checkPlan("NewPlanNWith"))
 }
 
-// newPlanNF is NewPlanN on FMA axis plans when fma is set (already resolved
-// by fmaOn).
-func newPlanNF(shape []int, fma bool) *PlanN {
-	p := &PlanN{shape: append([]int(nil), shape...), fma: fma}
+// newPlanNF is newPlanNA for the bool-flag API: the default plan, or the FMA one.
+func newPlanNF(shape []int, fma bool) *PlanN { return newPlanNA(shape, arithFromFMA(fma)) }
+
+// newPlanNA is NewPlanN on axis plans of arithmetic a.
+func newPlanNA(shape []int, a arith) *PlanN {
+	p := &PlanN{shape: append([]int(nil), shape...), fma: a.fused(), ar: a}
 	p.size = shapeProduct(shape...)
 	checkAlloc("NewPlanN", p.size, 16)
 	p.stride = make([]int, len(shape))
@@ -118,7 +122,7 @@ func newPlanNF(shape []int, fma bool) *PlanN {
 	p.axes = make([]*Plan, len(shape))
 	for ax, n := range shape {
 		if n > 1 {
-			p.axes[ax] = cachedPlanF(n, fma)
+			p.axes[ax] = cachedPlanA(n, a)
 		}
 		p.maxLen = max(p.maxLen, n)
 	}
@@ -140,10 +144,10 @@ func (p *PlanN) initScratch() {
 		// the axis got a "Stockham" plan of 9 points' factors for 171 points:
 		// 120 of the lengths up to 2000 transformed wrongly (v0.25.0–v0.26.2).
 		if ax < len(p.shape)-1 && p.axes[ax] != nil && stockhamCovers(n) && (compTakes16(n) || intelStripOrder[n]) {
-			p.axes[ax] = cachedPlanNo16F(n, p.fma)
+			p.axes[ax] = cachedPlanNo16A(n, p.ar)
 		}
 		if ax == len(p.shape)-1 && p.axes[ax] != nil {
-			if rp := clRowPlanF(n, p.size, p.fma); rp != nil {
+			if rp := clRowPlanA(n, p.size, p.ar); rp != nil {
 				p.axes[ax] = rp
 			}
 		}

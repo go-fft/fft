@@ -13,6 +13,8 @@ import (
 func znForget(n int) {
 	planMu.Lock()
 	delete(planCache, n)
+	delete(planCacheExact, n) // the tests build their reference plans Exact (exactOpts)
+	delete(planCacheFMA, n)
 	planMu.Unlock()
 }
 

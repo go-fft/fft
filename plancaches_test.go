@@ -12,18 +12,18 @@ import "testing"
 // it. isolatePlans is the one way such a test protects the others.
 func forgetAllPlans() {
 	planMu.Lock()
-	planCache, planCacheFMA = map[int]*Plan{}, map[int]*Plan{}
-	planNo16Cache, planNo16CacheFMA = map[int]*Plan{}, map[int]*Plan{}
-	clRowCache, clRowCacheFMA = map[int]*Plan{}, map[int]*Plan{}
+	planCache, planCacheFMA, planCacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
+	planNo16Cache, planNo16CacheFMA, planNo16CacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
+	clRowCache, clRowCacheFMA, clRowCacheExact = map[int]*Plan{}, map[int]*Plan{}, map[int]*Plan{}
 	planMu.Unlock()
 	realPlanMu.Lock()
-	realPlanCache, realPlanCacheFMA = map[int]*RealPlan{}, map[int]*RealPlan{}
+	realPlanCache, realPlanCacheFMA, realPlanCacheExact = map[int]*RealPlan{}, map[int]*RealPlan{}, map[int]*RealPlan{}
 	realPlanMu.Unlock()
 	realPlan2Mu.Lock()
-	realPlan2Cache, realPlan2CacheFMA = map[[2]int]*RealPlan2{}, map[[2]int]*RealPlan2{}
+	realPlan2Cache, realPlan2CacheFMA, realPlan2CacheExact = map[[2]int]*RealPlan2{}, map[[2]int]*RealPlan2{}, map[[2]int]*RealPlan2{}
 	realPlan2Mu.Unlock()
 	planNMu.Lock()
-	planNCache, planNCacheFMA = map[string]*PlanN{}, map[string]*PlanN{}
+	planNCache, planNCacheFMA, planNCacheExact = map[string]*PlanN{}, map[string]*PlanN{}, map[string]*PlanN{}
 	planNMu.Unlock()
 	planNAxesMu.Lock()
 	planNAxesCache = map[string]*PlanN{}

@@ -22,6 +22,7 @@ import (
 type bluesteinPlan struct {
 	n   int
 	fma bool         // the convolution runs on an FMA plan (cachedPlanF)
+	ar  arith        // the arithmetic of the convolution's plans (cachedPlanA)
 	m   int          // convolution length, 7-smooth, >= 2n-1
 	wF  []complex128 // forward chirp  w[j]  = exp(-πi·j²/N), j = 0 .. n-1
 	wI  []complex128 // inverse chirp  conj  = exp(+πi·j²/N)
@@ -40,12 +41,18 @@ func newBluesteinPlan(n int) *bluesteinPlan { return newBluesteinPlanOpt(n, fals
 // newBluesteinPlanOpt is newBluesteinPlan whose convolution, kernel
 // spectra included, runs on an FMA plan when fma is set.
 func newBluesteinPlanOpt(n int, fma bool) *bluesteinPlan {
+	return newBluesteinPlanA(n, arithFromFMA(fma))
+}
+
+// newBluesteinPlanA is newBluesteinPlan whose convolution plans are of
+// arithmetic a.
+func newBluesteinPlanA(n int, a arith) *bluesteinPlan {
 	// The convolution length m is below 2.8·n (bestConvLen's 1.4 window over
 	// 2n-1): four n-element complex128 buffers bound it, and keep 2n-1 and the
 	// window from overflowing.
 	checkAlloc("NewPlan", n, 4*16)
 	m := bestConvLen(2*n - 1)
-	p := &bluesteinPlan{n: n, m: m, fma: fma}
+	p := &bluesteinPlan{n: n, m: m, fma: a.fused(), ar: a}
 
 	p.wF = make([]complex128, n)
 	p.wI = make([]complex128, n)
@@ -57,15 +64,15 @@ func newBluesteinPlanOpt(n int, fma bool) *bluesteinPlan {
 		p.wI[j] = complex(math.Cos(ang), math.Sin(ang))
 	}
 
-	p.bF = buildKernelSpectrum(p.wF, n, m, fma)
-	p.bI = buildKernelSpectrum(p.wI, n, m, fma)
+	p.bF = buildKernelSpectrum(p.wF, n, m, a)
+	p.bI = buildKernelSpectrum(p.wI, n, m, a)
 	p.scratch.New = func() any { b := make([]complex128, m); return &b }
 	return p
 }
 
 // buildKernelSpectrum forms the mirrored conj(chirp) kernel b of length m and
 // returns its forward FFT scaled by 1/m, precomputed so transforms skip both.
-func buildKernelSpectrum(w []complex128, n, m int, fma bool) []complex128 {
+func buildKernelSpectrum(w []complex128, n, m int, a arith) []complex128 {
 	b := make([]complex128, m)
 	b[0] = complexConj(w[0])
 	for j := 1; j < n; j++ {
@@ -73,7 +80,7 @@ func buildKernelSpectrum(w []complex128, n, m int, fma bool) []complex128 {
 		b[j] = c
 		b[m-j] = c
 	}
-	cachedPlanF(m, fma).FFT(b, b)
+	cachedPlanA(m, a).FFT(b, b)
 	inv := complex(1/float64(m), 0)
 	for i := range b {
 		b[i] *= inv
@@ -98,7 +105,7 @@ func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
 	clear(a[n:]) // the pooled buffer is dirty; the pad must be zero
 
 	// Convolution, in place: a = IFFT(FFT(a) · bSpec); bSpec carries the 1/m.
-	plan := cachedPlanF(p.m, p.fma)
+	plan := cachedPlanA(p.m, p.ar)
 	plan.execute(a, a, false)
 	kernels.CMulTo(a, a, bSpec)
 	plan.execute(a, a, true)

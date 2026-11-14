@@ -90,14 +90,14 @@ func (o Options) checkExact(name string) {
 }
 
 // checkPlan validates o for a plan constructor called name, where only FMA
-// and Exact have a meaning, and reports whether the plan is an FMA plan
-// (fmaOn). It panics before anything is allocated.
-func (o Options) checkPlan(name string) bool {
+// and Exact have a meaning, and returns the arithmetic of the plan. It panics
+// before anything is allocated.
+func (o Options) checkPlan(name string) arith {
 	if o.N != 0 || o.Norm != NormBackward || o.Axes != nil {
 		panic("fft: " + name + ": only Options.FMA and Options.Exact apply to a plan")
 	}
 	o.checkExact(name)
-	return o.fma()
+	return o.arith()
 }
 
 // fma reports whether a transform called with o runs on an FMA plan. Exact

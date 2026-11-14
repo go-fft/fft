@@ -121,6 +121,8 @@ var (
 	planNCache = map[string]*PlanN{}
 	// planNCacheFMA holds the FMA plans (cachedPlanNF).
 	planNCacheFMA = map[string]*PlanN{}
+	// planNCacheExact holds the Exact plans (cachedPlanNA).
+	planNCacheExact = map[string]*PlanN{}
 )
 
 // cachedPlanN returns the shared plan for shape, building it on first use.
@@ -128,7 +130,10 @@ func cachedPlanN(shape []int) *PlanN { return cachedPlanNF(shape, false) }
 
 // cachedPlanNF is cachedPlanN for an FMA plan when fma is set (already
 // resolved by fmaOn), from a cache of its own.
-func cachedPlanNF(shape []int, fma bool) *PlanN {
+func cachedPlanNF(shape []int, fma bool) *PlanN { return cachedPlanNA(shape, arithFromFMA(fma)) }
+
+// cachedPlanNA is cachedPlanN for arithmetic a, from a cache of its own.
+func cachedPlanNA(shape []int, a arith) *PlanN {
 	var kb [64]byte
 	key := kb[:0]
 	for _, s := range shape {
@@ -138,14 +143,17 @@ func cachedPlanNF(shape []int, fma bool) *PlanN {
 	// The plan is built under the lock (NewPlanN takes only cachedPlan's own,
 	// separate mutex), so concurrent first calls on one shape build it once.
 	cache := planNCache
-	if fma {
+	switch a {
+	case arithFMA:
 		cache = planNCacheFMA
+	case arithExact:
+		cache = planNCacheExact
 	}
 	planNMu.Lock()
 	defer planNMu.Unlock()
 	p, ok := cache[string(key)]
 	if !ok {
-		p = newPlanNF(shape, fma)
+		p = newPlanNA(shape, a)
 		cache[string(key)] = p
 	}
 	return p
