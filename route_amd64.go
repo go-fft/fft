@@ -238,6 +238,20 @@ func zen4Split512Lengths() map[int]bool {
 	return map[int]bool{1 << 16: true, 1 << 17: true, 1 << 18: true}
 }
 
+// zen4Split512FMALengths are the lengths whose FMA plans (the default
+// arithmetic, #155) take the 512-bit split layout on a Zen 4: 1024 and 2048, with
+// the radix-32 factorizations of zen4FMATable. Measured on a Ryzen 9 7950X, one
+// pinned core, fifteen interleaved rounds, ns per transform before and after:
+// 1024 909 and 854 (0.939), 2048 2518 and 2215 (0.880); 512 349 and 348 (unchanged,
+// it stays on Zen 3's route). The other arithmetic (Options.Exact, NoFMA) keeps
+// the route and the factorization it had, so its bits do not move.
+func zen4Split512FMALengths(zen4 bool) map[int]bool {
+	if !zen4 {
+		return nil
+	}
+	return map[int]bool{1 << 10: true, 1 << 11: true}
+}
+
 // zen4Zen3RouteMax is zen3RouteMax on a Zen 4: Zen 3's route, up to 65536
 // points. A Ryzen 9 7950X (Zen 4, one pinned core, five interleaved rounds,
 // 2026-11-08, hardware counters in Round 49) ran the AVX-512 route's
@@ -291,6 +305,7 @@ func init() {
 	cl3WideStrips = kernels.UseStockhamSplit512
 	zen3RouteMax, zen3RouteSkip = zen3RouteAMD64(kernels.AMDZen4)
 	zen4Split512, zen4Modes = zen4RouteAMD64(kernels.AMDZen4)
+	zen4Split512FMA = zen4Split512FMALengths(kernels.AMDZen4)
 }
 
 // zen3RouteAMD64 is zen3RouteMax and zen3RouteSkip: Zen 3's route up to 65536

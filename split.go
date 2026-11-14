@@ -125,6 +125,10 @@ var zen3RouteSkip map[int]bool
 // are never on the AVX2 route.
 var zen4Split512 map[int]bool
 
+// zen4Split512FMA lists the lengths whose FMA plans take the 512-bit split layout
+// on a Zen 4 (route_amd64.go); nil elsewhere. The other arithmetic keeps its route.
+var zen4Split512FMA map[int]bool
+
 // zen4Modes gives those lengths' passes their layout modes (amd64 only).
 var zen4Modes func(r, ido, l1 []int) []uint8
 

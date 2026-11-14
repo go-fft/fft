@@ -85,10 +85,11 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	}
 	root := twiddleTable(n)
 	p := &skPlan{n: n}
+	z512FMA := fma && zen4Split512FMA[n] // an FMA plan on a Zen 4's 512-bit split route
 	l1 := 1
 	for _, r := range factors {
 		ido := n / (l1 * r)
-		st := skStage{r: r, l1: l1, ido: ido, wide: wide512(n)}
+		st := skStage{r: r, l1: l1, ido: ido, wide: wide512(n) || z512FMA}
 		if ido > 1 {
 			st.tw = make([]complex128, (r-1)*(ido-1))
 			st.twc = make([]complex128, (r-1)*(ido-1))
@@ -122,9 +123,9 @@ func newSKPlanFactorsOpt(n int, factors []int, fma bool) *skPlan {
 	// An FMA plan keeps the split layout only where its split passes have FMA
 	// kernels (fmaSplit): elsewhere its Go passes, which read interleaved
 	// data, run them.
-	if hswSplitKept(n) && (!fma || fmaSplit) {
+	if (hswSplitKept(n) || z512FMA) && (!fma || fmaSplit) {
 		modes := kernels.StockhamSplitModes(rs, idos, l1s)
-		if zen4Split512[n] {
+		if zen4Split512[n] || z512FMA {
 			modes = zen4Modes(rs, idos, l1s)
 		}
 		for k, m := range modes {
@@ -297,7 +298,7 @@ var r8MaxPow2 = r8MaxPow2Default()
 // (AVX2 time ÷ AVX-512 time, Stockham, 2026-10-01): composites 0.88–1.04
 // (see kernels.StockhamPass), powers of two 8–128 0.94–1.03, 256–2048
 // 1.19–1.34, 4096 1.49. Not on the lengths that take the AVX2 route on a
-// Zen 4 (zen3RouteMax).
+// Zen 4 (zen3RouteMax); an FMA plan of zen4Split512FMA is wide too (newSKPlanFactorsOpt).
 func wide512(n int) bool { return n&(n-1) == 0 && n >= 256 && !zen3Route(n) }
 
 // transform writes the unnormalized DFT of src into dst (conjugate roots when

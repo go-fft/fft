@@ -27,14 +27,18 @@ func fmaTableDefault() map[int]fmaChoice {
 // two-pass radix-32 plan (32·32, r32fma_amd64.s). Measured on a Ryzen 9 7950X,
 // one pinned core, fifteen rotated rounds (#121): 903 ns against 913 for the
 // FMA plan of the default factorization (8·8·16) and 959 unfused; 512 stays 8·8·8
-// (353 ns against 418 for 32·16, 437 for 16·32, 366 for 4·8·16) and 2048 as
-// 32·8·8 is 4.8 times slower, so only 1024 changes. Zen 3 measured radix 32
-// slower (0.96 times) and keeps znFMATable.
+// (353 ns against 418 for 32·16, 437 for 16·32, 366 for 4·8·16). 2048 takes
+// 32·8·8 on the 512-bit split route (zen4Split512FMALengths): 2518 ns against
+// 2494 for 8·8·8·4 before, 2215 with the route. Off that route a radix-32 first pass
+// has no interleaved kernel, runs in Go and is 4.8 times slower, which is why
+// it was first rejected. Zen 3 measured radix 32 slower (0.96 times) and keeps
+// znFMATable.
 func zen4FMATable(t map[int]fmaChoice, zen4 bool) map[int]fmaChoice {
 	if !zen4 || t == nil {
 		return t
 	}
 	t[1024] = fmaChoice{factors: []int{32, 32}, fuse: fmaAll}
+	t[2048] = fmaChoice{factors: []int{32, 8, 8}, fuse: fmaAll}
 	return t
 }
 
