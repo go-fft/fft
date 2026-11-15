@@ -28,6 +28,9 @@ func mdctForward[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 	if len(dst) < m || len(src) < n {
 		panic("fft: MDCTPlan slice shorter than the plan's length")
 	}
+	if p.fused {
+		return mdctForwardFused(p, dst, src, scale)
+	}
 	if p.k == nil {
 		sp := p.pool.get()
 		z := *sp
@@ -98,6 +101,9 @@ func mdctInverse[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 	m, h := n/2, n/4
 	if len(dst) < n || len(src) < m {
 		panic("fft: MDCTPlan slice shorter than the plan's length")
+	}
+	if p.fused {
+		return mdctInverseFused(p, dst, src, scale)
 	}
 	if p.k == nil {
 		sp := p.pool.get()

@@ -37,7 +37,10 @@ func TestMDCTBothPaths(t *testing.T) {
 			}
 			lg := math.Max(1, math.Log2(float64(n)))
 			bound := mdctC64 * 0x1p-52 * lg
-			p := NewMDCTPlan(n)
+			// The unfused plan: N = 128 and 256 take the fused DCT-IV route on arm64
+			// (TestMDCTFused covers it), which has neither a loop nor a kernel path, so
+			// this test builds the plan that has both.
+			p := newMDCTPlan(n, false)
 			x, c := accRealF64(n, 91), accRealF64(m, 92)
 			eF := errR(p.MDCT(make([]float64, m), x, 1), oMDCT(cddFromR(x), m, false))
 			eI := errR(p.IMDCT(make([]float64, n), c, 1), oMDCT(cddFromR(c), m, true))

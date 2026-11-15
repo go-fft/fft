@@ -390,7 +390,7 @@ func (p *DCTPlan) IDCTMixed(dst, src []float32, norm Norm) []float32 {
 
 func (p *DCTPlan) runMixed(dst, src []float32, norm Norm, inverse bool) []float32 {
 	if p.fused {
-		return p.run64Mixed(dst, src, norm, inverse)
+		return p.runFusedMixed(dst, src, norm, inverse)
 	}
 	k := p.k
 	n := k.n
@@ -429,12 +429,13 @@ type DCTPlan struct {
 	typ int
 	k   *r2rKernel
 
-	// fused: DCT-IV of length 64 on a platform that routes it to the unrolled
+	// fused: DCT-IV of length 64 or 128 on a platform that routes it to the unrolled
 	// kernel (dct4_64.go).
 	fused bool
 
 	// pair: the pair forms (DCTPair and the others) run the pair kernel: DCT-IV
-	// of length 64 on a platform that has one (NEON on arm64, AVX2+FMA on amd64).
+	// of length 64 (amd64, arm64) or 128 (arm64) on a platform that has one (NEON
+	// on arm64, AVX2+FMA on amd64).
 	// Separate from fused, which is the single call: on amd64 the pooled path
 	// beats the scalar kernel, and only the pair kernel gains.
 	pair bool
@@ -445,7 +446,9 @@ type DCTPlan struct {
 // DCT-I, 1 for the others.
 func NewDCTPlan(n, typ int) *DCTPlan {
 	checkR2R(true, typ, n, NormBackward)
-	return &DCTPlan{typ: typ, k: newR2RKernel(true, typ, n), fused: dct4Fused64Route && typ == 4 && n == 64, pair: typ == 4 && n == 64 && dct4PairRoute()}
+	return &DCTPlan{typ: typ, k: newR2RKernel(true, typ, n),
+		fused: typ == 4 && dct4FusedLen(n) && dct4FusedRoute,
+		pair:  typ == 4 && dct4FusedLen(n) && dct4PairRoute(n)}
 }
 
 // Len reports the transform length the plan was built for.
@@ -471,7 +474,7 @@ func (p *DCTPlan) IDCT(dst, src []float64, norm Norm) []float64 {
 
 func (p *DCTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 	if p.fused {
-		return p.run64(dst, src, norm, inverse)
+		return p.runFused(dst, src, norm, inverse)
 	}
 	k := p.k
 	n := k.n

@@ -6,16 +6,18 @@ import (
 )
 
 // The AVX2 pair kernels of the DCT-IV(64) (dct4_64_amd64.s): the tests of
-// dct4_64_test.go run on them through the plans of fusedPlans (the pair is the
+// dct4_fused_test.go run on them through the plans of fusedPlans (the pair is the
 // kernel wherever fmaAvailable); these add what only the kernels need.
 
 // TestDCT4N64PairFallback: with the kernels off (a CPU without AVX2 or FMA3) the
 // pair forms are the scalar kernel twice, and every pair test holds there too.
 func TestDCT4N64PairFallback(t *testing.T) {
 	withoutPairAsm(func() {
-		for _, p := range fusedPlans() {
-			testDCT4N64Pair(t, p)
-			testDCT4N64PairShortPanics(t, p)
+		for _, n := range fusedLens {
+			for _, p := range fusedPlans(n) {
+				testDCT4FusedPair(t, n, p)
+				testDCT4FusedShortPanics(t, n, p)
+			}
 		}
 	})
 }
