@@ -14,13 +14,18 @@
 // The program is built as single-assignment instructions over virtual registers
 // and then lowered in program order with a lowest-free register allocator. One
 // pass changes which pipe an instruction uses and nothing else (go-fft/fft#162):
-// every second add or subtract that has a source dying at it is emitted as a
-// fused multiply-add with a constant 1 or -1, a*1 + b and b*(-1) + a, each the
-// exact sum rounded once, so the result bits are those of the add. Zen 4 runs
-// adds on two pipes and FMAs on two others, so half of each in the FMA pipes
-// raises the issue rate of a 512-bit stream from 1.0 to about 1.5 per cycle
-// (measured: 135.3 ns to 127.9 ns, no other change). The reference body
-// (fused256ref, no rewrite) is kept for the tests that assert the bit equality.
+// every second subtract whose minuend dies at it is emitted as a fused
+// multiply-add by -1 into the minuend's register, a - b = fma(b, -1, a): the
+// exact difference rounded once, so the result bits are the subtract's. Zen 4
+// runs adds on two pipes and FMAs on two others, so moving some of the stream to
+// the FMA pipes raises the issue rate of a 512-bit stream from 1.0 to about 1.5
+// per cycle (measured: 135.5 ns to 127.9 ns, no other change). Only subtracts
+// qualify: an FMA reads and overwrites one source, and no add of this dataflow
+// has a source that dies at it (each radix-4 add shares both operands with the
+// subtract after it), so an add would need a copy first, which measured slower
+// (every add by copy: 161.7 ns; every second add or subtract by copy: 133.8).
+// The reference body (fused256ref, no rewrite) is kept for the tests that assert
+// the bit equality.
 //
 // Run from the package root with `go generate` (see plan.go) or
 // `go run internal/genfused256/main.go`.
@@ -286,9 +291,8 @@ func build(inverse bool) {
 }
 
 // lower emits the program in program order. Registers are allocated lowest
-// free first. With rewrite, every second add or subtract that has a source
-// dying at it is emitted as a fused multiply-add with a constant 1 or -1 into
-// that source's register.
+// free first. With rewrite, every second subtract whose minuend dies at it is
+// emitted as fma(b, -1, a) into the minuend's register.
 func lower(rewrite bool) []string {
 	remaining := make([]int, nv)
 	for _, o := range prog {
@@ -330,12 +334,18 @@ func lower(rewrite bool) []string {
 		if o.acc >= 0 {
 			use(o.acc)
 		}
+		// Only a subtract whose minuend dies can be rewritten in place:
+		// a - b = fma(b, -1, a) into a's register. No add of this dataflow has a
+		// dying source (each radix-4 add shares both operands with the subtract
+		// that follows it), and an FMA always reads and overwrites one source, so
+		// an add would need a copy first, which measured slower (#162: every add
+		// by copy 161.7 ns against 127.5 for these subtracts alone).
 		var rw bool
 		rwSrc := -1
-		if rewrite && (o.k == kAdd || o.k == kSub) && len(dying) > 0 {
+		if rewrite && o.k == kSub && seen[o.src[0]] {
 			eligible++
 			if eligible%2 == 1 {
-				rw, rwSrc = true, dying[0]
+				rw, rwSrc = true, o.src[0]
 			}
 		}
 		// destination register
@@ -377,18 +387,8 @@ func render(o ins, z func(int) string, rw bool, rwSrc int) string {
 		return fmt.Sprintf("VMOVUPD %s, %s", z(o.src[0]), o.mem)
 	case kAdd, kSub:
 		a, b := o.src[0], o.src[1]
-		if rw {
-			one, neg := cname(1), cname(-1)
-			if o.k == kAdd {
-				if rwSrc == a { // dst = a: a*1 + b
-					return fmt.Sprintf("VFMADD132PD.BCST %s(SB), %s, %s", one, z(b), z(o.dst))
-				}
-				return fmt.Sprintf("VFMADD231PD.BCST %s(SB), %s, %s", one, z(a), z(o.dst)) // dst = b: a*1 + b
-			}
-			if rwSrc == a { // a - b with dst = a: b*(-1) + a
-				return fmt.Sprintf("VFMADD231PD.BCST %s(SB), %s, %s", neg, z(b), z(o.dst))
-			}
-			return fmt.Sprintf("VFMADD132PD.BCST %s(SB), %s, %s", neg, z(a), z(o.dst)) // dst = b: b*(-1) + a
+		if rw { // a - b with dst = a: b*(-1) + a
+			return fmt.Sprintf("VFMADD231PD.BCST %s(SB), %s, %s", cname(-1), z(b), z(o.dst))
 		}
 		mn := "VADDPD"
 		if o.k == kSub {
