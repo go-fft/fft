@@ -38,7 +38,7 @@ func complexWith(name string, x []complex128, o Options, inverse bool) []complex
 	if n > 1 {
 		cachedPlanA(n, o.arith()).execute(out, out, inverse)
 	}
-	scaleComplex(out, f)
+	scaleComplexA(out, f, o.arith())
 	return out
 }
 
@@ -55,7 +55,7 @@ func FFTRealWith(x []float64, o Options) []complex128 {
 	f := o.Norm.scale(n, false)
 	checkAlloc("FFTRealWith", n, 16)
 	out := fftReal(x, n, o.arith())
-	scaleComplex(out, f)
+	scaleComplexA(out, f, o.arith())
 	return out
 }
 
@@ -82,7 +82,7 @@ func rfftScaled(x []float64, n int, f float64, a arith) []complex128 {
 		copy(in, x)
 	}
 	out := cachedRealPlanA(n, a).RFFT(make([]complex128, n/2+1), in)
-	scaleComplex(out, f)
+	scaleComplexA(out, f, a)
 	return out
 }
 

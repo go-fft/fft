@@ -187,10 +187,7 @@ func (p *PlanN) FFT(dst, src []complex128) []complex128 {
 // Len(), and returns dst. dst may alias src. It matches IFFTN.
 func (p *PlanN) IFFT(dst, src []complex128) []complex128 {
 	p.transform(dst, src, true)
-	inv := complex(1/float64(p.size), 0)
-	for i := range dst {
-		dst[i] *= inv
-	}
+	scaleComplexA(dst, 1/float64(p.size), p.ar)
 	return dst
 }
 

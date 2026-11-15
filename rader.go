@@ -97,10 +97,7 @@ func (p *raderPlan) buildKernel(n int, inverse bool) []complex128 {
 		b[m] = complex(math.Cos(ang), math.Sin(ang))
 	}
 	cachedPlanA(q, p.ar).FFT(b, b)
-	inv := complex(1/float64(q), 0)
-	for i := range b {
-		b[i] *= inv
-	}
+	scaleComplexA(b, 1/float64(q), p.ar)
 	return b
 }
 

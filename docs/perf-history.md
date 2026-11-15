@@ -423,6 +423,31 @@ the worst observed is 2.7e-16 (`TestFused256Impulses`): a table entry, or an
 in-register constant of the assembly, off by 1e-14 fails it
 (`TestFused256ImpulseMutation` sweeps every table entry; the constants were
 mutated by hand).
+## Normalized inverse: the 1/n pass on the go-simd/floats kernel
+
+`Plan.IFFT`, `PlanN.IFFT`, the `Norm` forms of the plans and the `With` forms
+scaled the output with a scalar `dst[i] *= complex(1/n, 0)` loop (143 of 299 ns
+at 256 points). They now call `floats.Scale` on the interleaved floats; the
+real scaling passes (`scaleReal`, the 1/rows pass of `RealPlan2.IRFFT`) call it
+too, with the loop's bits. `Options.Exact` plans keep the complex-multiply loop.
+The two differ only on signed zeros and non-finite parts: the loop's
+`(a+bi)(f+0i)` makes `(1-0i)*0.25` have imaginary part +0 where the kernel keeps
+-0, and an infinite or NaN part makes the other part NaN there (`inf*0`) and not
+here. The kernel's results are the IEEE ones; the default and `NoFMA`
+arithmetics change on those inputs, `Exact` does not. Ryzen 9 7950X, one pinned
+core, 9 interleaved rounds, medians, load 0.1 to 0.8 (2026-11-15), ns:
+
+| row | before | after |
+|---|---|---|
+| `Plan.IFFT` 64 | 73.8 | 49.5 |
+| `Plan.IFFT` 256 | 297.6 | 184.3 |
+| `Plan.IFFT` 1024 | 1443 | 972 |
+| `PlanN.IFFT` 64x64 | 7768 | 5994 |
+| `RealPlan.RFFTNorm` 256, ortho | 193.9 | 141.0 |
+| `RealPlan2.IRFFT` 64x64 | 4878 | 4461 |
+| `IFFTWith` 256 | 545.6 | 435.6 |
+
+The unnormalized inverse (`IFFTNorm(NormForward)`) is unchanged.
 
 ## Remaining gap
 
