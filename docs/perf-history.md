@@ -426,6 +426,28 @@ mutated by hand).
 
 ## Fused 1024-point kernel (Zen 4, #162)
 
+Alignment of the tables (added after the first measurement): Go's linker aligns a
+data symbol to 32 bytes at most, and both generated twiddle tables sat at 32 mod
+64, so every 64-byte zmm table load split two cache lines (62 per pass-1
+iteration at 1024). The kernels now read copies built at init in a heap block
+offset to a multiple of 64 (`internal/kernels/fused_align_amd64.go`,
+`TestFusedTablesAligned`). Controlled in one process (table at 0, 8, 16, 32, 48
+mod 64 in a page-aligned arena, 1024 kernel alone): 769 to 777 ns at 0 mod 64,
+801 to 830 ns at any other offset (+4 to 7%). Through `Plan.FFT` (15 interleaved
+rounds, cpu 6): 823.9 to 786.6 ns, inverse unnormalized 823.6 to 786.3, FFTW
+753.4; 256 unchanged (137.0). This was the main cause of the 748 to 825 ns
+spread of the kernel alone across processes (each binary placed the table at
+its own offset). The other factors measured in the same harness, one at a time
+(kernel alone, 64 or 96 positions each): table offset in multiples of 64 bytes
+1.3 to 1.6%; src and dst moved together 1.5 to 1.9%; the stack frame at 96 depths
+1.1 to 3.2%; dst relative to src 1.3 to 2.9%; single points 17 to 26% above the
+rest appeared in two of three runs at different offsets each time (not
+reproducible, so not 4K aliasing at a fixed offset; the likeliest cause is the
+sibling hardware thread of the pinned core). A dst or src that is only 16-byte
+aligned (any `make([]complex128, n)` slice, as the plan's callers have) costs
+about 4% against a 64-byte aligned one (803 against 773 ns), which the kernel
+cannot change.
+
 The same route for 1024 points: `internal/genfused256` also writes
 `internal/kernels/fused1024_amd64.s` and `fused1024_tw_amd64.go`. 32x32: pass 1
 runs, per group of four columns, a 32-point DFT across the a axis (radix 4, w32

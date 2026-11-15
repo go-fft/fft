@@ -31,16 +31,16 @@ func fused256ref(dst, src *complex128, tw *float64, inv bool) (ok bool)
 // Fused256Ref runs the reference schedule (fused256ref). For tests; it needs
 // AVX-512 and does not check for it.
 func Fused256Ref(dst, src *[256]complex128, inverse bool) bool {
-	return fused256ref(&dst[0], &src[0], &fused256Tw[0][0], inverse)
+	return fused256ref(&dst[0], &src[0], fused256TwP, inverse)
 }
 
 // Fused256Table is the twiddle table of one direction, for the tests that
 // perturb it to show what the accuracy bound can see.
 func Fused256Table(inverse bool) []float64 {
 	if inverse {
-		return fused256Tw[1][:]
+		return fused256TwA[len(fused256Tw[0]):]
 	}
-	return fused256Tw[0][:]
+	return fused256TwA[:len(fused256Tw[0])]
 }
 
 // Fused256On is whether the fused kernel runs here: AVX-512 (F and DQ, the
@@ -55,5 +55,5 @@ var Fused256On = UseStockhamAVX512 && AMDZen4
 // array pointers (a caller converts its slices, which panics on a short one), so
 // that it is small enough to inline.
 func Fused256(dst, src *[256]complex128, inverse bool) bool {
-	return fused256(dst, src, &fused256Tw[0][0], inverse)
+	return fused256(dst, src, fused256TwP, inverse)
 }
