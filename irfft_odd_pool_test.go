@@ -72,7 +72,14 @@ func TestIRFFTOddSteadyStateAllocs(t *testing.T) {
 	p := NewRealPlan(1125)
 	src, dst := oddSpectrum(1125, 563), make([]float64, 1125)
 	p.IRFFT(dst, src)
-	if a := testing.AllocsPerRun(50, func() { p.IRFFT(dst, src) }); a != 0 {
-		t.Fatalf("odd IRFFT allocates %v times per call, want 0", a)
+	// A sync.Pool may be emptied by a GC (and drops entries at random under
+	// the race detector), which costs the next call one buffer: the old code
+	// allocated on every call, so one clean run in several is the witness.
+	best := math.MaxFloat64
+	for try := 0; try < 8 && best != 0; try++ {
+		best = math.Min(best, testing.AllocsPerRun(50, func() { p.IRFFT(dst, src) }))
+	}
+	if best != 0 {
+		t.Fatalf("odd IRFFT allocates %v times per call, want 0", best)
 	}
 }
