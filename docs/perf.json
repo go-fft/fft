@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-14T08:31:36+01:00",
+  "date": "2026-11-15T02:14:22+01:00",
   "commit": "",
   "repo": "go-fft/fft",
   "go_version": "go1.27.4",
@@ -2360,6 +2360,78 @@
       "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idstn(x, type=2, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
       "parity": "tolerance",
       "allocs": 3,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan.DCTPair",
+      "func": "DCTPlan.DCTPair",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dct(x, type=4, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan.IDCTPair",
+      "func": "DCTPlan.IDCTPair",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idct(x, type=4, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan.DCTMixedPair",
+      "func": "DCTPlan.DCTMixedPair",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.dct(x, type=4, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DCTPlan.IDCTMixedPair",
+      "func": "DCTPlan.IDCTMixedPair",
+      "reference": "scipy.fft 1.18.1 (lambda F: lambda x: F.idct(x, type=4, norm='ortho'))(__import__('scipy.fft', fromlist=['_']))",
+      "parity": "tolerance",
+      "allocs": 0,
       "go": {
         "median": 0,
         "q1": 0,
