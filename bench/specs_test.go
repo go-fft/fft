@@ -299,6 +299,36 @@ func specs() []spec {
 		)
 	}
 
+	// The pair forms of the DCT-IV at 64 points: two independent transforms per
+	// call, timed against scipy.fft on a 2x64 array (the two rows, one call).
+	{
+		const n = 64
+		er, x := r64(2*n, 2, n)
+		er3, x3 := r32(2*n, 2, n)
+		in, in3 := []any{x}, []any{x3}
+		p := fft.NewDCTPlan(n, 4)
+		dst, dst3 := make([]float64, 2*n), make([]float32, 2*n)
+		no := fft.NormOrtho
+		add(
+			mk("DCTPlan.DCTPair", "DCTPlan.DCTPair", list(er), py("lambda x: F.dct(x, type=4, norm='ortho')"), tol64, in, func() []float64 {
+				p.DCTPair(dst[:n], dst[n:], x[:n], x[n:], no)
+				return dst
+			}),
+			mk("DCTPlan.IDCTPair", "DCTPlan.IDCTPair", list(er), py("lambda x: F.idct(x, type=4, norm='ortho')"), tol64, in, func() []float64 {
+				p.IDCTPair(dst[:n], dst[n:], x[:n], x[n:], no)
+				return dst
+			}),
+			mk("DCTPlan.DCTMixedPair", "DCTPlan.DCTMixedPair", list(er3), py("lambda x: F.dct(x, type=4, norm='ortho')"), tol32, in3, func() []float32 {
+				p.DCTMixedPair(dst3[:n], dst3[n:], x3[:n], x3[n:], no)
+				return dst3
+			}),
+			mk("DCTPlan.IDCTMixedPair", "DCTPlan.IDCTMixedPair", list(er3), py("lambda x: F.idct(x, type=4, norm='ortho')"), tol32, in3, func() []float32 {
+				p.IDCTMixedPair(dst3[:n], dst3[n:], x3[:n], x3[n:], no)
+				return dst3
+			}),
+		)
+	}
+
 	// Frequencies, shifts, windows, spectra.
 	{
 		er, x := r64(nPow)
