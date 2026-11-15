@@ -218,7 +218,10 @@ func testDCT4N64PairShortPanics(t *testing.T, p *DCTPlan) {
 // an impulse's output is a few products of constants, so a constant wrong in its
 // last few bits shows here (it is lost in the noise of a dense random input).
 // Measured worst on the M4 Max: see TestDCT4N64Impulses -v.
-const impulseTol = 3 * eps64 / 2
+// Measured worst: 2.2e-16 with fused multiply-adds (arm64), 3.5e-16 without
+// (amd64 CI, riscv64); 5e-16 leaves 1.4x over the latter, and the 1.5e-14
+// constant error of the mutation test gives at least 2e-15.
+const impulseTol = 5e-16
 
 // TestDCT4N64Impulses: every impulse e_j through every kernel, against the
 // double-double oracle. Each twiddle constant of the kernel lies on the path of
