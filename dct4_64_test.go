@@ -10,8 +10,34 @@ import (
 // accBound), the Mixed one plus half a float32 ulp, and every route of the
 // plan (DCT, IDCT, DCTMixed, IDCTMixed, in place) to the same arithmetic.
 
+// fusedPlans returns the plan the package builds and one forced onto the fused
+// kernels, which off arm64 means the scalar Go ones: every platform runs every
+// line of the fused path.
+func fusedPlans() []*DCTPlan {
+	forced := *NewDCTPlan(64, 4)
+	forced.fused = true
+	return []*DCTPlan{NewDCTPlan(64, 4), &forced}
+}
+
 func TestDCT4N64Oracle(t *testing.T) {
-	p := NewDCTPlan(64, 4)
+	for _, p := range fusedPlans() {
+		testDCT4N64Oracle(t, p)
+	}
+}
+
+func TestDCT4N64Pair(t *testing.T) {
+	for _, p := range fusedPlans() {
+		testDCT4N64Pair(t, p)
+	}
+}
+
+func TestDCT4N64PairShortPanics(t *testing.T) {
+	for _, p := range fusedPlans() {
+		testDCT4N64PairShortPanics(t, p)
+	}
+}
+
+func testDCT4N64Oracle(t *testing.T, p *DCTPlan) {
 	b64 := 2 * eps64 * math.Log2(64)
 	b32 := b64 + 0x1p-24
 	for seed := uint64(1); seed <= 4; seed++ {
@@ -79,10 +105,9 @@ func TestDCT4N64AgainstPooled(t *testing.T) {
 	}
 }
 
-// TestDCT4N64Pair: the pair forms give each stream what its own call gives, to
+// testDCT4N64Pair: the pair forms give each stream what its own call gives, to
 // the oracle bound, in place, and with the cross-overlap fallback.
-func TestDCT4N64Pair(t *testing.T) {
-	p := NewDCTPlan(64, 4)
+func testDCT4N64Pair(t *testing.T, p *DCTPlan) {
 	b64 := 2 * eps64 * math.Log2(64)
 	b32 := b64 + 0x1p-24
 	for seed := uint64(1); seed <= 4; seed++ {
@@ -149,11 +174,30 @@ func TestDCT4N64Pair(t *testing.T) {
 	}
 }
 
-// TestDCT4N64PairShortPanics: the pair forms panic like DCT on a short slice, and
+// testDCT4N64PairShortPanics: the fused forms panic like DCT on a short slice, and
 // a plan that is not DCT-IV of length 64 runs the two calls.
-func TestDCT4N64PairShortPanics(t *testing.T) {
-	p := NewDCTPlan(64, 4)
+func testDCT4N64PairShortPanics(t *testing.T, p *DCTPlan) {
 	ok := make([]float64, 64)
+	ok32 := make([]float32, 64)
+	mustPanicWith(t, "short dst", "fft: DCTPlan slice", func() { p.DCT(make([]float64, 63), ok, NormBackward) })
+	mustPanicWith(t, "short src", "fft: DCTPlan slice", func() { p.IDCT(ok, make([]float64, 63), NormBackward) })
+	mustPanicWith(t, "short mixed dst", "fft: DCTPlan slice", func() { p.DCTMixed(make([]float32, 63), ok32, NormBackward) })
+	mustPanicWith(t, "short mixed src", "fft: DCTPlan slice", func() { p.IDCTMixed(ok32, make([]float32, 63), NormBackward) })
+	mustPanicWith(t, "short mixed pair", "fft: DCTPlan slice", func() { p.DCTMixedPair(ok32, ok32, make([]float32, 63), ok32, NormBackward) })
+	// Mixed pair with dst0 over src1 runs the two calls in order.
+	s := append([]float32(nil), ok32...)
+	for i := range s {
+		s[i] = float32(i)
+	}
+	want0 := p.DCTMixed(make([]float32, 64), s, NormOrtho)
+	want1 := p.DCTMixed(make([]float32, 64), want0, NormOrtho)
+	s1 := append([]float32(nil), s...)
+	g0, g1 := p.DCTMixedPair(s1, make([]float32, 64), s, s1, NormOrtho)
+	for i := range want0 {
+		if g0[i] != want0[i] || g1[i] != want1[i] {
+			t.Fatalf("mixed pair, dst0 over src1, differs from the two calls in order at %d", i)
+		}
+	}
 	mustPanicWith(t, "short dst1", "fft: DCTPlan slice", func() { p.DCTPair(ok, make([]float64, 63), ok, ok, NormBackward) })
 	mustPanicWith(t, "short src0", "fft: DCTPlan slice", func() { p.DCTPair(ok, ok, make([]float64, 63), ok, NormBackward) })
 	mustPanicWith(t, "norm", "fft:", func() { p.DCTPair(ok, ok, ok, ok, Norm(99)) })

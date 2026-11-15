@@ -21,12 +21,26 @@ func (p *DCTPlan) run64(dst, src []float64, norm Norm, inverse bool) []float64 {
 	if len(dst) < 64 || len(src) < 64 {
 		panic("fft: DCTPlan slice shorter than the plan's length")
 	}
-	if f := norm.scale(128, inverse); f != 1 {
+	dct4Single64(dst, src, norm.scale(128, inverse))
+	return dst[:64]
+}
+
+// dct4Single64 runs the scalar kernel, scaled by f unless f is 1.
+func dct4Single64(dst, src []float64, f float64) {
+	if f != 1 {
 		dct4n64f64s(dst, src, f)
 	} else {
 		dct4n64f64(dst, src)
 	}
-	return dst[:64]
+}
+
+// dct4Single64Mixed is dct4Single64 on float32 data.
+func dct4Single64Mixed(dst, src []float32, f float64) {
+	if f != 1 {
+		dct4n64f32s(dst, src, f)
+	} else {
+		dct4n64f32(dst, src)
+	}
 }
 
 // run64Mixed is runMixed for the fused plan.
@@ -34,11 +48,7 @@ func (p *DCTPlan) run64Mixed(dst, src []float32, norm Norm, inverse bool) []floa
 	if len(dst) < 64 || len(src) < 64 {
 		panic("fft: DCTPlan slice shorter than the plan's length")
 	}
-	if f := norm.scale(128, inverse); f != 1 {
-		dct4n64f32s(dst, src, f)
-	} else {
-		dct4n64f32(dst, src)
-	}
+	dct4Single64Mixed(dst, src, norm.scale(128, inverse))
 	return dst[:64]
 }
 
