@@ -2,7 +2,7 @@ package fft
 
 import "unsafe"
 
-//go:generate go run internal/gendct4/main.go
+//go:generate go run internal/gendct4/main.go internal/gendct4/amd64.go
 
 // The fused DCT-IV of length 64 (go-fft/fft#132, go-avkit/decode#77: HE-AAC's QMF
 // runs it six times per slot). A DCT-IV plan of length 64 on a platform that
@@ -83,7 +83,7 @@ func (p *DCTPlan) checkPair(l0, l1, l2, l3 int, norm Norm) {
 
 func (p *DCTPlan) runPair(dst0, dst1, src0, src1 []float64, norm Norm, inverse bool) (r0, r1 []float64) {
 	p.checkPair(len(dst0), len(dst1), len(src0), len(src1), norm)
-	if p.fused && !overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
+	if p.pair && !overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
 		dct4Pair64(dst0, dst1, src0, src1, norm.scale(128, inverse))
 		return dst0[:64], dst1[:64]
 	}
@@ -106,7 +106,7 @@ func (p *DCTPlan) runMixedPair(dst0, dst1, src0, src1 []float32, norm Norm, inve
 		panic("fft: DCTPlan.DCTMixed needs a DCT-IV plan")
 	}
 	p.checkPair(len(dst0), len(dst1), len(src0), len(src1), norm)
-	if p.fused && !overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
+	if p.pair && !overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
 		dct4Pair64Mixed(dst0, dst1, src0, src1, norm.scale(128, inverse))
 		return dst0[:64], dst1[:64]
 	}

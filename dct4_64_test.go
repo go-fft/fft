@@ -10,13 +10,22 @@ import (
 // accBound), the Mixed one plus half a float32 ulp, and every route of the
 // plan (DCT, IDCT, DCTMixed, IDCTMixed, in place) to the same arithmetic.
 
-// fusedPlans returns the plan the package builds and one forced onto the fused
-// kernels, which off arm64 means the scalar Go ones: every platform runs every
-// line of the fused path.
+// fusedPlans returns the plan the package builds, one forced onto the fused
+// kernels for the single and the pair calls (the scalar Go kernels where a
+// platform has no faster one: every platform runs every line of the fused path),
+// and one with only the pair route on and the pair kernel replaced by its
+// fallback, the scalar kernel twice (dct4PairAsm off, amd64).
 func fusedPlans() []*DCTPlan {
 	forced := *NewDCTPlan(64, 4)
-	forced.fused = true
+	forced.fused, forced.pair = true, true
 	return []*DCTPlan{NewDCTPlan(64, 4), &forced}
+}
+
+// withoutPairAsm runs f with the amd64 pair kernels switched off.
+func withoutPairAsm(f func()) {
+	old := dct4PairAsmSwitch(false)
+	defer dct4PairAsmSwitch(old)
+	f()
 }
 
 func TestDCT4N64Oracle(t *testing.T) {
@@ -79,6 +88,7 @@ func testDCT4N64Oracle(t *testing.T, p *DCTPlan) {
 // in-place alias.
 func TestDCT4N64AgainstPooled(t *testing.T) {
 	fused := NewDCTPlan(64, 4)
+	fused.fused = true // on amd64 the plan does not route single calls to the kernel
 	pooled := *fused
 	pooled.fused = false
 	for seed := uint64(1); seed <= 8; seed++ {
