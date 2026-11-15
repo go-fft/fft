@@ -14,4 +14,10 @@ var fused2048Enabled = kernels.Fused2048On
 // Exact and NoFMA plans never do (their arithmetic is not fused), and nor does
 // any CPU but the Zen 4 and the Cascade Lake it was measured on (go-fft/fft#162;
 // kernels.Fused2048On).
-func fused2048Route(n int) bool { return n == 2048 && fused2048Enabled }
+func fused2048Route(n int) bool {
+	if n == 2048 && fused2048Enabled {
+		kernels.Fused2048Prepare()
+		return true
+	}
+	return false
+}

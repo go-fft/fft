@@ -656,7 +656,13 @@ passes). Factorizations, x[B*a+b] with A x B: 64 = 8x8, 128 = 16x8, 256 = 16x16,
 128-point DFTs spill (Belady) as the complex128 ones.
 The twiddle tables are float32, each entry the 400-bit value rounded once to
 float32 (`gentwiddle.CosSin32`: never float64 first), 64-byte aligned in place in
-the static array like the others.
+the static array like the others, lazily: a `sync.Once` per table (`Fused<n>Prepare`),
+called by the plan construction that chooses the kernel, so that no package
+initializer refers to a table and a program that never builds such a plan does not
+link it (a complex128-only program is 518 KB smaller: 4,738,337 to 4,220,540 bytes;
+a complex64-only one 9 KB larger, 5,092,168 to 5,101,153). The complex128 tables
+(256, 1024, 2048) are lazy the same way. The kernels read the aligned pointer, a
+plain variable that the Once wrote before any plan using it existed.
 
 One pinned core each (cpu 9 and cpu 14), a fresh process per row, go-fft and FFTW
 alternating (5 rounds, medians), load 0.9 to 1.1, ns per transform, forward:
@@ -696,8 +702,8 @@ tested); `TestFusedSImpulseMutation`: about 300 entries of each table, each
 off by 1e-4, fail at their columns, an ulp does not.
 
 The route: public 1-D `Plan32`, `FFT32`/`IFFT32`, `RFFT32`/`IRFFT32` and the
-`...With` forms without `Options.Exact` take the kernels; everything else keeps
-the passes and its bits: `Options.Exact` calls, the plans under the N-D, 2-D
+`...With` forms without `Options.Exact` or `Options.NoFMA` take the kernels;
+everything else keeps the passes and its bits: `Options.Exact` and `Options.NoFMA` calls, the plans under the N-D, 2-D
 real, DCT, DST and MDCT transforms (golden digests, and the strip and line paths
 agreeing to the bit). The 2-D and DCT paths measure faster than FFTW already
 (DCT-IV and MDCT 0.3 to 0.9, #162).

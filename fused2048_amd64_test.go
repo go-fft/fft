@@ -16,6 +16,7 @@ func enableFused2048(t testing.TB) {
 	t.Helper()
 	skipNoFused(t)
 	isolatePlans(t)
+	kernels.Fused2048Prepare()
 	old := kernels.Fused2048On
 	kernels.Fused2048On = true
 	t.Cleanup(func() { kernels.Fused2048On = old })

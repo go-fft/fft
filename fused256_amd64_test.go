@@ -23,6 +23,7 @@ func enableFused(t testing.TB) {
 	t.Helper()
 	skipNoFused(t)
 	isolatePlans(t)
+	kernels.Fused256Prepare()
 	old := kernels.Fused256On
 	kernels.Fused256On = true
 	t.Cleanup(func() { kernels.Fused256On = old })

@@ -14,10 +14,41 @@ var fusedSEnabled = map[int]bool{
 	8192: kernels.FusedS8192On,
 }
 
+// fusedS32 reports whether a float32 call with these options may take the fused
+// complex64 kernels: not under Options.Exact (the reference bits) and not under
+// Options.NoFMA (the default without fusing, whatever the CPU: README, doc.go).
+func (o Options) fusedS32() bool { return !o.Exact && !o.NoFMA }
+
 // fusedSRoute is the fused kernel length a Plan32 of n points takes: n, or 0.
 func fusedSRoute(n int) int {
 	if fusedSEnabled[n] {
+		fusedSPrepare(n) // aligns the table (once) before any plan calls the kernel
 		return n
 	}
 	return 0
+}
+
+// fusedSPrepare aligns the table of the kernel of n points (once per table):
+// plan construction calls it when it chooses the kernel, so that the tables are
+// linked only into a program that builds a Plan32 (a complex128-only program
+// carries none of them).
+func fusedSPrepare(n int) {
+	switch n {
+	case 64:
+		kernels.FusedS64Prepare()
+	case 128:
+		kernels.FusedS128Prepare()
+	case 256:
+		kernels.FusedS256Prepare()
+	case 512:
+		kernels.FusedS512Prepare()
+	case 1024:
+		kernels.FusedS1024Prepare()
+	case 2048:
+		kernels.FusedS2048Prepare()
+	case 4096:
+		kernels.FusedS4096Prepare()
+	case 8192:
+		kernels.FusedS8192Prepare()
+	}
 }

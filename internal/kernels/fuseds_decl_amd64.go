@@ -2,6 +2,8 @@
 
 package kernels
 
+import "sync"
+
 // Complex64 FFTs as two fused AVX-512 passes (go-fft/fft#162): the kernels of
 // fused1024_amd64.go in single precision, eight complex64 per zmm. The assembly
 // is fusedS<n>_amd64.s and the tables (each entry the 400-bit value rounded once
@@ -17,57 +19,65 @@ var (
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS64On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS64TwA = alignedTable32(fusedS64TwStore[:])
-	fusedS64TwP = &fusedS64TwA[0]
+	fusedS64TwA  []float32
+	fusedS64TwP  *float32
+	fusedS64Once sync.Once
 	// FusedS128On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS128On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS128TwA = alignedTable32(fusedS128TwStore[:])
-	fusedS128TwP = &fusedS128TwA[0]
+	fusedS128TwA  []float32
+	fusedS128TwP  *float32
+	fusedS128Once sync.Once
 	// FusedS256On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS256On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS256TwA = alignedTable32(fusedS256TwStore[:])
-	fusedS256TwP = &fusedS256TwA[0]
+	fusedS256TwA  []float32
+	fusedS256TwP  *float32
+	fusedS256Once sync.Once
 	// FusedS512On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS512On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS512TwA = alignedTable32(fusedS512TwStore[:])
-	fusedS512TwP = &fusedS512TwA[0]
+	fusedS512TwA  []float32
+	fusedS512TwP  *float32
+	fusedS512Once sync.Once
 	// FusedS1024On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS1024On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS1024TwA = alignedTable32(fusedS1024TwStore[:])
-	fusedS1024TwP = &fusedS1024TwA[0]
+	fusedS1024TwA  []float32
+	fusedS1024TwP  *float32
+	fusedS1024Once sync.Once
 	// FusedS2048On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS2048On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS2048TwA = alignedTable32(fusedS2048TwStore[:])
-	fusedS2048TwP = &fusedS2048TwA[0]
+	fusedS2048TwA  []float32
+	fusedS2048TwP  *float32
+	fusedS2048Once sync.Once
 	// FusedS4096On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS4096On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS4096TwA = alignedTable32(fusedS4096TwStore[:])
-	fusedS4096TwP = &fusedS4096TwA[0]
+	fusedS4096TwA  []float32
+	fusedS4096TwP  *float32
+	fusedS4096Once sync.Once
 	// FusedS8192On is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an
 	// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the
 	// CPUs it was measured on (go-fft/fft#162).
 	FusedS8192On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
-	fusedS8192TwA = alignedTable32(fusedS8192TwStore[:])
-	fusedS8192TwP = &fusedS8192TwA[0]
+	fusedS8192TwA  []float32
+	fusedS8192TwP  *float32
+	fusedS8192Once sync.Once
 )
 
 //go:noescape
@@ -83,8 +93,23 @@ func FusedS64(dst, src *[64]complex64, inverse bool) bool {
 	return fusedS64(dst, src, fusedS64TwP, inverse)
 }
 
+// FusedS64Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS64Prepare() {
+	fusedS64Once.Do(func() {
+		fusedS64TwA = alignedTable32(fusedS64TwStore[:])
+		fusedS64TwP = &fusedS64TwA[0]
+	})
+}
+
 // FusedS64Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS64Table(inverse bool) []float32 { return halfTable32(fusedS64TwA, inverse) }
+func FusedS64Table(inverse bool) []float32 {
+	FusedS64Prepare()
+	return halfTable32(fusedS64TwA, inverse)
+}
 
 //go:noescape
 func fusedS128(dst, src *[128]complex64, tw *float32, inv bool) (ok bool)
@@ -99,8 +124,23 @@ func FusedS128(dst, src *[128]complex64, inverse bool) bool {
 	return fusedS128(dst, src, fusedS128TwP, inverse)
 }
 
+// FusedS128Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS128Prepare() {
+	fusedS128Once.Do(func() {
+		fusedS128TwA = alignedTable32(fusedS128TwStore[:])
+		fusedS128TwP = &fusedS128TwA[0]
+	})
+}
+
 // FusedS128Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS128Table(inverse bool) []float32 { return halfTable32(fusedS128TwA, inverse) }
+func FusedS128Table(inverse bool) []float32 {
+	FusedS128Prepare()
+	return halfTable32(fusedS128TwA, inverse)
+}
 
 //go:noescape
 func fusedS256(dst, src *[256]complex64, tw *float32, inv bool) (ok bool)
@@ -115,8 +155,23 @@ func FusedS256(dst, src *[256]complex64, inverse bool) bool {
 	return fusedS256(dst, src, fusedS256TwP, inverse)
 }
 
+// FusedS256Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS256Prepare() {
+	fusedS256Once.Do(func() {
+		fusedS256TwA = alignedTable32(fusedS256TwStore[:])
+		fusedS256TwP = &fusedS256TwA[0]
+	})
+}
+
 // FusedS256Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS256Table(inverse bool) []float32 { return halfTable32(fusedS256TwA, inverse) }
+func FusedS256Table(inverse bool) []float32 {
+	FusedS256Prepare()
+	return halfTable32(fusedS256TwA, inverse)
+}
 
 //go:noescape
 func fusedS512(dst, src *[512]complex64, tw *float32, inv bool) (ok bool)
@@ -131,8 +186,23 @@ func FusedS512(dst, src *[512]complex64, inverse bool) bool {
 	return fusedS512(dst, src, fusedS512TwP, inverse)
 }
 
+// FusedS512Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS512Prepare() {
+	fusedS512Once.Do(func() {
+		fusedS512TwA = alignedTable32(fusedS512TwStore[:])
+		fusedS512TwP = &fusedS512TwA[0]
+	})
+}
+
 // FusedS512Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS512Table(inverse bool) []float32 { return halfTable32(fusedS512TwA, inverse) }
+func FusedS512Table(inverse bool) []float32 {
+	FusedS512Prepare()
+	return halfTable32(fusedS512TwA, inverse)
+}
 
 //go:noescape
 func fusedS1024(dst, src *[1024]complex64, tw *float32, inv bool) (ok bool)
@@ -147,8 +217,23 @@ func FusedS1024(dst, src *[1024]complex64, inverse bool) bool {
 	return fusedS1024(dst, src, fusedS1024TwP, inverse)
 }
 
+// FusedS1024Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS1024Prepare() {
+	fusedS1024Once.Do(func() {
+		fusedS1024TwA = alignedTable32(fusedS1024TwStore[:])
+		fusedS1024TwP = &fusedS1024TwA[0]
+	})
+}
+
 // FusedS1024Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS1024Table(inverse bool) []float32 { return halfTable32(fusedS1024TwA, inverse) }
+func FusedS1024Table(inverse bool) []float32 {
+	FusedS1024Prepare()
+	return halfTable32(fusedS1024TwA, inverse)
+}
 
 //go:noescape
 func fusedS2048(dst, src *[2048]complex64, tw *float32, inv bool) (ok bool)
@@ -163,8 +248,23 @@ func FusedS2048(dst, src *[2048]complex64, inverse bool) bool {
 	return fusedS2048(dst, src, fusedS2048TwP, inverse)
 }
 
+// FusedS2048Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS2048Prepare() {
+	fusedS2048Once.Do(func() {
+		fusedS2048TwA = alignedTable32(fusedS2048TwStore[:])
+		fusedS2048TwP = &fusedS2048TwA[0]
+	})
+}
+
 // FusedS2048Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS2048Table(inverse bool) []float32 { return halfTable32(fusedS2048TwA, inverse) }
+func FusedS2048Table(inverse bool) []float32 {
+	FusedS2048Prepare()
+	return halfTable32(fusedS2048TwA, inverse)
+}
 
 //go:noescape
 func fusedS4096(dst, src *[4096]complex64, tw *float32, inv bool) (ok bool)
@@ -179,8 +279,23 @@ func FusedS4096(dst, src *[4096]complex64, inverse bool) bool {
 	return fusedS4096(dst, src, fusedS4096TwP, inverse)
 }
 
+// FusedS4096Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS4096Prepare() {
+	fusedS4096Once.Do(func() {
+		fusedS4096TwA = alignedTable32(fusedS4096TwStore[:])
+		fusedS4096TwP = &fusedS4096TwA[0]
+	})
+}
+
 // FusedS4096Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS4096Table(inverse bool) []float32 { return halfTable32(fusedS4096TwA, inverse) }
+func FusedS4096Table(inverse bool) []float32 {
+	FusedS4096Prepare()
+	return halfTable32(fusedS4096TwA, inverse)
+}
 
 //go:noescape
 func fusedS8192(dst, src *[8192]complex64, tw *float32, inv bool) (ok bool)
@@ -195,5 +310,20 @@ func FusedS8192(dst, src *[8192]complex64, inverse bool) bool {
 	return fusedS8192(dst, src, fusedS8192TwP, inverse)
 }
 
+// FusedS8192Prepare aligns the kernel's table, once: the plan construction that
+// chooses the kernel calls it (the kernel must not be called before), so that no
+// package initializer refers to the table and a program that never builds such a
+// plan does not link it. The calls read the aligned pointer, which the Once has
+// written before any plan that uses it exists.
+func FusedS8192Prepare() {
+	fusedS8192Once.Do(func() {
+		fusedS8192TwA = alignedTable32(fusedS8192TwStore[:])
+		fusedS8192TwP = &fusedS8192TwA[0]
+	})
+}
+
 // FusedS8192Table is the twiddle table of one direction, for the tests that perturb it.
-func FusedS8192Table(inverse bool) []float32 { return halfTable32(fusedS8192TwA, inverse) }
+func FusedS8192Table(inverse bool) []float32 {
+	FusedS8192Prepare()
+	return halfTable32(fusedS8192TwA, inverse)
+}

@@ -14,4 +14,10 @@ var fused256Enabled = kernels.Fused256On
 // Exact and NoFMA plans never do (their arithmetic is not fused), and nor does
 // any CPU but the Zen 4 and the Cascade Lake it was measured on (go-fft/fft#124,
 // go-fft/fft#162; kernels.Fused256On).
-func fused256Route(n int) bool { return n == 256 && fused256Enabled }
+func fused256Route(n int) bool {
+	if n == 256 && fused256Enabled {
+		kernels.Fused256Prepare() // aligns the table (once) before any plan calls the kernel
+		return true
+	}
+	return false
+}

@@ -16,6 +16,7 @@ func enableFused1024(t testing.TB) {
 	t.Helper()
 	skipNoFused(t)
 	isolatePlans(t)
+	kernels.Fused1024Prepare()
 	old := kernels.Fused1024On
 	kernels.Fused1024On = true
 	t.Cleanup(func() { kernels.Fused1024On = old })

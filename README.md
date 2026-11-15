@@ -397,8 +397,8 @@ folded into the first (`internal/genfused256`; the complex128 kernels of the
 fused plans, in single precision). Their float32 twiddles are the 400-bit value
 rounded once. It is not bit-identical to the passes; its error is asserted
 against a double-double oracle at `eps32·log2(N)` times the c2c constant, and
-`Options.Exact`, the plans under the N-D, 2-D real, DCT, DST and MDCT
-transforms (golden digests pin their bits) never take it. Ryzen 9 7950X, one
+`Options.Exact`, `Options.NoFMA`, the plans under the N-D, 2-D real, DCT, DST and
+MDCT transforms (golden digests pin their bits) never take it. Ryzen 9 7950X, one
 core, fresh process per row, FFTW 3.3.10 AVX-512 single precision, ns per
 transform (go-fft before, now, FFTW): 64 40.1, 28.2, 22.1; 256 128.4, 82.3,
 76.3; 1,024 563.1, 367.6, 380.3; 4,096 4,578, 2,170, 2,277; 8,192 8,568,

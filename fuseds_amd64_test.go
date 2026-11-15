@@ -58,6 +58,7 @@ func enableFusedS(t testing.TB) {
 	skipNoFused(t)
 	isolatePlans(t)
 	for _, c := range fusedSCases() {
+		c.tab(false) // aligns the table (Fused<n>Prepare), as plan construction does
 		c, old, oldRoute := c, *c.on, fusedSEnabled[c.n]
 		*c.on, fusedSEnabled[c.n] = true, true
 		t.Cleanup(func() { *c.on, fusedSEnabled[c.n] = old, oldRoute })
@@ -395,4 +396,64 @@ func TestFusedSRealPlans(t *testing.T) {
 			t.Errorf("IRFFT32(RFFT32) n=%d: round trip error %.3g above %.3g", n, e, 2*fusedSBound(n))
 		}
 	}
+}
+
+// TestFusedSNoFMAAndExactNeverFuse: a float32 call with Options.NoFMA (the default
+// without fusing, whatever the CPU: README, doc.go) or Options.Exact takes the
+// passes, never a fused kernel, whatever the route: its bits are the plain plan's,
+// at every kernel length and for every ...With form that builds a plan; the
+// default call takes the kernel.
+func TestFusedSNoFMAAndExactNeverFuse(t *testing.T) {
+	enableFusedS(t)
+	isolatePlans(t)
+	for name, o := range map[string]Options{"NoFMA": {NoFMA: true}, "Exact": {Exact: true}} {
+		if o.fusedS32() {
+			t.Fatalf("%s: fusedS32 is true", name)
+		}
+		for _, c := range fusedSCases() {
+			n := c.n
+			x := toC64Slice(accComplexF64(n, 17))
+			plain := make([]complex64, n)
+			cachedPlan32(n).FFT(plain, x)
+			plainInv := make([]complex64, n)
+			cachedPlan32(n).IFFTNorm(plainInv, x, NormForward)
+			if got := FFT32With(x, o); !sameC64(got, plain) {
+				t.Errorf("%s n=%d: FFT32With is not the passes' bits", name, n)
+			}
+			if got := IFFT32With(x, Options{NoFMA: o.NoFMA, Exact: o.Exact, Norm: NormForward}); !sameC64(got, plainInv) {
+				t.Errorf("%s n=%d: IFFT32With is not the passes' bits", name, n)
+			}
+			r := make([]float32, n)
+			for i := range r {
+				r[i] = real(x[i])
+			}
+			wantR := cachedRealPlan32(n).RFFT(make([]complex64, n/2+1), r)
+			if got := RFFT32With(r, o); !sameC64(got, wantR) {
+				t.Errorf("%s n=%d: RFFT32With is not the passes' bits", name, n)
+			}
+			wantI := cachedRealPlan32(n).IRFFT(make([]float32, n), wantR)
+			got := IRFFT32With(wantR, Options{NoFMA: o.NoFMA, Exact: o.Exact, N: n})
+			for i := range got {
+				if got[i] != wantI[i] {
+					t.Fatalf("%s n=%d: IRFFT32With is not the passes' bits at %d", name, n, i)
+				}
+			}
+		}
+	}
+	// and the default call does take the kernel (its bits differ from the passes')
+	x := toC64Slice(accComplexF64(1024, 17))
+	plain := make([]complex64, 1024)
+	cachedPlan32(1024).FFT(plain, x)
+	if sameC64(FFT32With(x, Options{}), plain) {
+		t.Error("the default FFT32With is the passes' bits: the kernel did not run")
+	}
+}
+
+func sameC64(a, b []complex64) bool {
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return len(a) == len(b)
 }
