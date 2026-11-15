@@ -79,3 +79,82 @@ func TestAlignedTableNoAlloc(t *testing.T) {
 		}
 	}
 }
+
+// TestFusedSTablesAligned: the complex64 kernels' tables start at a multiple of 64
+// bytes, lie inside their generated static array (no heap copy), have the inverse
+// right after the forward one (cosines equal, sines of opposite sign) and start
+// with the twiddle of w^0 = 1 (the first row's real part).
+func TestFusedSTablesAligned(t *testing.T) {
+	for name, c := range map[string]struct {
+		got   func(bool) []float32
+		store []float32
+	}{
+		"S64":   {FusedS64Table, fusedS64TwStore[:]},
+		"S128":  {FusedS128Table, fusedS128TwStore[:]},
+		"S256":  {FusedS256Table, fusedS256TwStore[:]},
+		"S512":  {FusedS512Table, fusedS512TwStore[:]},
+		"S1024": {FusedS1024Table, fusedS1024TwStore[:]},
+		"S2048": {FusedS2048Table, fusedS2048TwStore[:]},
+		"S4096": {FusedS4096Table, fusedS4096TwStore[:]},
+		"S8192": {FusedS8192Table, fusedS8192TwStore[:]},
+	} {
+		fwd, inv := c.got(false), c.got(true)
+		if a := uintptr(unsafe.Pointer(&fwd[0])); a%64 != 0 {
+			t.Errorf("%s: the forward table is at %#x, %d mod 64", name, a, a%64)
+		}
+		lo := uintptr(unsafe.Pointer(&c.store[0]))
+		hi := lo + uintptr(len(c.store))*4
+		if a := uintptr(unsafe.Pointer(&fwd[0])); a < lo || a+uintptr(2*len(fwd))*4 > hi {
+			t.Errorf("%s: the table is not inside the static array (a heap copy)", name)
+		}
+		if unsafe.Pointer(&inv[0]) != unsafe.Add(unsafe.Pointer(&fwd[0]), len(fwd)*4) {
+			t.Errorf("%s: the inverse table does not follow the forward one", name)
+		}
+		if len(fwd) != len(inv) || len(fwd)*2+16 != len(c.store) {
+			t.Fatalf("%s: table lengths %d, %d for a store of %d", name, len(fwd), len(inv), len(c.store))
+		}
+		for i := range fwd {
+			if (i%32 < 16) && fwd[i] != inv[i] { // real parts: equal
+				t.Fatalf("%s: real part %d differs between the directions: %v, %v", name, i, fwd[i], inv[i])
+			}
+			if (i%32 >= 16) && fwd[i] != -inv[i] { // imaginary parts: opposite signs
+				t.Fatalf("%s: imaginary part %d is %v and %v", name, i, fwd[i], inv[i])
+			}
+		}
+	}
+}
+
+// TestAlignedTable32NoAlloc: alignedTable32 allocates nothing and keeps the
+// table's values and order, whatever the alignment of the array it is given (all
+// sixteen 4-byte offsets of a larger buffer are tried).
+func TestAlignedTable32NoAlloc(t *testing.T) {
+	const n = 64
+	buf := make([]float32, n+16+16)
+	for off := 0; off < 16; off++ {
+		store := buf[off : off+n+16]
+		fill := func() {
+			for i := range store {
+				store[i] = -1
+			}
+			for i := 0; i < n; i++ {
+				store[8+i] = float32(i) // the data starts at index 8
+			}
+		}
+		fill()
+		var got []float32
+		if a := testing.AllocsPerRun(1, func() { fill(); got = alignedTable32(store) }); a != 0 {
+			t.Errorf("offset %d: alignedTable32 allocates %v times", off, a)
+		}
+		if p := uintptr(unsafe.Pointer(&got[0])); p%64 != 0 {
+			t.Errorf("offset %d: the table is at %d mod 64", off, p%64)
+		}
+		if len(got) != n {
+			t.Fatalf("offset %d: %d elements", off, len(got))
+		}
+		for i, v := range got {
+			if v != float32(i) {
+				t.Fatalf("offset %d: element %d is %v", off, i, v)
+			}
+		}
+	}
+}

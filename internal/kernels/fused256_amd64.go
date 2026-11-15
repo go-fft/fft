@@ -37,6 +37,7 @@ func Fused256Ref(dst, src *[256]complex128, inverse bool) bool {
 // Fused256Table is the twiddle table of one direction, for the tests that
 // perturb it to show what the accuracy bound can see.
 func Fused256Table(inverse bool) []float64 {
+	Fused256Prepare()
 	if inverse {
 		return fused256TwA[len(fused256TwA)/2:]
 	}

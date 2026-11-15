@@ -50,7 +50,7 @@ func exactCases() []exactCase {
 			x32[i] = complex64(x[i])
 			r32[i] = float32(r[i])
 		}
-		h32 := RFFT32(r32)
+		h32 := RFFT32With(r32, exact(Options{})) // as h: the default float32 bits depend on the CPU (the fused kernels)
 		ex := exact(Options{})
 		exN := exact(Options{N: n})
 		add("FFT", func() any { return FFT(x) }, func() any { return FFTWith(x, ex) })

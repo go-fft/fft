@@ -32,7 +32,7 @@ func f32ndComplexWith(name string, x []complex64, o Options, inverse bool) []com
 	checkAlloc(name, n, 16) // Plan32's twiddle table is complex128
 	out := make([]complex64, n)
 	copy(out, x) // truncates to n, or leaves the zero padding past len(x)
-	p := cachedPlan32(n)
+	p := cachedPlan32F(n, o.fusedS32())
 	if inverse {
 		return p.IFFTNorm(out, out, o.Norm)
 	}
@@ -44,12 +44,12 @@ func f32ndComplexWith(name string, x []complex64, o Options, inverse bool) []com
 // to n = o.N points (len(x) when o.N is zero). o.Axes must be nil.
 func RFFT32With(x []float32, o Options) []complex64 {
 	n := o.check1D("RFFT32With", len(x))
-	return f32ndRFFT(x, n, o.Norm)
+	return f32ndRFFT(x, n, o.Norm, o.fusedS32())
 }
 
 // f32ndRFFT is the real forward transform of x truncated or zero-padded to n
 // points, scaled as m says for a forward transform.
-func f32ndRFFT(x []float32, n int, m Norm) []complex64 {
+func f32ndRFFT(x []float32, n int, m Norm, fused bool) []complex64 {
 	if n == 0 {
 		return []complex64{}
 	}
@@ -59,7 +59,7 @@ func f32ndRFFT(x []float32, n int, m Norm) []complex64 {
 		in = make([]float32, n)
 		copy(in, x)
 	}
-	return cachedRealPlan32(n).RFFTNorm(make([]complex64, n/2+1), in, m)
+	return cachedRealPlan32F(n, fused).RFFTNorm(make([]complex64, n/2+1), in, m)
 }
 
 // IRFFT32With is IRFFT32 with numpy.fft.irfft's n and norm arguments, as
@@ -72,7 +72,7 @@ func IRFFT32With(spectrum []complex64, o Options) []float32 {
 	if n == 0 {
 		return []float32{}
 	}
-	return cachedRealPlan32(n).IRFFTNorm(make([]float32, n), spectrum, o.Norm)
+	return cachedRealPlan32F(n, o.fusedS32()).IRFFTNorm(make([]float32, n), spectrum, o.Norm)
 }
 
 // HFFT32 is HFFT in single precision: the real DFT, of n points, of the
@@ -97,7 +97,7 @@ func HFFT32With(x []complex64, o Options) []float32 {
 	for i := range c {
 		c[i] = complex(real(x[i]), -imag(x[i]))
 	}
-	return cachedRealPlan32(n).IRFFTNorm(make([]float32, n), c, f32ndSwapNorm(o.Norm))
+	return cachedRealPlan32F(n, o.fusedS32()).IRFFTNorm(make([]float32, n), c, f32ndSwapNorm(o.Norm))
 }
 
 // IHFFT32 is IHFFT in single precision: the first n/2+1 values of the
@@ -112,7 +112,7 @@ func IHFFT32(x []float32) []complex64 {
 // as an inverse transform. o.Axes must be nil.
 func IHFFT32With(x []float32, o Options) []complex64 {
 	n := o.check1D("IHFFT32With", len(x))
-	out := f32ndRFFT(x, n, f32ndSwapNorm(o.Norm))
+	out := f32ndRFFT(x, n, f32ndSwapNorm(o.Norm), o.fusedS32())
 	for i, v := range out {
 		out[i] = complex(real(v), -imag(v))
 	}

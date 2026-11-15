@@ -14,4 +14,10 @@ var fused1024Enabled = kernels.Fused1024On
 // any CPU but the Zen 4 the kernel was measured on (go-fft/fft#162). A Cascade
 // Lake ran it at 0.94 to 0.96 of the plan's time, under the 5% bar: it keeps its
 // plans.
-func fused1024Route(n int) bool { return n == 1024 && fused1024Enabled }
+func fused1024Route(n int) bool {
+	if n == 1024 && fused1024Enabled {
+		kernels.Fused1024Prepare()
+		return true
+	}
+	return false
+}

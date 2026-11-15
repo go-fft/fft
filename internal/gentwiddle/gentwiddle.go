@@ -33,13 +33,31 @@ func bigPi() *big.Float {
 // Taylor series at 400 bits, so the only rounding is the last. (math.Sincos of a
 // float64 2πk/n carries the rounding of the angle into the constant.)
 func CosSin(num, den int) (c, s float64) {
+	cs, sn := bigCosSin(num, den)
+	c, _ = cs.Float64()
+	s, _ = sn.Float64()
+	return c, s
+}
+
+// CosSin32 is cos and sin of 2π·num/den, correctly rounded to float32 from the
+// 400-bit value in one rounding: never through float64, which would round twice
+// and can land one float32 ulp away from the correctly rounded value.
+func CosSin32(num, den int) (c, s float32) {
+	cs, sn := bigCosSin(num, den)
+	c, _ = cs.Float32()
+	s, _ = sn.Float32()
+	return c, s
+}
+
+// bigCosSin is cos and sin of 2π·num/den at 400 bits.
+func bigCosSin(num, den int) (cs, sn *big.Float) {
 	const prec = 400
 	x := new(big.Float).SetPrec(prec).Mul(big.NewFloat(2).SetPrec(prec), bigPi())
 	x.Mul(x, new(big.Float).SetPrec(prec).SetInt64(int64(num)))
 	x.Quo(x, new(big.Float).SetPrec(prec).SetInt64(int64(den)))
 	x2 := new(big.Float).SetPrec(prec).Mul(x, x)
-	cs := new(big.Float).SetPrec(prec)
-	sn := new(big.Float).SetPrec(prec)
+	cs = new(big.Float).SetPrec(prec)
+	sn = new(big.Float).SetPrec(prec)
 	tc := new(big.Float).SetPrec(prec).SetInt64(1) // x^(2k)/(2k)!
 	ts := new(big.Float).SetPrec(prec).Set(x)      // x^(2k+1)/(2k+1)!
 	for k := int64(0); k < 120; k++ {
@@ -55,7 +73,5 @@ func CosSin(num, den int) (c, s float64) {
 		ts.Mul(ts, x2)
 		ts.Quo(ts, new(big.Float).SetPrec(prec).SetInt64((2*k+2)*(2*k+3)))
 	}
-	c, _ = cs.Float64()
-	s, _ = sn.Float64()
-	return c, s
+	return cs, sn
 }

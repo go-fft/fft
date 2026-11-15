@@ -155,7 +155,7 @@ func NewMDCTPlan32(n int) *MDCTPlan32 {
 		p.k = f32ndNewR2RKernel(true, 4, m)
 		p.pool.init(func() *[]complex64 { s := make([]complex64, m/2); return &s })
 	} else {
-		p.fft = NewPlan32(n)
+		p.fft = newPlan32(n, false)
 		pre, post := mdctTwiddles(m)
 		p.pre, p.post = make([]complex64, len(pre)), make([]complex64, len(post))
 		for i, v := range pre {

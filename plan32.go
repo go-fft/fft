@@ -41,6 +41,7 @@ import (
 // Plans are immutable after construction and safe for concurrent use.
 type Plan32 struct {
 	n         int
+	fs        int              // the fused complex64 kernel's length (256, 4096), or 0 (fuseds.go)
 	sk        *skPlan32        // smooth length
 	rader     *raderPlan32     // prime with 7-smooth n-1
 	bluestein *bluesteinPlan32 // any other length
@@ -49,7 +50,15 @@ type Plan32 struct {
 // NewPlan32 returns a single-precision transform plan for length n,
 // precomputing all twiddle factors. n may be any non-negative integer; n == 0
 // and n == 1 produce a trivial plan.
-func NewPlan32(n int) *Plan32 {
+func NewPlan32(n int) *Plan32 { return newPlan32(n, true) }
+
+// newPlan32 is NewPlan32; fused says whether the plan may run the fused
+// complex64 kernels (fuseds.go). The fused plans are the public ones (NewPlan32,
+// FFT32, IFFT32, RFFT32, IRFFT32 and the ...With forms without Options.Exact);
+// everything else, the plans under the N-D, 2-D real, DCT, DST and MDCT
+// transforms and the Exact calls, keeps the passes, so that their bits do not
+// depend on the CPU (golden digests, strip and line paths agreeing).
+func newPlan32(n int, fused bool) *Plan32 {
 	p := &Plan32{n: n}
 	if n <= 1 {
 		return p
@@ -57,6 +66,9 @@ func NewPlan32(n int) *Plan32 {
 	checkAlloc("NewPlan32", n, 16) // twiddleTable(n) is complex128
 	if factorsAreSmall(n) {
 		p.sk = newSKPlan32(n)
+		if fused {
+			p.fs = fusedSRoute(n)
+		}
 		return p
 	}
 	if isPrime(n) {
@@ -119,6 +131,7 @@ func (p *Plan32) execute(dst, src []complex64, inverse bool) {
 	switch {
 	case p.n <= 1:
 		copy(dst[:p.n], src[:p.n])
+	case p.fs != 0 && fusedSRun(p.fs, dst, src, inverse):
 	case p.sk != nil:
 		p.sk.transform(dst, src, inverse)
 	case p.rader != nil:
@@ -144,14 +157,14 @@ func scale32(x []complex64, s float64) {
 // returns an empty (non-nil) slice. Plans are cached per length.
 func FFT32(x []complex64) []complex64 {
 	out := make([]complex64, len(x))
-	return cachedPlan32(len(x)).FFT(out, x)
+	return cachedPlan32F(len(x), true).FFT(out, x)
 }
 
 // IFFT32 returns the inverse discrete Fourier transform of x in single
 // precision, normalized by N like IFFT. The input is not modified.
 func IFFT32(x []complex64) []complex64 {
 	out := make([]complex64, len(x))
-	return cachedPlan32(len(x)).IFFT(out, x)
+	return cachedPlan32F(len(x), true).IFFT(out, x)
 }
 
 var (
@@ -163,13 +176,21 @@ var (
 // use. Unlike cachedPlan it builds under the lock: NewPlan32 never re-enters
 // this cache (its Rader and Bluestein sub-transforms are private Stockham
 // plans, and their kernels come from the float64 cache).
-func cachedPlan32(n int) *Plan32 {
+func cachedPlan32(n int) *Plan32 { return cachedPlan32F(n, false) }
+
+// cachedPlan32F is cachedPlan32 for the plans that may run the fused kernels
+// (fused) or not; the two kinds share the map, the fused ones under the key -n.
+func cachedPlan32F(n int, fused bool) *Plan32 {
+	key := n
+	if fused && n > 1 {
+		key = -n
+	}
 	plan32Mu.Lock()
 	defer plan32Mu.Unlock()
-	p, ok := plan32Cache[n]
+	p, ok := plan32Cache[key]
 	if !ok {
-		p = NewPlan32(n)
-		plan32Cache[n] = p
+		p = newPlan32(n, fused)
+		plan32Cache[key] = p
 	}
 	return p
 }

@@ -23,9 +23,12 @@ var avx512Subset = map[string]string{
 	"VMOVAPD": "F", "VMOVDDUP": "F", "VMOVUPD": "F", "VPERMILPD": "F",
 	"VPORQ": "F", "VPXORQ": "F", "VSHUFF64X2": "F", "VUNPCKHPD": "F",
 	"VUNPCKLPD": "F",
+	// the packed-single forms the complex64 kernels use
+	"VADDPS": "F", "VSUBPS": "F", "VMULPS": "F", "VFMADD231PS": "F",
+	"VFMADDSUB231PS": "F", "VFMSUBADD231PS": "F", "VPERMILPS": "F",
 	// AVX512DQ: the opmask move from a general register, and the bitwise
 	// floating-point ops, which exist on ZMM only with DQ.
-	"KMOVB": "DQ", "VXORPD": "DQ", "VORPD": "DQ", "VANDPD": "DQ", "VANDNPD": "DQ",
+	"KMOVB": "DQ", "VXORPD": "DQ", "VORPD": "DQ", "VANDPD": "DQ", "VANDNPD": "DQ", "VXORPS": "DQ",
 }
 
 // avx512EVEXOnly lists the mnemonics with no VEX form: on an X or Y operand

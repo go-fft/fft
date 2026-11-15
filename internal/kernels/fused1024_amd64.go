@@ -23,6 +23,7 @@ func fused1024body(dst, src *[1024]complex128, tw *float64, inv bool) (ok bool)
 // Fused1024Table is the twiddle table of one direction, for the tests that
 // perturb it to show what the accuracy bound can see.
 func Fused1024Table(inverse bool) []float64 {
+	Fused1024Prepare()
 	if inverse {
 		return fused1024TwA[len(fused1024TwA)/2:]
 	}

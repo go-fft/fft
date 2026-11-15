@@ -25,19 +25,23 @@ type RealPlan32 struct {
 
 // NewRealPlan32 returns a single-precision real-input plan for length n
 // (n >= 0).
-func NewRealPlan32(n int) *RealPlan32 {
+func NewRealPlan32(n int) *RealPlan32 { return newRealPlan32(n, true) }
+
+// newRealPlan32 is NewRealPlan32; fused says whether its half plan may run the
+// fused complex64 kernels (newPlan32).
+func newRealPlan32(n int, fused bool) *RealPlan32 {
 	p := &RealPlan32{n: n}
 	if n > 1 {
 		checkAlloc("NewRealPlan32", n, 16) // twiddleTable(n) is complex128
 	}
 	if n <= 1 || n%2 != 0 {
 		if n >= 1 {
-			p.full = cachedPlan32(n)
+			p.full = cachedPlan32F(n, fused)
 		}
 		return p
 	}
 	m := n / 2
-	p.half = cachedPlan32(m)
+	p.half = cachedPlan32F(m, fused)
 	tw := make([]complex128, m+1)
 	full := twiddleTable(n)
 	copy(tw, full[:m+1])
@@ -228,7 +232,7 @@ func RFFT32(x []float32) []complex64 {
 	if n == 0 {
 		return []complex64{}
 	}
-	return cachedRealPlan32(n).RFFT(make([]complex64, n/2+1), x)
+	return cachedRealPlan32F(n, true).RFFT(make([]complex64, n/2+1), x)
 }
 
 // IRFFT32 inverts RFFT32, returning n real samples normalized by n like
@@ -238,7 +242,7 @@ func IRFFT32(spectrum []complex64, n int) []float32 {
 	if n <= 0 {
 		return []float32{}
 	}
-	return cachedRealPlan32(n).IRFFT(make([]float32, n), spectrum)
+	return cachedRealPlan32F(n, true).IRFFT(make([]float32, n), spectrum)
 }
 
 var (
@@ -247,13 +251,21 @@ var (
 )
 
 // cachedRealPlan32 returns a shared RealPlan32 for length n.
-func cachedRealPlan32(n int) *RealPlan32 {
+func cachedRealPlan32(n int) *RealPlan32 { return cachedRealPlan32F(n, false) }
+
+// cachedRealPlan32F is cachedRealPlan32 for the plans whose half plan may run the
+// fused kernels (fused); the two kinds share the map, the fused ones under -n.
+func cachedRealPlan32F(n int, fused bool) *RealPlan32 {
+	key := n
+	if fused && n > 1 {
+		key = -n
+	}
 	realPlan32Mu.Lock()
 	defer realPlan32Mu.Unlock()
-	p, ok := realPlan32Cache[n]
+	p, ok := realPlan32Cache[key]
 	if !ok {
-		p = NewRealPlan32(n)
-		realPlan32Cache[n] = p
+		p = newRealPlan32(n, fused)
+		realPlan32Cache[key] = p
 	}
 	return p
 }

@@ -24,6 +24,7 @@ func fused2048body(dst, src *[2048]complex128, tw *float64, inv bool) (ok bool)
 // the kernel reads), for the tests that perturb it to show what the accuracy
 // bound can see.
 func Fused2048Table(inverse bool) []float64 {
+	Fused2048Prepare()
 	if inverse {
 		return fused2048TwA[len(fused2048TwA)/2:]
 	}

@@ -388,6 +388,24 @@ length and shape tested, and the results agree with scipy's own float32 ones
 Stockham passes of radix 2, 3, 4, 5 and 8 run on SIMD kernels, four complex64
 per register, bit-identical to the Go passes (BENCHMARKS.md, Round 22).
 
+One exception, on an AMD Zen 4 and an Intel Cascade Lake (CPUID family 6, model
+0x55, stepping 5, 6 or 7; measured at stepping 5) with AVX-512: a `Plan32` of
+64, 128, 256, 512, 1,024, 2,048, 4,096 or 8,192 points (and so the
+`RealPlan32` of twice those lengths) runs one generated AVX-512 kernel, two
+fused passes with eight complex64 per register and the twiddles between them
+folded into the first (`internal/genfused256`; the complex128 kernels of the
+fused plans, in single precision). Their float32 twiddles are the 400-bit value
+rounded once. It is not bit-identical to the passes; its error is asserted
+against a double-double oracle at `eps32·log2(N)` times the c2c constant, and
+`Options.Exact`, `Options.NoFMA`, the plans under the N-D, 2-D real, DCT, DST and
+MDCT transforms (golden digests pin their bits) never take it. Ryzen 9 7950X, one
+core, fresh process per row, FFTW 3.3.10 AVX-512 single precision, ns per
+transform (go-fft before, now, FFTW): 64 40.1, 28.2, 22.1; 256 128.4, 82.3,
+76.3; 1,024 563.1, 367.6, 380.3; 4,096 4,578, 2,170, 2,277; 8,192 8,568,
+5,221, 7,221. On a Cascade Lake it takes 0.43
+to 0.66 of the passes' time (FFTW single precision not measured there). See
+docs/perf-history.md.
+
 ## Performance
 
 **How a length is transformed.**
