@@ -111,24 +111,50 @@ func TestFused256Routing(t *testing.T) {
 	// The state the default arithmetic fuses in (other tests switch it).
 	defer func(a, d bool, m int) { fmaAvailable, defaultFuses, pow2StockhamMax = a, d, m }(fmaAvailable, defaultFuses, pow2StockhamMax)
 	fmaAvailable, defaultFuses, pow2StockhamMax = kernels.UseFMA, true, pow2StockhamMaxDefault()
-	if !NewPlan(256).f256 || !NewPlanWith(256, Options{FMA: true}).f256 {
+	if !NewPlan(256).sk.f256 || !NewPlanWith(256, Options{FMA: true}).sk.f256 {
 		t.Error("a default or FMA plan of 256 points does not take the fused kernel")
 	}
 	for name, o := range map[string]Options{"Exact": {Exact: true}, "NoFMA": {NoFMA: true}} {
-		if NewPlanWith(256, o).f256 {
+		if NewPlanWith(256, o).sk.f256 {
 			t.Errorf("%s plan takes the fused kernel", name)
 		}
 	}
 	for _, n := range []int{128, 255, 512, 1024} {
-		if NewPlan(n).f256 {
+		if p := NewPlan(n); p.sk != nil && p.sk.f256 {
 			t.Errorf("plan of %d points takes the fused kernel", n)
 		}
 	}
 	old := fused256Enabled
 	fused256Enabled = false
 	defer func() { fused256Enabled = old }()
-	if newPlanA(256, arithDefault).f256 {
+	if newPlanA(256, arithDefault).sk.f256 {
 		t.Error("a plan built while the route is off takes the fused kernel")
+	}
+}
+
+// TestFused256ForcedRoute runs the plan's kernel case on any AVX-512 host (the
+// route itself is a Zen 4 choice): the route switched on, a default plan of 256
+// points transforms within the bound, forward and inverse.
+func TestFused256ForcedRoute(t *testing.T) {
+	skipNoFused(t)
+	isolatePlans(t)
+	defer func(e, a, d bool) { fused256Enabled, fmaAvailable, defaultFuses = e, a, d }(fused256Enabled, fmaAvailable, defaultFuses)
+	fused256Enabled, fmaAvailable, defaultFuses = true, kernels.UseFMA, true
+	p := NewPlan(256)
+	x := accComplexF64(256, 21)
+	for _, inv := range []bool{false, true} {
+		if !p.sk.f256 { // no FMA3: the plan keeps its passes and this is nothing to test
+			break
+		}
+		got := make([]complex128, 256)
+		if inv {
+			p.IFFTNorm(got, x, NormForward)
+		} else {
+			p.FFT(got, x)
+		}
+		if e := errC(got, ddDFT(cddFromC(x), inv)); e > fused256Bound() {
+			t.Errorf("inverse=%v: %.3g above the bound", inv, e)
+		}
 	}
 }
 

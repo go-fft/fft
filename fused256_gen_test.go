@@ -49,6 +49,8 @@ func TestFused256Generated(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		// A Windows checkout may have turned the committed file's LF into CRLF.
+		want = bytes.ReplaceAll(want, []byte("\r\n"), []byte("\n"))
 		if !bytes.Equal(got, want) {
 			t.Errorf("internal/kernels/%s is stale: run go generate and commit", name)
 		}
