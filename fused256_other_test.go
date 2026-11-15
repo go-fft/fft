@@ -7,7 +7,7 @@ import "testing"
 // Off amd64 the fused 256-point kernel does not exist: the route is off, and
 // the stub reports that it did nothing.
 func TestFused256NotHere(t *testing.T) {
-	if fused256Route(256) || NewPlan(256).sk.f256 {
+	if p := NewPlan(256); fused256Route(256) || (p.sk != nil && p.sk.f256) {
 		t.Error("the fused 256-point route is on off amd64")
 	}
 	if fused256Run(nil, nil, false) {
