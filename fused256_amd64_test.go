@@ -353,7 +353,7 @@ func BenchmarkFused256(b *testing.B) {
 
 // TestFused256PlanNRows holds PlanN transforms whose rows are 256 points
 // ({1,256}: only rows; {3,256}: rows and a strip axis of 3; {256,256}: rows and
-// strips of 256), both directions (the inverse unnormalized), to the c2cN bound
+// strips of 256), both directions (the inverse normalized), to the c2cN bound
 // against the double-double N-D oracle. With AVX-512 the route is forced on, so
 // the rows run the kernel (contiguousLines); elsewhere they run their passes.
 func TestFused256PlanNRows(t *testing.T) {
@@ -371,7 +371,7 @@ func TestFused256PlanNRows(t *testing.T) {
 		for _, inv := range []bool{false, true} {
 			got := make([]complex128, size)
 			if inv {
-				p.IFFTNorm(got, x, NormForward)
+				p.IFFT(got, x) // normalized, as the oracle's inverse is
 			} else {
 				p.FFT(got, x)
 			}
