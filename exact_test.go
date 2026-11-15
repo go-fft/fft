@@ -38,7 +38,7 @@ func TestExactIsTheDefaultWhereItDoesNotFuse(t *testing.T) {
 		t.Skip("the default fuses on this CPU: see TestDefaultFusesWhereItCan")
 	}
 	for _, c := range exactCases() {
-		if !sameAnyZ(c.def(), c.exact()) { // up to the sign of a zero (scaleComplexA)
+		if digestCase(c.name, c.def()) != digestCase(c.name, c.exact()) { // two cases up to a zero's sign (zeroSignCase)
 			t.Errorf("%s: Options{Exact: true} differs from the default", c.name)
 		}
 	}

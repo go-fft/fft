@@ -99,3 +99,20 @@ func digestAnyZ(v any) string {
 }
 
 func sameAnyZ(a, b any) bool { return digestAnyZ(a) == digestAnyZ(b) }
+
+// zeroSignCase names the only two of the exact cases whose default (and NoFMA)
+// result differs from Exact's, and only in the sign of a zero: the zero-padded
+// one-point real transforms scaled by ortho or forward, whose scaling pass is
+// the go-simd/floats kernel (scaleComplexA). Every other case is compared
+// strictly.
+func zeroSignCase(name string) bool {
+	return name == "RFFTWith/pad/ortho/n=1" || name == "RFFTWith/pad/forward/n=1"
+}
+
+// digestCase is digestAny, reading negative zeros as +0 for the zeroSignCases.
+func digestCase(name string, v any) string {
+	if zeroSignCase(name) {
+		return digestAnyZ(v)
+	}
+	return digestAny(v)
+}
