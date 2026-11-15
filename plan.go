@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+//go:generate go run internal/genfused256/main.go
+
 // A Plan is a reusable, precomputed transform of a fixed length N. Building a
 // plan factors N and precomputes every twiddle factor once; the resulting
 // tables are then amortized across an unbounded number of FFT/IFFT calls, so
@@ -88,6 +90,7 @@ func newPlanA(n int, a arith) *Plan {
 		// recursive Cooley–Tukey engine here, 1.5–1.9× faster at N=1000…1920 on
 		// the benchmark host; mixedradix.go stays as an independent test oracle.
 		p.sk = newSKPlanOpt(n, fma)
+		p.sk.f256 = fma && fused256Route(n)
 		return p
 	}
 	// A prime whose n-1 is 7-smooth goes to Rader (a cyclic convolution at

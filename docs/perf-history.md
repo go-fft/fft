@@ -392,6 +392,37 @@ default is the measured-faster choice; the SIMD kernels remain validated,
 per-arch-tested artifacts (bit-identical to the scalar oracle, asserted by the
 per-arch CI jobs) and the reference for any future widening.
 
+## Fused 256-point kernel (Zen 4, #124)
+
+A complex128 plan of 256 points on a Zen 4 (Ryzen 9 7950X) runs one AVX-512
+kernel (`internal/genfused256` writes `internal/kernels/fused256_amd64.s`): two
+16x16 passes, every value of a 16-point DFT in zmm registers, the twiddles
+between the passes folded into the first one, a 4 KB frame holding the
+4x4-transposed intermediate. Default and FMA plans use it; `Options.Exact` and
+`NoFMA` plans keep their passes (the kernel fuses multiply-adds), as does every
+other CPU. The kernel's first instructions read its two gates
+(`kernels.Fused256On`, `UseStockhamAVX512`) at every call and return false
+before any AVX-512 instruction; the Go caller then runs its passes. The rows of
+a `PlanN` (`contiguousLines`) take it as well. One pinned core, 15 interleaved
+rounds (9 for 256x256), medians, 1-minute load below 1, `FFTW_MEASURE` out of
+place, FFTW 3.3.10 built from source with and without its AVX-512 codelets
+(2026-11-15):
+
+| complex128 | v0.33.0 ns | fused ns | ratio | FFTW AVX-512 ns | go-fft / FFTW before, after |
+|---|---|---|---|---|---|
+| 256, forward (`Plan.FFT`) | 155.4 | 143.7 | 0.92 | 134.8 | 1.15, 1.07 |
+| 256x256, forward (`PlanN.FFT`) | 153 750 | 145 047 | 0.94 | 146 529 | 1.05, 0.99 |
+
+FFTW AVX2: 156.0 ns (256), 150 000 ns (256x256).
+
+Accuracy is asserted against the double-double oracle at the c2c bound
+(`TestFused256Accuracy`, `TestFused256Mutation`: a twiddle perturbed by 1e-10
+turns it red, one by an ulp does not) and, for every unit impulse (1 and i at
+all 256 positions), to 1e-15 absolute against the exact roots of unity, where
+the worst observed is 2.7e-16 (`TestFused256Impulses`): a table entry, or an
+in-register constant of the assembly, off by 1e-14 fails it
+(`TestFused256ImpulseMutation` sweeps every table entry; the constants were
+mutated by hand).
 ## Normalized inverse: the 1/n pass on the go-simd/floats kernel
 
 `Plan.IFFT`, `PlanN.IFFT`, the `Norm` forms of the plans and the `With` forms

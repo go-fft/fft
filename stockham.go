@@ -46,6 +46,9 @@ type skStage struct {
 
 // skPlan is the Stockham plan for one smooth length.
 type skPlan struct {
+	// f256 sends transform to the fused 256-point kernel (set by newPlanA on a
+	// fused plan where fused256Route; fused256.go).
+	f256    bool
 	n       int
 	stages  []skStage
 	scratch sync.Pool
@@ -331,7 +334,8 @@ func (p *skPlan) transform(dst, src []complex128, inverse bool) {
 	// One condition around the rest rather than an early return, so that no
 	// statement is unreachable where that kernel does not exist, and no call
 	// is added in front of the pool's path.
-	if done := p.zn != nil && p.zn.Run(src, dst, inverse); !done {
+	// The fused 256-point kernel (fused256.go) is the same kind of condition.
+	if done := p.f256 && fused256Run(dst, src, inverse) || p.zn != nil && p.zn.Run(src, dst, inverse); !done {
 		bp := p.scratch.Get().(*[]complex128)
 		s := len(p.stages)
 		if p.cascT > 0 {
