@@ -59,7 +59,7 @@ func TestDCT4N64PairKernelImpulses(t *testing.T) {
 		t.Errorf("pair kernel impulse absolute error %.3g exceeds %.3g", worst, pairImpulseAbsTol)
 	}
 	if worst32 > 2*0x1p-24 {
-		t.Errorf("pair kernel Mixed impulse absolute error %.3g exceeds one float32 ulp of 2", worst32)
+		t.Errorf("pair kernel Mixed impulse absolute error %.3g exceeds 2^-23 (the float32 spacing in [1, 2), twice the rounding error)", worst32)
 	}
 }
 

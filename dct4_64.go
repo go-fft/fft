@@ -56,9 +56,12 @@ func (p *DCTPlan) run64Mixed(dst, src []float32, norm Norm, inverse bool) []floa
 // p.DCT(dst0, src0, norm) followed by p.DCT(dst1, src1, norm), and returns
 // dst0[:Len()] and dst1[:Len()]. On a DCT-IV plan of length 64 on arm64 it runs
 // both transforms in one NEON kernel, one in each lane of every vector register,
-// a third faster than two calls (Apple M4 Max, go-fft/fft#132); elsewhere it is
-// the two calls. The results are within the same error bound as DCT's, not
-// necessarily bit for bit (the NEON kernel fuses multiply-adds differently).
+// a third faster than two calls (Apple M4 Max, go-fft/fft#132); on amd64 with AVX2
+// and FMA3 it runs an AVX2 kernel, twice as fast as two calls (Ryzen 9 7950X);
+// elsewhere, and for other lengths, it is the two calls. The results are within
+// the same error bound as DCT's, not bit for bit: the NEON and AVX2 kernels fuse
+// multiply-adds and order the arithmetic differently from a single call, and on
+// amd64 most of the 64 outputs differ from two single calls in the last bits.
 // The slice rules are DCT's for each stream and are all checked before anything
 // is written, so a panic leaves dst0 and dst1 untouched. dst0 and dst1 must not
 // overlap each other or the other stream's source (if they do the two calls run
