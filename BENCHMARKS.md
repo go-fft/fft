@@ -5966,3 +5966,45 @@ and 771–772 → 751–754 on N1. Complex 256 on Zen 3 runs unchanged code
 - **float32** plans on arm64 keep the old power-of-two rule: not timed.
 
 Raw data, scripts and per-row ratios: [`benchmarks/results/round30-small-real-20261008/`](benchmarks/results/round30-small-real-20261008/).
+
+## Odd-length IRFFT on the plan's pooled buffer (Zen 4, Refs #162)
+
+The odd-length inverse real transform (`RealPlan.IRFFT`, n = 1125 = 3²·5³) was
+1.60× FFTW's c2r in the #162 baseline. It made two length-n `complex128`
+slices per call (the full Hermitian spectrum and its inverse), about 36 KB of
+zeroed memory and a GC share per transform, where the forward odd path
+already used the plan's pooled 2n buffer. It now uses that buffer too, and
+clears it only when the input has fewer than n/2+1 bins. The arithmetic is
+unchanged, so the output is bit for bit the old one
+(`TestIRFFTOddPooledBufferBitIdentical`, default, `Exact` and `FMA` plans,
+short inputs after a dirty call) and a steady-state call allocates nothing
+(`TestIRFFTOddSteadyStateAllocs`).
+
+Ryzen 9 7950X (`fractal`), cpu 10, GOMAXPROCS=1, nine interleaved rounds,
+median ns/op, v0.39.0 against the branch:
+
+| row | v0.39.0 | branch | ÷ |
+|---|---|---|---|
+| c2r 1125 | 4,212 | 2,669 | 1.58 |
+| c2r 3375 | 13,806 | 8,826 | 1.56 |
+| c2r 125 | 489 | 236 | 2.07 |
+| c2r 1001 | 30,645 | 29,479 | 1.04 |
+| r2c 1125, complex 1080 (untouched) | 2,275, 1,369 | 2,280, 1,366 | 1.00 |
+
+c2r 1125 against FFTW 3.3.10 (AVX-512, 2,361 ns in the baseline): 1.78× to
+1.13×. What is left is the full-length inverse of a Hermitian spectrum; FFTW
+does the same work at about the cost of a complex 1125.
+
+**The complex 1080 / 1920 / 1296 rows were not 1.92 / 1.65 / 1.43 on a rerun.**
+The same binary, cpu 10 and cpu 15, gives 1,376 / 2,219 / 1,546 ns against
+FFTW's 1,120 / 1,881 / 1,345: 1.23 / 1.15 / 1.13. Per transform (`perf stat`,
+user mode) go-fft retires 1.39 / 1.37 / 1.38× FFTW's instructions
+(25.4k / 38.9k / 29.9k against 18.3k / 28.4k / 21.7k), with a higher IPC
+(3.46 / 3.45 / 3.75 against 3.22 / 2.81 / 3.00), 1.5× its loads and 1.3× its
+stores. The cause is instruction count: the radix-3, 5, 9, 10, 12, 15 and 20
+passes run on 256-bit registers, and `go-asmgen`'s `Pass512` / `Last512`
+exist for radix 2, 4 and 8 only. A 512-bit odd-radix kernel is the lever; it
+is not in this repository's generator. FMA twins of the radix-3, 5, 10, 12,
+15 and 20 final passes (their butterflies fuse constant products) were
+generated and timed: 0.99–1.00 on 1080, 1920, 1296 and 1000, so they were
+dropped.
