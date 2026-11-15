@@ -72,17 +72,6 @@ func runFusedS(t testing.TB, c fusedSCase, dst, src []complex64, inv bool) {
 	}
 }
 
-// fusedSBound is the c2c bound in single precision: c·eps32·log2 n, eps32 = 2^-23.
-func fusedSBound(n int) float64 { return accBound["c2c"] * eps32 * math.Log2(float64(n)) }
-
-func toC64Slice(x []complex128) []complex64 {
-	out := make([]complex64, len(x))
-	for i, v := range x {
-		out[i] = complex(float32(real(v)), float32(imag(v)))
-	}
-	return out
-}
-
 // TestFusedSAccuracy holds every kernel, both directions, to the c2c bound
 // against the double-double oracle on random data, an impulse, a constant, a tone
 // and data over many binades (in float32 range).

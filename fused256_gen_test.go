@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -53,6 +54,10 @@ func TestFused256RewritePresent(t *testing.T) {
 func TestFused256Generated(t *testing.T) {
 	if testing.Short() {
 		t.Skip("runs the generator")
+	}
+	switch runtime.GOARCH {
+	case "s390x", "ppc64le", "loong64", "riscv64":
+		t.Skip("the generator runs 30 to 100 times slower under qemu (8 minutes of the 10 allowed); the native lanes check the files")
 	}
 	goBin, err := exec.LookPath("go")
 	if err != nil {

@@ -84,8 +84,26 @@ func csDen(num, den int) (c, s float64) {
 		}
 		return 0, -1
 	}
-	return gentwiddle.CosSin(num, den)
+	return memoCosSin(num, den)
 }
+
+// memoCosSin is gentwiddle.CosSin, each angle computed once (the tables of both
+// directions and every size read the same angles over and over: a 400-bit series
+// each).
+func memoCosSin(num, den int) (c, s float64) {
+	k := [2]int{num, den}
+	if v, ok := cosSinMemo[k]; ok {
+		return v[0], v[1]
+	}
+	c, s = gentwiddle.CosSin(num, den)
+	cosSinMemo[k] = [2]float64{c, s}
+	return c, s
+}
+
+var (
+	cosSinMemo   = map[[2]int][2]float64{}
+	cosSin32Memo = map[[2]int][2]float32{}
+)
 
 // csDen32 is csDen for the complex64 kernels: the 400-bit value rounded once to
 // float32 (never float64 and then float32); the quarter turns are exact.
@@ -95,7 +113,13 @@ func csDen32(num, den int) (c, s float32) {
 		c64, s64 := csDen(num, den)
 		return float32(c64), float32(s64)
 	}
-	return gentwiddle.CosSin32(num, den)
+	k := [2]int{num, den}
+	if v, ok := cosSin32Memo[k]; ok {
+		return v[0], v[1]
+	}
+	c, s = gentwiddle.CosSin32(num, den)
+	cosSin32Memo[k] = [2]float32{c, s}
+	return c, s
 }
 
 func cs(m int) (c, s float64) { return csDen(m, 16) }
