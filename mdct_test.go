@@ -306,6 +306,27 @@ func TestMDCTAllocs(t *testing.T) {
 	if raceEnabled {
 		t.Skip("under -race sync.Pool drops items on purpose, so allocation counts are not meaningful")
 	}
+	// 128 and 256 run on the fused DCT-IV kernels on arm64, with their blocks on the
+	// stack: a block that escaped to the heap would allocate on every call.
+	for _, n := range []int{128, 256, 2048, 2050} {
+		for _, fusedOK := range []bool{false, true} {
+			p := newMDCTPlan(n, fusedOK)
+			x, c, y := make([]float64, n), make([]float64, n/2), make([]float64, n)
+			x32, c32, y32 := make([]float32, n), make([]float32, n/2), make([]float32, n)
+			p.MDCT(c, x, 1)
+			p.IMDCT(y, c, 1)
+			for name, f := range map[string]func(){
+				"MDCT":       func() { p.MDCT(c, x, 1) },
+				"IMDCT":      func() { p.IMDCT(y, c, 1) },
+				"MDCTMixed":  func() { p.MDCTMixed(c32, x32, 1) },
+				"IMDCTMixed": func() { p.IMDCTMixed(y32, c32, 1) },
+			} {
+				if got := testing.AllocsPerRun(50, f); got != 0 {
+					t.Errorf("N=%d fused=%v %s: %v allocations per call, want 0", n, p.fused, name, got)
+				}
+			}
+		}
+	}
 	for _, n := range []int{2048, 2050} {
 		p, p32 := NewMDCTPlan(n), NewMDCTPlan32(n)
 		x, c, y := make([]float64, n), make([]float64, n/2), make([]float64, n)

@@ -220,9 +220,21 @@ func testDCT4FusedShortPanics(t *testing.T, n int, p *DCTPlan) {
 // impulse's output is a few products of constants, so a constant wrong in its last
 // few bits shows here (it is lost in the noise of a dense random input). Measured
 // worst at 64: 2.2e-16 with fused multiply-adds (arm64), 3.5e-16 without (amd64 CI,
-// riscv64); 5e-16 leaves 1.4x over the latter, and a 1.5e-14 constant error gives
-// at least 2e-15. The length 128 scales it by log2(n)/6.
+// riscv64); 5e-16 leaves 1.4x over the latter. The length 128 scales it by
+// log2(n)/6 (5.8e-16). A 1.5e-14 constant error gives 1.4e-15 here at 128 (a
+// post-twiddle constant of the scalar kernel, 2.4x the bound) and 1.5e-14 (a
+// NEON row), so this check is the weaker one; impulseAbsTol below is the sharp
+// one.
 func impulseTol(n int) float64 { return 5e-16 * math.Log2(float64(n)) / 6 }
+
+// impulseAbsTol bounds the largest absolute error of any output of any impulse (the
+// outputs are cosines of magnitude up to 2). Measured worst: 7.2e-16 and 8.5e-16
+// (arm64, lengths 64 and 128), 1.4e-15 and 1.7e-15 on the amd64 path without fused
+// multiply-adds; 3e-15 leaves 1.8x over that. A relative error of 1.5e-14 in one
+// constant at length 128 gave 2.2e-14 (a post-twiddle constant of the scalar
+// kernel, 7x the bound) and 2.9e-14 (a NEON table row, 10x), where the relative
+// RMS bound below sees them at 2.4x and 25x.
+const impulseAbsTol = 3e-15
 
 // TestDCT4FusedImpulses: every impulse e_j through every kernel, against the
 // double-double oracle. Each twiddle constant of the kernel lies on the path of
@@ -231,7 +243,7 @@ func impulseTol(n int) float64 { return 5e-16 * math.Log2(float64(n)) / 6 }
 func TestDCT4FusedImpulses(t *testing.T) {
 	for _, n := range fusedLens {
 		for pi, p := range fusedPlans(n) {
-			var worst, worst32 float64
+			var worst, worst32, worstAbs float64
 			for _, norm := range []Norm{NormBackward, NormOrtho} {
 				for j := 0; j < n; j++ {
 					k := (j + 17) % n
@@ -248,12 +260,19 @@ func TestDCT4FusedImpulses(t *testing.T) {
 					for _, e := range []float64{errR(single, w0), errR(a, w0), errR(b, w1)} {
 						worst = math.Max(worst, e)
 					}
+					for _, e := range []float64{maxAbsErr(single, w0), maxAbsErr(a, w0), maxAbsErr(b, w1)} {
+						worstAbs = math.Max(worstAbs, e)
+					}
 					for _, e := range []float64{errR(m0, w0), errR(c, w0), errR(d, w1)} {
 						worst32 = math.Max(worst32, e)
 					}
 				}
 			}
 			t.Logf("n=%d plan %d: worst impulse error float64 %.3g, Mixed %.3g (bound %.3g, float32 half ulp %.3g)", n, pi, worst, worst32, impulseTol(n), 0x1p-24)
+			t.Logf("n=%d plan %d: worst absolute error %.3g (bound %.3g)", n, pi, worstAbs, impulseAbsTol)
+			if worstAbs > impulseAbsTol {
+				t.Errorf("n=%d plan %d: impulse absolute error %.3g exceeds %.3g", n, pi, worstAbs, impulseAbsTol)
+			}
 			if worst > impulseTol(n) {
 				t.Errorf("n=%d plan %d: impulse error %.3g exceeds %.3g", n, pi, worst, impulseTol(n))
 			}
@@ -339,16 +358,16 @@ func TestDCT4FusedPairValidatesBeforeWriting(t *testing.T) {
 
 // TestMDCTFused: the MDCT and IMDCT of N = 128 and 256 on the fused DCT-IV kernel
 // (forced, so every platform runs it) agree with the unfused plan to a few ulps,
-// and the Mixed forms are bit for bit float32 of the float64 ones, on 1000
+// and the Mixed forms are bit for bit float32 of the float64 ones, on 10 000
 // vectors per length.
 func TestMDCTFused(t *testing.T) {
 	for _, n := range []int{128, 256} {
-		fused := NewMDCTPlan(n)
-		fused.fused = true
-		plain := NewMDCTPlan(n)
-		plain.fused = false
+		fused, plain := newMDCTPlan(n, true), newMDCTPlan(n, false)
+		if !fused.fused || plain.fused || fused.k != nil || plain.k == nil {
+			t.Fatalf("N=%d: plans not built as asked: fused %v/%v, kernels %v/%v", n, fused.fused, plain.fused, fused.k != nil, plain.k != nil)
+		}
 		m := n / 2
-		for seed := uint64(1); seed <= 1000; seed++ {
+		for seed := uint64(1); seed <= 10000; seed++ {
 			x, c := accRealF32(n, seed), accRealF32(m, seed+1<<20)
 			wx, wc := widenF32(x), widenF32(c)
 			scale := []float64{1, 0.5, 2 / float64(m)}[seed%3]
@@ -384,7 +403,31 @@ func TestMDCTFused(t *testing.T) {
 				t.Fatalf("N=%d impulse %d: fused IMDCT differs from unfused by %.3g", n, j, r)
 			}
 		}
+		// The in-place forms: dst over src, as the fold and unfold are read before
+		// the write.
+		x, c := accRealF64(n, 91), accRealF64(m, 92)
+		wantM := fused.MDCT(make([]float64, m), x, 0.5)
+		bx := append([]float64(nil), x...)
+		if got := fused.MDCT(bx[:m], bx, 0.5); !equalF(got, wantM) {
+			t.Errorf("N=%d: fused MDCT into the start of its src differs", n)
+		}
+		wantI := fused.IMDCT(make([]float64, n), c, 0.5)
+		bc := append(append([]float64(nil), c...), make([]float64, n-m)...)
+		if got := fused.IMDCT(bc, bc, 0.5); !equalF(got, wantI) {
+			t.Errorf("N=%d: fused IMDCT over its src differs", n)
+		}
 		mustPanicWith(t, "short dst", "fft: MDCTPlan slice", func() { fused.MDCT(make([]float64, m-1), make([]float64, n), 1) })
 		mustPanicWith(t, "short idst", "fft: MDCTPlan slice", func() { fused.IMDCT(make([]float64, n-1), make([]float64, m), 1) })
 	}
+}
+
+// maxAbsErr is the largest absolute difference between got and the oracle's real
+// parts: unlike the relative RMS it is not diluted by the outputs a wrong constant
+// does not touch.
+func maxAbsErr(got []float64, want []cdd) float64 {
+	var m float64
+	for i, g := range got {
+		m = math.Max(m, math.Abs((g-want[i].re.hi)-want[i].re.lo))
+	}
+	return m
 }

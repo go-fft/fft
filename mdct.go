@@ -82,12 +82,19 @@ func checkMDCT(n int) {
 
 // NewMDCTPlan returns a plan for blocks of n samples and n/2 coefficients. It
 // panics if n is odd or below 2.
-func NewMDCTPlan(n int) *MDCTPlan {
+func NewMDCTPlan(n int) *MDCTPlan { return newMDCTPlan(n, dct4FusedRoute) }
+
+// newMDCTPlan is NewMDCTPlan with the fused route (N/2 of 64 or 128) switched on
+// or off, which the tests do to run either route on any platform. A fused plan
+// builds no kernel and no pool: its methods use neither.
+func newMDCTPlan(n int, fusedOK bool) *MDCTPlan {
 	checkMDCT(n)
 	p := &MDCTPlan{n: n}
 	if m := n / 2; m%2 == 0 {
+		if p.fused = dct4FusedLen(m) && fusedOK; p.fused {
+			return p
+		}
 		p.k = newR2RKernel(true, 4, m)
-		p.fused = dct4FusedLen(m) && dct4FusedRoute
 		// h complex values for the FFT and h more (m float64) for the folded block
 		// or the DCT-IV output of the fold and unfold kernels
 		p.pool.init(func() *[]complex128 { s := make([]complex128, m); return &s })
