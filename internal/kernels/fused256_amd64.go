@@ -21,6 +21,19 @@ func fused256(dst, src *complex128, tw *float64, inv bool) (ok bool)
 //go:noescape
 func fused256body(dst, src *complex128, tw *float64, inv bool) (ok bool)
 
+// fused256ref is the same transform without the add-to-FMA rewrite (and without
+// the gates): the schedule of v0.34.0, kept for the tests that assert the two
+// give the same bits. Nothing else calls it, so the linker drops it.
+//
+//go:noescape
+func fused256ref(dst, src *complex128, tw *float64, inv bool) (ok bool)
+
+// Fused256Ref runs the reference schedule (fused256ref). For tests; it needs
+// AVX-512 and does not check for it.
+func Fused256Ref(dst, src *[256]complex128, inverse bool) bool {
+	return fused256ref(&dst[0], &src[0], &fused256Tw[0][0], inverse)
+}
+
 // Fused256Table is the twiddle table of one direction, for the tests that
 // perturb it to show what the accuracy bound can see.
 func Fused256Table(inverse bool) []float64 {

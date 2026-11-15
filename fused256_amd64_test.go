@@ -382,3 +382,53 @@ func TestFused256PlanNRows(t *testing.T) {
 		}
 	}
 }
+
+// bitInputs are the inputs of the bit-equality tests: 30 random vectors (every
+// fifth over 40 binades), every unit impulse (1 and i at all 256 positions) and a
+// negative zero: 543 in all.
+func bitInputs() [][]complex128 {
+	f := randSeq(256, 5)
+	var in [][]complex128
+	for k := 0; k < 30; k++ {
+		x := make([]complex128, 256)
+		for i := range x {
+			x[i] = complex(f(), f())
+			if k%5 == 4 {
+				x[i] *= complex(math.Exp2(math.Floor(20*f())), math.Exp2(math.Floor(20*f())))
+			}
+		}
+		in = append(in, x)
+	}
+	for j := 0; j < 256; j++ {
+		for _, u := range []complex128{1, 1i} {
+			x := make([]complex128, 256)
+			x[j] = u
+			in = append(in, x)
+		}
+	}
+	z := make([]complex128, 256)
+	z[3] = complex(math.Copysign(0, -1), 1)
+	return append(in, z)
+}
+
+// TestFused256RewriteBitEqual: the kernel with every second add and subtract
+// emitted as an FMA with a constant 1 or -1 (go-fft/fft#162) gives the bits of
+// the kernel without the rewrite (the v0.34.0 schedule, fused256ref), both
+// directions, on 543 inputs.
+func TestFused256RewriteBitEqual(t *testing.T) {
+	enableFused(t)
+	for _, inv := range []bool{false, true} {
+		for k, x := range bitInputs() {
+			got, want := make([]complex128, 256), make([]complex128, 256)
+			runFused(t, got, x, inv)
+			if !kernels.Fused256Ref((*[256]complex128)(want), (*[256]complex128)(x), inv) {
+				t.Fatal("the reference kernel refused")
+			}
+			for i := range got {
+				if math.Float64bits(real(got[i])) != math.Float64bits(real(want[i])) || math.Float64bits(imag(got[i])) != math.Float64bits(imag(want[i])) {
+					t.Fatalf("inverse=%v input %d, output %d: %v, the reference gives %v", inv, k, i, got[i], want[i])
+				}
+			}
+		}
+	}
+}

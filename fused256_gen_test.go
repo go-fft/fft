@@ -6,11 +6,43 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 // fused256Bound is the c2c accuracy bound at 256 points (c·ε·log2 n).
 func fused256Bound() float64 { return accBound["c2c"] * eps64 * math.Log2(256) }
+
+// TestFused256RewritePresent: the committed body has the add-to-FMA rewrite (a
+// fused multiply-add by the constants 1 and -1, some 96 per direction) and the
+// reference body has none, so a generator that silently stopped rewriting, or a
+// reference that started to, fails here rather than in a timing.
+func TestFused256RewritePresent(t *testing.T) {
+	b, err := os.ReadFile("internal/kernels/fused256_amd64.s")
+	if err != nil {
+		t.Skip("the generated assembly is not alongside the test binary")
+	}
+	s := string(b)
+	i := strings.Index(s, "TEXT ·fused256ref(SB)")
+	if i < 0 {
+		t.Fatal("no reference body")
+	}
+	count := func(text string) int {
+		n := 0
+		for _, l := range strings.Split(text, "\n") {
+			if strings.HasPrefix(strings.TrimSpace(l), "VFMADD132PD.BCST") || (strings.Contains(l, "VFMADD231PD.BCST") && (strings.Contains(l, "f256_3ff0000000000000") || strings.Contains(l, "f256_bff0000000000000"))) {
+				n++
+			}
+		}
+		return n
+	}
+	if n := count(s[:i]); n < 150 {
+		t.Errorf("the body has %d add-to-FMA rewrites, want about 192", n)
+	}
+	if n := count(s[i:]); n != 0 {
+		t.Errorf("the reference body has %d rewrites", n)
+	}
+}
 
 // TestFused256Generated: the committed assembly is what internal/genfused256
 // writes, on every platform (CI also regenerates in place and diffs).
