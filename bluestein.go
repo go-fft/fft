@@ -81,10 +81,7 @@ func buildKernelSpectrum(w []complex128, n, m int, a arith) []complex128 {
 		b[m-j] = c
 	}
 	cachedPlanA(m, a).FFT(b, b)
-	inv := complex(1/float64(m), 0)
-	for i := range b {
-		b[i] *= inv
-	}
+	scaleComplexA(b, 1/float64(m), a)
 	return b
 }
 

@@ -41,7 +41,9 @@ func isFamily19() bool
 
 // AMDZen4 reports an AMD Zen 4 core: AVX-512 present on AMD at family 0x19
 // (Zen 3 is 0x19 too but has no AVX-512; Zen 5 is 0x1A). It only tunes the
-// fft package's routing (route_amd64.go, Round 49); no result depends on it.
+// fft package's routing (route_amd64.go, Round 49) and Fused256On (the fused
+// 256-point kernel, which does change a result: its rounding is not the
+// passes'; Options.Exact and NoFMA plans never take it).
 var AMDZen4 = detectedDispatch.Zen4
 
 // zen4Default is AMDZen4's rule, a pure function tested on any machine.

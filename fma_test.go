@@ -350,7 +350,12 @@ func sameFloats(a, b []float64) bool {
 // with FMA).
 func TestFMAStripsMatchLines(t *testing.T) {
 	forceFMA(t)
-	defer func(s bool) { stripAxes = s }(stripAxes)
+	// The lines of 256 points run the fused kernel where it is on (fused256.go),
+	// whose rounding is not the strips': this test compares the passes, bit for
+	// bit, so the route is off here, with the plans built under it forgotten.
+	isolatePlans(t)
+	defer func(s, e bool) { stripAxes, fused256Enabled = s, e }(stripAxes, fused256Enabled)
+	fused256Enabled = false
 	lens := append([]int{153, 171, 207, 1000, 1024, 1080}, fmaSweep(2, 600)...)
 	for _, n := range lens {
 		sh := []int{n, 3}

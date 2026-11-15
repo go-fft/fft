@@ -61,7 +61,7 @@ func cachedPlanNo16A(n int, a arith) *Plan {
 			// length silently; refuse it loudly instead.
 			panic(fmt.Sprintf("fft: internal: no-16 factorization of %d multiplies to %d", n, prod))
 		}
-		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, a.fused())}
+		p = &Plan{n: n, ar: a, sk: newSKPlanFactorsOpt(n, f, a.fused())}
 		cache[n] = p
 	}
 	return p

@@ -77,7 +77,7 @@ func TestNoFMACallsTouchOnlyPlainCaches(t *testing.T) {
 	ref := exactCases()
 	want := make([]string, len(ref))
 	for i, c := range ref {
-		want[i] = digestAny(c.exact())
+		want[i] = digestCase(c.name, c.exact()) // two cases up to a zero's sign (zeroSignCase)
 	}
 	// The cases call exact(o) when they run, so NoFMA stays in place for the loop.
 	exactMode = func(o Options) Options { o.NoFMA = true; return o }
@@ -96,7 +96,7 @@ func TestNoFMACallsTouchOnlyPlainCaches(t *testing.T) {
 		if plainPlans() > 0 {
 			saw++
 		}
-		if digestAny(got) != want[i] {
+		if digestCase(c.name, got) != want[i] {
 			t.Errorf("%s: NoFMA is not Exact's bits", c.name)
 		}
 	}

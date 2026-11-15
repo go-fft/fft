@@ -1,6 +1,10 @@
 package fft
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/go-simd/floats"
+)
 
 // A RealPlan2 is a reusable real 2-D transform of a fixed rows×cols shape: the
 // plan behind RFFT2/IRFFT2, as PlanN is behind FFTN. Its RFFT and IRFFT write
@@ -106,8 +110,6 @@ func (p *RealPlan2) inverseRows(dst []float64, half []complex128, lo, hi int) {
 	for r := lo; r < hi; r++ {
 		row := dst[r*p.cols : (r+1)*p.cols]
 		p.row.IRFFT(row, half[r*p.rcols:(r+1)*p.rcols])
-		for i := range row {
-			row[i] *= inv
-		}
+		floats.Scale(inv, row) // a real product: the same bits as the loop
 	}
 }

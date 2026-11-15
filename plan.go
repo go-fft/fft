@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+//go:generate go run internal/genfused256/main.go
+
 // A Plan is a reusable, precomputed transform of a fixed length N. Building a
 // plan factors N and precomputes every twiddle factor once; the resulting
 // tables are then amortized across an unbounded number of FFT/IFFT calls, so
@@ -27,6 +29,12 @@ type Plan struct {
 	sk        *skPlan        // non-nil iff this length uses mixed-radix Stockham
 	rader     *raderPlan     // non-nil iff this length uses Rader
 	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
+
+	// f256 sends execute to the fused 256-point kernel (set with sk.f256, which
+	// PlanN's rows read).
+	f256 bool
+
+	ar arith // the arithmetic the plan was built for (the inverse's scaling pass follows it)
 }
 
 // pow2StockhamMax is the largest power of two routed to the Stockham engine
@@ -66,7 +74,7 @@ func newPlanF(n int, fma bool) *Plan { return newPlanA(n, arithFromFMA(fma)) }
 // and its convolutions' plans are Exact ones (arith.go).
 func newPlanA(n int, a arith) *Plan {
 	fma := a.fused()
-	p := &Plan{n: n}
+	p := &Plan{n: n, ar: a}
 	if n <= 1 {
 		return p
 	}
@@ -86,6 +94,8 @@ func newPlanA(n int, a arith) *Plan {
 		// recursive Cooley–Tukey engine here, 1.5–1.9× faster at N=1000…1920 on
 		// the benchmark host; mixedradix.go stays as an independent test oracle.
 		p.sk = newSKPlanOpt(n, fma)
+		p.sk.f256 = fma && fused256Route(n)
+		p.f256 = p.sk.f256
 		return p
 	}
 	// A prime whose n-1 is 7-smooth goes to Rader (a cyclic convolution at
@@ -125,10 +135,7 @@ func (p *Plan) IFFT(dst, src []complex128) []complex128 {
 		return dst
 	}
 	// Only the n transformed values: a longer dst keeps the rest untouched.
-	inv := complex(1/float64(n), 0)
-	for i := range dst[:n] {
-		dst[i] *= inv
-	}
+	scaleComplexA(dst[:n], 1/float64(n), p.ar)
 	return dst
 }
 
@@ -144,20 +151,26 @@ func (p *Plan) checkLen(dst, src []complex128) {
 // execute dispatches to the selected engine, leaving the unnormalized transform
 // in dst.
 func (p *Plan) execute(dst, src []complex128, inverse bool) {
-	n := p.n
-	if n <= 1 {
-		copy(dst, src)
-		return
-	}
-	switch {
-	case p.it != nil:
-		p.it.transform(dst, src, inverse)
-	case p.sk != nil:
-		p.sk.transform(dst, src, inverse)
-	case p.rader != nil:
-		p.rader.transform(dst, src, inverse)
-	default:
-		p.bluestein.transform(dst, src, inverse)
+	// The fused 256-point kernel (fused256.go) is tested here, as an expression, so
+	// that fused256Run inlines into this function and the call to skPlan.transform
+	// (a large function with a large frame) is skipped: that and the call chain
+	// were 9 ns of 137 at 256 points (go-fft/fft#124).
+	if done := p.f256 && fused256Run(dst, src, inverse); !done {
+		n := p.n
+		if n <= 1 {
+			copy(dst, src)
+			return
+		}
+		switch {
+		case p.it != nil:
+			p.it.transform(dst, src, inverse)
+		case p.sk != nil:
+			p.sk.transform(dst, src, inverse)
+		case p.rader != nil:
+			p.rader.transform(dst, src, inverse)
+		default:
+			p.bluestein.transform(dst, src, inverse)
+		}
 	}
 }
 

@@ -432,6 +432,13 @@ type DCTPlan struct {
 	// fused: DCT-IV of length 64 or 128 on a platform that routes it to the unrolled
 	// kernel (dct4_64.go).
 	fused bool
+
+	// pair: the pair forms (DCTPair and the others) run the pair kernel: DCT-IV
+	// of length 64 (amd64, arm64) or 128 (arm64) on a platform that has one (NEON
+	// on arm64, AVX2+FMA on amd64).
+	// Separate from fused, which is the single call: on amd64 the pooled path
+	// beats the scalar kernel, and only the pair kernel gains.
+	pair bool
 }
 
 // NewDCTPlan returns a plan for the DCT of type typ (1, 2, 3 or 4) of length
@@ -439,7 +446,9 @@ type DCTPlan struct {
 // DCT-I, 1 for the others.
 func NewDCTPlan(n, typ int) *DCTPlan {
 	checkR2R(true, typ, n, NormBackward)
-	return &DCTPlan{typ: typ, k: newR2RKernel(true, typ, n), fused: typ == 4 && dct4FusedLen(n) && dct4FusedRoute}
+	return &DCTPlan{typ: typ, k: newR2RKernel(true, typ, n),
+		fused: typ == 4 && dct4FusedLen(n) && dct4FusedRoute,
+		pair:  typ == 4 && dct4FusedLen(n) && dct4PairRoute(n)}
 }
 
 // Len reports the transform length the plan was built for.

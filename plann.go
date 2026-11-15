@@ -187,10 +187,7 @@ func (p *PlanN) FFT(dst, src []complex128) []complex128 {
 // Len(), and returns dst. dst may alias src. It matches IFFTN.
 func (p *PlanN) IFFT(dst, src []complex128) []complex128 {
 	p.transform(dst, src, true)
-	inv := complex(1/float64(p.size), 0)
-	for i := range dst {
-		dst[i] *= inv
-	}
+	scaleComplexA(dst, 1/float64(p.size), p.ar)
 	return dst
 }
 
@@ -291,7 +288,7 @@ func (p *PlanN) contiguousLines(dst, src []complex128, ax, lo, hi int, inverse b
 		var bp *[]complex128
 		for c := lo; c < hi; c++ {
 			d, s := dst[c*n:(c+1)*n], src[c*n:(c+1)*n]
-			if done := zmFrameRows && sk.zn != nil && sk.zn.Run(s, d, inverse); !done {
+			if done := sk.f256 && fused256Run(d, s, inverse) || zmFrameRows && sk.zn != nil && sk.zn.Run(s, d, inverse); !done {
 				if bp == nil {
 					bp = sk.scratch.Get().(*[]complex128)
 				}

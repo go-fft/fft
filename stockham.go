@@ -46,6 +46,10 @@ type skStage struct {
 
 // skPlan is the Stockham plan for one smooth length.
 type skPlan struct {
+	// f256 marks a fused plan of 256 points where fused256Route (set by newPlanA,
+	// fused256.go): PlanN's rows (contiguousLines) test it; Plan.execute tests the
+	// Plan's own copy.
+	f256    bool
 	n       int
 	stages  []skStage
 	scratch sync.Pool

@@ -2,7 +2,7 @@ package fft
 
 import "unsafe"
 
-//go:generate go run internal/gendct4/main.go
+//go:generate go run internal/gendct4/main.go internal/gendct4/amd64.go
 
 // The fused DCT-IV of length 64 and 128 (go-fft/fft#132, go-avkit/decode#77:
 // HE-AAC's QMF runs the 64 six times per slot, and the AAC short-block MDCT of 256
@@ -72,12 +72,15 @@ func (p *DCTPlan) runFusedMixed(dst, src []float32, norm Norm, inverse bool) []f
 // dst0[:Len()] and dst1[:Len()]. On a DCT-IV plan of length 64 or 128 on arm64 it
 // runs both transforms in one NEON kernel, one in each lane of every vector
 // register, a third faster than two calls at 64 (Apple M4 Max, go-fft/fft#132);
-// elsewhere it is the two calls. The results are within the same error bound as
-// DCT's, not necessarily bit for bit (the NEON kernel fuses multiply-adds
-// differently). The slice rules are DCT's for each stream and are all checked
-// before anything is written, so a panic leaves dst0 and dst1 untouched. dst0 and
-// dst1 must not overlap each other or the other stream's source (if they do the
-// two calls run in order, as written).
+// on amd64 with AVX2 and FMA3 a plan of length 64 runs an AVX2 kernel, twice as
+// fast as two calls (Ryzen 9 7950X); elsewhere, and for other lengths, it is the
+// two calls. The results are within the same error bound as DCT's, not bit for
+// bit: the NEON and AVX2 kernels fuse multiply-adds and order the arithmetic
+// differently from a single call, and on amd64 most of the 64 outputs differ from
+// two single calls in the last bits. The slice rules are DCT's for each stream
+// and are all checked before anything is written, so a panic leaves dst0 and dst1
+// untouched. dst0 and dst1 must not overlap each other or the other stream's
+// source (if they do the two calls run in order, as written).
 func (p *DCTPlan) DCTPair(dst0, dst1, src0, src1 []float64, norm Norm) (r0, r1 []float64) {
 	return p.runPair(dst0, dst1, src0, src1, norm, false)
 }
@@ -98,7 +101,7 @@ func (p *DCTPlan) checkPair(l0, l1, l2, l3 int, norm Norm) {
 
 func (p *DCTPlan) runPair(dst0, dst1, src0, src1 []float64, norm Norm, inverse bool) (r0, r1 []float64) {
 	p.checkPair(len(dst0), len(dst1), len(src0), len(src1), norm)
-	if n := p.k.n; p.fused && !overlap(dst0[:n], src1[:n]) && !overlap(dst1[:n], src0[:n]) && !overlap(dst0[:n], dst1[:n]) {
+	if n := p.k.n; p.pair && !overlap(dst0[:n], src1[:n]) && !overlap(dst1[:n], src0[:n]) && !overlap(dst0[:n], dst1[:n]) {
 		dct4Pair(n, dst0, dst1, src0, src1, norm.scale(2*n, inverse))
 		return dst0[:n], dst1[:n]
 	}
@@ -121,7 +124,7 @@ func (p *DCTPlan) runMixedPair(dst0, dst1, src0, src1 []float32, norm Norm, inve
 		panic("fft: DCTPlan.DCTMixed needs a DCT-IV plan")
 	}
 	p.checkPair(len(dst0), len(dst1), len(src0), len(src1), norm)
-	if n := p.k.n; p.fused && !overlap(dst0[:n], src1[:n]) && !overlap(dst1[:n], src0[:n]) && !overlap(dst0[:n], dst1[:n]) {
+	if n := p.k.n; p.pair && !overlap(dst0[:n], src1[:n]) && !overlap(dst1[:n], src0[:n]) && !overlap(dst0[:n], dst1[:n]) {
 		dct4PairMixed(n, dst0, dst1, src0, src1, norm.scale(2*n, inverse))
 		return dst0[:n], dst1[:n]
 	}

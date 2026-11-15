@@ -18,8 +18,15 @@ var fusedLens = []int{64, 128}
 // line of the fused path.
 func fusedPlans(n int) []*DCTPlan {
 	forced := *NewDCTPlan(n, 4)
-	forced.fused = true
+	forced.fused, forced.pair = true, true
 	return []*DCTPlan{NewDCTPlan(n, 4), &forced}
+}
+
+// withoutPairAsm runs f with the amd64 pair kernels switched off.
+func withoutPairAsm(f func()) {
+	old := dct4PairAsmSwitch(false)
+	defer dct4PairAsmSwitch(old)
+	f()
 }
 
 // forEachFused runs f on every fused length and plan.
@@ -76,6 +83,7 @@ func testDCT4FusedOracle(t *testing.T, n int, p *DCTPlan) {
 func TestDCT4FusedAgainstPooled(t *testing.T) {
 	for _, n := range fusedLens {
 		fused := NewDCTPlan(n, 4)
+		fused.fused = true // on amd64 the plan does not route single calls to the kernel
 		pooled := *fused
 		pooled.fused = false
 		for seed := uint64(1); seed <= 8; seed++ {

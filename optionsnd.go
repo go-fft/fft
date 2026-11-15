@@ -57,7 +57,7 @@ func complexNWith(name string, data []complex128, shape []int, o Options, invers
 	f := o.Norm.scale(axesProduct(shape, axes), inverse)
 	out := make([]complex128, len(data))
 	planNForA(shape, axes, o.arith()).transform(out, data, inverse)
-	scaleComplex(out, f)
+	scaleComplexA(out, f, o.arith())
 	return out
 }
 
@@ -95,7 +95,7 @@ func RFFTNWith(data []float64, shape []int, o Options) []complex128 {
 	if len(axes) > 1 {
 		planNForA(half, axes[:len(axes)-1], a).transform(out, out, false)
 	}
-	scaleComplex(out, f)
+	scaleComplexA(out, f, a)
 	return out
 }
 
@@ -152,7 +152,7 @@ func RFFT2With(data []float64, shape [2]int, o Options) []complex128 {
 	o.checkND("RFFT2With", 2)
 	f := o.Norm.scale(shapeProduct(shape[0], shape[1]), false)
 	out := rfft2A(data, shape, o.arith())
-	scaleComplex(out, f)
+	scaleComplexA(out, f, o.arith())
 	return out
 }
 

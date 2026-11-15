@@ -302,8 +302,11 @@ mp.IMDCTMixed(out32, coef32, 4/float64(n))
 // (Apple M4 Max: 90 -> 60.6 ns float64, 107 -> 71.3 ns Mixed; a single DCT-IV(64)
 // call is 88 -> 43.7 ns). The same kernels exist for DCT-IV(128), the AAC short
 // block's MDCT of 256 samples, and the MDCT/IMDCT of 128 and 256 samples (also
-// their Mixed forms) run on them on arm64. Elsewhere, and for other lengths, the
-// pair form is two calls.
+// their Mixed forms) run on them on arm64. On amd64 with AVX2 and FMA3 one AVX2
+// kernel of 64 holds a complex value of both transforms in each 256-bit register:
+// on a Ryzen 9 7950X (Zen 4) a pair of float64 is 122.5 -> 58.5 ns and a pair of
+// Mixed 122.5 -> 68.3 ns, and a single call is unchanged (60 ns). Elsewhere, and
+// for other lengths, the pair form is two calls.
 // DCTPair, IDCTPair, DCTMixedPair, IDCTMixedPair; the results are within the
 // same error bound as DCT, not bit for bit.
 dp := fft.NewDCTPlan(64, 4)
@@ -417,7 +420,14 @@ their results are **bit-identical** to the Go passes, and the tests compare
 them bit for bit on generic, ±0 and ∞ inputs. These are the kernels of
 `Options.NoFMA` and `Exact`; the default plans on amd64 with FMA3 run fused
 twins of them (`Options.FMA`, above), each bit-identical to a Go reference
-written with `math.FMA`. On **arm64** the radix-2/3/4/5/8
+written with `math.FMA`. One exception, on an AMD Zen 4 only: a default or FMA
+plan of **256 points** runs a single generated AVX-512 kernel (two fused 16×16
+passes, each 16-point DFT held in zmm registers, the twiddles between the passes
+folded into the first; `internal/genfused256`). It is not bit-identical to the
+passes; its error is asserted against a double-double oracle at the c2c bound,
+and `Exact` and `NoFMA` plans never take it. Ryzen 9 7950X, one core, 21
+interleaved rounds, complex128 forward, against FFTW 3.3.10 with AVX-512:
+155.4 ns before (1.15×), 143.7 ns now (1.07×; FFTW 134.8 ns); the rows of a 256×256 `PlanN` take it too: 153.8 µs before, 145.1 µs now (FFTW 146.5 µs). On **arm64** the radix-2/3/4/5/8
 passes, and the radix-2 to 5 final passes over an even number of blocks, run as
 generated **NEON** kernels. gc fuses multiply-adds on arm64, so each kernel
 reproduces, pass by pass, which product the Go code rounds and which it fuses;
