@@ -213,3 +213,117 @@ func testDCT4N64PairShortPanics(t *testing.T, p *DCTPlan) {
 		}
 	}
 }
+
+// impulseTol is the relative RMS error an impulse may have against the oracle:
+// an impulse's output is a few products of constants, so a constant wrong in its
+// last few bits shows here (it is lost in the noise of a dense random input).
+// Measured worst on the M4 Max: see TestDCT4N64Impulses -v.
+const impulseTol = 3 * eps64 / 2
+
+// TestDCT4N64Impulses: every impulse e_j through every kernel, against the
+// double-double oracle. Each twiddle constant of the kernel lies on the path of
+// some impulse, and an error of 1e-14 in one of them moves that impulse's
+// result well past rounding noise.
+func TestDCT4N64Impulses(t *testing.T) {
+	for pi, p := range fusedPlans() {
+		var worst, worst32 float64
+		for _, norm := range []Norm{NormBackward, NormOrtho} {
+			for j := 0; j < 64; j++ {
+				k := (j + 17) % 64
+				e0, e1 := make([]float64, 64), make([]float64, 64)
+				e0[j], e1[k] = 1, 1
+				w0 := oR2R(cddFromR(e0), true, 4, norm, false)
+				w1 := oR2R(cddFromR(e1), true, 4, norm, false)
+				single := p.DCT(make([]float64, 64), e0, norm)
+				a, b := p.DCTPair(make([]float64, 64), make([]float64, 64), e0, e1, norm)
+				f0, f1 := make([]float32, 64), make([]float32, 64)
+				f0[j], f1[k] = 1, 1
+				m0 := p.DCTMixed(make([]float32, 64), f0, norm)
+				c, d := p.DCTMixedPair(make([]float32, 64), make([]float32, 64), f0, f1, norm)
+				for _, e := range []float64{errR(single, w0), errR(a, w0), errR(b, w1)} {
+					worst = math.Max(worst, e)
+				}
+				for _, e := range []float64{errR(m0, w0), errR(c, w0), errR(d, w1)} {
+					worst32 = math.Max(worst32, e)
+				}
+			}
+		}
+		t.Logf("plan %d: worst impulse error float64 %.3g, Mixed %.3g (bound %.3g, float32 half ulp %.3g)", pi, worst, worst32, impulseTol, 0x1p-24)
+		if worst > impulseTol {
+			t.Errorf("plan %d: impulse error %.3g exceeds %.3g", pi, worst, impulseTol)
+		}
+		if worst32 > 0x1p-24 {
+			t.Errorf("plan %d: Mixed impulse error %.3g exceeds half a float32 ulp", pi, worst32)
+		}
+	}
+}
+
+// TestDCT4N64MixedIsFloat32OfFloat64: on 10 000 random vectors, in each norm and
+// direction, the Mixed result is bit for bit float32 of the float64 result on
+// the widened input, for the single and the pair forms. The same instruction
+// list runs both, so any difference is a defect in one kernel.
+func TestDCT4N64MixedIsFloat32OfFloat64(t *testing.T) {
+	for _, p := range fusedPlans() {
+		for seed := uint64(1); seed <= 10000; seed++ {
+			x, y := accRealF32(64, seed), accRealF32(64, seed+1<<20)
+			wx, wy := widenF32(x), widenF32(y)
+			norm, inverse := accNorms[seed%3], seed%2 == 1
+			var m, m0, m1 []float32
+			var w, w0, w1 []float64
+			if inverse {
+				m, w = p.IDCTMixed(make([]float32, 64), x, norm), p.IDCT(make([]float64, 64), wx, norm)
+				m0, m1 = p.IDCTMixedPair(make([]float32, 64), make([]float32, 64), x, y, norm)
+				w0, w1 = p.IDCTPair(make([]float64, 64), make([]float64, 64), wx, wy, norm)
+			} else {
+				m, w = p.DCTMixed(make([]float32, 64), x, norm), p.DCT(make([]float64, 64), wx, norm)
+				m0, m1 = p.DCTMixedPair(make([]float32, 64), make([]float32, 64), x, y, norm)
+				w0, w1 = p.DCTPair(make([]float64, 64), make([]float64, 64), wx, wy, norm)
+			}
+			sameBits32(t, "Mixed", m, w)
+			sameBits32(t, "MixedPair 0", m0, w0)
+			sameBits32(t, "MixedPair 1", m1, w1)
+		}
+	}
+}
+
+// TestDCT4N64PairValidatesBeforeWriting: a pair call with a short slice, an
+// unknown norm or a plan of another type panics with every destination
+// untouched.
+func TestDCT4N64PairValidatesBeforeWriting(t *testing.T) {
+	for _, p := range fusedPlans() {
+		x := accRealF64(64, 3)
+		x32 := accRealF32(64, 3)
+		fill := func() ([]float64, []float64, []float32, []float32) {
+			a, b := make([]float64, 64), make([]float64, 64)
+			c, d := make([]float32, 64), make([]float32, 64)
+			for i := range a {
+				a[i], b[i], c[i], d[i] = -1, -1, -1, -1
+			}
+			return a, b, c, d
+		}
+		untouched := func(what string, a, b []float64, c, d []float32) {
+			t.Helper()
+			for i := range a {
+				if a[i] != -1 || b[i] != -1 || c[i] != -1 || d[i] != -1 {
+					t.Fatalf("%s wrote a destination before panicking (index %d)", what, i)
+				}
+			}
+		}
+		a, b, c, d := fill()
+		mustPanicWith(t, "short dst1", "fft: DCTPlan slice", func() { p.DCTPair(a, b[:63], x, x, NormBackward) })
+		untouched("short dst1", a, b, c, d)
+		mustPanicWith(t, "short src1", "fft: DCTPlan slice", func() { p.IDCTPair(a, b, x, x[:63], NormBackward) })
+		untouched("short src1", a, b, c, d)
+		mustPanicWith(t, "short mixed src1", "fft: DCTPlan slice", func() { p.DCTMixedPair(c, d, x32, x32[:63], NormBackward) })
+		untouched("short mixed src1", a, b, c, d)
+		mustPanicWith(t, "mixed dst1", "fft: DCTPlan slice", func() { p.IDCTMixedPair(c, d[:63], x32, x32, NormBackward) })
+		untouched("mixed dst1", a, b, c, d)
+		mustPanicWith(t, "norm", "fft:", func() { p.DCTPair(a, b, x, x, Norm(99)) })
+		untouched("norm", a, b, c, d)
+		mustPanicWith(t, "mixed norm", "fft:", func() { p.DCTMixedPair(c, d, x32, x32, Norm(99)) })
+		untouched("mixed norm", a, b, c, d)
+	}
+	mustPanicWith(t, "mixed pair, DCT-II plan", "fft: DCTPlan.DCTMixed needs a DCT-IV", func() {
+		NewDCTPlan(64, 2).DCTMixedPair(make([]float32, 64), make([]float32, 64), make([]float32, 64), make([]float32, 64), NormBackward)
+	})
+}

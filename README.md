@@ -296,6 +296,16 @@ mp.IMDCT(out, coef, 4/float64(n))    // len(out) >= n
 // log2(n) stages (docs/accuracy.md). Also dp.DCTMixed / IDCTMixed for a DCT-IV plan.
 mp.MDCTMixed(coef32, samples32, 1)
 mp.IMDCTMixed(out32, coef32, 4/float64(n))
+
+// Two independent DCT-IV(64) per call (HE-AAC's QMF runs six per slot): on arm64
+// one NEON kernel with a transform in each lane, 33% faster than two calls
+// (Apple M4 Max: 90 -> 60.6 ns float64, 107 -> 71.3 ns Mixed; a single DCT-IV(64)
+// call is 88 -> 43.7 ns). Elsewhere, and for other lengths, it is two calls.
+// DCTPair, IDCTPair, DCTMixedPair, IDCTMixedPair; the results are within the
+// same error bound as DCT, not bit for bit.
+dp := fft.NewDCTPlan(64, 4)
+dp.DCTPair(dst0, dst1, src0, src1, fft.NormOrtho)
+dp.DCTMixedPair(dst32a, dst32b, src32a, src32b, fft.NormOrtho)
 ```
 
 `NormOrtho` applies scipy's default orthogonalisation (`orthogonalize=True`),

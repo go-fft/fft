@@ -52,14 +52,17 @@ func (p *DCTPlan) run64Mixed(dst, src []float32, norm Norm, inverse bool) []floa
 	return dst[:64]
 }
 
-// DCTPair is two DCT calls in one: it writes the DCT of src0 into dst0 and that of
-// src1 into dst1, as p.DCT(dst0, src0, norm) followed by p.DCT(dst1, src1, norm),
-// and returns dst0[:Len()] and dst1[:Len()]. On a DCT-IV plan of length 64 on arm64
-// it runs both transforms in one NEON kernel, one in each lane of every vector
-// register, a third faster than two calls (Apple M4 Max, go-fft/fft#132); elsewhere it is the
-// two calls. The slice rules are DCT's, for each stream, and dst0 and dst1 must not
-// overlap each other or the other stream's source (if they do the two calls run in
-// order, as written).
+// DCTPair writes the DCT of src0 into dst0 and that of src1 into dst1, like
+// p.DCT(dst0, src0, norm) followed by p.DCT(dst1, src1, norm), and returns
+// dst0[:Len()] and dst1[:Len()]. On a DCT-IV plan of length 64 on arm64 it runs
+// both transforms in one NEON kernel, one in each lane of every vector register,
+// a third faster than two calls (Apple M4 Max, go-fft/fft#132); elsewhere it is
+// the two calls. The results are within the same error bound as DCT's, not
+// necessarily bit for bit (the NEON kernel fuses multiply-adds differently).
+// The slice rules are DCT's for each stream and are all checked before anything
+// is written, so a panic leaves dst0 and dst1 untouched. dst0 and dst1 must not
+// overlap each other or the other stream's source (if they do the two calls run
+// in order, as written).
 func (p *DCTPlan) DCTPair(dst0, dst1, src0, src1 []float64, norm Norm) (r0, r1 []float64) {
 	return p.runPair(dst0, dst1, src0, src1, norm, false)
 }
@@ -69,16 +72,26 @@ func (p *DCTPlan) IDCTPair(dst0, dst1, src0, src1 []float64, norm Norm) (r0, r1 
 	return p.runPair(dst0, dst1, src0, src1, norm, true)
 }
 
+// checkPair panics, before anything is written, unless the four slices hold
+// the plan's length and norm is known.
+func (p *DCTPlan) checkPair(l0, l1, l2, l3 int, norm Norm) {
+	norm.scale(1, false) // panics on an unknown Norm
+	if n := p.k.n; l0 < n || l1 < n || l2 < n || l3 < n {
+		panic("fft: DCTPlan slice shorter than the plan's length")
+	}
+}
+
 func (p *DCTPlan) runPair(dst0, dst1, src0, src1 []float64, norm Norm, inverse bool) (r0, r1 []float64) {
-	if p.fused && len(dst0) >= 64 && len(dst1) >= 64 && len(src0) >= 64 && len(src1) >= 64 &&
-		!overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
+	p.checkPair(len(dst0), len(dst1), len(src0), len(src1), norm)
+	if p.fused && !overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
 		dct4Pair64(dst0, dst1, src0, src1, norm.scale(128, inverse))
 		return dst0[:64], dst1[:64]
 	}
 	return p.run(dst0, src0, norm, inverse), p.run(dst1, src1, norm, inverse)
 }
 
-// DCTMixedPair is DCTMixed on two streams at once, as DCTPair is to DCT.
+// DCTMixedPair is DCTMixed on two streams at once, as DCTPair is to DCT. The
+// Mixed forms of a fused plan are exactly float32 of the float64 pair.
 func (p *DCTPlan) DCTMixedPair(dst0, dst1, src0, src1 []float32, norm Norm) (r0, r1 []float32) {
 	return p.runMixedPair(dst0, dst1, src0, src1, norm, false)
 }
@@ -89,8 +102,11 @@ func (p *DCTPlan) IDCTMixedPair(dst0, dst1, src0, src1 []float32, norm Norm) (r0
 }
 
 func (p *DCTPlan) runMixedPair(dst0, dst1, src0, src1 []float32, norm Norm, inverse bool) (r0, r1 []float32) {
-	if p.fused && len(dst0) >= 64 && len(dst1) >= 64 && len(src0) >= 64 && len(src1) >= 64 &&
-		!overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
+	if p.typ != 4 {
+		panic("fft: DCTPlan.DCTMixed needs a DCT-IV plan")
+	}
+	p.checkPair(len(dst0), len(dst1), len(src0), len(src1), norm)
+	if p.fused && !overlap(dst0[:64], src1[:64]) && !overlap(dst1[:64], src0[:64]) && !overlap(dst0[:64], dst1[:64]) {
 		dct4Pair64Mixed(dst0, dst1, src0, src1, norm.scale(128, inverse))
 		return dst0[:64], dst1[:64]
 	}
