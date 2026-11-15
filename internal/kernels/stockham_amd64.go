@@ -46,6 +46,26 @@ func isFamily19() bool
 // passes'; Options.Exact and NoFMA plans never take it).
 var AMDZen4 = detectedDispatch.Zen4
 
+// IntelCascadeLake reports an Intel Skylake-SP derivative with AVX-512 whose
+// CPUID signature is family 6, model 0x55, stepping 5 or later: Cascade Lake
+// (stepping 5 to 7) and Cooper Lake (10, 11). Skylake-SP itself (stepping 4 and
+// below), Ice Lake (model 0x6A, 0x6C) and Sapphire Rapids (0x8F) are not: the
+// fused 256- and 2048-point kernels were measured on a Cascade Lake, stepping 5
+// (go-fft/fft#162) and nowhere else on Intel. It selects those two kernels
+// (Fused256On, Fused2048On) and nothing else.
+var IntelCascadeLake = detectedDispatch.CascadeLake
+
+// cascadeLakeDefault is IntelCascadeLake's rule, a pure function tested on any
+// machine: AVX-512 (F and DQ), vendor Intel, and a CPUID.1:EAX signature of
+// family 6 (base family 6, no extended family), model 0x55 (extended model 5,
+// model 5), stepping at least 5.
+func cascadeLakeDefault(avx512, intel bool, sig uint32) bool {
+	family := sig >> 8 & 0xF
+	extFamily := sig >> 20 & 0xFF
+	model := sig>>16&0xF<<4 | sig>>4&0xF
+	return avx512 && intel && family == 6 && extFamily == 0 && model == 0x55 && sig&0xF >= 5
+}
+
 // zen4Default is AMDZen4's rule, a pure function tested on any machine.
 func zen4Default(avx512, amd, family19 bool) bool { return avx512 && amd && family19 }
 

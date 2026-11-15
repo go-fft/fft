@@ -21,9 +21,10 @@ type cpuFeatures struct {
 	AVX2        bool
 	AVX512F     bool
 	AVX512DQ    bool
-	Intel       bool // CPUID vendor GenuineIntel (tuning only)
-	AMD         bool // CPUID vendor AuthenticAMD (tuning only)
-	AMDFamily19 bool // displayed family 0x19 (tuning only)
+	Intel       bool   // CPUID vendor GenuineIntel (tuning only)
+	AMD         bool   // CPUID vendor AuthenticAMD (tuning only)
+	AMDFamily19 bool   // displayed family 0x19 (tuning only)
+	Signature   uint32 // CPUID.1:EAX, the family, model and stepping (the fused kernels' gate)
 }
 
 // avx512 reports whether every subset the AVX-512 kernels execute is present.
@@ -41,12 +42,17 @@ var detectedCPU = cpuFeatures{
 	Intel:       isGenuineIntel(),
 	AMD:         isAuthenticAMD(),
 	AMDFamily19: isFamily19(),
+	Signature:   cpuidSignature(),
 }
+
+// cpuidSignature is CPUID leaf 1's EAX (cpuid_signature_amd64.s).
+func cpuidSignature() uint32
 
 // dispatch holds the defaults derived from a cpuFeatures value.
 type dispatch struct {
 	Stockham512 bool // UseStockhamAVX512
 	Zen4        bool // AMDZen4
+	CascadeLake bool // IntelCascadeLake
 	Untangle512 bool // UseUntangleAVX512
 	Split512    bool // UseStockhamSplit512
 	HasAVX512   bool // intelHasAVX512
@@ -61,6 +67,7 @@ func dispatchFor(c cpuFeatures) dispatch {
 	return dispatch{
 		Stockham512: wide,
 		Zen4:        zen4,
+		CascadeLake: cascadeLakeDefault(wide, c.Intel, c.Signature),
 		Untangle512: untangle512Default(c.AVX2, wide, c.Intel),
 		Split512:    intelSplit512Default(c.AVX2, wide, c.Intel),
 		HasAVX512:   wide,

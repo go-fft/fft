@@ -31,10 +31,10 @@ func Fused2048Table(inverse bool) []float64 {
 }
 
 // Fused2048On is whether the fused 2048-point kernel runs here: AVX-512 (F and
-// DQ, the probe of UseStockhamAVX512) on an AMD Zen 4, the only CPU it was
-// measured on (go-fft/fft#162). The kernel reads it, and UseStockhamAVX512, at
-// every call.
-var Fused2048On = UseStockhamAVX512 && AMDZen4
+// DQ, the probe of UseStockhamAVX512) on an AMD Zen 4 or an Intel Cascade Lake
+// (IntelCascadeLake, 0.79 of the plan's time there), the CPUs it was measured on
+// (go-fft/fft#162). The kernel reads it, and UseStockhamAVX512, at every call.
+var Fused2048On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
 // Fused2048 transforms the 2048 points of src into dst (which may alias src;
 // inverse is unnormalized) and reports whether the kernel ran: false, with dst

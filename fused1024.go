@@ -11,5 +11,7 @@ var fused1024Enabled = kernels.Fused1024On
 
 // fused1024Route reports whether a fused plan of n points takes the kernel.
 // Exact and NoFMA plans never do (their arithmetic is not fused), and nor does
-// any CPU but the Zen 4 the kernel was measured on (go-fft/fft#162).
+// any CPU but the Zen 4 the kernel was measured on (go-fft/fft#162). A Cascade
+// Lake ran it at 0.94 to 0.96 of the plan's time, under the 5% bar: it keeps its
+// plans.
 func fused1024Route(n int) bool { return n == 1024 && fused1024Enabled }

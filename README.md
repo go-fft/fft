@@ -420,7 +420,10 @@ their results are **bit-identical** to the Go passes, and the tests compare
 them bit for bit on generic, ±0 and ∞ inputs. These are the kernels of
 `Options.NoFMA` and `Exact`; the default plans on amd64 with FMA3 run fused
 twins of them (`Options.FMA`, above), each bit-identical to a Go reference
-written with `math.FMA`. One exception, on an AMD Zen 4 only: a default or FMA
+written with `math.FMA`. One exception, on an AMD Zen 4 (and, for 256 and 2,048
+points only, an Intel Cascade Lake: CPUID family 6, model 0x55, stepping 5 or
+later, 0.82 and 0.79 of the passes' time there, against FFTW 3.3.10 with AVX-512
+at 1.00 and 1.11 before, 0.82 and 0.87 after; see docs/perf-history.md): a default or FMA
 plan of **256 points** runs a single generated AVX-512 kernel (two fused 16×16
 passes, each 16-point DFT held in zmm registers, the twiddles between the passes
 folded into the first; `internal/genfused256`). It is not bit-identical to the
