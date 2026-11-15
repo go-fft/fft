@@ -12,5 +12,6 @@ var fused256Enabled = kernels.Fused256On
 
 // fused256Route reports whether a fused plan of n points takes the kernel.
 // Exact and NoFMA plans never do (their arithmetic is not fused), and nor does
-// any CPU but the Zen 4 the kernel was measured on (go-fft/fft#124).
+// any CPU but the Zen 4 and the Cascade Lake it was measured on (go-fft/fft#124,
+// go-fft/fft#162; kernels.Fused256On).
 func fused256Route(n int) bool { return n == 256 && fused256Enabled }

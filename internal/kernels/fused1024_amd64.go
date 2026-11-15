@@ -30,7 +30,8 @@ func Fused1024Table(inverse bool) []float64 {
 }
 
 // Fused1024On is whether the fused 1024-point kernel runs here: AVX-512 (F and
-// DQ, the probe of UseStockhamAVX512) on an AMD Zen 4, the only CPU it was
+// DQ, the probe of UseStockhamAVX512) on an AMD Zen 4 (an Intel Cascade Lake gains
+// under 5% and keeps its plans), the only CPU it was
 // measured on (go-fft/fft#162). The kernel reads it, and UseStockhamAVX512, at
 // every call.
 var Fused1024On = UseStockhamAVX512 && AMDZen4

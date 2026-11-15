@@ -456,6 +456,46 @@ One pinned core (cpu 6), 15 interleaved rounds, medians, load 0.5 to 1.3,
 it at its columns, an ulp does not; the w64 constant cos(2 pi/64) off by 1e-14 in
 the generated assembly, mutated by hand, fails the impulse test at 1.0e-14).
 
+## The fused kernels on an Intel Cascade Lake (#162)
+
+Do the fused kernels pay off beyond Zen 4? Measured on a Cascade Lake (Xeon,
+CPUID family 6, model 0x55, stepping 5; an 8-vCPU KVM guest, the GCC compile
+farm's cfarm151, load 0.0 to 1.1), one pinned core, interleaved: the plan of the
+passes the Cascade Lake route runs (the 512-bit split layout, radix 32 at 1024)
+and the plan with the kernel forced on, built in one process (so the same binary,
+inputs and cache state), and FFTW 3.3.10 with AVX-512 (`FFTW_MEASURE`, out of
+place) run between the rounds. Medians of 9 rounds (cpu 5) and 11 (cpu 2), ns,
+forward and inverse unnormalized; the two runs agree to 2 points:
+
+| complex128 | passes ns | fused ns | fused / passes | FFTW ns | passes / FFTW | fused / FFTW |
+|---|---|---|---|---|---|---|
+| 256 forward | 365, 358 | 300, 299 | 0.82, 0.83 | 364 | 1.00 | 0.82 |
+| 256 inverse | 372, 362 | 298, 299 | 0.80, 0.83 | 364 | 1.02 | 0.82 |
+| 1024 forward | 2081, 2032 | 2008, 1904 | 0.97, 0.94 | 2109, 2101 | 0.99 | 0.95, 0.91 |
+| 1024 inverse | 2078, 2064 | 1985, 1953 | 0.96, 0.95 | 2115, 2104 | 0.98 | 0.94, 0.93 |
+| 2048 forward | 5668, 5675 | 4468, 4471 | 0.79, 0.79 | 5026, 5275 | 1.13, 1.08 | 0.89, 0.85 |
+| 2048 inverse | 5718, 5662 | 4480, 4444 | 0.78, 0.78 | 5106, 5108 | 1.12, 1.11 | 0.88, 0.87 |
+
+The rows of a `PlanN` take the kernels too, and none is slower: 256 x 256 0.98,
+64 x 256 0.97, 128 x 256 0.98, 8 x 2048 0.94, 32 x 2048 0.83 of the passes' time
+(9 rounds, cpu 5). The results differ from the passes' by at most 8e-17 of the
+largest output (both plans against each other, so the kernel's error is within
+the bound `TestFused256Accuracy` and `TestFused2048Accuracy` assert). The 512-bit
+clock drop of an Intel part is in these numbers (the machine ran its own clocks).
+
+So 256 and 2048 points take the kernels on a Cascade Lake (`kernels.IntelCascadeLake`:
+vendor Intel, AVX-512 F and DQ, CPUID.1:EAX family 6, model 0x55, stepping 5, 6
+or 7, a rule on the signature and not on "AVX-512 present"). Only stepping 5 was
+measured; every other signature keeps its plans: Cooper Lake (model 0x55, steppings
+10 and 11), the steppings 8, 9 and 12 to 15, Skylake-SP, Ice Lake and Sapphire
+Rapids. 1024 does not take the kernel: it gains 3.5 to 6.3% in the two runs, under
+the 5% bar, and stays on the Zen 4 only. The signature is read by go-asmgen's
+`SignatureProbe` (CPUID leaf 1's EAX, raw) and decoded in Go
+(`cascadeLakeDefault`, tested on every stepping). Under a hypervisor a named CPU
+model can report model 0x55 on other hardware, which then runs the kernels
+unmeasured; only speed is at stake, since the AVX-512 F, DQ and OS-state probes
+decide separately whether the kernels may run.
+
 ## Fused 1024-point kernel (Zen 4, #162)
 
 Alignment of the tables (added after the first measurement): Go's linker aligns a

@@ -44,10 +44,11 @@ func Fused256Table(inverse bool) []float64 {
 }
 
 // Fused256On is whether the fused kernel runs here: AVX-512 (F and DQ, the
-// probe of UseStockhamAVX512) on an AMD Zen 4, the only CPU it was measured
-// on (go-fft/fft#124). Intel's AVX-512 route is unmeasured and keeps its plans.
-// The kernel reads it, and UseStockhamAVX512, at every call.
-var Fused256On = UseStockhamAVX512 && AMDZen4
+// probe of UseStockhamAVX512) on an AMD Zen 4 (go-fft/fft#124) or an Intel
+// Cascade Lake (IntelCascadeLake, 0.82 of the plan's time there, go-fft/fft#162);
+// no other CPU was measured. The kernel reads it, and UseStockhamAVX512, at
+// every call.
+var Fused256On = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)
 
 // Fused256 transforms the 256 points of src into dst (which may alias
 // src; inverse is unnormalized) and reports whether the kernel ran: false, with
