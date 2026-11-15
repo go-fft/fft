@@ -1,6 +1,11 @@
 package fft
 
-import "strconv"
+import (
+	"strconv"
+	"unsafe"
+
+	"github.com/go-simd/floats"
+)
 
 // Options carries numpy.fft's optional keyword arguments — n, norm and axes —
 // to the ...With variants of the transforms (FFTWith, RFFTNWith, ...). Its
@@ -199,6 +204,22 @@ func scaleComplex(x []complex128, f float64) {
 	for i := range x {
 		x[i] *= c
 	}
+}
+
+// scaleComplexA is scaleComplex for a plan of arithmetic a: an Exact plan keeps
+// the complex-multiply loop (its signed zeros and non-finite results are
+// v0.28.16's bits), every other one scales the interleaved floats with the
+// go-simd/floats kernel, which rounds each product once, as that loop does for
+// finite values.
+func scaleComplexA(x []complex128, f float64, a arith) {
+	if f == 1 || len(x) == 0 {
+		return
+	}
+	if a == arithExact {
+		scaleComplex(x, f)
+		return
+	}
+	floats.Scale(f, unsafe.Slice((*float64)(unsafe.Pointer(&x[0])), 2*len(x)))
 }
 
 // scaleReal multiplies every element of x by f, skipping the pass when f is 1.

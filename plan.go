@@ -27,6 +27,8 @@ type Plan struct {
 	sk        *skPlan        // non-nil iff this length uses mixed-radix Stockham
 	rader     *raderPlan     // non-nil iff this length uses Rader
 	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
+
+	ar arith // the arithmetic the plan was built for (the inverse's scaling pass follows it)
 }
 
 // pow2StockhamMax is the largest power of two routed to the Stockham engine
@@ -66,7 +68,7 @@ func newPlanF(n int, fma bool) *Plan { return newPlanA(n, arithFromFMA(fma)) }
 // and its convolutions' plans are Exact ones (arith.go).
 func newPlanA(n int, a arith) *Plan {
 	fma := a.fused()
-	p := &Plan{n: n}
+	p := &Plan{n: n, ar: a}
 	if n <= 1 {
 		return p
 	}
@@ -125,10 +127,7 @@ func (p *Plan) IFFT(dst, src []complex128) []complex128 {
 		return dst
 	}
 	// Only the n transformed values: a longer dst keeps the rest untouched.
-	inv := complex(1/float64(n), 0)
-	for i := range dst[:n] {
-		dst[i] *= inv
-	}
+	scaleComplexA(dst[:n], 1/float64(n), p.ar)
 	return dst
 }
 

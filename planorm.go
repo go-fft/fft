@@ -12,7 +12,7 @@ package fft
 func (p *Plan) FFTNorm(dst, src []complex128, m Norm) []complex128 {
 	f := m.scale(p.n, false)
 	p.FFT(dst, src)
-	scaleComplex(dst[:p.n], f)
+	scaleComplexA(dst[:p.n], f, p.ar)
 	return dst
 }
 
@@ -23,7 +23,7 @@ func (p *Plan) IFFTNorm(dst, src []complex128, m Norm) []complex128 {
 	f := m.scale(p.n, true)
 	p.checkLen(dst, src)
 	p.execute(dst, src, true)
-	scaleComplex(dst[:p.n], f)
+	scaleComplexA(dst[:p.n], f, p.ar)
 	return dst
 }
 
@@ -50,7 +50,7 @@ func (p *RealPlan) IRFFTNorm(dst []float64, src []complex128, m Norm) []float64 
 func (p *PlanN) FFTNorm(dst, src []complex128, m Norm) []complex128 {
 	f := m.scale(p.size, false)
 	p.transform(dst, src, false)
-	scaleComplex(dst, f)
+	scaleComplexA(dst, f, p.ar)
 	return dst
 }
 
@@ -59,7 +59,7 @@ func (p *PlanN) FFTNorm(dst, src []complex128, m Norm) []complex128 {
 func (p *PlanN) IFFTNorm(dst, src []complex128, m Norm) []complex128 {
 	f := m.scale(p.size, true)
 	p.transform(dst, src, true)
-	scaleComplex(dst, f)
+	scaleComplexA(dst, f, p.ar)
 	return dst
 }
 

@@ -392,6 +392,23 @@ default is the measured-faster choice; the SIMD kernels remain validated,
 per-arch-tested artifacts (bit-identical to the scalar oracle, asserted by the
 per-arch CI jobs) and the reference for any future widening.
 
+## Normalized inverse: the 1/n pass on the go-simd/floats kernel
+
+`Plan.IFFT`, `PlanN.IFFT` and the `Norm` forms of both scaled the output with a
+scalar `dst[i] *= complex(1/n, 0)` loop (143 of 299 ns at 256 points). They now
+call `floats.Scale` on the interleaved floats; `Options.Exact` plans keep the
+loop (its signed zeros and infinities are v0.28.16's bits), and for finite
+values the products are the same bits. Ryzen 9 7950X, one pinned core, 11
+interleaved rounds, medians, load 1 to 4 (2026-11-15), `Plan.IFFT` ns:
+
+| n | before | after |
+|---|---|---|
+| 64 | 73.6 | 48.7 |
+| 256 | 297.9 | 186.5 |
+| 1024 | 1466 | 980 |
+
+The unnormalized inverse (`IFFTNorm(NormForward)`) is unchanged.
+
 ## Remaining gap
 
 The complex mid-range is **closed** (1024 wins, 2048/4096 tie). The Rader round

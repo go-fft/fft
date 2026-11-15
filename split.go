@@ -83,7 +83,7 @@ func clRowPlanA(n, size int, a arith) *Plan {
 	defer planMu.Unlock()
 	p, ok := cache[n]
 	if !ok {
-		p = &Plan{n: n, sk: newSKPlanFactorsOpt(n, f, a.fused())}
+		p = &Plan{n: n, ar: a, sk: newSKPlanFactorsOpt(n, f, a.fused())}
 		cache[n] = p
 	}
 	return p
