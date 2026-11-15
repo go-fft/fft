@@ -13,13 +13,13 @@ package kernels
 // in memory (fused256Tw is one array).
 //
 //go:noescape
-func fused256(dst, src *complex128, tw *float64, inv bool) (ok bool)
+func fused256(dst, src *[256]complex128, tw *float64, inv bool) (ok bool)
 
 // fused256body is fused256's body, reached only by the jump (vet wants it
 // declared).
 //
 //go:noescape
-func fused256body(dst, src *complex128, tw *float64, inv bool) (ok bool)
+func fused256body(dst, src *[256]complex128, tw *float64, inv bool) (ok bool)
 
 // fused256ref is the same transform without the add-to-FMA rewrite (and without
 // the gates): the schedule of v0.34.0, kept for the tests that assert the two
@@ -55,5 +55,5 @@ var Fused256On = UseStockhamAVX512 && AMDZen4
 // array pointers (a caller converts its slices, which panics on a short one), so
 // that it is small enough to inline.
 func Fused256(dst, src *[256]complex128, inverse bool) bool {
-	return fused256(&dst[0], &src[0], &fused256Tw[0][0], inverse)
+	return fused256(dst, src, &fused256Tw[0][0], inverse)
 }
