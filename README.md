@@ -301,8 +301,8 @@ mp.IMDCTMixed(out32, coef32, 4/float64(n))
 // one NEON kernel with a transform in each lane, 33% faster than two calls
 // (Apple M4 Max: 90 -> 60.6 ns float64, 107 -> 71.3 ns Mixed; a single DCT-IV(64)
 // call is 88 -> 43.7 ns). The same kernels exist for DCT-IV(128), the AAC short
-// block's MDCT of 256 samples, and the MDCT/IMDCT of 128 and 256 samples (also
-// their Mixed forms) run on them on arm64. On amd64 with AVX2 and FMA3 one AVX2
+// block's MDCT of 256 samples, and the MDCT/IMDCT of 128 samples (also their Mixed
+// forms) run on the kernel of 64 on arm64. On amd64 with AVX2 and FMA3 one AVX2
 // kernel of 64 holds a complex value of both transforms in each 256-bit register:
 // on a Ryzen 9 7950X (Zen 4) a pair of float64 is 122.5 -> 58.5 ns and a pair of
 // Mixed 122.5 -> 68.3 ns, and a single call is unchanged (60 ns). Elsewhere, and

@@ -82,7 +82,16 @@ func checkMDCT(n int) {
 
 // NewMDCTPlan returns a plan for blocks of n samples and n/2 coefficients. It
 // panics if n is odd or below 2.
-func NewMDCTPlan(n int) *MDCTPlan { return newMDCTPlan(n, dct4FusedRoute) }
+func NewMDCTPlan(n int) *MDCTPlan { return newMDCTPlan(n, dct4FusedRoute && mdctFusedLen(n/2)) }
+
+// mdctFusedLen reports whether an MDCT whose DCT-IV has m points runs on the fused
+// kernel by default: 64 only (N = 128). On a Neoverse-N1 (cfarm424, one pinned core,
+// 8 interleaved rounds against v0.35.2) the route gained 8 to 13% at N = 128 and
+// lost 3 to 18% at N = 256 (MDCT 570 -> 588 ns, IMDCT 561 -> 654 ns): the scalar
+// kernel of 128 points spills more than the NEON Stockham FFT it replaces costs. The
+// route for 256 stays in the code (the tests force it) until an Apple M-series
+// measurement says it wins there.
+func mdctFusedLen(m int) bool { return m == 64 }
 
 // newMDCTPlan is NewMDCTPlan with the fused route (N/2 of 64 or 128) switched on
 // or off, which the tests do to run either route on any platform. A fused plan
