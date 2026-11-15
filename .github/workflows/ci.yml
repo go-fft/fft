@@ -197,10 +197,10 @@ jobs:
       - name: Regenerate the fused 256-point kernel and check it is current
         run: |
           go run internal/genfused256/main.go
-          git diff --exit-code -- internal/kernels/fused256_amd64.s || {
+          git diff --exit-code -- internal/kernels/fused256_amd64.s internal/kernels/fused256_tw_amd64.go || {
             echo "::error::the fused 256-point kernel is stale; run go generate and commit"; exit 1; }
-          if [ -n "$(git status --porcelain -- internal/kernels/fused256_amd64.s)" ]; then
-            git status --porcelain -- internal/kernels/fused256_amd64.s
+          if [ -n "$(git status --porcelain -- 'internal/kernels/fused256*')" ]; then
+            git status --porcelain -- 'internal/kernels/fused256*'
             echo "::error::the fused 256-point generator wrote a file that is not committed"; exit 1
           fi
       - name: Vet (asmdecl) + build + run (SIMD == scalar)

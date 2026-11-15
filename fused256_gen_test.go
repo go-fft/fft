@@ -36,19 +36,21 @@ func TestFused256Generated(t *testing.T) {
 	if _, err := os.Stat("internal/genfused256/main.go"); err != nil {
 		t.Skip("generator sources are not alongside the test binary")
 	}
-	out := filepath.Join(t.TempDir(), "fused256_amd64.s")
-	if b, err := exec.Command(goBin, "run", "internal/genfused256/main.go", out).CombinedOutput(); err != nil {
+	dir := t.TempDir()
+	if b, err := exec.Command(goBin, "run", "internal/genfused256/main.go", dir).CombinedOutput(); err != nil {
 		t.Fatalf("generator: %v\n%s", err, b)
 	}
-	got, err := os.ReadFile(out)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := os.ReadFile("internal/kernels/fused256_amd64.s")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(got, want) {
-		t.Error("internal/kernels/fused256_amd64.s is stale: run go generate and commit")
+	for _, name := range []string{"fused256_amd64.s", "fused256_tw_amd64.go"} {
+		got, err := os.ReadFile(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, err := os.ReadFile(filepath.Join("internal/kernels", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, want) {
+			t.Errorf("internal/kernels/%s is stale: run go generate and commit", name)
+		}
 	}
 }

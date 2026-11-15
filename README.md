@@ -414,7 +414,14 @@ their results are **bit-identical** to the Go passes, and the tests compare
 them bit for bit on generic, ±0 and ∞ inputs. These are the kernels of
 `Options.NoFMA` and `Exact`; the default plans on amd64 with FMA3 run fused
 twins of them (`Options.FMA`, above), each bit-identical to a Go reference
-written with `math.FMA`. On **arm64** the radix-2/3/4/5/8
+written with `math.FMA`. One exception, on an AMD Zen 4 only: a default or FMA
+plan of **256 points** runs a single generated AVX-512 kernel (two fused 16×16
+passes, each 16-point DFT held in zmm registers, the twiddles between the passes
+folded into the first; `internal/genfused256`). It is not bit-identical to the
+passes; its error is asserted against a double-double oracle at the c2c bound,
+and `Exact` and `NoFMA` plans never take it. Ryzen 9 7950X, one core, 21
+interleaved rounds, complex128 forward, against FFTW 3.3.10 with AVX-512:
+155.7 ns before (1.16×), 140.5 ns now (1.04×; FFTW 134.6 ns). On **arm64** the radix-2/3/4/5/8
 passes, and the radix-2 to 5 final passes over an even number of blocks, run as
 generated **NEON** kernels. gc fuses multiply-adds on arm64, so each kernel
 reproduces, pass by pass, which product the Go code rounds and which it fuses;
