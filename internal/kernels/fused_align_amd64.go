@@ -35,3 +35,24 @@ func alignedTable(store []float64) []float64 {
 	}
 	return store[off : off+n : off+n]
 }
+
+// alignedTable32 is alignedTable for the float32 tables: 8 elements (32 bytes) of
+// padding on each side and the data from index 8, moved in place to the first
+// 64-byte boundary, index 0 to 15 (8 where the array is at 32 mod 64: nothing
+// moves).
+func alignedTable32(store []float32) []float32 {
+	n := len(store) - 16
+	off := int((64-uintptr(unsafe.Pointer(&store[0]))%64)%64) / 4
+	if off != 8 {
+		copy(store[off:off+n], store[8:8+n]) // memmove: overlapping, within store
+	}
+	return store[off : off+n : off+n]
+}
+
+// halfTable32 is one direction's half of a table (forward first).
+func halfTable32(t []float32, inverse bool) []float32 {
+	if inverse {
+		return t[len(t)/2:]
+	}
+	return t[:len(t)/2]
+}

@@ -2,6 +2,7 @@ package gentwiddle
 
 import (
 	"math"
+	"math/big"
 	"testing"
 )
 
@@ -29,6 +30,46 @@ func TestCosSin(t *testing.T) {
 				t.Fatalf("CosSin(%d, %d) = (%v, %v), math gives (%v, %v)", num, den, c, s, mc, ms)
 			}
 		}
+	}
+}
+
+// CosSin32 is the float32 nearest to the 400-bit value: no neighbour is closer,
+// for every angle 2πk/n of n = 8 .. 4096 (the fused complex64 kernels' tables).
+// Rounding float64 then float32 can differ by one ulp in the rare cases where the
+// float64 lands on a float32 midpoint; they are counted, not required.
+func TestCosSin32(t *testing.T) {
+	dist := func(x float32, exact *big.Float) *big.Float {
+		d := new(big.Float).SetPrec(400).SetFloat64(float64(x))
+		return d.Sub(d, exact).Abs(d)
+	}
+	double := 0
+	dens := []int{8, 16, 64, 256, 1024, 2048, 4096}
+	if testing.Short() {
+		dens = dens[:4]
+	}
+	for _, den := range dens {
+		for num := 1; num < den; num++ {
+			cs, sn := bigCosSin(num, den)
+			c, s := CosSin32(num, den)
+			for _, p := range []struct {
+				got   float32
+				exact *big.Float
+			}{{c, cs}, {s, sn}} {
+				for _, nb := range []float32{math.Nextafter32(p.got, -2), math.Nextafter32(p.got, 2)} {
+					if dist(nb, p.exact).Cmp(dist(p.got, p.exact)) < 0 {
+						t.Fatalf("CosSin32(%d, %d): %v is not the nearest float32 (%v is closer)", num, den, p.got, nb)
+					}
+				}
+			}
+			c64, s64 := CosSin(num, den)
+			if float32(c64) != c || float32(s64) != s {
+				double++
+			}
+		}
+	}
+	t.Logf("%d values where float64 then float32 differs from the single rounding", double)
+	if c, s := CosSin32(1, 4); c != 0 && math.Abs(float64(c)) > 1e-7 || s != 1 {
+		t.Errorf("CosSin32(1, 4) = (%v, %v)", c, s)
 	}
 }
 

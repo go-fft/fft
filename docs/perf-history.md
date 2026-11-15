@@ -640,3 +640,69 @@ These are the honest frontiers, each tied to one specific FFTW technique
 one identified pure-Go lever (an iterative mixed-radix engine). Where go-fft wins
 or ties — small-N, complex mid-range, large 1-D, large 2-D, smooth-N−1 primes,
 real 1024/65536 — the tables above show it.
+
+## Fused complex64 kernels, 64 to 8,192 points (Zen 4 and Cascade Lake, #162)
+
+The complex64 plans ran four-pass AVX2 radix-8 Stockham kernels (`sk32Pass8AVX2`
+75% and `sk32Last8AVX2` 20% of `c64/4096` in `perf record`), 1.5 to 2.1 times
+FFTW 3.3.10's AVX-512 single-precision time on a Zen 4 (baseline of v0.39.0, #162).
+`internal/genfused256` now writes eight complex64 kernels (`fusedS64` to
+`fusedS8192`, `internal/kernels/fusedS<n>_amd64.s`): the two passes of the
+complex128 1024- and 2048-point kernels with eight complex64 per zmm (so the
+packed-single mnemonics, `VPERMILPS $0xB1` for the re/im swap, 4-byte broadcast
+constants, an 8x8 transpose of 64-bit elements, 24 shuffles per block, between the
+passes). Factorizations, x[B*a+b] with A x B: 64 = 8x8, 128 = 16x8, 256 = 16x16,
+512 = 32x16, 1024 = 32x32, 2048 = 64x32, 4096 = 64x64, 8192 = 128x64; the 32-, 64- and
+128-point DFTs spill (Belady) as the complex128 ones.
+The twiddle tables are float32, each entry the 400-bit value rounded once to
+float32 (`gentwiddle.CosSin32`: never float64 first), 64-byte aligned in place in
+the static array like the others.
+
+One pinned core each (cpu 9 and cpu 14), a fresh process per row, go-fft and FFTW
+alternating (5 rounds, medians), load 0.9 to 1.1, ns per transform, forward:
+
+| complex64 | v0.39.0 | fused | fused / v0.39.0 | FFTW single, AVX-512 | before / FFTW, after |
+|---|---|---|---|---|---|
+| 64 | 40.1, 41.3 | 28.2, 28.9 | 0.70 | 22.1, 22.6 | 1.81, 1.28 |
+| 128 | 72.8, 75.1 | 43.2, 44.2 | 0.59 | 38.5, 39.6 | 1.90, 1.12 |
+| 256 | 128.4, 132.2 | 82.3, 84.9 | 0.64 | 76.3, 78.3 | 1.70, 1.08 |
+| 512 | 253.9, 260.2 | 168.4, 175.1 | 0.66 | 165.3, 170.2 | 1.52, 1.02 |
+| 1024 | 563.1, 581.0 | 367.6, 380.8 | 0.65 | 380.3, 392.8 | 1.51, 0.97 |
+| 2048 | 1293, 1327 | 925.0, 953.7 | 0.72 | 884.6, 901.7 | 1.47, 1.05 |
+| 4096 | 4578, 4686 | 2170, 2228 | 0.47 | 2277, 2232 | 2.08, 0.95 to 1.00 |
+| 8192 | 8568, 8821 | 5221, 5307 | 0.61 | 7221, 7154 | 1.22, 0.72 to 0.74 |
+
+`perf stat` of 4096 (per transform, Zen 4, cpu 15): 24,700 cycles and 54,200
+instructions at IPC 2.19 before; 12,060 cycles and 20,100 instructions at IPC 1.67
+now (FFTW 12,400 cycles, 31,700 instructions, IPC 2.56). The IPC went down because
+the instruction count went down 2.7 times (the fused kernel does the work in
+8 complex64 per instruction and in two passes instead of four), not because the
+core stalls more: `fp_reg_file_rsrc_stall`, which took 9,770 of the 24,700 cycles
+(40%), is 1,980 of 12,060 (16%); blocked loads (`ls_bad_status2.stli_other`) fell
+from 864 to 212 per transform; flops are 179,000 and 209,500 (the kernel's
+twiddle multiplies are done in full). On the Cascade Lake (cfarm151, Xeon family 6
+model 0x55 stepping 5, cpu 5, load 1.4, 7 interleaved rounds) the kernel
+takes, of the passes' time: 64 0.49, 128 0.43, 256 0.47, 512 0.53, 1024 0.57, 2048
+0.66, 4096 0.58, 8192 0.61 (in-process, the passes' plan and the
+fused one alternating); FFTW single precision was not built there.
+
+Accuracy: relative RMS against the double-double oracle at `c2c * eps32 * log2 n`
+(`TestFusedSAccuracy`, both directions, random, impulse, constant, tone and wide
+range), observed 0.16 to 0.26 of `eps32 * log2 n` with `eps32 = 2^-24`;
+every unit impulse, 1 and i, both directions, within 2^-24 (2 + log2 n) of the
+exact root of unity (`TestFusedSImpulses`; worst observed 4.8e-8 at 64, 2.6e-7
+at 4096; above 4096 points the rows a = 0, 1, A/2+1 and A-1 of every column are
+tested); `TestFusedSImpulseMutation`: about 300 entries of each table, each
+off by 1e-4, fail at their columns, an ulp does not.
+
+The route: public 1-D `Plan32`, `FFT32`/`IFFT32`, `RFFT32`/`IRFFT32` and the
+`...With` forms without `Options.Exact` take the kernels; everything else keeps
+the passes and its bits: `Options.Exact` calls, the plans under the N-D, 2-D
+real, DCT, DST and MDCT transforms (golden digests, and the strip and line paths
+agreeing to the bit). The 2-D and DCT paths measure faster than FFTW already
+(DCT-IV and MDCT 0.3 to 0.9, #162).
+
+Not covered: 16,384 points (it gains, 0.58 of the passes' time and 0.81 to 0.83 of
+FFTW, but its table is a 1.5 MiB source file), 32,768 and 65,536 points (tables
+of 0.5 and 1 MB per direction), N-D rows, and still above 1.05 against FFTW: 64 (1.28), 128 (1.12), 256 (1.08),
+2,048 (1.05 to 1.06).

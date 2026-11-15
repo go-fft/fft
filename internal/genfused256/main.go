@@ -47,7 +47,26 @@ import (
 var (
 	consts = map[string]float64{}
 	inv    bool
+	// sp is single precision: complex64 kernels, eight columns per zmm, float32
+	// mnemonics and 4-byte constants (set by the complex64 builders).
+	sp bool
 )
+
+// ps is the packed-single twin of a packed-double mnemonic when sp is set.
+func ps(mn string) string {
+	if sp {
+		return strings.TrimSuffix(mn, "PD") + "PS"
+	}
+	return mn
+}
+
+// ps231 is ps for the FMA forms, whose PD sits before the operand-order digits.
+func ps231(mn string) string {
+	if sp {
+		return strings.Replace(mn, "231PD", "231PS", 1)
+	}
+	return mn
+}
 
 // csDen is cos and sin of 2*pi*num/den, correctly rounded (the 400-bit series
 // shared with internal/gendct4); the quarter turns, where the series would
@@ -66,6 +85,17 @@ func csDen(num, den int) (c, s float64) {
 		return 0, -1
 	}
 	return gentwiddle.CosSin(num, den)
+}
+
+// csDen32 is csDen for the complex64 kernels: the 400-bit value rounded once to
+// float32 (never float64 and then float32); the quarter turns are exact.
+func csDen32(num, den int) (c, s float32) {
+	num %= den
+	if (4*num)%den == 0 {
+		c64, s64 := csDen(num, den)
+		return float32(c64), float32(s64)
+	}
+	return gentwiddle.CosSin32(num, den)
 }
 
 func cs(m int) (c, s float64) { return csDen(m, 16) }
@@ -100,6 +130,9 @@ func twFile() []byte {
 
 func cname(v float64) string {
 	n := fmt.Sprintf("f256_%016x<>", math.Float64bits(v))
+	if sp {
+		n = fmt.Sprintf("f256s_%08x<>", math.Float32bits(float32(v)))
+	}
 	consts[n] = v
 	return n
 }
@@ -120,6 +153,8 @@ const (
 	kMulB
 	kXorB
 	kShuf
+	kUnpckL
+	kUnpckH
 )
 
 type ins struct {
@@ -178,7 +213,7 @@ func radix4(a0, a1, a2, a3 int) (o0, o1, o2, o3 int) {
 	// s1 -/+ i*s3, with sw = swap(s3) = (s3im, s3re):
 	//   s1 - i*s3 = (s1re + s3im, s1im - s3re): even +, odd -  (fmsubadd)
 	//   s1 + i*s3 = (s1re - s3im, s1im + s3re): even -, odd +  (fmaddsub)
-	m1, m3 := "VFMSUBADD231PD", "VFMADDSUB231PD"
+	m1, m3 := ps231("VFMSUBADD231PD"), ps231("VFMADDSUB231PD")
 	if inv {
 		m1, m3 = m3, m1
 	}
@@ -194,15 +229,19 @@ func cmulConst(r, m, den int) int {
 		return r
 	}
 	c, s := csDen(m, den)
+	if sp {
+		c32, s32 := csDen32(m, den)
+		c, s = float64(c32), float64(s32)
+	}
 	if !inv {
 		s = -s
 	}
 	if 2*m == den {
-		return add1(ins{k: kXorB, mn: "VXORPD", mem: cname(math.Copysign(0, -1)), src: []int{r}, acc: -1})
+		return add1(ins{k: kXorB, mn: ps("VXORPD"), mem: cname(math.Copysign(0, -1)), src: []int{r}, acc: -1})
 	}
 	t := perm(r)
-	t2 := add1(ins{k: kMulB, mn: "VMULPD", mem: cname(s), src: []int{t}, acc: -1})
-	return fmaB("VFMADDSUB231PD", c, r, t2)
+	t2 := add1(ins{k: kMulB, mn: ps("VMULPD"), mem: cname(s), src: []int{t}, acc: -1})
+	return fmaB(ps231("VFMADDSUB231PD"), c, r, t2)
 }
 
 // dft16 takes sixteen values (natural order) and returns the sixteen outputs.
@@ -455,27 +494,34 @@ func render(o ins, z func(int) string, rw bool, rwSrc int) string {
 	case kAdd, kSub:
 		a, b := o.src[0], o.src[1]
 		if rw { // a - b with dst = a: b*(-1) + a
-			return fmt.Sprintf("VFMADD231PD.BCST %s(SB), %s, %s", cname(-1), z(b), z(o.dst))
+			return fmt.Sprintf("%s.BCST %s(SB), %s, %s", ps231("VFMADD231PD"), cname(-1), z(b), z(o.dst))
 		}
-		mn := "VADDPD"
+		mn := ps("VADDPD")
 		if o.k == kSub {
-			mn = "VSUBPD"
+			mn = ps("VSUBPD")
 		}
 		return fmt.Sprintf("%s %s, %s, %s", mn, z(b), z(a), z(o.dst))
 	case kPerm:
+		if sp {
+			return fmt.Sprintf("VPERMILPS $0xB1, %s, %s", z(o.src[0]), z(o.dst))
+		}
 		return fmt.Sprintf("VPERMILPD $0x55, %s, %s", z(o.src[0]), z(o.dst))
 	case kFmaB:
 		return fmt.Sprintf("%s.BCST %s(SB), %s, %s", o.mn, o.mem, z(o.src[0]), z(o.dst))
 	case kFmaT:
 		return fmt.Sprintf("%s %s, %s, %s", o.mn, o.mem, z(o.src[0]), z(o.dst))
 	case kMulT:
-		return fmt.Sprintf("VMULPD %s, %s, %s", o.mem, z(o.src[0]), z(o.dst))
+		return fmt.Sprintf("%s %s, %s, %s", ps("VMULPD"), o.mem, z(o.src[0]), z(o.dst))
 	case kMulB:
-		return fmt.Sprintf("VMULPD.BCST %s(SB), %s, %s", o.mem, z(o.src[0]), z(o.dst))
+		return fmt.Sprintf("%s.BCST %s(SB), %s, %s", ps("VMULPD"), o.mem, z(o.src[0]), z(o.dst))
 	case kXorB:
-		return fmt.Sprintf("VXORPD.BCST %s(SB), %s, %s", o.mem, z(o.src[0]), z(o.dst))
+		return fmt.Sprintf("%s.BCST %s(SB), %s, %s", ps("VXORPD"), o.mem, z(o.src[0]), z(o.dst))
 	case kShuf:
 		return fmt.Sprintf("VSHUFF64X2 %s, %s, %s, %s", o.imm, z(o.src[1]), z(o.src[0]), z(o.dst))
+	case kUnpckL:
+		return fmt.Sprintf("VUNPCKLPD %s, %s, %s", z(o.src[1]), z(o.src[0]), z(o.dst))
+	case kUnpckH:
+		return fmt.Sprintf("VUNPCKHPD %s, %s, %s", z(o.src[1]), z(o.src[0]), z(o.dst))
 	}
 	panic("render")
 }
@@ -811,6 +857,267 @@ var (
 	cfg2048 = bigCfg{"fused2048", "Fused2048On", 32, 64}
 )
 
+// ---- the complex64 kernels (go-fft/fft#162): A x B, eight columns per zmm ----
+//
+// The same two passes as the 1024- and 2048-point kernels, with a zmm holding
+// eight complex64 (16 float32, the packed-single mnemonics) instead of four
+// complex128. Pass 1, per group of eight columns b: an A-point DFT across the
+// a axis, the w_n^(k1*b) twiddles from a float32 table, an 8x8 transpose (of
+// 64-bit elements) into a frame. Pass 2, per block of eight k1: a B-point DFT
+// across the b axis, contiguous stores. x[B*a+b], X[k1+A*k2].
+
+type c64Cfg struct {
+	name string // "fusedS256"
+	on   string // "FusedS256On"
+	A, B int
+}
+
+func (c c64Cfg) n() int      { return c.A * c.B }
+func (c c64Cfg) groups() int { return c.B / 8 }
+func (c c64Cfg) blocks() int { return c.A / 8 }
+
+// tableFloats is the length of one direction's pass-1 table in float32s: per
+// group and k1 = 1..A-1, 32 (the real parts of w_n^(k1*b) twice each for eight
+// columns, then the imaginary parts twice each).
+func (c c64Cfg) tableFloats() int { return c.groups() * (c.A - 1) * 32 }
+
+// transpose8 transposes eight registers of eight 64-bit elements: o[j][l] =
+// r[l][j]. Unpack pairs the rows within each 128-bit lane, then two rounds of
+// 128-bit lane shuffles gather the columns.
+func transpose8(r [8]int) (o [8]int) {
+	var t [8]int
+	for p := 0; p < 4; p++ {
+		t[2*p] = add1(ins{k: kUnpckL, src: []int{r[2*p], r[2*p+1]}, acc: -1})
+		t[2*p+1] = add1(ins{k: kUnpckH, src: []int{r[2*p], r[2*p+1]}, acc: -1})
+	}
+	// u[m]: rows 0..3 (m < 4) or 4..7 (m >= 4); lane pairs of columns (m%4, m%4+4)
+	var u [8]int
+	for h := 0; h < 2; h++ {
+		for q := 0; q < 2; q++ { // q: even (unpcklo) or odd (unpckhi) columns
+			a, b := t[4*h+q], t[4*h+2+q]
+			u[4*h+2*q] = shuf("$0x88", a, b)
+			u[4*h+2*q+1] = shuf("$0xDD", a, b)
+		}
+	}
+	// u[4h+2q]: columns 2q'.. : with q = 0 the columns 0 and 4, with q = 1 the
+	// columns 1 and 5 (0x88 takes the lanes holding the low column of each pair,
+	// 0xDD the high); u[4h+2q+1] holds columns 2+q and 6+q.
+	for q := 0; q < 2; q++ {
+		o[q] = shuf("$0x88", u[2*q], u[4+2*q])
+		o[q+4] = shuf("$0xDD", u[2*q], u[4+2*q])
+		o[q+2] = shuf("$0x88", u[2*q+1], u[4+2*q+1])
+		o[q+6] = shuf("$0xDD", u[2*q+1], u[4+2*q+1])
+	}
+	return
+}
+
+func bodyC64A(c c64Cfg) {
+	prog, nv = nil, 0
+	y := make([]int, c.A)
+	dftLazy(c.A, func(j int) int { return ld("SI", j*c.B*8) }, func(k1 int, o []int) {
+		for k2, v := range o {
+			y[k1+4*k2] = v
+		}
+	})
+	for k1 := 1; k1 < c.A; k1++ {
+		off := (k1 - 1) * 128
+		t := perm(y[k1])
+		t2 := add1(ins{k: kMulT, mn: "VMULPS", mem: fmt.Sprintf("%d(DX)", off+64), src: []int{t}, acc: -1})
+		y[k1] = add1(ins{k: kFmaT, mn: "VFMADDSUB231PS", mem: fmt.Sprintf("%d(DX)", off), src: []int{y[k1]}, acc: t2})
+	}
+	for h := 0; h < c.blocks(); h++ {
+		var in [8]int
+		copy(in[:], y[8*h:8*h+8])
+		for j, r := range transpose8(in) {
+			st(r, "R8", (h*c.B+j)*64)
+		}
+	}
+}
+
+func bodyC64B(c c64Cfg) {
+	prog, nv = nil, 0
+	dftLazy(c.B, func(j int) int { return ld("R8", j*64) }, func(k1 int, o []int) {
+		for k2, v := range o {
+			st(v, "DI", (k1+4*k2)*c.A*8)
+		}
+	})
+}
+
+// twTableC64 is the pass-1 table of one direction, float32, each entry the
+// 400-bit value rounded once.
+func twTableC64(c c64Cfg, inverse bool) []float32 {
+	t := make([]float32, c.tableFloats())
+	for g := 0; g < c.groups(); g++ {
+		for k1 := 1; k1 < c.A; k1++ {
+			base := (g*(c.A-1) + (k1 - 1)) * 32
+			for l := 0; l < 8; l++ {
+				cc, s := csDen32(k1*(8*g+l), c.n())
+				if !inverse {
+					s = -s
+				}
+				t[base+2*l], t[base+2*l+1] = cc, cc
+				t[base+16+2*l], t[base+16+2*l+1] = s, s
+			}
+		}
+	}
+	return t
+}
+
+func twFileC64(c c64Cfg) []byte {
+	var b strings.Builder
+	b.WriteString("// Code generated by internal/genfused256/main.go; DO NOT EDIT.\n\npackage kernels\n\n")
+	doc := fmt.Sprintf("// %sTwStore is the pass-1 table of the fused complex64 %d-point kernel, forward\n// then inverse: per group of eight columns and k1 = 1..%d, 32 float32s, the real\n// parts of w%d^(k1*b) twice each, then the imaginary parts twice each, each the\n// 400-bit value rounded once to float32, signed for the direction (forward e^-i).", c.name, c.n(), c.A-1, c.n())
+	fwd, inv := twTableC64(c, false), twTableC64(c, true)
+	fmt.Fprintf(&b, "%s\n// The data starts at index 8 (see alignedTable32).\nvar %sTwStore = [%d]float32{\n\t0, 0, 0, 0, 0, 0, 0, 0,\n", doc, c.name, len(fwd)+len(inv)+16)
+	for _, t := range [][]float32{fwd, inv} {
+		for i, v := range t {
+			if i%8 == 0 {
+				b.WriteString("\t")
+			}
+			b.WriteString(strconv.FormatFloat(float64(v), 'g', -1, 32))
+			b.WriteString(",")
+			if i%8 == 7 {
+				b.WriteString("\n")
+			} else {
+				b.WriteString(" ")
+			}
+		}
+	}
+	b.WriteString("\t0, 0, 0, 0, 0, 0, 0, 0,\n}\n")
+	return []byte(b.String())
+}
+
+// entryC64 emits fused<S><n> (the gates and a jump) and its body, as entryBig.
+func entryC64(c c64Cfg) {
+	sp = true
+	defer func() { sp = false }()
+	n := c.n()
+	fmt.Fprintf(&out, "\n// func %s(dst, src *[%d]complex64, tw *float32, inv bool) (ok bool)\nTEXT ·%s(SB), NOSPLIT, $0-33\n", c.name, n, c.name)
+	emit("MOVBLZX ·%s(SB), AX", c.on)
+	emit("TESTL AX, AX")
+	emit("JZ no")
+	emit("MOVBLZX ·UseStockhamAVX512(SB), AX")
+	emit("TESTL AX, AX")
+	emit("JZ no")
+	emit("JMP ·%sbody(SB)", c.name)
+	out.WriteString("no:\n")
+	emit("MOVB $0, ok+32(FP)")
+	emit("RET")
+	type dirBody struct{ a, b []string }
+	var bodies [2]dirBody
+	slots := 0
+	for d, inverse := range []bool{false, true} {
+		inv = inverse
+		bodyC64A(c)
+		la, sa := lowerSpill()
+		bodyC64B(c)
+		lb, sb := lowerSpill()
+		bodies[d] = dirBody{la, lb}
+		for _, s := range []int{sa, sb} {
+			if s > slots {
+				slots = s
+			}
+		}
+	}
+	data := n * 8 // the frame: the n points, 8x8-transposed
+	frame := data + slots*64 + 64
+	fmt.Fprintf(&out, "\n// func %sbody(dst, src *[%d]complex64, tw *float32, inv bool) (ok bool)\nTEXT ·%sbody(SB), $%d-33\n", c.name, n, c.name, frame)
+	emit("MOVQ dst+0(FP), DI")
+	emit("MOVQ src+8(FP), SI")
+	emit("MOVQ tw+16(FP), DX")
+	emit("MOVQ SP, R11")
+	emit("ADDQ $63, R11")
+	emit("ANDQ $-64, R11")
+	emit("LEAQ %d(R11), R9", data)
+	emit("MOVBLZX inv+24(FP), AX")
+	emit("TESTL AX, AX")
+	emit("JNZ inverse")
+	for d, name := range []string{"f", "i"} {
+		if d == 1 {
+			out.WriteString("inverse:\n")
+			emit("ADDQ $%d, DX", c.tableFloats()*4) // the inverse table follows the forward one
+		}
+		emit("MOVQ R11, R8")
+		emit("MOVQ $%d, R10", c.groups())
+		emit("PCALIGN $64")
+		fmt.Fprintf(&out, "%sloop1:\n", name)
+		for _, l := range bodies[d].a {
+			emit("%s", l)
+		}
+		emit("ADDQ $64, SI")
+		emit("ADDQ $512, R8")
+		emit("ADDQ $%d, DX", (c.A-1)*128)
+		emit("DECQ R10")
+		emit("JNZ %sloop1", name)
+		emit("MOVQ R11, R8")
+		emit("MOVQ $%d, R10", c.blocks())
+		emit("PCALIGN $64")
+		fmt.Fprintf(&out, "%sloop2:\n", name)
+		for _, l := range bodies[d].b {
+			emit("%s", l)
+		}
+		emit("ADDQ $%d, R8", c.B*64)
+		emit("ADDQ $64, DI")
+		emit("DECQ R10")
+		emit("JNZ %sloop2", name)
+		emit("VZEROUPPER")
+		emit("MOVB $1, ok+32(FP)")
+		emit("RET")
+	}
+}
+
+// cfgsS are the complex64 kernels, A x B with x[B*a+b]: every length from 64 to
+// 8192 points (16384 gains too, but its table is a 1.5 MiB source file). The factorization of each was chosen by measurement
+// (go-fft/fft#162).
+var cfgsS = []c64Cfg{
+	{"fusedS64", "FusedS64On", 8, 8},
+	{"fusedS128", "FusedS128On", 16, 8},
+	{"fusedS256", "FusedS256On", 16, 16},
+	{"fusedS512", "FusedS512On", 32, 16},
+	{"fusedS1024", "FusedS1024On", 32, 32},
+	{"fusedS2048", "FusedS2048On", 64, 32},
+	{"fusedS4096", "FusedS4096On", 64, 64},
+	{"fusedS8192", "FusedS8192On", 128, 64},
+}
+
+// symName is "S256" for fusedS256: the exported names are Fused<symName>.
+func (c c64Cfg) symName() string { return strings.TrimPrefix(c.name, "fused") }
+
+// declFileC64 writes the Go side of the complex64 kernels for amd64: the assembly
+// declarations, the gates, the aligned tables and the exported wrappers.
+func declFileC64(cfgs []c64Cfg) []byte {
+	var b strings.Builder
+	b.WriteString("// Code generated by internal/genfused256/main.go; DO NOT EDIT.\n\npackage kernels\n\n")
+	b.WriteString("// Complex64 FFTs as two fused AVX-512 passes (go-fft/fft#162): the kernels of\n// fused1024_amd64.go in single precision, eight complex64 per zmm. The assembly\n// is fusedS<n>_amd64.s and the tables (each entry the 400-bit value rounded once\n// to float32) fusedS<n>_tw_amd64.go. Each kernel's entry is a frame-free NOSPLIT\n// function whose first instructions read its gate and UseStockhamAVX512, at every\n// call, and return false before any AVX-512 instruction when either is off;\n// otherwise it jumps to the body, which sets up the frame. tw is the forward\n// table; the inverse one follows it.\n\n")
+	b.WriteString("var (\n")
+	for _, c := range cfgs {
+		fmt.Fprintf(&b, "\t// %s is on where the kernel runs: AVX-512 (F and DQ) on an AMD Zen 4 or an\n\t// Intel Cascade Lake (IntelCascadeLake: CPUID model 0x55, stepping 5 to 7), the\n\t// CPUs it was measured on (go-fft/fft#162).\n\t%s = UseStockhamAVX512 && (AMDZen4 || IntelCascadeLake)\n\n", c.on, c.on)
+		fmt.Fprintf(&b, "\t%sTwA = alignedTable32(%sTwStore[:])\n\t%sTwP = &%sTwA[0]\n", c.name, c.name, c.name, c.name)
+	}
+	b.WriteString(")\n")
+	for _, c := range cfgs {
+		n := c.n()
+		fmt.Fprintf(&b, "\n//go:noescape\nfunc %s(dst, src *[%d]complex64, tw *float32, inv bool) (ok bool)\n\n//go:noescape\nfunc %sbody(dst, src *[%d]complex64, tw *float32, inv bool) (ok bool)\n", c.name, n, c.name, n)
+		fmt.Fprintf(&b, "\n// Fused%s transforms the %d points of src into dst (which may alias src; inverse\n// is unnormalized) and reports whether the kernel ran: false, with dst untouched,\n// when %s or UseStockhamAVX512 is off.\nfunc Fused%s(dst, src *[%d]complex64, inverse bool) bool {\n\treturn %s(dst, src, %sTwP, inverse)\n}\n", c.symName(), n, c.on, c.symName(), n, c.name, c.name)
+		fmt.Fprintf(&b, "\n// Fused%sTable is the twiddle table of one direction, for the tests that perturb it.\nfunc Fused%sTable(inverse bool) []float32 { return halfTable32(%sTwA, inverse) }\n", c.symName(), c.symName(), c.name)
+	}
+	return []byte(b.String())
+}
+
+// declFileC64Other is the stub of those kernels off amd64.
+func declFileC64Other(cfgs []c64Cfg) []byte {
+	var b strings.Builder
+	b.WriteString("// Code generated by internal/genfused256/main.go; DO NOT EDIT.\n\n//go:build !amd64\n\npackage kernels\n\n// The complex64 fused kernels are off off amd64: their gates are false, they\n// report false and their tables are nil.\n\nconst (\n")
+	for _, c := range cfgs {
+		fmt.Fprintf(&b, "\t%s = false\n", c.on)
+	}
+	b.WriteString(")\n")
+	for _, c := range cfgs {
+		fmt.Fprintf(&b, "\nfunc Fused%s(dst, src *[%d]complex64, inverse bool) bool { return false }\n\nfunc Fused%sTable(inverse bool) []float32 { return nil }\n", c.symName(), c.n(), c.symName())
+	}
+	return []byte(b.String())
+}
+
 var out strings.Builder
 
 func emit(f string, a ...any) { fmt.Fprintf(&out, "\t"+f+"\n", a...) }
@@ -886,6 +1193,10 @@ func assemblyFile(gen func()) []byte {
 	}
 	sort.Strings(names)
 	for _, n := range names {
+		if strings.HasPrefix(n, "f256s_") { // a float32 constant, broadcast as m32
+			fmt.Fprintf(&hdr, "DATA %s+0(SB)/4, $%#x\nGLOBL %s(SB), RODATA|NOPTR, $4\n", n, math.Float32bits(float32(consts[n])), n)
+			continue
+		}
 		fmt.Fprintf(&hdr, "DATA %s+0(SB)/8, $%#x\nGLOBL %s(SB), RODATA|NOPTR, $8\n", n, math.Float64bits(consts[n]), n)
 	}
 	return []byte(hdr.String() + out.String())
@@ -901,7 +1212,14 @@ func main() {
 		"fused1024_amd64.s": assemblyFile(func() { entryBig(cfg1024) }),
 		"fused2048_amd64.s": assemblyFile(func() { entryBig(cfg2048) }),
 	}
-	for name, src := range map[string][]byte{"fused256_tw_amd64.go": twFile(), "fused1024_tw_amd64.go": twFileBig(cfg1024), "fused2048_tw_amd64.go": twFileBig(cfg2048)} {
+	srcs := map[string][]byte{"fused256_tw_amd64.go": twFile(), "fused1024_tw_amd64.go": twFileBig(cfg1024), "fused2048_tw_amd64.go": twFileBig(cfg2048),
+		"fuseds_decl_amd64.go": declFileC64(cfgsS), "fuseds_decl_noamd64.go": declFileC64Other(cfgsS)}
+	for _, c := range cfgsS {
+		c := c
+		files[c.name+"_amd64.s"] = assemblyFile(func() { entryC64(c) })
+		srcs[c.name+"_tw_amd64.go"] = twFileC64(c)
+	}
+	for name, src := range srcs {
 		b, err := format.Source(src)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

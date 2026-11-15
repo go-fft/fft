@@ -1,9 +1,25 @@
 package fft
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 )
+
+// fusedSCase32 reports whether the exactCases case name is a float32 transform of a
+// length whose complex64 transform (or, for the real ones, whose half plan) has a
+// fused kernel that is on.
+func fusedSCase32(name string) bool {
+	if !strings.Contains(name, "32") {
+		return false
+	}
+	i := strings.LastIndex(name, "n=")
+	if i < 0 {
+		return false
+	}
+	n, err := strconv.Atoi(name[i+2:])
+	return err == nil && (fusedSEnabled[n] || fusedSEnabled[n/2])
+}
 
 // exact returns o with Options.Exact set: the reference arithmetic. (The copy
 // of this file that runs against v0.28.16 returns o, which has no such field.)
@@ -38,6 +54,13 @@ func TestExactIsTheDefaultWhereItDoesNotFuse(t *testing.T) {
 		t.Skip("the default fuses on this CPU: see TestDefaultFusesWhereItCan")
 	}
 	for _, c := range exactCases() {
+		if fusedSCase32(c.name) {
+			// A float32 transform of a length that has a fused complex64 kernel runs
+			// it by default, whatever the arithmetic of the float64 plans: the kernel
+			// is not the passes' bits, and Exact is (TestFusedSExactAndInternalPlans
+			// KeepTheirBits).
+			continue
+		}
 		if digestCase(c.name, c.def()) != digestCase(c.name, c.exact()) { // two cases up to a zero's sign (zeroSignCase)
 			t.Errorf("%s: Options{Exact: true} differs from the default", c.name)
 		}
