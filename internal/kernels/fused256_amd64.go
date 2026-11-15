@@ -6,11 +6,13 @@ import "unsafe"
 // fused256_amd64.s and fused256_tw_amd64.go (the twiddle table, correctly
 // rounded) are written by internal/genfused256.
 
+// fused256 transforms 256 points (both directions in one entry) and reports
+// whether it did: its first instructions read Fused256On and UseStockhamAVX512,
+// at every call, and return false before any AVX-512 instruction when either is
+// off. The caller then runs its own passes (ZnPlan.Run's pattern).
+//
 //go:noescape
-func fused256Fwd(dst, src, tw *complex128)
-
-//go:noescape
-func fused256Inv(dst, src, tw *complex128)
+func fused256(dst, src, tw *complex128, inv bool) (ok bool)
 
 // Fused256Table is the twiddle table of one direction, for the tests that
 // perturb it to show what the accuracy bound can see.
@@ -21,32 +23,21 @@ func Fused256Table(inverse bool) []float64 {
 	return fused256Tw[0][:]
 }
 
-// fused256Impl is the assembly, per direction. A variable only so that the
-// tests can put a Go stand-in in its place on a CPU without AVX-512 (the
-// coverage gate runs on such hosts, and the wrappers' statements must run).
-var fused256Impl = [2]func(dst, src, tw *complex128){fused256Fwd, fused256Inv}
-
-// SetFused256Impl replaces the kernels (forward, inverse) and returns a
-// function that puts the assembly back. For tests only.
-func SetFused256Impl(f [2]func(dst, src, tw *complex128)) (restore func()) {
-	old := fused256Impl
-	fused256Impl = f
-	return func() { fused256Impl = old }
-}
-
 // Fused256On is whether the fused kernel runs here: AVX-512 (F and DQ, the
 // probe of UseStockhamAVX512) on an AMD Zen 4, the only CPU it was measured
 // on (go-fft/fft#124). Intel's AVX-512 route is unmeasured and keeps its plans.
+// The kernel reads it, and UseStockhamAVX512, at every call.
 var Fused256On = UseStockhamAVX512 && AMDZen4
 
 // Fused256 transforms the first 256 points of src into dst (which may alias
-// src); inverse is unnormalized. The caller checks Fused256On.
-func Fused256(dst, src []complex128, inverse bool) {
+// src; inverse is unnormalized) and reports whether the kernel ran: false, with
+// dst untouched, when Fused256On or UseStockhamAVX512 is off.
+func Fused256(dst, src []complex128, inverse bool) bool {
 	_ = dst[255]
 	_ = src[255]
 	d := 0
 	if inverse {
 		d = 1
 	}
-	fused256Impl[d](&dst[0], &src[0], (*complex128)(unsafe.Pointer(&fused256Tw[d][0])))
+	return fused256(&dst[0], &src[0], (*complex128)(unsafe.Pointer(&fused256Tw[d][0])), inverse)
 }

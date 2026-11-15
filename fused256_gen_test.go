@@ -12,17 +12,6 @@ import (
 // fused256Bound is the c2c accuracy bound at 256 points (c·ε·log2 n).
 func fused256Bound() float64 { return accBound["c2c"] * eps64 * math.Log2(256) }
 
-// rmsRel is the relative RMS distance between two results.
-func rmsRel(a, b []complex128) float64 {
-	var num, den float64
-	for i := range a {
-		d := a[i] - b[i]
-		num += real(d)*real(d) + imag(d)*imag(d)
-		den += real(b[i])*real(b[i]) + imag(b[i])*imag(b[i])
-	}
-	return math.Sqrt(num / den)
-}
-
 // TestFused256Generated: the committed assembly is what internal/genfused256
 // writes, on every platform (CI also regenerates in place and diffs).
 func TestFused256Generated(t *testing.T) {

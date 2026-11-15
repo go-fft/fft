@@ -2,15 +2,13 @@ package fft
 
 import (
 	"math"
-	"math/cmplx"
 	"testing"
-	"unsafe"
 
 	"github.com/go-fft/fft/internal/kernels"
 )
 
-// The fused 256-point kernel (go-fft/fft#124) runs wherever AVX-512 F and DQ
-// do; the plan routes to it on a Zen 4 only (kernels.Fused256On).
+// The fused 256-point kernel (go-fft/fft#124) runs where AVX-512 F and DQ do
+// and kernels.Fused256On is set (a Zen 4); it reports false elsewhere.
 
 func skipNoFused(t testing.TB) {
 	t.Helper()
@@ -19,11 +17,30 @@ func skipNoFused(t testing.TB) {
 	}
 }
 
+// enableFused turns the kernel's own gate on for a test on any AVX-512 host
+// (kernels.Fused256On is a Zen 4 choice) and restores it.
+func enableFused(t testing.TB) {
+	t.Helper()
+	skipNoFused(t)
+	isolatePlans(t)
+	old := kernels.Fused256On
+	kernels.Fused256On = true
+	t.Cleanup(func() { kernels.Fused256On = old })
+}
+
+// runFused runs the kernel and fails the test if it refuses.
+func runFused(t testing.TB, dst, src []complex128, inv bool) {
+	t.Helper()
+	if !kernels.Fused256(dst, src, inv) {
+		t.Fatal("the fused kernel refused with its gate on")
+	}
+}
+
 // TestFused256Accuracy holds the kernel itself, both directions, to the stated
 // bound (c2c: c·ε·log2 n relative RMS) against the double-double oracle, on
 // random data, an impulse, a constant, a tone, and data spanning many binades.
 func TestFused256Accuracy(t *testing.T) {
-	skipNoFused(t)
+	enableFused(t)
 	const n = 256
 	inputs := map[string][]complex128{}
 	for seed := uint64(1); seed <= 6; seed++ {
@@ -47,7 +64,7 @@ func TestFused256Accuracy(t *testing.T) {
 		for _, inv := range []bool{false, true} {
 			want := ddDFT(cddFromC(x), inv)
 			got := make([]complex128, n)
-			kernels.Fused256(got, x, inv)
+			runFused(t, got, x, inv)
 			if e := errC(got, want); e > bound {
 				t.Errorf("%s inverse=%v: relative RMS error %.3g, above the bound %.3g", name, inv, e, bound)
 			}
@@ -55,15 +72,99 @@ func TestFused256Accuracy(t *testing.T) {
 	}
 }
 
+// fused256ImpulseCap is the largest absolute error of any output of any
+// impulse, 1 or i at any of the 256 positions (the transform of an impulse is
+// a row of roots of unity, so every table entry and every in-register constant
+// is read by some impulse, with both parts nonzero). The worst observed, both
+// directions, is about 2.7e-16 (TestFused256Impulses logs it); the cap is 1e-15,
+// so a twiddle off by 1e-14 anywhere fails (the mutation test below proves it).
+const fused256ImpulseCap = 1e-15
+
+// worstImpulse is the largest absolute error over the 256 impulses, one
+// direction, and where it was.
+func worstImpulse(t testing.TB, inv bool) (worst float64, at [2]int) {
+	t.Helper()
+	const n = 256
+	roots := ddRoots(n) // roots[k] = exp(-2πik/n)
+	x := make([]complex128, n)
+	got := make([]complex128, n)
+	for j := 0; j < n; j++ {
+		for _, unit := range []int{0, 1} { // the impulse 1, then i (so both parts of every intermediate are nonzero)
+			x[j] = 1
+			if unit == 1 {
+				x[j] = 1i
+			}
+			runFused(t, got, x, inv)
+			x[j] = 0
+			for k := 0; k < n; k++ {
+				w := roots[(j*k)%n]
+				wr, wi := w.re, w.im
+				if inv {
+					wi = ddNeg(wi)
+				}
+				if unit == 1 { // times i: (wr + i wi) i = -wi + i wr
+					wr, wi = ddNeg(wi), wr
+				}
+				dr := (real(got[k]) - wr.hi) - wr.lo
+				di := (imag(got[k]) - wi.hi) - wi.lo
+				if e := math.Max(math.Abs(dr), math.Abs(di)); e > worst {
+					worst, at = e, [2]int{j, k}
+				}
+			}
+		}
+	}
+	return
+}
+
+// TestFused256Impulses: every unit impulse, both directions, against the exact
+// root of unity it must produce, to fused256ImpulseCap (as TestDCT4N64Impulses
+// does for the DCT-IV): the random-data bound cannot see one table entry off by
+// 1e-14, an impulse reads each entry directly.
+func TestFused256Impulses(t *testing.T) {
+	enableFused(t)
+	for _, inv := range []bool{false, true} {
+		w, at := worstImpulse(t, inv)
+		t.Logf("inverse=%v: worst absolute error %.3g at impulse %d, output %d", inv, w, at[0], at[1])
+		if w > fused256ImpulseCap {
+			t.Errorf("inverse=%v: impulse %d, output %d: error %.3g above the cap %.3g", inv, at[0], at[1], w, fused256ImpulseCap)
+		}
+	}
+}
+
+// TestFused256ImpulseMutation: a table entry off by 1e-14, anywhere in either
+// table, fails the impulse test; one off by an ulp passes it.
+func TestFused256ImpulseMutation(t *testing.T) {
+	enableFused(t)
+	for _, inv := range []bool{false, true} {
+		tab := kernels.Fused256Table(inv)
+		for idx := 64; idx < len(tab); idx++ { // every entry of k1 >= 1 (row 0 is not read): real and imaginary parts, all lanes
+			saved := tab[idx]
+			tab[idx] = saved + 1e-14
+			w, _ := worstImpulse(t, inv)
+			tab[idx] = saved
+			if w <= fused256ImpulseCap {
+				t.Fatalf("inverse=%v: table[%d] off by 1e-14 gives worst error %.3g, under the cap", inv, idx, w)
+			}
+		}
+		saved := tab[3]
+		tab[3] = math.Nextafter(saved, 2)
+		w, _ := worstImpulse(t, inv)
+		tab[3] = saved
+		if w > fused256ImpulseCap {
+			t.Fatalf("inverse=%v: an ulp in table[3] fails the cap: %.3g", inv, w)
+		}
+	}
+}
+
 // TestFused256InPlace: dst may alias src (the kernel reads all of src before
 // it writes dst).
 func TestFused256InPlace(t *testing.T) {
-	skipNoFused(t)
+	enableFused(t)
 	x := accComplexF64(256, 3)
 	want := make([]complex128, 256)
-	kernels.Fused256(want, x, false)
+	runFused(t, want, x, false)
 	buf := append([]complex128(nil), x...)
-	kernels.Fused256(buf, buf, false)
+	runFused(t, buf, buf, false)
 	for i := range buf {
 		if buf[i] != want[i] {
 			t.Fatalf("in place differs at %d: %v vs %v", i, buf[i], want[i])
@@ -76,7 +177,7 @@ func TestFused256InPlace(t *testing.T) {
 // does not (it is below what the rounding does anyway), as for the oracle in
 // TestAccuracyMutation.
 func TestFused256Mutation(t *testing.T) {
-	skipNoFused(t)
+	enableFused(t)
 	const n = 256
 	x := accComplexF64(n, 9)
 	bound := fused256Bound()
@@ -92,7 +193,7 @@ func TestFused256Mutation(t *testing.T) {
 				saved := tab[idx]
 				tab[idx] += m.delta
 				got := make([]complex128, n)
-				kernels.Fused256(got, x, inv)
+				runFused(t, got, x, inv)
 				tab[idx] = saved
 				if e := errC(got, want); (e > bound) != m.caught {
 					t.Errorf("inverse=%v table[%d] %s: error %.3g against bound %.3g, caught = %v, want %v", inv, idx, m.name, e, bound, e > bound, m.caught)
@@ -102,17 +203,56 @@ func TestFused256Mutation(t *testing.T) {
 	}
 }
 
-// TestFused256Routing: a fused default plan of 256 points takes the kernel
-// where it runs; Exact and NoFMA plans, other lengths, and a machine where it
-// is off never do.
-func TestFused256Routing(t *testing.T) {
-	if !kernels.Fused256On {
-		t.Skip("the fused kernel is off on this CPU (needs a Zen 4)")
+// TestFused256GateIsLive: the kernel reads its gates at every call. With either
+// Fused256On or UseStockhamAVX512 off it reports false and leaves dst alone, and
+// a plan built while both were on still transforms correctly (its passes run), so
+// a test that turns the AVX-512 flag off (fuzz_scalar_amd64_test.go) never
+// reaches an AVX-512 instruction through it.
+func TestFused256GateIsLive(t *testing.T) {
+	enableFused(t)
+	isolatePlans(t)
+	defer func(e, a, d bool) { fused256Enabled, fmaAvailable, defaultFuses = e, a, d }(fused256Enabled, fmaAvailable, defaultFuses)
+	fused256Enabled, fmaAvailable, defaultFuses = true, kernels.UseFMA, true
+	p := NewPlan(256)
+	x := accComplexF64(256, 31)
+	want := ddDFT(cddFromC(x), false)
+	sentinel := complex(7, 7)
+	for name, off := range map[string]func() func(){
+		"Fused256On":        func() func() { kernels.Fused256On = false; return func() { kernels.Fused256On = true } },
+		"UseStockhamAVX512": func() func() { kernels.UseStockhamAVX512 = false; return func() { kernels.UseStockhamAVX512 = true } },
+	} {
+		restore := off()
+		dst := make([]complex128, 256)
+		for i := range dst {
+			dst[i] = sentinel
+		}
+		if kernels.Fused256(dst, x, false) {
+			t.Errorf("%s off: the kernel ran", name)
+		}
+		for i := range dst {
+			if dst[i] != sentinel {
+				t.Fatalf("%s off: dst[%d] was written", name, i)
+			}
+		}
+		if p.sk != nil && p.sk.f256 {
+			if e := errC(p.FFT(make([]complex128, 256), x), want); e > fused256Bound() {
+				t.Errorf("%s off: the plan's fallback passes give %.3g", name, e)
+			}
+		}
+		restore()
 	}
+}
+
+// TestFused256Routing: a fused default plan of 256 points takes the kernel;
+// Exact and NoFMA plans, other lengths, and a plan built while the route is off
+// never do.
+func TestFused256Routing(t *testing.T) {
 	isolatePlans(t)
 	// The state the default arithmetic fuses in (other tests switch it).
-	defer func(a, d bool, m int) { fmaAvailable, defaultFuses, pow2StockhamMax = a, d, m }(fmaAvailable, defaultFuses, pow2StockhamMax)
-	fmaAvailable, defaultFuses, pow2StockhamMax = kernels.UseFMA, true, pow2StockhamMaxDefault()
+	defer func(e, a, d bool, m int) {
+		fused256Enabled, fmaAvailable, defaultFuses, pow2StockhamMax = e, a, d, m
+	}(fused256Enabled, fmaAvailable, defaultFuses, pow2StockhamMax)
+	fused256Enabled, fmaAvailable, defaultFuses, pow2StockhamMax = true, true, true, pow2StockhamMaxDefault()
 	if !NewPlan(256).sk.f256 || !NewPlanWith(256, Options{FMA: true}).sk.f256 {
 		t.Error("a default or FMA plan of 256 points does not take the fused kernel")
 	}
@@ -126,56 +266,29 @@ func TestFused256Routing(t *testing.T) {
 			t.Errorf("plan of %d points takes the fused kernel", n)
 		}
 	}
-	old := fused256Enabled
 	fused256Enabled = false
-	defer func() { fused256Enabled = old }()
 	if newPlanA(256, arithDefault).sk.f256 {
 		t.Error("a plan built while the route is off takes the fused kernel")
 	}
 }
 
-// TestFused256ForcedRoute runs the plan's kernel case on any AVX-512 host (the
-// route itself is a Zen 4 choice): the route switched on, a default plan of 256
-// points transforms within the bound, forward and inverse.
+// TestFused256ForcedRoute runs a plan of 256 points with the route forced on:
+// with the kernel's gate on (any AVX-512 host) the plan transforms through it,
+// and without AVX-512 the kernel refuses and the plan's passes answer; either
+// way within the bound, forward and inverse.
 func TestFused256ForcedRoute(t *testing.T) {
 	if len(kernels.Fused256Table(false)) != 1024 || len(kernels.Fused256Table(true)) != 1024 {
 		t.Fatal("the twiddle tables are not 1024 floats")
 	}
-	// A Go DFT stands in for the assembly, so that the wrappers' and the plan's
-	// statements run on every amd64 host, AVX-512 or not (the coverage gate).
-	goDFT := func(sign float64) func(dst, src, tw *complex128) {
-		return func(dst, src, _ *complex128) {
-			s := unsafe.Slice(src, 256)
-			d := unsafe.Slice(dst, 256)
-			out := make([]complex128, 256)
-			for k := range out {
-				for j := range s {
-					out[k] += s[j] * cmplx.Rect(1, sign*2*math.Pi*float64(j*k%256)/256)
-				}
-			}
-			copy(d, out)
-		}
+	if kernels.UseStockhamAVX512 {
+		enableFused(t)
 	}
-	t.Run("go stand-in", func(t *testing.T) {
-		defer kernels.SetFused256Impl([2]func(dst, src, tw *complex128){goDFT(-1), goDFT(1)})()
-		forcedRoute(t)
-	})
-	t.Run("assembly", func(t *testing.T) {
-		skipNoFused(t)
-		forcedRoute(t)
-	})
-}
-
-func forcedRoute(t *testing.T) {
 	isolatePlans(t)
 	defer func(e, a, d bool) { fused256Enabled, fmaAvailable, defaultFuses = e, a, d }(fused256Enabled, fmaAvailable, defaultFuses)
 	fused256Enabled, fmaAvailable, defaultFuses = true, kernels.UseFMA, true
 	p := NewPlan(256)
 	x := accComplexF64(256, 21)
 	for _, inv := range []bool{false, true} {
-		if !p.sk.f256 { // no FMA3: the plan keeps its passes and this is nothing to test
-			break
-		}
 		got := make([]complex128, 256)
 		if inv {
 			p.IFFTNorm(got, x, NormForward)
@@ -216,7 +329,7 @@ func TestFused256Plan(t *testing.T) {
 }
 
 func BenchmarkFused256(b *testing.B) {
-	skipNoFused(b)
+	enableFused(b)
 	const n = 256
 	src := accComplexF64(n, 1)
 	dst := make([]complex128, n)

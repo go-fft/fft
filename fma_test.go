@@ -350,7 +350,12 @@ func sameFloats(a, b []float64) bool {
 // with FMA).
 func TestFMAStripsMatchLines(t *testing.T) {
 	forceFMA(t)
-	defer func(s bool) { stripAxes = s }(stripAxes)
+	// The lines of 256 points run the fused kernel where it is on (fused256.go),
+	// whose rounding is not the strips': this test compares the passes, bit for
+	// bit, so the route is off here, with the plans built under it forgotten.
+	isolatePlans(t)
+	defer func(s, e bool) { stripAxes, fused256Enabled = s, e }(stripAxes, fused256Enabled)
+	fused256Enabled = false
 	lens := append([]int{153, 171, 207, 1000, 1024, 1080}, fmaSweep(2, 600)...)
 	for _, n := range lens {
 		sh := []int{n, 3}
@@ -361,17 +366,7 @@ func TestFMAStripsMatchLines(t *testing.T) {
 		inv := a.IFFT(make([]complex128, 3*n), x)
 		stripAxes = false
 		b := newPlanNF(sh, true)
-		lines, linesInv := b.FFT(make([]complex128, 3*n), x), b.IFFT(make([]complex128, 3*n), x)
-		if fused256Route(n) {
-			// The lines of 256 points run the fused kernel (fused256.go), whose
-			// rounding is not the strips': equal within the c2c bound, not in bits.
-			if e := rmsRel(got, lines); e > fused256Bound() {
-				t.Fatalf("n=%d: FMA strips differ from FMA lines by %.3g", n, e)
-			}
-			if e := rmsRel(inv, linesInv); e > fused256Bound() {
-				t.Fatalf("n=%d: FMA inverse strips differ from FMA lines by %.3g", n, e)
-			}
-		} else if !sameAll(got, lines) || !sameAll(inv, linesInv) {
+		if !sameAll(got, b.FFT(make([]complex128, 3*n), x)) || !sameAll(inv, b.IFFT(make([]complex128, 3*n), x)) {
 			t.Fatalf("n=%d: FMA strips differ from FMA lines", n)
 		}
 		if a.axes[0].sk != nil && !a.axes[0].sk.fma {
