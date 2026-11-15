@@ -107,19 +107,22 @@ accumulates `log2 N` float32 stages, which is what these methods avoid.
 **The pair methods (v0.33.0).** `DCTPlan.DCTPair`, `IDCTPair`, `DCTMixedPair`
 and `IDCTMixedPair` run two DCT-IV transforms in one call. At 64 points on
 arm64 they take a fused NEON kernel, one transform per vector lane. They are
-held to the same bound as the single-transform methods, and are **not**
-bit-identical to two `DCT` calls: on arm64 the float64 pair and the single
-fused kernel round differently, by up to 4.4e-16 per value. Each method is
-compared with itself only: `DCTMixedPair` is exactly the float32 of `DCTPair`
-on the widened input, and `DCTMixed` exactly the float32 of `DCT`
-(`TestDCT4N64MixedIsFloat32OfFloat64`, 10,000 random vectors per form).
-`TestDCT4N64Oracle` and `TestDCT4N64Pair` hold both lanes, every norm and both
-directions to the `r2r` bound `2·ε·log2 n` against the double-double oracle.
-`TestDCT4N64Impulses` sends every impulse through every kernel and caps the
-error at 5e-16 for float64, and at half a float32 ulp (2^-24) for Mixed. Every
-twiddle constant lies on some impulse's path, so an error of 1.5e-14 in one of
-them fails the test. Off the fused route, a pair call is two ordered single
-calls, and gives their bits exactly.
+held to the same bound as the single-transform methods. They are **not**
+bit-identical to two `DCT` calls, because on arm64 the NEON pair kernel fuses
+multiply-adds differently from the scalar single-transform kernel. Each Mixed method is
+exactly the float32 of its own float64 counterpart on the widened input:
+`DCTMixedPair` of `DCTPair`, and `DCTMixed` of `DCT`
+(`TestDCT4N64MixedIsFloat32OfFloat64`, 10,000 random vectors per plan, with the
+norm and the direction varying across them). `TestDCT4N64Pair` holds both
+lanes, every norm and both directions against the double-double oracle, to the
+`r2r` bound `2·ε·log2 n` in float64 and to that bound plus `ε32/2` in Mixed;
+`TestDCT4N64Oracle` does the same for the single-transform methods.
+`TestDCT4N64Impulses` sends every impulse forward through every kernel, in the
+backward and ortho norms, and caps the error at 5e-16 for float64 and at half a
+float32 ulp (2^-24) for Mixed. Every twiddle constant lies on some impulse's
+path, so at 64 points an error of 1.5e-14 in one of them fails the test. Off
+the fused route, a pair call is two ordered single calls, and gives their bits
+exactly.
 
 
 The `mdct` rows are measured by `TestMDCTAccuracy` against the `O(N·N/2)`
