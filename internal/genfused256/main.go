@@ -9,8 +9,23 @@
 // (the only memory the data touches between the passes); step 2 reloads sixteen
 // registers per block of four k1 and runs the 16-point DFT across them (the b
 // axis), storing contiguous rows. The 16-point DFT is 4x4: radix-4, w16
-// twiddles, radix-4, every value in a zmm register, registers renamed from a
-// free list instead of moved.
+// twiddles, radix-4.
+//
+// The program is built as single-assignment instructions over virtual registers
+// and then lowered in program order with a lowest-free register allocator. One
+// pass changes which pipe an instruction uses and nothing else (go-fft/fft#162):
+// every second subtract whose minuend dies at it is emitted as a fused
+// multiply-add by -1 into the minuend's register, a - b = fma(b, -1, a): the
+// exact difference rounded once, so the result bits are the subtract's. Zen 4
+// runs adds on two pipes and FMAs on two others, so moving some of the stream to
+// the FMA pipes raises the issue rate of a 512-bit stream from 1.0 to about 1.5
+// per cycle (measured: 135.5 ns to 127.9 ns, no other change). Only subtracts
+// qualify: an FMA reads and overwrites one source, and no add of this dataflow
+// has a source that dies at it (each radix-4 add shares both operands with the
+// subtract after it), so an add would need a copy first, which measured slower
+// (every add by copy: 161.7 ns; every second add or subtract by copy: 133.8).
+// The reference body (fused256ref, no rewrite) is kept for the tests that assert
+// the bit equality.
 //
 // Run from the package root with `go generate` (see plan.go) or
 // `go run internal/genfused256/main.go`.
@@ -30,21 +45,9 @@ import (
 )
 
 var (
-	out    strings.Builder
-	free   []int
 	consts = map[string]float64{}
 	inv    bool
 )
-
-func emit(f string, a ...any) { fmt.Fprintf(&out, "\t"+f+"\n", a...) }
-
-func alloc() int {
-	r := free[len(free)-1]
-	free = free[:len(free)-1]
-	return r
-}
-func release(r int)  { free = append(free, r) }
-func z(r int) string { return fmt.Sprintf("Z%d", r) }
 
 // csDen is cos and sin of 2*pi*num/den, correctly rounded (the 400-bit series
 // shared with internal/gendct4); the quarter turns, where the series would
@@ -118,29 +121,77 @@ func cname(v float64) string {
 	return n
 }
 
-// radix4 maps four registers to the four outputs of a 4-point DFT (forward or
-// inverse), freeing the inputs.
+// ---- the program, as single-assignment instructions ----
+
+type kind int
+
+const (
+	kLoad kind = iota
+	kStore
+	kAdd
+	kSub
+	kPerm
+	kFmaB // mn.BCST const, x, acc->dst (dst takes acc's register)
+	kFmaT // mn table, x, acc->dst
+	kMulT
+	kMulB
+	kXorB
+	kShuf
+)
+
+type ins struct {
+	k   kind
+	mn  string
+	imm string
+	mem string // memory operand, or a constant's name
+	src []int
+	acc int // accumulator source of a read-modify-write instruction, or -1
+	dst int // virtual register written, or -1 for a store
+}
+
+var (
+	prog []ins
+	nv   int
+)
+
+func newV() int { nv++; return nv - 1 }
+
+func add1(o ins) int {
+	if o.k == kStore {
+		o.dst = -1
+	} else {
+		o.dst = newV()
+	}
+	prog = append(prog, o)
+	return o.dst
+}
+
+func ld(base string, off int) int {
+	return add1(ins{k: kLoad, mem: fmt.Sprintf("%d(%s)", off, base), acc: -1})
+}
+
+func st(v int, base string, off int) {
+	add1(ins{k: kStore, mem: fmt.Sprintf("%d(%s)", off, base), src: []int{v}, acc: -1})
+}
+
+func addv(a, b int) int { return add1(ins{k: kAdd, src: []int{a, b}, acc: -1}) }
+func subv(a, b int) int { return add1(ins{k: kSub, src: []int{a, b}, acc: -1}) }
+func perm(a int) int    { return add1(ins{k: kPerm, src: []int{a}, acc: -1}) }
+func fmaB(mn string, c float64, x, acc int) int {
+	return add1(ins{k: kFmaB, mn: mn, mem: cname(c), src: []int{x}, acc: acc})
+}
+
+// radix4 maps four values to the four outputs of a 4-point DFT (forward or
+// inverse).
 func radix4(a0, a1, a2, a3 int) (o0, o1, o2, o3 int) {
-	t0, t1, t2, t3 := alloc(), alloc(), alloc(), alloc()
-	emit("VADDPD %s, %s, %s", z(a2), z(a0), z(t0))
-	emit("VSUBPD %s, %s, %s", z(a2), z(a0), z(t1))
-	emit("VADDPD %s, %s, %s", z(a3), z(a1), z(t2))
-	emit("VSUBPD %s, %s, %s", z(a3), z(a1), z(t3))
-	release(a0)
-	release(a1)
-	release(a2)
-	release(a3)
-	o0, o2 = alloc(), alloc()
-	emit("VADDPD %s, %s, %s", z(t2), z(t0), z(o0))
-	emit("VSUBPD %s, %s, %s", z(t2), z(t0), z(o2))
-	release(t0)
-	release(t2)
-	sw1, sw3 := alloc(), alloc()
-	emit("VPERMILPD $0x55, %s, %s", z(t3), z(sw1))
-	emit("VPERMILPD $0x55, %s, %s", z(t3), z(sw3))
-	release(t3)
-	one := cname(1)
-	o1, o3 = sw1, sw3
+	t0 := addv(a0, a2)
+	t1 := subv(a0, a2)
+	t2 := addv(a1, a3)
+	t3 := subv(a1, a3)
+	o0 = addv(t0, t2)
+	o2 = subv(t0, t2)
+	sw1 := perm(t3)
+	sw3 := perm(t3)
 	// s1 -/+ i*s3, with sw = swap(s3) = (s3im, s3re):
 	//   s1 - i*s3 = (s1re + s3im, s1im - s3re): even +, odd -  (fmsubadd)
 	//   s1 + i*s3 = (s1re - s3im, s1im + s3re): even -, odd +  (fmaddsub)
@@ -148,14 +199,12 @@ func radix4(a0, a1, a2, a3 int) (o0, o1, o2, o3 int) {
 	if inv {
 		m1, m3 = m3, m1
 	}
-	emit("%s.BCST %s(SB), %s, %s", m1, one, z(t1), z(o1))
-	emit("%s.BCST %s(SB), %s, %s", m3, one, z(t1), z(o3))
-	release(t1)
+	o1 = fmaB(m1, 1, t1, sw1)
+	o3 = fmaB(m3, 1, t1, sw3)
 	return
 }
 
-// cmulConst multiplies register r by w16^m (forward: e^-2 pi i m/16) and
-// returns the register holding the product.
+// cmulConst multiplies r by w16^m (forward: e^-2 pi i m/16).
 func cmulConst(r, m int) int {
 	m &= 15
 	if m == 0 {
@@ -166,22 +215,15 @@ func cmulConst(r, m int) int {
 		s = -s
 	}
 	if m == 8 {
-		t := alloc()
-		emit("VXORPD.BCST %s(SB), %s, %s", cname(math.Copysign(0, -1)), z(r), z(t))
-		release(r)
-		return t
+		return add1(ins{k: kXorB, mn: "VXORPD", mem: cname(math.Copysign(0, -1)), src: []int{r}, acc: -1})
 	}
-	t := alloc()
-	emit("VPERMILPD $0x55, %s, %s", z(r), z(t))
-	emit("VMULPD.BCST %s(SB), %s, %s", cname(s), z(t), z(t))
-	emit("VFMADDSUB231PD.BCST %s(SB), %s, %s", cname(c), z(r), z(t))
-	release(r)
-	return t
+	t := perm(r)
+	t2 := add1(ins{k: kMulB, mn: "VMULPD", mem: cname(s), src: []int{t}, acc: -1})
+	return fmaB("VFMADDSUB231PD", c, r, t2)
 }
 
-// dft16 takes sixteen register numbers (natural order) and returns the
-// sixteen outputs (natural order).
-func dft16(in [16]int) (outv [16]int) {
+// dft16 takes sixteen values (natural order) and returns the sixteen outputs.
+func dft16(in [16]int) (out [16]int) {
 	var u [4][4]int // u[k1][j2]
 	for j2 := 0; j2 < 4; j2++ {
 		u[0][j2], u[1][j2], u[2][j2], u[3][j2] = radix4(in[j2], in[4+j2], in[8+j2], in[12+j2])
@@ -192,91 +234,221 @@ func dft16(in [16]int) (outv [16]int) {
 		}
 	}
 	for k1 := 0; k1 < 4; k1++ {
-		outv[k1], outv[k1+4], outv[k1+8], outv[k1+12] = radix4(u[k1][0], u[k1][1], u[k1][2], u[k1][3])
+		out[k1], out[k1+4], out[k1+8], out[k1+12] = radix4(u[k1][0], u[k1][1], u[k1][2], u[k1][3])
 	}
 	return
+}
+
+func shuf(imm string, a, b int) int {
+	return add1(ins{k: kShuf, imm: imm, src: []int{a, b}, acc: -1})
 }
 
 func transpose4(a0, a1, a2, a3 int) (o0, o1, o2, o3 int) {
-	t0, t1, t2, t3 := alloc(), alloc(), alloc(), alloc()
-	emit("VSHUFF64X2 $0x88, %s, %s, %s", z(a1), z(a0), z(t0))
-	emit("VSHUFF64X2 $0xDD, %s, %s, %s", z(a1), z(a0), z(t1))
-	emit("VSHUFF64X2 $0x88, %s, %s, %s", z(a3), z(a2), z(t2))
-	emit("VSHUFF64X2 $0xDD, %s, %s, %s", z(a3), z(a2), z(t3))
-	release(a0)
-	release(a1)
-	release(a2)
-	release(a3)
-	o0, o1, o2, o3 = alloc(), alloc(), alloc(), alloc()
-	emit("VSHUFF64X2 $0x88, %s, %s, %s", z(t2), z(t0), z(o0))
-	emit("VSHUFF64X2 $0x88, %s, %s, %s", z(t3), z(t1), z(o1))
-	emit("VSHUFF64X2 $0xDD, %s, %s, %s", z(t2), z(t0), z(o2))
-	emit("VSHUFF64X2 $0xDD, %s, %s, %s", z(t3), z(t1), z(o3))
-	release(t0)
-	release(t1)
-	release(t2)
-	release(t3)
+	t0 := shuf("$0x88", a0, a1)
+	t1 := shuf("$0xDD", a0, a1)
+	t2 := shuf("$0x88", a2, a3)
+	t3 := shuf("$0xDD", a2, a3)
+	o0 = shuf("$0x88", t0, t2)
+	o1 = shuf("$0x88", t1, t3)
+	o2 = shuf("$0xDD", t0, t2)
+	o3 = shuf("$0xDD", t1, t3)
 	return
 }
 
-// body emits one direction's transform (DI dst, SI src, DX table, R8 frame),
-// ending with the success return.
-func body(inverse bool) {
+// build makes one direction's transform (DI dst, SI src, DX table, R8 frame).
+func build(inverse bool) {
 	inv = inverse
-	free = free[:0]
-	for r := 31; r >= 0; r-- {
-		free = append(free, r)
-	}
-	// step 1
-	for g := 0; g < 4; g++ {
+	prog, nv = nil, 0
+	for g := 0; g < 4; g++ { // step 1
 		var in [16]int
 		for a := 0; a < 16; a++ {
-			in[a] = alloc()
-			emit("VMOVUPD %d(SI), %s", (16*a+4*g)*16, z(in[a]))
+			in[a] = ld("SI", (16*a+4*g)*16)
 		}
 		y := dft16(in)
 		for k1 := 1; k1 < 16; k1++ {
 			off := (k1*4 + g) * 128
-			t := alloc()
-			emit("VPERMILPD $0x55, %s, %s", z(y[k1]), z(t))
-			emit("VMULPD %d(DX), %s, %s", off+64, z(t), z(t))
-			emit("VFMADDSUB231PD %d(DX), %s, %s", off, z(y[k1]), z(t))
-			release(y[k1])
-			y[k1] = t
+			t := perm(y[k1])
+			t2 := add1(ins{k: kMulT, mn: "VMULPD", mem: fmt.Sprintf("%d(DX)", off+64), src: []int{t}, acc: -1})
+			y[k1] = add1(ins{k: kFmaT, mn: "VFMADDSUB231PD", mem: fmt.Sprintf("%d(DX)", off), src: []int{y[k1]}, acc: t2})
 		}
 		for h := 0; h < 4; h++ {
 			o0, o1, o2, o3 := transpose4(y[4*h], y[4*h+1], y[4*h+2], y[4*h+3])
 			for j, r := range []int{o0, o1, o2, o3} {
-				emit("VMOVUPD %s, %d(R8)", z(r), (h*16+4*g+j)*64)
-				release(r)
+				st(r, "R8", (h*16+4*g+j)*64)
 			}
 		}
 	}
-	// step 2
-	for h := 0; h < 4; h++ {
+	for h := 0; h < 4; h++ { // step 2
 		var in [16]int
 		for b := 0; b < 16; b++ {
-			in[b] = alloc()
-			emit("VMOVUPD %d(R8), %s", (h*16+b)*64, z(in[b]))
+			in[b] = ld("R8", (h*16+b)*64)
 		}
 		x := dft16(in)
 		for k2 := 0; k2 < 16; k2++ {
-			emit("VMOVUPD %s, %d(DI)", z(x[k2]), (16*k2+4*h)*16)
-			release(x[k2])
+			st(x[k2], "DI", (16*k2+4*h)*16)
 		}
+	}
+}
+
+// lower emits the program in program order. Registers are allocated lowest
+// free first. With rewrite, every second subtract whose minuend dies at it is
+// emitted as fma(b, -1, a) into the minuend's register.
+func lower(rewrite bool) []string {
+	remaining := make([]int, nv)
+	for _, o := range prog {
+		for _, s := range o.src {
+			remaining[s]++
+		}
+		if o.acc >= 0 {
+			remaining[o.acc]++
+		}
+	}
+	phys := make([]int, nv)
+	used := [32]bool{}
+	alloc := func() int {
+		for p := range used {
+			if !used[p] {
+				used[p] = true
+				return p
+			}
+		}
+		panic("genfused256: out of registers")
+	}
+	z := func(v int) string { return fmt.Sprintf("Z%d", phys[v]) }
+	var lines []string
+	eligible := 0
+	for _, o := range prog {
+		// sources whose last use this is
+		var dying []int
+		seen := map[int]bool{}
+		use := func(v int) {
+			remaining[v]--
+			if remaining[v] == 0 && !seen[v] {
+				seen[v] = true
+				dying = append(dying, v)
+			}
+		}
+		for _, s := range o.src {
+			use(s)
+		}
+		if o.acc >= 0 {
+			use(o.acc)
+		}
+		// Only a subtract whose minuend dies can be rewritten in place:
+		// a - b = fma(b, -1, a) into a's register. No add of this dataflow has a
+		// dying source (each radix-4 add shares both operands with the subtract
+		// that follows it), and an FMA always reads and overwrites one source, so
+		// an add would need a copy first, which measured slower (#162: every add
+		// by copy 161.7 ns against 127.5 for these subtracts alone).
+		var rw bool
+		rwSrc := -1
+		if rewrite && o.k == kSub && seen[o.src[0]] {
+			eligible++
+			if eligible%2 == 1 {
+				rw, rwSrc = true, o.src[0]
+			}
+		}
+		// destination register
+		switch {
+		case o.k == kStore:
+		case o.acc >= 0:
+			phys[o.dst] = phys[o.acc]
+		case rw:
+			phys[o.dst] = phys[rwSrc]
+		default:
+			for _, s := range dying {
+				used[phys[s]] = false
+			}
+			phys[o.dst] = alloc()
+			dying = nil
+		}
+		if o.k != kStore && (o.acc >= 0 || rw) {
+			for _, s := range dying {
+				if phys[s] != phys[o.dst] {
+					used[phys[s]] = false
+				}
+			}
+		}
+		if o.k == kStore {
+			for _, s := range dying {
+				used[phys[s]] = false
+			}
+		}
+		lines = append(lines, render(o, z, rw, rwSrc))
+	}
+	return lines
+}
+
+func render(o ins, z func(int) string, rw bool, rwSrc int) string {
+	switch o.k {
+	case kLoad:
+		return fmt.Sprintf("VMOVUPD %s, %s", o.mem, z(o.dst))
+	case kStore:
+		return fmt.Sprintf("VMOVUPD %s, %s", z(o.src[0]), o.mem)
+	case kAdd, kSub:
+		a, b := o.src[0], o.src[1]
+		if rw { // a - b with dst = a: b*(-1) + a
+			return fmt.Sprintf("VFMADD231PD.BCST %s(SB), %s, %s", cname(-1), z(b), z(o.dst))
+		}
+		mn := "VADDPD"
+		if o.k == kSub {
+			mn = "VSUBPD"
+		}
+		return fmt.Sprintf("%s %s, %s, %s", mn, z(b), z(a), z(o.dst))
+	case kPerm:
+		return fmt.Sprintf("VPERMILPD $0x55, %s, %s", z(o.src[0]), z(o.dst))
+	case kFmaB:
+		return fmt.Sprintf("%s.BCST %s(SB), %s, %s", o.mn, o.mem, z(o.src[0]), z(o.dst))
+	case kFmaT:
+		return fmt.Sprintf("%s %s, %s, %s", o.mn, o.mem, z(o.src[0]), z(o.dst))
+	case kMulT:
+		return fmt.Sprintf("VMULPD %s, %s, %s", o.mem, z(o.src[0]), z(o.dst))
+	case kMulB:
+		return fmt.Sprintf("VMULPD.BCST %s(SB), %s, %s", o.mem, z(o.src[0]), z(o.dst))
+	case kXorB:
+		return fmt.Sprintf("VXORPD.BCST %s(SB), %s, %s", o.mem, z(o.src[0]), z(o.dst))
+	case kShuf:
+		return fmt.Sprintf("VSHUFF64X2 %s, %s, %s, %s", o.imm, z(o.src[1]), z(o.src[0]), z(o.dst))
+	}
+	panic("render")
+}
+
+var out strings.Builder
+
+func emit(f string, a ...any) { fmt.Fprintf(&out, "\t"+f+"\n", a...) }
+
+// body emits one direction's transform ending with the success return.
+func body(inverse, rewrite bool) {
+	build(inverse)
+	for _, l := range lower(rewrite) {
+		emit("%s", l)
 	}
 	emit("VZEROUPPER")
 	emit("MOVB $1, ok+32(FP)")
 	emit("RET")
 }
 
+// prologue loads the arguments and aligns the frame, then branches on inv.
+func prologue(label string) {
+	emit("MOVQ dst+0(FP), DI")
+	emit("MOVQ src+8(FP), SI")
+	emit("MOVQ tw+16(FP), DX")
+	emit("MOVQ SP, R8")
+	emit("ADDQ $63, R8")
+	emit("ANDQ $-64, R8")
+	emit("MOVBLZX inv+24(FP), AX")
+	emit("TESTL AX, AX")
+	emit("JNZ %s", label)
+}
+
 // entry emits fused256: the gates first (the route's flag and the CPU's
 // AVX-512 bit, both read at every call), so that on a CPU without AVX-512, or
 // with the route off, it reports false before any AVX-512 instruction runs and
-// the Go caller falls back; then the forward body and the inverse body.
+// the Go caller falls back; they live in a frame-free NOSPLIT entry that jumps
+// to the body, so the 4160-byte frame is set up only when the kernel runs. Then
+// the body with the rewrite, and fused256ref, the same without it and without
+// the gates, for the tests.
 func entry() {
-	// The gates live in a frame-free NOSPLIT entry that jumps to the body, so the
-	// 4160-byte frame is set up only when the kernel runs.
 	out.WriteString("\n// func fused256(dst, src *complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused256(SB), NOSPLIT, $0-33\n")
 	emit("MOVBLZX ·Fused256On(SB), AX")
 	emit("TESTL AX, AX")
@@ -289,20 +461,17 @@ func entry() {
 	emit("MOVB $0, ok+32(FP)")
 	emit("RET")
 	// tw is the forward table; the inverse one follows it (1024 float64s).
-	out.WriteString("\n// func fused256body(dst, src *complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused256body(SB), $4160-33\n")
-	emit("MOVQ dst+0(FP), DI")
-	emit("MOVQ src+8(FP), SI")
-	emit("MOVQ tw+16(FP), DX")
-	emit("MOVQ SP, R8")
-	emit("ADDQ $63, R8")
-	emit("ANDQ $-64, R8")
-	emit("MOVBLZX inv+24(FP), AX")
-	emit("TESTL AX, AX")
-	emit("JNZ inverse")
-	body(false)
-	out.WriteString("inverse:\n")
-	emit("ADDQ $8192, DX")
-	body(true)
+	for _, f := range []struct {
+		name    string
+		rewrite bool
+	}{{"fused256body", true}, {"fused256ref", false}} {
+		fmt.Fprintf(&out, "\n// func %s(dst, src *complex128, tw *float64, inv bool) (ok bool)\nTEXT ·%s(SB), $4160-33\n", f.name, f.name)
+		prologue("inverse")
+		body(false, f.rewrite)
+		out.WriteString("inverse:\n")
+		emit("ADDQ $8192, DX")
+		body(true, f.rewrite)
+	}
 }
 
 func main() {
