@@ -42,6 +42,9 @@ func mdctForward[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 		p.pool.put(sp)
 		return dst[:m]
 	}
+	if p.fused {
+		return mdctForwardFused(p, dst, src, scale)
+	}
 	sp := p.pool.get()
 	c := (*sp)[:h]
 	k := p.k
@@ -113,6 +116,9 @@ func mdctInverse[S, D floatT](p *MDCTPlan, dst []D, src []S, scale float64) []D 
 		}
 		p.pool.put(sp)
 		return dst[:n]
+	}
+	if p.fused {
+		return mdctInverseFused(p, dst, src, scale)
 	}
 	sp := p.pool.get()
 	c := (*sp)[:h]

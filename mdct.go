@@ -48,6 +48,11 @@ type MDCTPlan struct {
 	pre  []complex128               // odd: e^{-iπ n/M}^{1/2}, n < N
 	post []complex128               // odd: e^{-iπ n0 (k+1/2)/M}, k < M
 	pool scratchCache[[]complex128] // length N/4 (even N/2) or N
+
+	// fused: N/2 is a length with a fused DCT-IV kernel (64 or 128, the AAC short
+	// block and half of it) on a platform that routes it (dct4_64.go): the fold, the
+	// kernel and the unfold run on the stack, with no scratch and no Plan.
+	fused bool
 }
 
 // mdctTwiddles returns the pre and post twiddles of the odd route; the angles
@@ -82,6 +87,7 @@ func NewMDCTPlan(n int) *MDCTPlan {
 	p := &MDCTPlan{n: n}
 	if m := n / 2; m%2 == 0 {
 		p.k = newR2RKernel(true, 4, m)
+		p.fused = dct4FusedLen(m) && dct4FusedRoute
 		// h complex values for the FFT and h more (m float64) for the folded block
 		// or the DCT-IV output of the fold and unfold kernels
 		p.pool.init(func() *[]complex128 { s := make([]complex128, m); return &s })

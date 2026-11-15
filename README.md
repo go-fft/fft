@@ -300,7 +300,10 @@ mp.IMDCTMixed(out32, coef32, 4/float64(n))
 // Two independent DCT-IV(64) per call (HE-AAC's QMF runs six per slot): on arm64
 // one NEON kernel with a transform in each lane, 33% faster than two calls
 // (Apple M4 Max: 90 -> 60.6 ns float64, 107 -> 71.3 ns Mixed; a single DCT-IV(64)
-// call is 88 -> 43.7 ns). Elsewhere, and for other lengths, it is two calls.
+// call is 88 -> 43.7 ns). The same kernels exist for DCT-IV(128), the AAC short
+// block's MDCT of 256 samples, and the MDCT/IMDCT of 128 and 256 samples (also
+// their Mixed forms) run on them on arm64. Elsewhere, and for other lengths, the
+// pair form is two calls.
 // DCTPair, IDCTPair, DCTMixedPair, IDCTMixedPair; the results are within the
 // same error bound as DCT, not bit for bit.
 dp := fft.NewDCTPlan(64, 4)
