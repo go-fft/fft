@@ -461,9 +461,13 @@ the generated assembly, mutated by hand, fails the impulse test at 1.0e-14).
 Alignment of the tables (added after the first measurement): Go's linker aligns a
 data symbol to 32 bytes at most, and both generated twiddle tables sat at 32 mod
 64, so every 64-byte zmm table load split two cache lines (62 per pass-1
-iteration at 1024). The kernels now read copies built at init in a heap block
-offset to a multiple of 64 (`internal/kernels/fused_align_amd64.go`,
-`TestFusedTablesAligned`). Controlled in one process (table at 0, 8, 16, 32, 48
+iteration at 1024). Each generated table is now one static array with four
+float64s of padding on each side and its data from index 4; at init the data is
+moved in place to the first 64-byte boundary (index 4 where the array sits at 32
+mod 64, so nothing moves; index 0 where it sits at 0 mod 64): no heap, no second
+copy (`internal/kernels/fused_align_amd64.go`, `TestFusedTablesAligned`,
+`TestAlignedTableNoAlloc`; the first version of this change kept a heap copy,
+about 200 KB per process). Controlled in one process (table at 0, 8, 16, 32, 48
 mod 64 in a page-aligned arena, 1024 kernel alone): 769 to 777 ns at 0 mod 64,
 801 to 830 ns at any other offset (+4 to 7%). Through `Plan.FFT` (15 interleaved
 rounds, cpu 6): 823.9 to 786.6 ns, inverse unnormalized 823.6 to 786.3, FFTW

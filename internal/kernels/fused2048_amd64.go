@@ -25,9 +25,9 @@ func fused2048body(dst, src *[2048]complex128, tw *float64, inv bool) (ok bool)
 // bound can see.
 func Fused2048Table(inverse bool) []float64 {
 	if inverse {
-		return fused2048TwA[len(fused2048Tw[0]):]
+		return fused2048TwA[len(fused2048TwA)/2:]
 	}
-	return fused2048TwA[:len(fused2048Tw[0])]
+	return fused2048TwA[:len(fused2048TwA)/2]
 }
 
 // Fused2048On is whether the fused 2048-point kernel runs here: AVX-512 (F and
