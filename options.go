@@ -207,10 +207,14 @@ func scaleComplex(x []complex128, f float64) {
 }
 
 // scaleComplexA is scaleComplex for a plan of arithmetic a: an Exact plan keeps
-// the complex-multiply loop (its signed zeros and non-finite results are
-// v0.28.16's bits), every other one scales the interleaved floats with the
-// go-simd/floats kernel, which rounds each product once, as that loop does for
-// finite values.
+// the complex-multiply loop, whose results are v0.28.16's bits, every other one
+// scales the interleaved floats with the go-simd/floats kernel, one real product
+// per part. The two differ on signed zeros and non-finite parts, not on any
+// other value: the loop forms (a+bi)(f+0i) = (a*f - b*0) + (a*0 + b*f)i, so
+// (1-0i)*0.25 is +0 there and -0 here (a*f - (-0) adds a positive zero), and an
+// infinite or NaN part makes the OTHER part NaN there (inf*0) and leaves it
+// finite here. The kernel's results are the IEEE ones, and the default
+// arithmetic is free to change (Options.Exact is the promise of the old bits).
 func scaleComplexA(x []complex128, f float64, a arith) {
 	if f == 1 || len(x) == 0 {
 		return
@@ -222,12 +226,11 @@ func scaleComplexA(x []complex128, f float64, a arith) {
 	floats.Scale(f, unsafe.Slice((*float64)(unsafe.Pointer(&x[0])), 2*len(x)))
 }
 
-// scaleReal multiplies every element of x by f, skipping the pass when f is 1.
+// scaleReal multiplies every element of x by f, skipping the pass when f is 1:
+// the go-simd/floats kernel, one IEEE product per element, the bits of a loop.
 func scaleReal(x []float64, f float64) {
 	if f == 1 {
 		return
 	}
-	for i := range x {
-		x[i] *= f
-	}
+	floats.Scale(f, x)
 }

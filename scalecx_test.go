@@ -9,9 +9,10 @@ import (
 func itoa(n int) string { return strconv.Itoa(n) }
 
 // TestScaleComplexA: the kernel scale is bit-identical to the complex-multiply
-// loop on finite values (every length around the vector widths, odd and even
-// factors); an Exact plan keeps the loop, so its signed zeros and non-finite
-// results are the loop's, and the default plans differ from it only there.
+// loop on finite values with no zero part (every length around the vector
+// widths, odd and even factors); an Exact plan keeps the loop, so its signed
+// zeros and non-finite results are the loop's, and the default plans differ
+// from it only on those (TestScaleComplexAIEEE pins how).
 func TestScaleComplexA(t *testing.T) {
 	for _, a := range []arith{arithDefault, arithFMA, arithExact, arithPlain} {
 		for n := 0; n <= 70; n++ {
@@ -38,6 +39,41 @@ func TestScaleComplexA(t *testing.T) {
 	for i := 30; i < 40; i++ {
 		if y[i] != x[i] {
 			t.Fatalf("element %d beyond the window changed", i)
+		}
+	}
+}
+
+// TestScaleComplexAIEEE pins the bits that changed for the default plans: a
+// negative-zero part keeps its sign (the loop's (1-0i)*0.25 had imag +0), and an
+// infinite part no longer turns the other part into NaN (the loop's inf*0). The
+// Exact arithmetic keeps the loop's results for the same inputs.
+func TestScaleComplexAIEEE(t *testing.T) {
+	negz, inf := math.Copysign(0, -1), math.Inf(1)
+	x := []complex128{complex(1, negz), complex(inf, 2), complex(negz, -1), complex(math.NaN(), 1)}
+	bits := func(c complex128) [2]uint64 { return [2]uint64{math.Float64bits(real(c)), math.Float64bits(imag(c))} }
+	wantKernel := []complex128{complex(0.25, negz), complex(inf, 0.5), complex(negz, -0.25), complex(math.NaN(), 0.25)}
+	wantLoop := []complex128{complex(0.25, 0), complex(inf, math.NaN()), complex(0, -0.25), complex(math.NaN(), math.NaN())}
+	for _, a := range []arith{arithDefault, arithFMA, arithPlain, arithExact} {
+		got := append([]complex128(nil), x...)
+		scaleComplexA(got, 0.25, a)
+		want := wantKernel
+		if a == arithExact {
+			want = wantLoop
+		}
+		for i := range got {
+			g, w := bits(got[i]), bits(want[i])
+			if math.IsNaN(real(want[i])) || math.IsNaN(imag(want[i])) { // any NaN payload
+				if math.IsNaN(real(got[i])) != math.IsNaN(real(want[i])) || math.IsNaN(imag(got[i])) != math.IsNaN(imag(want[i])) {
+					t.Errorf("arith %d element %d: %v, want %v", a, i, got[i], want[i])
+				}
+				if !math.IsNaN(real(want[i])) && g[0] != w[0] || !math.IsNaN(imag(want[i])) && g[1] != w[1] {
+					t.Errorf("arith %d element %d: %v, want %v", a, i, got[i], want[i])
+				}
+				continue
+			}
+			if g != w {
+				t.Errorf("arith %d element %d: %v, want %v", a, i, got[i], want[i])
+			}
 		}
 	}
 }
@@ -97,4 +133,41 @@ func BenchmarkIFFTScale(b *testing.B) {
 			}
 		})
 	}
+}
+
+// BenchmarkScaleFamilies: one row per family of scaling sites (the N-D plan's
+// inverse, the real plan's Norm form, the real 2-D inverse's 1/rows pass, the
+// one-shot With form).
+func BenchmarkScaleFamilies(b *testing.B) {
+	pn := NewPlanN(64, 64)
+	cx := accComplexF64(64*64, 1)
+	cd := make([]complex128, 64*64)
+	b.Run("PlanN_IFFT_64x64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			pn.IFFT(cd, cx)
+		}
+	})
+	rp := NewRealPlan(256)
+	rx := accRealF64(256, 1)
+	rd := make([]complex128, 129)
+	b.Run("RealPlan_RFFTNorm_256", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			rp.RFFTNorm(rd, rx, NormOrtho)
+		}
+	})
+	r2 := NewRealPlan2(64, 64)
+	r2x := accRealF64(64*64, 1)
+	spec := r2.RFFT(make([]complex128, r2.SpectrumLen()), r2x)
+	r2d := make([]float64, 64*64)
+	b.Run("RealPlan2_IRFFT_64x64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r2.IRFFT(r2d, spec)
+		}
+	})
+	w := accComplexF64(256, 1)
+	b.Run("IFFTWith_256", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			IFFTWith(w, Options{})
+		}
+	})
 }

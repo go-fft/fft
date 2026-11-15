@@ -52,3 +52,50 @@ func digestAny(v any) string {
 }
 
 func sameAny(a, b any) bool { return digestAny(a) == digestAny(b) }
+
+// digestAnyZ is digestAny with every negative zero read as +0: the default
+// and NoFMA scaling passes use the go-simd/floats kernel, whose zeros keep their
+// sign where Exact's complex multiply turns some into +0 (scaleComplexA).
+func digestAnyZ(v any) string {
+	z := func(x float64) float64 {
+		if x == 0 {
+			return 0
+		}
+		return x
+	}
+	z32 := func(x float32) float32 {
+		if x == 0 {
+			return 0
+		}
+		return x
+	}
+	switch x := v.(type) {
+	case []complex128:
+		y := make([]complex128, len(x))
+		for i, c := range x {
+			y[i] = complex(z(real(c)), z(imag(c)))
+		}
+		return digestAny(y)
+	case []float64:
+		y := make([]float64, len(x))
+		for i, c := range x {
+			y[i] = z(c)
+		}
+		return digestAny(y)
+	case []complex64:
+		y := make([]complex64, len(x))
+		for i, c := range x {
+			y[i] = complex(z32(real(c)), z32(imag(c)))
+		}
+		return digestAny(y)
+	case []float32:
+		y := make([]float32, len(x))
+		for i, c := range x {
+			y[i] = z32(c)
+		}
+		return digestAny(y)
+	}
+	panic(fmt.Sprintf("digestAnyZ: %T", v))
+}
+
+func sameAnyZ(a, b any) bool { return digestAnyZ(a) == digestAnyZ(b) }

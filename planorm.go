@@ -32,7 +32,7 @@ func (p *Plan) IFFTNorm(dst, src []complex128, m Norm) []complex128 {
 func (p *RealPlan) RFFTNorm(dst []complex128, src []float64, m Norm) []complex128 {
 	f := m.scale(p.n, false)
 	out := p.RFFT(dst, src)
-	scaleComplex(out, f)
+	scaleComplexA(out, f, p.ar)
 	return out
 }
 
@@ -67,7 +67,7 @@ func (p *PlanN) IFFTNorm(dst, src []complex128, m Norm) []complex128 {
 func (p *RealPlan2) RFFTNorm(dst []complex128, src []float64, m Norm) []complex128 {
 	f := m.scale(p.rows*p.cols, false)
 	p.RFFT(dst, src)
-	scaleComplex(dst, f)
+	scaleComplexA(dst, f, p.row.ar)
 	return dst
 }
 
