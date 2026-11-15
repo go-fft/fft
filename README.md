@@ -421,7 +421,7 @@ folded into the first; `internal/genfused256`). It is not bit-identical to the
 passes; its error is asserted against a double-double oracle at the c2c bound,
 and `Exact` and `NoFMA` plans never take it. Ryzen 9 7950X, one core, 21
 interleaved rounds, complex128 forward, against FFTW 3.3.10 with AVX-512:
-155.7 ns before (1.16×), 140.5 ns now (1.04×; FFTW 134.6 ns). On **arm64** the radix-2/3/4/5/8
+155.5 ns before (1.17×), 144.1 ns now (1.08×; FFTW 133.4 ns). On **arm64** the radix-2/3/4/5/8
 passes, and the radix-2 to 5 final passes over an even number of blocks, run as
 generated **NEON** kernels. gc fuses multiply-adds on arm64, so each kernel
 reproduces, pass by pass, which product the Go code rounds and which it fuses;

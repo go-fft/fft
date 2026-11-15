@@ -406,9 +406,9 @@ without its AVX-512 codelets (2026-11-15):
 
 | complex128, 256 points | ns | vs v0.33.0 | vs FFTW AVX-512 |
 |---|---|---|---|
-| v0.33.0 forward | 155.7 | 1.00 | 1.16 |
-| fused kernel, forward (`Plan.FFT`) | 140.5 | 0.90 | 1.04 |
-| FFTW AVX-512, forward | 134.6 | | 1.00 |
+| v0.33.0 forward | 155.5 | 1.00 | 1.17 |
+| fused kernel, forward (`Plan.FFT`) | 144.1 | 0.93 | 1.08 |
+| FFTW AVX-512, forward | 133.4 | | 1.00 |
 | FFTW AVX2, forward | 156.0 | | |
 
 Accuracy is asserted against the double-double oracle at the c2c bound
