@@ -204,17 +204,17 @@ func radix4(a0, a1, a2, a3 int) (o0, o1, o2, o3 int) {
 	return
 }
 
-// cmulConst multiplies r by w16^m (forward: e^-2 pi i m/16).
-func cmulConst(r, m int) int {
-	m &= 15
+// cmulConst multiplies r by w_den^m (forward: e^-2 pi i m/den).
+func cmulConst(r, m, den int) int {
+	m %= den
 	if m == 0 {
 		return r
 	}
-	c, s := cs(m)
+	c, s := csDen(m, den)
 	if !inv {
 		s = -s
 	}
-	if m == 8 {
+	if 2*m == den {
 		return add1(ins{k: kXorB, mn: "VXORPD", mem: cname(math.Copysign(0, -1)), src: []int{r}, acc: -1})
 	}
 	t := perm(r)
@@ -230,13 +230,68 @@ func dft16(in [16]int) (out [16]int) {
 	}
 	for k1 := 1; k1 < 4; k1++ {
 		for j2 := 1; j2 < 4; j2++ {
-			u[k1][j2] = cmulConst(u[k1][j2], j2*k1)
+			u[k1][j2] = cmulConst(u[k1][j2], j2*k1, 16)
 		}
 	}
 	for k1 := 0; k1 < 4; k1++ {
 		out[k1], out[k1+4], out[k1+8], out[k1+12] = radix4(u[k1][0], u[k1][1], u[k1][2], u[k1][3])
 	}
 	return
+}
+
+// dft is the DFT of the values in (natural order), a power of two from 1 to 8,
+// the same decomposition as dft16: j = B*j1 + j2, k = k1 + A*k2.
+func dft(in []int) []int {
+	n := len(in)
+	switch n {
+	case 1:
+		return in
+	case 2:
+		return []int{addv(in[0], in[1]), subv(in[0], in[1])}
+	case 4:
+		a, b, c, d := radix4(in[0], in[1], in[2], in[3])
+		return []int{a, b, c, d}
+	}
+	// n == 8: a radix-2 stage, w8 twiddles, radix 4
+	const A, B = 2, 4
+	var u [A][B]int
+	for j2 := 0; j2 < B; j2++ {
+		u[0][j2], u[1][j2] = addv(in[j2], in[B+j2]), subv(in[j2], in[B+j2])
+	}
+	for j2 := 1; j2 < B; j2++ {
+		u[1][j2] = cmulConst(u[1][j2], j2, 8)
+	}
+	out := make([]int, 8)
+	for k1 := 0; k1 < A; k1++ {
+		o := dft(u[k1][:])
+		for k2 := 0; k2 < B; k2++ {
+			out[k1+A*k2] = o[k2]
+		}
+	}
+	return out
+}
+
+// dft32 is the 32-point DFT, 4 x 8, with lazy inputs: load(j) is called when the
+// first radix-4 stage needs input j (one group at a time, so that the 32
+// inputs are not all live at once). emit gets each k1's eight outputs, X[k1+4*k2].
+func dft32(load func(j int) int, emit func(k1 int, o []int)) {
+	const A, B = 4, 8
+	var u [A][B]int
+	for j2 := 0; j2 < B; j2++ {
+		var x [A]int
+		for j1 := range x {
+			x[j1] = load(B*j1 + j2)
+		}
+		u[0][j2], u[1][j2], u[2][j2], u[3][j2] = radix4(x[0], x[1], x[2], x[3])
+	}
+	for k1 := 1; k1 < A; k1++ {
+		for j2 := 1; j2 < B; j2++ {
+			u[k1][j2] = cmulConst(u[k1][j2], j2*k1, 32)
+		}
+	}
+	for k1 := 0; k1 < A; k1++ {
+		emit(k1, dft(u[k1][:]))
+	}
 }
 
 func shuf(imm string, a, b int) int {
@@ -413,6 +468,300 @@ func render(o ins, z func(int) string, rw bool, rwSrc int) string {
 	panic("render")
 }
 
+// ---- the 1024-point kernel (go-fft/fft#162): 32 x 32, x[32a+b], X[k1+32*k2] ----
+//
+// Pass 1, per group of four columns b (a loop of eight iterations over one
+// generated body): a 32-point DFT across the a axis, the w1024^(k1*b) twiddles
+// from a table, a 4x4 transpose of 128-bit lanes into a 16 KB frame. Pass 2, per
+// block of four k1: the same DFT across the b axis, contiguous stores. The 32
+// values of a 32-point DFT fill the 32 zmm registers, so this lowering spills
+// (Belady: the value used furthest ahead) to a scratch area after the frame.
+
+func body1024a() {
+	prog, nv = nil, 0
+	var y [32]int
+	dft32(func(j int) int { return ld("SI", j*512) }, func(k1 int, o []int) {
+		for k2, v := range o {
+			y[k1+4*k2] = v
+		}
+	})
+	for k1 := 1; k1 < 32; k1++ {
+		off := (k1 - 1) * 128
+		t := perm(y[k1])
+		t2 := add1(ins{k: kMulT, mn: "VMULPD", mem: fmt.Sprintf("%d(DX)", off+64), src: []int{t}, acc: -1})
+		y[k1] = add1(ins{k: kFmaT, mn: "VFMADDSUB231PD", mem: fmt.Sprintf("%d(DX)", off), src: []int{y[k1]}, acc: t2})
+	}
+	for h := 0; h < 8; h++ {
+		o0, o1, o2, o3 := transpose4(y[4*h], y[4*h+1], y[4*h+2], y[4*h+3])
+		for j, r := range []int{o0, o1, o2, o3} {
+			st(r, "R8", (h*32+j)*64)
+		}
+	}
+}
+
+func body1024b() {
+	prog, nv = nil, 0
+	dft32(func(j int) int { return ld("R8", j*64) }, func(k1 int, o []int) {
+		for k2, v := range o {
+			st(v, "DI", (k1+4*k2)*512)
+		}
+	})
+}
+
+// lowerSpill emits prog in program order with 32 zmm registers and spills.
+func lowerSpill() (lines []string, slots int) {
+	n := nv
+	remaining := make([]int, n)
+	uses := make([][]int, n)
+	for i, o := range prog {
+		for _, s := range o.src {
+			remaining[s]++
+			uses[s] = append(uses[s], i)
+		}
+		if o.acc >= 0 {
+			remaining[o.acc]++
+			uses[o.acc] = append(uses[o.acc], i)
+		}
+	}
+	reg := make([]int, n)
+	slot := make([]int, n)
+	for i := range reg {
+		reg[i], slot[i] = -1, -1
+	}
+	var free [32]bool
+	for i := range free {
+		free[i] = true
+	}
+	var freeSlots []int
+	cur := 0
+	emitl := func(f string, a ...any) { lines = append(lines, fmt.Sprintf(f, a...)) }
+	nextUse := func(v int) int {
+		for _, u := range uses[v] {
+			if u > cur {
+				return u
+			}
+		}
+		return 1 << 30
+	}
+	getReg := func(excl map[int]bool) int {
+		for r := range free {
+			if free[r] {
+				free[r] = false
+				return r
+			}
+		}
+		best, bestNext := -1, -1
+		for v := 0; v < n; v++ {
+			if reg[v] >= 0 && !excl[v] {
+				if nu := nextUse(v); nu > bestNext {
+					best, bestNext = v, nu
+				}
+			}
+		}
+		if best < 0 {
+			panic("genfused256: nothing to spill")
+		}
+		if slot[best] < 0 {
+			if len(freeSlots) > 0 {
+				slot[best], freeSlots = freeSlots[len(freeSlots)-1], freeSlots[:len(freeSlots)-1]
+			} else {
+				slot[best] = slots
+				slots++
+			}
+			emitl("VMOVUPD Z%d, %d(R9)", reg[best], slot[best]*64)
+		}
+		r := reg[best]
+		reg[best] = -1
+		return r
+	}
+	z := func(v int) string { return fmt.Sprintf("Z%d", reg[v]) }
+	for i, o := range prog {
+		cur = i
+		need := map[int]bool{}
+		for _, s := range o.src {
+			need[s] = true
+		}
+		if o.acc >= 0 {
+			need[o.acc] = true
+		}
+		order := make([]int, 0, len(need))
+		for v := range need {
+			order = append(order, v)
+		}
+		sort.Ints(order)
+		for _, v := range order {
+			if reg[v] < 0 {
+				r := getReg(need)
+				emitl("VMOVUPD %d(R9), Z%d", slot[v]*64, r)
+				reg[v] = r
+			}
+		}
+		var dying []int
+		seen := map[int]bool{}
+		use := func(v int) {
+			remaining[v]--
+			if remaining[v] == 0 && !seen[v] {
+				seen[v] = true
+				dying = append(dying, v)
+			}
+		}
+		for _, s := range o.src {
+			use(s)
+		}
+		if o.acc >= 0 {
+			use(o.acc)
+		}
+		dstReg := -1
+		if o.acc >= 0 {
+			dstReg = reg[o.acc]
+		}
+		for _, v := range dying {
+			if reg[v] != dstReg {
+				free[reg[v]] = true
+			}
+		}
+		if o.k != kStore {
+			if dstReg < 0 {
+				dstReg = getReg(need)
+			}
+			reg[o.dst] = dstReg
+		}
+		emitl("%s", render(o, z, false, -1))
+		for _, v := range dying {
+			if slot[v] >= 0 {
+				freeSlots = append(freeSlots, slot[v])
+				slot[v] = -1
+			}
+			if v != o.dst {
+				reg[v] = -1
+			}
+		}
+	}
+	return
+}
+
+// twTable1024 is the pass-1 table of one direction: per group g of four columns
+// and k1 = 1..31, the real parts of w1024^(k1*b) twice each, then the imaginary
+// parts twice each (16 float64s; forward e^-i, so the sign is flipped for it).
+func twTable1024(inverse bool) []float64 {
+	t := make([]float64, 8*31*16)
+	for g := 0; g < 8; g++ {
+		for k1 := 1; k1 < 32; k1++ {
+			base := (g*31 + (k1 - 1)) * 16
+			for l := 0; l < 4; l++ {
+				c, s := csDen(k1*(4*g+l), 1024)
+				if !inverse {
+					s = -s
+				}
+				t[base+2*l], t[base+2*l+1] = c, c
+				t[base+8+2*l], t[base+8+2*l+1] = s, s
+			}
+		}
+	}
+	return t
+}
+
+func twFile1024() []byte {
+	var b strings.Builder
+	b.WriteString("// Code generated by internal/genfused256/main.go; DO NOT EDIT.\n\npackage kernels\n\n")
+	b.WriteString("// fused1024Tw[inverse] is the pass-1 table of the fused 1024-point kernel: per\n// group of four columns and k1 = 1..31, 16 float64s, the real parts of\n// w1024^(k1*b) twice each, then the imaginary parts twice each, correctly\n// rounded, signed for the direction (forward e^-i).\nvar fused1024Tw = [2][3968]float64{\n")
+	for _, inv := range []bool{false, true} {
+		b.WriteString("\t{\n")
+		for i, v := range twTable1024(inv) {
+			if i%4 == 0 {
+				b.WriteString("\t\t")
+			}
+			b.WriteString(strconv.FormatFloat(v, 'g', -1, 64))
+			b.WriteString(",")
+			if i%4 == 3 {
+				b.WriteString("\n")
+			} else {
+				b.WriteString(" ")
+			}
+		}
+		b.WriteString("\t},\n")
+	}
+	b.WriteString("}\n")
+	return []byte(b.String())
+}
+
+// entry1024 emits fused1024 (the gates and a jump, as fused256) and
+// fused1024body: both directions, each a loop of eight iterations over the pass-1
+// body and one over the pass-2 body.
+func entry1024() {
+	out.WriteString("\n// func fused1024(dst, src *[1024]complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused1024(SB), NOSPLIT, $0-33\n")
+	emit("MOVBLZX ·Fused1024On(SB), AX")
+	emit("TESTL AX, AX")
+	emit("JZ no")
+	emit("MOVBLZX ·UseStockhamAVX512(SB), AX")
+	emit("TESTL AX, AX")
+	emit("JZ no")
+	emit("JMP ·fused1024body(SB)")
+	out.WriteString("no:\n")
+	emit("MOVB $0, ok+32(FP)")
+	emit("RET")
+	type dirBody struct{ a, b []string }
+	var bodies [2]dirBody
+	slots := 0
+	for d, inverse := range []bool{false, true} {
+		inv = inverse
+		body1024a()
+		la, sa := lowerSpill()
+		body1024b()
+		lb, sb := lowerSpill()
+		bodies[d] = dirBody{la, lb}
+		for _, s := range []int{sa, sb} {
+			if s > slots {
+				slots = s
+			}
+		}
+	}
+	frame := 16384 + slots*64 + 64
+	fmt.Fprintf(&out, "\n// func fused1024body(dst, src *[1024]complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused1024body(SB), $%d-33\n", frame)
+	emit("MOVQ dst+0(FP), DI")
+	emit("MOVQ src+8(FP), SI")
+	emit("MOVQ tw+16(FP), DX")
+	emit("MOVQ SP, R11")
+	emit("ADDQ $63, R11")
+	emit("ANDQ $-64, R11")
+	emit("LEAQ 16384(R11), R9")
+	emit("MOVBLZX inv+24(FP), AX")
+	emit("TESTL AX, AX")
+	emit("JNZ inverse")
+	for d, name := range []string{"f", "i"} {
+		if d == 1 {
+			out.WriteString("inverse:\n")
+			emit("ADDQ $31744, DX") // the inverse table follows the forward one
+		}
+		emit("MOVQ R11, R8")
+		emit("MOVQ $8, R10")
+		emit("PCALIGN $64")
+		fmt.Fprintf(&out, "%sloop1:\n", name)
+		for _, l := range bodies[d].a {
+			emit("%s", l)
+		}
+		emit("ADDQ $64, SI")
+		emit("ADDQ $256, R8")
+		emit("ADDQ $3968, DX")
+		emit("DECQ R10")
+		emit("JNZ %sloop1", name)
+		emit("MOVQ R11, R8")
+		emit("MOVQ $8, R10")
+		emit("PCALIGN $64")
+		fmt.Fprintf(&out, "%sloop2:\n", name)
+		for _, l := range bodies[d].b {
+			emit("%s", l)
+		}
+		emit("ADDQ $2048, R8")
+		emit("ADDQ $64, DI")
+		emit("DECQ R10")
+		emit("JNZ %sloop2", name)
+		emit("VZEROUPPER")
+		emit("MOVB $1, ok+32(FP)")
+		emit("RET")
+	}
+}
+
 var out strings.Builder
 
 func emit(f string, a ...any) { fmt.Fprintf(&out, "\t"+f+"\n", a...) }
@@ -474,8 +823,12 @@ func entry() {
 	}
 }
 
-func main() {
-	entry()
+// assemblyFile runs gen and returns the .s file it wrote into out, with the
+// constants it named as DATA (file-local symbols, so each file has its own).
+func assemblyFile(gen func()) []byte {
+	out.Reset()
+	consts = map[string]float64{}
+	gen()
 	var hdr strings.Builder
 	hdr.WriteString("// Code generated by internal/genfused256/main.go; DO NOT EDIT.\n\n//go:build amd64\n\n#include \"textflag.h\"\n\n")
 	names := make([]string, 0, len(consts))
@@ -486,16 +839,27 @@ func main() {
 	for _, n := range names {
 		fmt.Fprintf(&hdr, "DATA %s+0(SB)/8, $%#x\nGLOBL %s(SB), RODATA|NOPTR, $8\n", n, math.Float64bits(consts[n]), n)
 	}
+	return []byte(hdr.String() + out.String())
+}
+
+func main() {
 	dir := "internal/kernels"
 	if len(os.Args) > 1 {
 		dir = os.Args[1] // the staleness test writes elsewhere
 	}
-	tw, err := format.Source(twFile())
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+	files := map[string][]byte{
+		"fused256_amd64.s":  assemblyFile(entry),
+		"fused1024_amd64.s": assemblyFile(entry1024),
 	}
-	for name, b := range map[string][]byte{"fused256_amd64.s": []byte(hdr.String() + out.String()), "fused256_tw_amd64.go": tw} {
+	for name, src := range map[string][]byte{"fused256_tw_amd64.go": twFile(), "fused1024_tw_amd64.go": twFile1024()} {
+		b, err := format.Source(src)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		files[name] = b
+	}
+	for name, b := range files {
 		if err := os.WriteFile(filepath.Join(dir, name), b, 0o644); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

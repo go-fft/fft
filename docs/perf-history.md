@@ -423,6 +423,44 @@ the worst observed is 2.7e-16 (`TestFused256Impulses`): a table entry, or an
 in-register constant of the assembly, off by 1e-14 fails it
 (`TestFused256ImpulseMutation` sweeps every table entry; the constants were
 mutated by hand).
+
+## Fused 1024-point kernel (Zen 4, #162)
+
+The same route for 1024 points: `internal/genfused256` also writes
+`internal/kernels/fused1024_amd64.s` and `fused1024_tw_amd64.go`. 32x32: pass 1
+runs, per group of four columns, a 32-point DFT across the a axis (radix 4, w32
+twiddles, 8-point DFTs), the w1024 twiddles from a table (31 rows of 128 bytes per
+group, 32 KB per direction, correctly rounded) and a 4x4 transpose into a 16 KB
+frame; pass 2 runs the 32-point DFT across the b axis per block of four k1 and
+stores contiguous rows. Each pass is a loop of eight iterations over one generated
+body (about 6 KB of code, not 90). The 32 values of a 32-point DFT fill the 32 zmm
+registers, so the lowering spills the value used furthest ahead to a scratch area
+after the frame (a few slots). Default and FMA plans of 1024 points use it on a
+Zen 4; `Options.Exact` and `NoFMA` plans, and every other CPU, keep their passes;
+the gates and the rows of a `PlanN` are as for 256. Before it the plan ran two
+radix-32 kernels (`skLast32AVX512FMA` 49%, `intelSplit512R32*FMA` 47% of the
+time). Per transform (perf stat, cpu 6, 2 M transforms): the passes retire 9931
+instructions at IPC 2.06 with 2383 stores, 7536 L1 loads, 240 loads blocked behind
+a store and 4828 cycles; the fused kernel 7514 instructions at IPC 1.74 with 1158
+stores, 4871 L1 loads, 55 blocked loads and 4306 cycles, but more L1 misses (1557
+against 1322: the 32 KB twiddle table). FFTW AVX-512: 12 644 instructions at IPC
+3.29, 3841 cycles. One pinned core (cpu 6), 15 interleaved rounds, medians, load
+below 1.3, `FFTW_MEASURE` out of place (2026-11-15):
+
+| complex128 1024 | v0.35.2 ns | fused ns | ratio | FFTW AVX-512 ns | go-fft / FFTW before, after |
+|---|---|---|---|---|---|
+| forward (`Plan.FFT`) | 886.1 | 816.4 | 0.92 | 749.8 | 1.18, 1.09 |
+| inverse unnormalized | 885.5 | 820.4 | 0.93 | 750.8 | 1.18, 1.09 |
+
+The kernel alone reads 748 to 825 ns depending on the process (heap layout of
+src and dst), the plans before it 872 to 886: the table is the interleaved
+medians over processes. Accuracy: `TestFused1024Accuracy` (c2c bound),
+`TestFused1024Impulses` (every unit impulse, 1 and i at 1024 positions, both
+directions, to 2e-15 absolute against the exact roots; worst observed 3.7e-16) and
+`TestFused1024ImpulseMutation` (1e-14 in every 13th table entry fails it at its
+columns, an ulp does not; cos(pi/16) off by 1e-14 in the generated assembly,
+mutated by hand, fails the impulse and accuracy tests).
+
 ## Normalized inverse: the 1/n pass on the go-simd/floats kernel
 
 `Plan.IFFT`, `PlanN.IFFT`, the `Norm` forms of the plans and the `With` forms

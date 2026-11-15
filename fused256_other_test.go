@@ -13,4 +13,7 @@ func TestFused256NotHere(t *testing.T) {
 	if fused256Run(nil, nil, false) {
 		t.Error("fused256Run reports a transform off amd64")
 	}
+	if p := NewPlan(1024); fused1024Route(1024) || (p.sk != nil && p.sk.f1024) || fused1024Run(nil, nil, false) {
+		t.Error("the fused 1024-point route is on off amd64")
+	}
 }
