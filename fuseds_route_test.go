@@ -56,3 +56,26 @@ func TestFusedSForcedRoute(t *testing.T) {
 		t.Error("a plan of 100 points takes a fused kernel")
 	}
 }
+
+// TestFusedComplex128RoutesPrepare: the complex128 routes of 256, 1024 and 2048
+// points answer yes (and align their table, once) only when their flag is on and
+// the length is theirs, on every platform.
+func TestFusedComplex128RoutesPrepare(t *testing.T) {
+	isolatePlans(t)
+	defer func(a, b, c bool) { fused256Enabled, fused1024Enabled, fused2048Enabled = a, b, c }(fused256Enabled, fused1024Enabled, fused2048Enabled)
+	fused256Enabled, fused1024Enabled, fused2048Enabled = true, true, true
+	for n, route := range map[int]func(int) bool{256: fused256Route, 1024: fused1024Route, 2048: fused2048Route} {
+		if !route(n) {
+			t.Errorf("the route of %d points is off with its flag on", n)
+		}
+		if route(n + 1) {
+			t.Errorf("the route of %d points answers yes for %d", n, n+1)
+		}
+	}
+	fused256Enabled, fused1024Enabled, fused2048Enabled = false, false, false
+	for n, route := range map[int]func(int) bool{256: fused256Route, 1024: fused1024Route, 2048: fused2048Route} {
+		if route(n) {
+			t.Errorf("the route of %d points is on with its flag off", n)
+		}
+	}
+}

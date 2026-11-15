@@ -7,6 +7,18 @@ import "testing"
 // TestFusedSOffAmd64: the complex64 kernels are off off amd64: their gates are
 // false, they report false and their tables are nil.
 func TestFusedSOffAmd64(t *testing.T) {
+	// the Prepare calls are no-ops here (the tables are not linked: there are none)
+	Fused256Prepare()
+	Fused1024Prepare()
+	Fused2048Prepare()
+	FusedS64Prepare()
+	FusedS128Prepare()
+	FusedS256Prepare()
+	FusedS512Prepare()
+	FusedS1024Prepare()
+	FusedS2048Prepare()
+	FusedS4096Prepare()
+	FusedS8192Prepare()
 	if FusedS64On || FusedS128On || FusedS256On || FusedS512On || FusedS1024On || FusedS2048On || FusedS4096On || FusedS8192On {
 		t.Error("a complex64 gate is true off amd64")
 	}
