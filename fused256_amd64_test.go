@@ -138,27 +138,35 @@ func TestFused256Routing(t *testing.T) {
 // route itself is a Zen 4 choice): the route switched on, a default plan of 256
 // points transforms within the bound, forward and inverse.
 func TestFused256ForcedRoute(t *testing.T) {
-	if !kernels.UseStockhamAVX512 {
-		// No AVX-512: a Go DFT stands in for the assembly, so the wrappers' and
-		// the plan's statements run on every amd64 host (the coverage gate).
-		goDFT := func(sign float64) func(dst, src, tw *complex128) {
-			return func(dst, src, _ *complex128) {
-				s := unsafe.Slice(src, 256)
-				d := unsafe.Slice(dst, 256)
-				out := make([]complex128, 256)
-				for k := range out {
-					for j := range s {
-						out[k] += s[j] * cmplx.Rect(1, sign*2*math.Pi*float64(j*k%256)/256)
-					}
-				}
-				copy(d, out)
-			}
-		}
-		defer kernels.SetFused256Impl([2]func(dst, src, tw *complex128){goDFT(-1), goDFT(1)})()
-	}
 	if len(kernels.Fused256Table(false)) != 1024 || len(kernels.Fused256Table(true)) != 1024 {
 		t.Fatal("the twiddle tables are not 1024 floats")
 	}
+	// A Go DFT stands in for the assembly, so that the wrappers' and the plan's
+	// statements run on every amd64 host, AVX-512 or not (the coverage gate).
+	goDFT := func(sign float64) func(dst, src, tw *complex128) {
+		return func(dst, src, _ *complex128) {
+			s := unsafe.Slice(src, 256)
+			d := unsafe.Slice(dst, 256)
+			out := make([]complex128, 256)
+			for k := range out {
+				for j := range s {
+					out[k] += s[j] * cmplx.Rect(1, sign*2*math.Pi*float64(j*k%256)/256)
+				}
+			}
+			copy(d, out)
+		}
+	}
+	t.Run("go stand-in", func(t *testing.T) {
+		defer kernels.SetFused256Impl([2]func(dst, src, tw *complex128){goDFT(-1), goDFT(1)})()
+		forcedRoute(t)
+	})
+	t.Run("assembly", func(t *testing.T) {
+		skipNoFused(t)
+		forcedRoute(t)
+	})
+}
+
+func forcedRoute(t *testing.T) {
 	isolatePlans(t)
 	defer func(e, a, d bool) { fused256Enabled, fmaAvailable, defaultFuses = e, a, d }(fused256Enabled, fmaAvailable, defaultFuses)
 	fused256Enabled, fmaAvailable, defaultFuses = true, kernels.UseFMA, true
