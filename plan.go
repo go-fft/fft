@@ -3,7 +3,11 @@ package fft
 import (
 	"math"
 	"sync"
+
+	"github.com/go-fft/fft/internal/kernels"
 )
+
+//go:generate go run internal/genfused256/main.go
 
 // A Plan is a reusable, precomputed transform of a fixed length N. Building a
 // plan factors N and precomputes every twiddle factor once; the resulting
@@ -27,6 +31,10 @@ type Plan struct {
 	sk        *skPlan        // non-nil iff this length uses mixed-radix Stockham
 	rader     *raderPlan     // non-nil iff this length uses Rader
 	it        *itPlan        // non-nil iff this length uses the iterative pow2 kernel
+
+	// f256 is set on a fused plan of 256 points where kernels.Fused256On: the
+	// whole transform is one AVX-512 kernel (fused256.go).
+	f256 bool
 }
 
 // pow2StockhamMax is the largest power of two routed to the Stockham engine
@@ -86,6 +94,7 @@ func newPlanA(n int, a arith) *Plan {
 		// recursive Cooley–Tukey engine here, 1.5–1.9× faster at N=1000…1920 on
 		// the benchmark host; mixedradix.go stays as an independent test oracle.
 		p.sk = newSKPlanOpt(n, fma)
+		p.f256 = fma && fused256Route(n)
 		return p
 	}
 	// A prime whose n-1 is 7-smooth goes to Rader (a cyclic convolution at
@@ -150,6 +159,8 @@ func (p *Plan) execute(dst, src []complex128, inverse bool) {
 		return
 	}
 	switch {
+	case p.f256:
+		kernels.Fused256(dst, src, inverse)
 	case p.it != nil:
 		p.it.transform(dst, src, inverse)
 	case p.sk != nil:

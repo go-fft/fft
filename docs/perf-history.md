@@ -392,6 +392,29 @@ default is the measured-faster choice; the SIMD kernels remain validated,
 per-arch-tested artifacts (bit-identical to the scalar oracle, asserted by the
 per-arch CI jobs) and the reference for any future widening.
 
+## Fused 256-point kernel (Zen 4, #124)
+
+A complex128 plan of 256 points on a Zen 4 (Ryzen 9 7950X) runs one AVX-512
+kernel (`internal/genfused256` writes `internal/kernels/fused256_amd64.s`): two
+16x16 passes, every value of a 16-point DFT in zmm registers, the twiddles
+between the passes folded into the first one, a 4 KB frame holding the
+4x4-transposed intermediate. Default and FMA plans use it; `Options.Exact` and
+`NoFMA` plans keep their passes (the kernel fuses multiply-adds), as does every
+other CPU. One pinned core, 21 interleaved rounds, medians, 1-minute load
+below 1, `FFTW_MEASURE` out of place, FFTW 3.3.10 built from source with and
+without its AVX-512 codelets (2026-11-15):
+
+| complex128, 256 points | ns | vs v0.33.0 | vs FFTW AVX-512 |
+|---|---|---|---|
+| v0.33.0 forward | 155.7 | 1.00 | 1.16 |
+| fused kernel, forward (`Plan.FFT`) | 140.5 | 0.90 | 1.04 |
+| FFTW AVX-512, forward | 134.6 | | 1.00 |
+| FFTW AVX2, forward | 156.0 | | |
+
+Accuracy is asserted against the double-double oracle at the c2c bound
+(`TestFused256Accuracy`, `TestFused256Mutation`: a twiddle perturbed by 1e-10
+turns it red, one by an ulp does not).
+
 ## Remaining gap
 
 The complex mid-range is **closed** (1024 wins, 2048/4096 tie). The Rader round

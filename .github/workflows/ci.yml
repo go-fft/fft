@@ -194,6 +194,15 @@ jobs:
             git status --porcelain -- 'dct4_64*'
             echo "::error::the DCT-IV(64) generator wrote files that are not committed"; exit 1
           fi
+      - name: Regenerate the fused 256-point kernel and check it is current
+        run: |
+          go run internal/genfused256/main.go
+          git diff --exit-code -- internal/kernels/fused256_amd64.s || {
+            echo "::error::the fused 256-point kernel is stale; run go generate and commit"; exit 1; }
+          if [ -n "$(git status --porcelain -- internal/kernels/fused256_amd64.s)" ]; then
+            git status --porcelain -- internal/kernels/fused256_amd64.s
+            echo "::error::the fused 256-point generator wrote a file that is not committed"; exit 1
+          fi
       - name: Vet (asmdecl) + build + run (SIMD == scalar)
         run: |
           go vet ./...
