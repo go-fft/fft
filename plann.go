@@ -288,7 +288,7 @@ func (p *PlanN) contiguousLines(dst, src []complex128, ax, lo, hi int, inverse b
 		var bp *[]complex128
 		for c := lo; c < hi; c++ {
 			d, s := dst[c*n:(c+1)*n], src[c*n:(c+1)*n]
-			if done := sk.f256 && fused256Run(d, s, inverse) || zmFrameRows && sk.zn != nil && sk.zn.Run(s, d, inverse); !done {
+			if done := sk.f256 && fused256Run(d, s, inverse) || sk.f1024 && fused1024Run(d, s, inverse) || zmFrameRows && sk.zn != nil && sk.zn.Run(s, d, inverse); !done {
 				if bp == nil {
 					bp = sk.scratch.Get().(*[]complex128)
 				}

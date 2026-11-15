@@ -33,6 +33,8 @@ type Plan struct {
 	// f256 sends execute to the fused 256-point kernel (set with sk.f256, which
 	// PlanN's rows read).
 	f256 bool
+	// f1024 does the same for the fused 1024-point kernel (fused1024.go).
+	f1024 bool
 
 	ar arith // the arithmetic the plan was built for (the inverse's scaling pass follows it)
 }
@@ -96,6 +98,8 @@ func newPlanA(n int, a arith) *Plan {
 		p.sk = newSKPlanOpt(n, fma)
 		p.sk.f256 = fma && fused256Route(n)
 		p.f256 = p.sk.f256
+		p.sk.f1024 = fma && fused1024Route(n)
+		p.f1024 = p.sk.f1024
 		return p
 	}
 	// A prime whose n-1 is 7-smooth goes to Rader (a cyclic convolution at
@@ -155,7 +159,7 @@ func (p *Plan) execute(dst, src []complex128, inverse bool) {
 	// that fused256Run inlines into this function and the call to skPlan.transform
 	// (a large function with a large frame) is skipped: that and the call chain
 	// were 9 ns of 137 at 256 points (go-fft/fft#124).
-	if done := p.f256 && fused256Run(dst, src, inverse); !done {
+	if done := p.f256 && fused256Run(dst, src, inverse) || p.f1024 && fused1024Run(dst, src, inverse); !done {
 		n := p.n
 		if n <= 1 {
 			copy(dst, src)

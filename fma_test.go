@@ -354,8 +354,8 @@ func TestFMAStripsMatchLines(t *testing.T) {
 	// whose rounding is not the strips': this test compares the passes, bit for
 	// bit, so the route is off here, with the plans built under it forgotten.
 	isolatePlans(t)
-	defer func(s, e bool) { stripAxes, fused256Enabled = s, e }(stripAxes, fused256Enabled)
-	fused256Enabled = false
+	defer func(s, e, f bool) { stripAxes, fused256Enabled, fused1024Enabled = s, e, f }(stripAxes, fused256Enabled, fused1024Enabled)
+	fused256Enabled, fused1024Enabled = false, false
 	lens := append([]int{153, 171, 207, 1000, 1024, 1080}, fmaSweep(2, 600)...)
 	for _, n := range lens {
 		sh := []int{n, 3}

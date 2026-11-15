@@ -50,6 +50,7 @@ type skPlan struct {
 	// fused256.go): PlanN's rows (contiguousLines) test it; Plan.execute tests the
 	// Plan's own copy.
 	f256    bool
+	f1024   bool // the same for the fused 1024-point kernel (fused1024.go)
 	n       int
 	stages  []skStage
 	scratch sync.Pool
