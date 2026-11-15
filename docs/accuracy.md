@@ -83,7 +83,7 @@ differs by a few tens of percent stays inside.
 | `r2c` | RFFT, IRFFT, HFFT, IHFFT, RealPlan and its Norm methods, RFFTWith with N and Norm | 0.92 | 2.0 |
 | `c2cN` | FFTN, IFFTN, FFT2, IFFT2, PlanN and its Norm methods, FFTNWith with Axes and Norm | 0.30 | 0.75 |
 | `r2cN` | RFFTN, IRFFTN, RFFT2, IRFFT2, RealPlan2 and its Norm methods | 0.28 | 0.75 |
-| `r2r` | DCT, IDCT, DST, IDST (types I–IV, backward, ortho and forward norm), their plans, the N-D forms | 0.95 | 2.0 |
+| `r2r` | DCT, IDCT, DST, IDST (types I–IV, backward, ortho and forward norm), their plans, DCTPlan.DCTPair/IDCTPair (DCT-IV), the N-D forms | 0.95 | 2.0 |
 | `psd` | PSD, Spectrogram (a squared quantity: the ratio is on the power) | 1.03 | 2.25 |
 | `c2c/32` | FFT32, IFFT32, Plan32 and its Norm methods, FFT32With, IFFT32With | 0.42 | 1.0 |
 | `r2c/32` | RFFT32, IRFFT32, HFFT32, IHFFT32, RealPlan32 and its Norm methods, the five `...32With` forms | 0.51 | 1.25 |
@@ -92,7 +92,7 @@ differs by a few tens of percent stays inside.
 | `r2r/32` | the float32 DCT/DST family | 0.86 | 1.75 |
 | `mdct` | MDCTPlan.MDCT/IMDCT, `N` samples to `N/2` coefficients | 0.83 | 1.75 |
 | `mdct/32` | MDCTPlan32.MDCT/IMDCT | 0.30 | 0.75 |
-| `mixed` | MDCTPlan.MDCTMixed/IMDCTMixed, DCTPlan.DCTMixed/IDCTMixed (DCT-IV): float32 in and out, float64 arithmetic | 0.56, 0.84 of the bound | `mdct` or `r2r` c, plus ε32/2 |
+| `mixed` | MDCTPlan.MDCTMixed/IMDCTMixed, DCTPlan.DCTMixed/IDCTMixed (DCT-IV), DCTPlan.DCTMixedPair/IDCTMixedPair: float32 in and out, float64 arithmetic | 0.56, 0.84 of the bound | `mdct` or `r2r` c, plus ε32/2 |
 
 The `mixed` methods round once to float32 on output, so the stated bound is the
 float64 one plus that rounding, `err ≤ c64·ε64·log2 n + ε32/2` in relative RMS
@@ -103,6 +103,23 @@ both directions) to it against the double-double oracle: the worst ratios to the
 bound are 0.56 (MDCT) and 0.84 (DCT-IV). On the same inputs the float32 MDCT
 plan's worst error is 1.9e-7, three times the float32 rounding alone (6e-8): it
 accumulates `log2 N` float32 stages, which is what these methods avoid.
+
+**The pair methods (v0.33.0).** `DCTPlan.DCTPair`, `IDCTPair`, `DCTMixedPair`
+and `IDCTMixedPair` run two DCT-IV transforms in one call. At 64 points on
+arm64 they take a fused NEON kernel, one transform per vector lane. They are
+held to the same bound as the single-transform methods, and are **not**
+bit-identical to two `DCT` calls: on arm64 the float64 pair and the single
+fused kernel round differently, by up to 4.4e-16 per value. Each method is
+compared with itself only: `DCTMixedPair` is exactly the float32 of `DCTPair`
+on the widened input, and `DCTMixed` exactly the float32 of `DCT`
+(`TestDCT4N64MixedIsFloat32OfFloat64`, 10,000 random vectors per form).
+`TestDCT4N64Oracle` and `TestDCT4N64Pair` hold both lanes, every norm and both
+directions to the `r2r` bound `2·ε·log2 n` against the double-double oracle.
+`TestDCT4N64Impulses` sends every impulse through every kernel and caps the
+error at 5e-16 for float64, and at half a float32 ulp (2^-24) for Mixed. Every
+twiddle constant lies on some impulse's path, so an error of 1.5e-14 in one of
+them fails the test. Off the fused route, a pair call is two ordered single
+calls, and gives their bits exactly.
 
 
 The `mdct` rows are measured by `TestMDCTAccuracy` against the `O(N·N/2)`
