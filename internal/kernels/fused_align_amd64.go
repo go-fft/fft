@@ -12,11 +12,13 @@ import "unsafe"
 var (
 	fused256TwA  = alignedTables(fused256Tw[0][:], fused256Tw[1][:])
 	fused1024TwA = alignedTables(fused1024Tw[0][:], fused1024Tw[1][:])
+	fused2048TwA = alignedTables(fused2048Tw[0][:], fused2048Tw[1][:])
 
 	// The first element of each copy, for the kernels' calls (a pointer variable
 	// keeps Fused256 and Fused1024 within the inlining budget).
 	fused256TwP  = &fused256TwA[0]
 	fused1024TwP = &fused1024TwA[0]
+	fused2048TwP = &fused2048TwA[0]
 )
 
 // alignedTables returns a, then b, copied into one slice whose first element is

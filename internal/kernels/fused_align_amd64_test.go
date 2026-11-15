@@ -15,6 +15,7 @@ func TestFusedTablesAligned(t *testing.T) {
 	}{
 		"fused256":  {Fused256Table, [2][]float64{fused256Tw[0][:], fused256Tw[1][:]}},
 		"fused1024": {Fused1024Table, [2][]float64{fused1024Tw[0][:], fused1024Tw[1][:]}},
+		"fused2048": {Fused2048Table, [2][]float64{fused2048Tw[0][:], fused2048Tw[1][:]}},
 	} {
 		fwd, inv := c.got(false), c.got(true)
 		if a := uintptr(unsafe.Pointer(&fwd[0])); a%64 != 0 {

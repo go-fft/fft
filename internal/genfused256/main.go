@@ -239,7 +239,7 @@ func dft16(in [16]int) (out [16]int) {
 	return
 }
 
-// dft is the DFT of the values in (natural order), a power of two from 1 to 8,
+// dft is the DFT of the values in (natural order), a power of two from 1 to 32,
 // the same decomposition as dft16: j = B*j1 + j2, k = k1 + A*k2.
 func dft(in []int) []int {
 	n := len(in)
@@ -251,6 +251,30 @@ func dft(in []int) []int {
 	case 4:
 		a, b, c, d := radix4(in[0], in[1], in[2], in[3])
 		return []int{a, b, c, d}
+	}
+	if n >= 16 { // radix 4, then n/4-point DFTs
+		const A = 4
+		B := n / A
+		u := make([][]int, A)
+		for k := range u {
+			u[k] = make([]int, B)
+		}
+		for j2 := 0; j2 < B; j2++ {
+			u[0][j2], u[1][j2], u[2][j2], u[3][j2] = radix4(in[j2], in[B+j2], in[2*B+j2], in[3*B+j2])
+		}
+		for k1 := 1; k1 < A; k1++ {
+			for j2 := 1; j2 < B; j2++ {
+				u[k1][j2] = cmulConst(u[k1][j2], j2*k1, n)
+			}
+		}
+		out := make([]int, n)
+		for k1 := 0; k1 < A; k1++ {
+			o := dft(u[k1])
+			for k2 := 0; k2 < B; k2++ {
+				out[k1+A*k2] = o[k2]
+			}
+		}
+		return out
 	}
 	// n == 8: a radix-2 stage, w8 twiddles, radix 4
 	const A, B = 2, 4
@@ -271,12 +295,17 @@ func dft(in []int) []int {
 	return out
 }
 
-// dft32 is the 32-point DFT, 4 x 8, with lazy inputs: load(j) is called when the
-// first radix-4 stage needs input j (one group at a time, so that the 32
-// inputs are not all live at once). emit gets each k1's eight outputs, X[k1+4*k2].
-func dft32(load func(j int) int, emit func(k1 int, o []int)) {
-	const A, B = 4, 8
-	var u [A][B]int
+// dftLazy is the n-point DFT (32 or 64), 4 x n/4, with lazy inputs: load(j) is
+// called when the first radix-4 stage needs input j (one group at a time, so that
+// the n inputs are not all live at once). emit gets each k1's n/4 outputs,
+// X[k1+4*k2].
+func dftLazy(n int, load func(j int) int, emit func(k1 int, o []int)) {
+	const A = 4
+	B := n / A
+	u := make([][]int, A)
+	for k := range u {
+		u[k] = make([]int, B)
+	}
 	for j2 := 0; j2 < B; j2++ {
 		var x [A]int
 		for j1 := range x {
@@ -286,11 +315,11 @@ func dft32(load func(j int) int, emit func(k1 int, o []int)) {
 	}
 	for k1 := 1; k1 < A; k1++ {
 		for j2 := 1; j2 < B; j2++ {
-			u[k1][j2] = cmulConst(u[k1][j2], j2*k1, 32)
+			u[k1][j2] = cmulConst(u[k1][j2], j2*k1, n)
 		}
 	}
 	for k1 := 0; k1 < A; k1++ {
-		emit(k1, dft(u[k1][:]))
+		emit(k1, dft(u[k1]))
 	}
 }
 
@@ -477,33 +506,52 @@ func render(o ins, z func(int) string, rw bool, rwSrc int) string {
 // values of a 32-point DFT fill the 32 zmm registers, so this lowering spills
 // (Belady: the value used furthest ahead) to a scratch area after the frame.
 
-func body1024a() {
+// bigCfg is one A x B fused kernel: n = A*B points, x[B*a+b], X[k1+A*k2]. The
+// 1024-point kernel is 32 x 32; the 2048-point one is 64 x 32 or 32 x 64.
+type bigCfg struct {
+	name string // "fused1024"
+	on   string // "Fused1024On"
+	A, B int
+}
+
+func (c bigCfg) n() int { return c.A * c.B }
+
+// groups is the number of pass-1 iterations (four columns each), blocks the
+// number of pass-2 iterations (four k1 each).
+func (c bigCfg) groups() int { return c.B / 4 }
+func (c bigCfg) blocks() int { return c.A / 4 }
+
+// tableFloats is the length of one direction's pass-1 table: per group and
+// k1 = 1..A-1, 16 float64s.
+func (c bigCfg) tableFloats() int { return c.groups() * (c.A - 1) * 16 }
+
+func bodyBigA(c bigCfg) {
 	prog, nv = nil, 0
-	var y [32]int
-	dft32(func(j int) int { return ld("SI", j*512) }, func(k1 int, o []int) {
+	y := make([]int, c.A)
+	dftLazy(c.A, func(j int) int { return ld("SI", j*c.B*16) }, func(k1 int, o []int) {
 		for k2, v := range o {
 			y[k1+4*k2] = v
 		}
 	})
-	for k1 := 1; k1 < 32; k1++ {
+	for k1 := 1; k1 < c.A; k1++ {
 		off := (k1 - 1) * 128
 		t := perm(y[k1])
 		t2 := add1(ins{k: kMulT, mn: "VMULPD", mem: fmt.Sprintf("%d(DX)", off+64), src: []int{t}, acc: -1})
 		y[k1] = add1(ins{k: kFmaT, mn: "VFMADDSUB231PD", mem: fmt.Sprintf("%d(DX)", off), src: []int{y[k1]}, acc: t2})
 	}
-	for h := 0; h < 8; h++ {
+	for h := 0; h < c.blocks(); h++ {
 		o0, o1, o2, o3 := transpose4(y[4*h], y[4*h+1], y[4*h+2], y[4*h+3])
 		for j, r := range []int{o0, o1, o2, o3} {
-			st(r, "R8", (h*32+j)*64)
+			st(r, "R8", (h*c.B+j)*64)
 		}
 	}
 }
 
-func body1024b() {
+func bodyBigB(c bigCfg) {
 	prog, nv = nil, 0
-	dft32(func(j int) int { return ld("R8", j*64) }, func(k1 int, o []int) {
+	dftLazy(c.B, func(j int) int { return ld("R8", j*64) }, func(k1 int, o []int) {
 		for k2, v := range o {
-			st(v, "DI", (k1+4*k2)*512)
+			st(v, "DI", (k1+4*k2)*c.A*16)
 		}
 	})
 }
@@ -640,20 +688,20 @@ func lowerSpill() (lines []string, slots int) {
 	return
 }
 
-// twTable1024 is the pass-1 table of one direction: per group g of four columns
-// and k1 = 1..31, the real parts of w1024^(k1*b) twice each, then the imaginary
+// twTableBig is the pass-1 table of one direction: per group g of four columns
+// and k1 = 1..A-1, the real parts of w_n^(k1*b) twice each, then the imaginary
 // parts twice each (16 float64s; forward e^-i, so the sign is flipped for it).
-func twTable1024(inverse bool) []float64 {
-	t := make([]float64, 8*31*16)
-	for g := 0; g < 8; g++ {
-		for k1 := 1; k1 < 32; k1++ {
-			base := (g*31 + (k1 - 1)) * 16
+func twTableBig(c bigCfg, inverse bool) []float64 {
+	t := make([]float64, c.tableFloats())
+	for g := 0; g < c.groups(); g++ {
+		for k1 := 1; k1 < c.A; k1++ {
+			base := (g*(c.A-1) + (k1 - 1)) * 16
 			for l := 0; l < 4; l++ {
-				c, s := csDen(k1*(4*g+l), 1024)
+				cc, s := csDen(k1*(4*g+l), c.n())
 				if !inverse {
 					s = -s
 				}
-				t[base+2*l], t[base+2*l+1] = c, c
+				t[base+2*l], t[base+2*l+1] = cc, cc
 				t[base+8+2*l], t[base+8+2*l+1] = s, s
 			}
 		}
@@ -661,13 +709,13 @@ func twTable1024(inverse bool) []float64 {
 	return t
 }
 
-func twFile1024() []byte {
+func twFileBig(c bigCfg) []byte {
 	var b strings.Builder
 	b.WriteString("// Code generated by internal/genfused256/main.go; DO NOT EDIT.\n\npackage kernels\n\n")
-	b.WriteString("// fused1024Tw[inverse] is the pass-1 table of the fused 1024-point kernel: per\n// group of four columns and k1 = 1..31, 16 float64s, the real parts of\n// w1024^(k1*b) twice each, then the imaginary parts twice each, correctly\n// rounded, signed for the direction (forward e^-i).\nvar fused1024Tw = [2][3968]float64{\n")
+	fmt.Fprintf(&b, "// %sTw[inverse] is the pass-1 table of the fused %d-point kernel: per\n// group of four columns and k1 = 1..%d, 16 float64s, the real parts of\n// w%d^(k1*b) twice each, then the imaginary parts twice each, correctly\n// rounded, signed for the direction (forward e^-i).\nvar %sTw = [2][%d]float64{\n", c.name, c.n(), c.A-1, c.n(), c.name, c.tableFloats())
 	for _, inv := range []bool{false, true} {
 		b.WriteString("\t{\n")
-		for i, v := range twTable1024(inv) {
+		for i, v := range twTableBig(c, inv) {
 			if i%4 == 0 {
 				b.WriteString("\t\t")
 			}
@@ -685,18 +733,19 @@ func twFile1024() []byte {
 	return []byte(b.String())
 }
 
-// entry1024 emits fused1024 (the gates and a jump, as fused256) and
-// fused1024body: both directions, each a loop of eight iterations over the pass-1
-// body and one over the pass-2 body.
-func entry1024() {
-	out.WriteString("\n// func fused1024(dst, src *[1024]complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused1024(SB), NOSPLIT, $0-33\n")
-	emit("MOVBLZX ·Fused1024On(SB), AX")
+// entryBig emits fused<n> (the gates and a jump, as fused256) and fused<n>body:
+// both directions, each a loop over the pass-1 body (one iteration per group of
+// four columns) and one over the pass-2 body (one per block of four k1).
+func entryBig(c bigCfg) {
+	n := c.n()
+	fmt.Fprintf(&out, "\n// func %s(dst, src *[%d]complex128, tw *float64, inv bool) (ok bool)\nTEXT ·%s(SB), NOSPLIT, $0-33\n", c.name, n, c.name)
+	emit("MOVBLZX ·%s(SB), AX", c.on)
 	emit("TESTL AX, AX")
 	emit("JZ no")
 	emit("MOVBLZX ·UseStockhamAVX512(SB), AX")
 	emit("TESTL AX, AX")
 	emit("JZ no")
-	emit("JMP ·fused1024body(SB)")
+	emit("JMP ·%sbody(SB)", c.name)
 	out.WriteString("no:\n")
 	emit("MOVB $0, ok+32(FP)")
 	emit("RET")
@@ -705,9 +754,9 @@ func entry1024() {
 	slots := 0
 	for d, inverse := range []bool{false, true} {
 		inv = inverse
-		body1024a()
+		bodyBigA(c)
 		la, sa := lowerSpill()
-		body1024b()
+		bodyBigB(c)
 		lb, sb := lowerSpill()
 		bodies[d] = dirBody{la, lb}
 		for _, s := range []int{sa, sb} {
@@ -716,25 +765,26 @@ func entry1024() {
 			}
 		}
 	}
-	frame := 16384 + slots*64 + 64
-	fmt.Fprintf(&out, "\n// func fused1024body(dst, src *[1024]complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused1024body(SB), $%d-33\n", frame)
+	data := n * 16 // the frame: the n points, 4x4-transposed
+	frame := data + slots*64 + 64
+	fmt.Fprintf(&out, "\n// func %sbody(dst, src *[%d]complex128, tw *float64, inv bool) (ok bool)\nTEXT ·%sbody(SB), $%d-33\n", c.name, n, c.name, frame)
 	emit("MOVQ dst+0(FP), DI")
 	emit("MOVQ src+8(FP), SI")
 	emit("MOVQ tw+16(FP), DX")
 	emit("MOVQ SP, R11")
 	emit("ADDQ $63, R11")
 	emit("ANDQ $-64, R11")
-	emit("LEAQ 16384(R11), R9")
+	emit("LEAQ %d(R11), R9", data)
 	emit("MOVBLZX inv+24(FP), AX")
 	emit("TESTL AX, AX")
 	emit("JNZ inverse")
 	for d, name := range []string{"f", "i"} {
 		if d == 1 {
 			out.WriteString("inverse:\n")
-			emit("ADDQ $31744, DX") // the inverse table follows the forward one
+			emit("ADDQ $%d, DX", c.tableFloats()*8) // the inverse table follows the forward one
 		}
 		emit("MOVQ R11, R8")
-		emit("MOVQ $8, R10")
+		emit("MOVQ $%d, R10", c.groups())
 		emit("PCALIGN $64")
 		fmt.Fprintf(&out, "%sloop1:\n", name)
 		for _, l := range bodies[d].a {
@@ -742,17 +792,17 @@ func entry1024() {
 		}
 		emit("ADDQ $64, SI")
 		emit("ADDQ $256, R8")
-		emit("ADDQ $3968, DX")
+		emit("ADDQ $%d, DX", (c.A-1)*128)
 		emit("DECQ R10")
 		emit("JNZ %sloop1", name)
 		emit("MOVQ R11, R8")
-		emit("MOVQ $8, R10")
+		emit("MOVQ $%d, R10", c.blocks())
 		emit("PCALIGN $64")
 		fmt.Fprintf(&out, "%sloop2:\n", name)
 		for _, l := range bodies[d].b {
 			emit("%s", l)
 		}
-		emit("ADDQ $2048, R8")
+		emit("ADDQ $%d, R8", c.B*64)
 		emit("ADDQ $64, DI")
 		emit("DECQ R10")
 		emit("JNZ %sloop2", name)
@@ -761,6 +811,14 @@ func entry1024() {
 		emit("RET")
 	}
 }
+
+var (
+	cfg1024 = bigCfg{"fused1024", "Fused1024On", 32, 32}
+	// cfg2048 is 32 x 64: a 32-point first pass and a 64-point second pass (which
+	// spills), measured against 64 x 32 (a 64-point first pass, with the
+	// twiddles after it): 1891 against 2070 ns through Plan.FFT (#162).
+	cfg2048 = bigCfg{"fused2048", "Fused2048On", 32, 64}
+)
 
 var out strings.Builder
 
@@ -849,9 +907,10 @@ func main() {
 	}
 	files := map[string][]byte{
 		"fused256_amd64.s":  assemblyFile(entry),
-		"fused1024_amd64.s": assemblyFile(entry1024),
+		"fused1024_amd64.s": assemblyFile(func() { entryBig(cfg1024) }),
+		"fused2048_amd64.s": assemblyFile(func() { entryBig(cfg2048) }),
 	}
-	for name, src := range map[string][]byte{"fused256_tw_amd64.go": twFile(), "fused1024_tw_amd64.go": twFile1024()} {
+	for name, src := range map[string][]byte{"fused256_tw_amd64.go": twFile(), "fused1024_tw_amd64.go": twFileBig(cfg1024), "fused2048_tw_amd64.go": twFileBig(cfg2048)} {
 		b, err := format.Source(src)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

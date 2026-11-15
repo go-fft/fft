@@ -27,4 +27,13 @@ func TestFused256Stubs(t *testing.T) {
 	if Fused1024Table(false) != nil || Fused1024Table(true) != nil {
 		t.Error("Fused1024Table is not nil off amd64")
 	}
+	if Fused2048On {
+		t.Error("Fused2048On is true off amd64")
+	}
+	if Fused2048(new([2048]complex128), new([2048]complex128), false) {
+		t.Error("Fused2048 reports a transform off amd64")
+	}
+	if Fused2048Table(false) != nil || Fused2048Table(true) != nil {
+		t.Error("Fused2048Table is not nil off amd64")
+	}
 }

@@ -424,6 +424,38 @@ in-register constant of the assembly, off by 1e-14 fails it
 (`TestFused256ImpulseMutation` sweeps every table entry; the constants were
 mutated by hand).
 
+## Fused 2048-point kernel (Zen 4, #162)
+
+`internal/genfused256` generalizes the 1024 builder to an A x B kernel and writes
+`internal/kernels/fused2048_amd64.s` and `fused2048_tw_amd64.go`: 2048 =
+32 x 64, x[64a+b], X[k1+32*k2]. Pass 1, per group of four columns (16 iterations
+of one generated body): a 32-point DFT across the a axis, the w2048 twiddles from
+a 62 KB table per direction (31 rows of 128 bytes per group, correctly rounded,
+64-byte aligned like the others) and a 4x4 transpose into a 32 KB frame; pass 2, per
+block of four k1 (8 iterations): a 64-point DFT across the b axis, which spills
+(35 scratch slots, 269 spill loads and stores per direction), and contiguous
+stores. The other factorization, 64 x 32 (a 64-point first pass, the twiddles
+after it), measured 2070 ns through `Plan.FFT` against 1891 for 32 x 64 and 2265
+for the passes of v0.37.1 in the same rounds, so 32 x 64 was kept. Default and FMA
+plans of 2048 points take the kernel on a Zen 4; `Options.Exact`, `NoFMA` and
+every other CPU keep their passes. A `RealPlan` calls `Plan.execute` on its
+half-length plan, so RFFT and IRFFT of 4096 points take it with no other change.
+One pinned core (cpu 6), 15 interleaved rounds, medians, load 0.5 to 1.3,
+`FFTW_MEASURE` out of place, FFTW 3.3.10 AVX-512 (2026-11-15):
+
+| | v0.37.1 ns | fused ns | ratio | FFTW AVX-512 ns | go-fft / FFTW before, after |
+|---|---|---|---|---|---|
+| complex 2048 forward | 2272 | 1875 | 0.83 | 1869 | 1.22, 1.00 |
+| complex 2048 inverse unnormalized | 2286 | 1872 | 0.82 | 1864 | 1.23, 1.00 |
+| RFFT 4096 | 2789 | 2502 | 0.90 | 2493 | 1.12, 1.00 |
+
+1024, 4096 and RFFT 8192 are unchanged within 1%. Accuracy:
+`TestFused2048Accuracy` (c2c bound), `TestFused2048Impulses` (every unit impulse,
+1 and i at 2048 positions, both directions, 2e-15 absolute; worst observed
+3.96e-16), `TestFused2048ImpulseMutation` (1e-14 in every 13th table entry fails
+it at its columns, an ulp does not; the w64 constant cos(2 pi/64) off by 1e-14 in
+the generated assembly, mutated by hand, fails the impulse test at 1.0e-14).
+
 ## Fused 1024-point kernel (Zen 4, #162)
 
 Alignment of the tables (added after the first measurement): Go's linker aligns a
