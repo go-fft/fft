@@ -143,3 +143,10 @@ isFamily19_base:
 isFamily19_other:
 	RET
 
+TEXT ·cpuidSignature(SB), NOSPLIT, $0-4
+	MOVL $1, AX
+	XORL CX, CX
+	CPUID
+	MOVL AX, ret+0(FP)
+	RET
+

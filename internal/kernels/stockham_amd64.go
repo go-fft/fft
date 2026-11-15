@@ -46,24 +46,30 @@ func isFamily19() bool
 // passes'; Options.Exact and NoFMA plans never take it).
 var AMDZen4 = detectedDispatch.Zen4
 
-// IntelCascadeLake reports an Intel Skylake-SP derivative with AVX-512 whose
-// CPUID signature is family 6, model 0x55, stepping 5 or later: Cascade Lake
-// (stepping 5 to 7) and Cooper Lake (10, 11). Skylake-SP itself (stepping 4 and
-// below), Ice Lake (model 0x6A, 0x6C) and Sapphire Rapids (0x8F) are not: the
-// fused 256- and 2048-point kernels were measured on a Cascade Lake, stepping 5
-// (go-fft/fft#162) and nowhere else on Intel. It selects those two kernels
-// (Fused256On, Fused2048On) and nothing else.
+// IntelCascadeLake reports an Intel Cascade Lake: AVX-512 (F and DQ), vendor
+// Intel, CPUID.1:EAX family 6, model 0x55, stepping 5, 6 or 7. The fused 256- and
+// 2048-point kernels were measured on one such part, stepping 5 (go-fft/fft#162).
+// Every other signature is unmeasured and keeps its plans: Skylake-SP (stepping 3
+// and 4), Cooper Lake (model 0x55 too, steppings 10 and 11), the other steppings
+// 8, 9 and 12 to 15, Ice Lake (model 0x6A, 0x6C), Sapphire Rapids (0x8F). It
+// selects those two kernels (Fused256On, Fused2048On) and nothing else, and only
+// speed is at stake: the AVX-512 F, DQ and OS-state probes decide separately
+// whether the kernels may run at all. Under a hypervisor a named CPU model can
+// report model 0x55 on other hardware; the rule then sends that machine to the
+// kernels unmeasured, which can cost speed and nothing else.
 var IntelCascadeLake = detectedDispatch.CascadeLake
 
 // cascadeLakeDefault is IntelCascadeLake's rule, a pure function tested on any
-// machine: AVX-512 (F and DQ), vendor Intel, and a CPUID.1:EAX signature of
-// family 6 (base family 6, no extended family), model 0x55 (extended model 5,
-// model 5), stepping at least 5.
+// machine. sig is CPUID.1:EAX as go-asmgen's SignatureProbe returns it: stepping
+// in bits 3:0, model in 7:4, family in 11:8, extended model in 19:16, extended
+// family in 27:20. The rule is family 6 (extended family 0), displayed model
+// (extended model << 4 | model) 0x55, stepping in {5, 6, 7}.
 func cascadeLakeDefault(avx512, intel bool, sig uint32) bool {
 	family := sig >> 8 & 0xF
 	extFamily := sig >> 20 & 0xFF
 	model := sig>>16&0xF<<4 | sig>>4&0xF
-	return avx512 && intel && family == 6 && extFamily == 0 && model == 0x55 && sig&0xF >= 5
+	stepping := sig & 0xF
+	return avx512 && intel && family == 6 && extFamily == 0 && model == 0x55 && stepping >= 5 && stepping <= 7
 }
 
 // zen4Default is AMDZen4's rule, a pure function tested on any machine.

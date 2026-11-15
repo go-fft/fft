@@ -45,7 +45,7 @@ var detectedCPU = cpuFeatures{
 	Signature:   cpuidSignature(),
 }
 
-// cpuidSignature is CPUID leaf 1's EAX (cpuid_signature_amd64.s).
+// cpuidSignature is CPUID leaf 1's EAX, go-asmgen's SignatureProbe (cpu_amd64.s).
 func cpuidSignature() uint32
 
 // dispatch holds the defaults derived from a cpuFeatures value.

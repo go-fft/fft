@@ -110,6 +110,10 @@ func main() {
 	// 5 is 0x1A); go-asmgen v0.23.1. Tuning only, like isGenuineIntel.
 	fp.Add(amd64.VendorProbe("isAuthenticAMD", "AuthenticAMD"))
 	fp.Add(amd64.FamilyProbe("isFamily19", 0x19))
+	// The whole CPUID.1:EAX signature (family, model, stepping) for the fused
+	// 256- and 2048-point kernels' Intel gate (go-fft/fft#162); the decoding is
+	// Go, in cpufeatures_amd64.go and stockham_amd64.go. Tuning only.
+	fp.Add(amd64.SignatureProbe("cpuidSignature"))
 	writeFile("cpu_amd64.s", fp.String())
 
 	// The float32 pass kernels.

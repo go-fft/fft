@@ -484,12 +484,17 @@ the bound `TestFused256Accuracy` and `TestFused2048Accuracy` assert). The 512-bi
 clock drop of an Intel part is in these numbers (the machine ran its own clocks).
 
 So 256 and 2048 points take the kernels on a Cascade Lake (`kernels.IntelCascadeLake`:
-vendor Intel, AVX-512 F and DQ, CPUID.1:EAX family 6, model 0x55, stepping 5 or
-later, a rule on the signature and not on "AVX-512 present"; Skylake-SP stepping 4,
-Ice Lake and Sapphire Rapids are not measured and keep their plans), and 1024 does
-not: it gains 3.5 to 6.3% in the two runs, under the 5% bar, and stays on the
-Zen 4 only. The signature is read by `cpuid_signature_amd64.s` (hand written:
-go-asmgen has a vendor and a family probe but no model probe).
+vendor Intel, AVX-512 F and DQ, CPUID.1:EAX family 6, model 0x55, stepping 5, 6
+or 7, a rule on the signature and not on "AVX-512 present"). Only stepping 5 was
+measured; every other signature keeps its plans: Cooper Lake (model 0x55, steppings
+10 and 11), the steppings 8, 9 and 12 to 15, Skylake-SP, Ice Lake and Sapphire
+Rapids. 1024 does not take the kernel: it gains 3.5 to 6.3% in the two runs, under
+the 5% bar, and stays on the Zen 4 only. The signature is read by go-asmgen's
+`SignatureProbe` (CPUID leaf 1's EAX, raw) and decoded in Go
+(`cascadeLakeDefault`, tested on every stepping). Under a hypervisor a named CPU
+model can report model 0x55 on other hardware, which then runs the kernels
+unmeasured; only speed is at stake, since the AVX-512 F, DQ and OS-state probes
+decide separately whether the kernels may run.
 
 ## Fused 1024-point kernel (Zen 4, #162)
 
