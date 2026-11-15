@@ -16,4 +16,7 @@ func TestFused256NotHere(t *testing.T) {
 	if p := NewPlan(1024); fused1024Route(1024) || (p.sk != nil && p.sk.f1024) || fused1024Run(nil, nil, false) {
 		t.Error("the fused 1024-point route is on off amd64")
 	}
+	if p := NewPlan(2048); fused2048Route(2048) || (p.sk != nil && p.sk.f2048) || fused2048Run(nil, nil, false) {
+		t.Error("the fused 2048-point route is on off amd64")
+	}
 }

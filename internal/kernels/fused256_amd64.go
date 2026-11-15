@@ -38,9 +38,9 @@ func Fused256Ref(dst, src *[256]complex128, inverse bool) bool {
 // perturb it to show what the accuracy bound can see.
 func Fused256Table(inverse bool) []float64 {
 	if inverse {
-		return fused256TwA[len(fused256Tw[0]):]
+		return fused256TwA[len(fused256TwA)/2:]
 	}
-	return fused256TwA[:len(fused256Tw[0])]
+	return fused256TwA[:len(fused256TwA)/2]
 }
 
 // Fused256On is whether the fused kernel runs here: AVX-512 (F and DQ, the

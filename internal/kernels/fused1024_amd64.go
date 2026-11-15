@@ -24,9 +24,9 @@ func fused1024body(dst, src *[1024]complex128, tw *float64, inv bool) (ok bool)
 // perturb it to show what the accuracy bound can see.
 func Fused1024Table(inverse bool) []float64 {
 	if inverse {
-		return fused1024TwA[len(fused1024Tw[0]):]
+		return fused1024TwA[len(fused1024TwA)/2:]
 	}
-	return fused1024TwA[:len(fused1024Tw[0])]
+	return fused1024TwA[:len(fused1024TwA)/2]
 }
 
 // Fused1024On is whether the fused 1024-point kernel runs here: AVX-512 (F and

@@ -194,13 +194,13 @@ jobs:
             git status --porcelain -- 'dct4_*_gen*.go' 'dct4_*_arm64.s'
             echo "::error::the DCT-IV(64) generator wrote files that are not committed"; exit 1
           fi
-      - name: Regenerate the fused 256- and 1024-point kernels and check they are current
+      - name: Regenerate the fused 256-, 1024- and 2048-point kernels and check they are current
         run: |
           go run internal/genfused256/main.go
-          git diff --exit-code -- internal/kernels/fused256_amd64.s internal/kernels/fused256_tw_amd64.go internal/kernels/fused1024_amd64.s internal/kernels/fused1024_tw_amd64.go || {
+          git diff --exit-code -- internal/kernels/fused256_amd64.s internal/kernels/fused256_tw_amd64.go internal/kernels/fused1024_amd64.s internal/kernels/fused1024_tw_amd64.go internal/kernels/fused2048_amd64.s internal/kernels/fused2048_tw_amd64.go || {
             echo "::error::the fused kernels are stale; run go generate and commit"; exit 1; }
-          if [ -n "$(git status --porcelain -- 'internal/kernels/fused256*' 'internal/kernels/fused1024*')" ]; then
-            git status --porcelain -- 'internal/kernels/fused256*' 'internal/kernels/fused1024*'
+          if [ -n "$(git status --porcelain -- 'internal/kernels/fused256*' 'internal/kernels/fused1024*' 'internal/kernels/fused2048*')" ]; then
+            git status --porcelain -- 'internal/kernels/fused256*' 'internal/kernels/fused1024*' 'internal/kernels/fused2048*'
             echo "::error::the fused kernel generator wrote a file that is not committed"; exit 1
           fi
       - name: Vet (asmdecl) + build + run (SIMD == scalar)

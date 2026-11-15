@@ -51,6 +51,7 @@ type skPlan struct {
 	// Plan's own copy.
 	f256    bool
 	f1024   bool // the same for the fused 1024-point kernel (fused1024.go)
+	f2048   bool // and for the fused 2048-point kernel (fused2048.go)
 	n       int
 	stages  []skStage
 	scratch sync.Pool

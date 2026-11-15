@@ -65,7 +65,7 @@ func TestFused256Generated(t *testing.T) {
 	if b, err := exec.Command(goBin, "run", "internal/genfused256/main.go", dir).CombinedOutput(); err != nil {
 		t.Fatalf("generator: %v\n%s", err, b)
 	}
-	for _, name := range []string{"fused256_amd64.s", "fused256_tw_amd64.go", "fused1024_amd64.s", "fused1024_tw_amd64.go"} {
+	for _, name := range []string{"fused256_amd64.s", "fused256_tw_amd64.go", "fused1024_amd64.s", "fused1024_tw_amd64.go", "fused2048_amd64.s", "fused2048_tw_amd64.go"} {
 		got, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
 			t.Fatal(err)
