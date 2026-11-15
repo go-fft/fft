@@ -6,7 +6,7 @@ package kernels
 const Fused256On = false
 
 // Fused256 never runs here: it reports false.
-func Fused256(dst, src []complex128, inverse bool) bool { return false }
+func Fused256(dst, src *[256]complex128, inverse bool) bool { return false }
 
 // Fused256Table is nil off amd64.
 func Fused256Table(inverse bool) []float64 { return nil }

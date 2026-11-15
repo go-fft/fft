@@ -275,13 +275,21 @@ func body(inverse bool) {
 // with the route off, it reports false before any AVX-512 instruction runs and
 // the Go caller falls back; then the forward body and the inverse body.
 func entry() {
-	out.WriteString("\n// func fused256(dst, src, tw *complex128, inv bool) (ok bool)\nTEXT ·fused256(SB), $4160-33\n")
+	// The gates live in a frame-free NOSPLIT entry that jumps to the body, so the
+	// 4160-byte frame is set up only when the kernel runs.
+	out.WriteString("\n// func fused256(dst, src *complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused256(SB), NOSPLIT, $0-33\n")
 	emit("MOVBLZX ·Fused256On(SB), AX")
 	emit("TESTL AX, AX")
 	emit("JZ no")
 	emit("MOVBLZX ·UseStockhamAVX512(SB), AX")
 	emit("TESTL AX, AX")
 	emit("JZ no")
+	emit("JMP ·fused256body(SB)")
+	out.WriteString("no:\n")
+	emit("MOVB $0, ok+32(FP)")
+	emit("RET")
+	// tw is the forward table; the inverse one follows it (1024 float64s).
+	out.WriteString("\n// func fused256body(dst, src *complex128, tw *float64, inv bool) (ok bool)\nTEXT ·fused256body(SB), $4160-33\n")
 	emit("MOVQ dst+0(FP), DI")
 	emit("MOVQ src+8(FP), SI")
 	emit("MOVQ tw+16(FP), DX")
@@ -293,10 +301,8 @@ func entry() {
 	emit("JNZ inverse")
 	body(false)
 	out.WriteString("inverse:\n")
+	emit("ADDQ $8192, DX")
 	body(true)
-	out.WriteString("no:\n")
-	emit("MOVB $0, ok+32(FP)")
-	emit("RET")
 }
 
 func main() {

@@ -9,7 +9,7 @@ func TestFused256Stubs(t *testing.T) {
 	if Fused256On {
 		t.Error("Fused256On is true off amd64")
 	}
-	if Fused256(nil, nil, false) {
+	if Fused256(new([256]complex128), new([256]complex128), false) {
 		t.Error("Fused256 reports a transform off amd64")
 	}
 	if Fused256Table(false) != nil || Fused256Table(true) != nil {

@@ -31,7 +31,7 @@ func enableFused(t testing.TB) {
 // runFused runs the kernel and fails the test if it refuses.
 func runFused(t testing.TB, dst, src []complex128, inv bool) {
 	t.Helper()
-	if !kernels.Fused256(dst, src, inv) {
+	if !kernels.Fused256((*[256]complex128)(dst), (*[256]complex128)(src), inv) {
 		t.Fatal("the fused kernel refused with its gate on")
 	}
 }
@@ -226,7 +226,7 @@ func TestFused256GateIsLive(t *testing.T) {
 		for i := range dst {
 			dst[i] = sentinel
 		}
-		if kernels.Fused256(dst, x, false) {
+		if kernels.Fused256((*[256]complex128)(dst), (*[256]complex128)(x), false) {
 			t.Errorf("%s off: the kernel ran", name)
 		}
 		for i := range dst {
@@ -335,7 +335,7 @@ func BenchmarkFused256(b *testing.B) {
 	dst := make([]complex128, n)
 	b.Run("kernel-fwd", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			kernels.Fused256(dst, src, false)
+			kernels.Fused256((*[256]complex128)(dst), (*[256]complex128)(src), false)
 		}
 	})
 	for _, o := range []struct {
@@ -348,5 +348,37 @@ func BenchmarkFused256(b *testing.B) {
 				p.FFT(dst, src)
 			}
 		})
+	}
+}
+
+// TestFused256PlanNRows holds PlanN transforms whose rows are 256 points
+// ({1,256}: only rows; {3,256}: rows and a strip axis of 3; {256,256}: rows and
+// strips of 256), both directions (the inverse unnormalized), to the c2cN bound
+// against the double-double N-D oracle. With AVX-512 the route is forced on, so
+// the rows run the kernel (contiguousLines); elsewhere they run their passes.
+func TestFused256PlanNRows(t *testing.T) {
+	if kernels.UseStockhamAVX512 {
+		enableFused(t)
+	}
+	isolatePlans(t)
+	defer func(e, a, d bool) { fused256Enabled, fmaAvailable, defaultFuses = e, a, d }(fused256Enabled, fmaAvailable, defaultFuses)
+	fused256Enabled, fmaAvailable, defaultFuses = true, kernels.UseFMA, true
+	for _, shape := range [][]int{{1, 256}, {3, 256}, {256, 256}} {
+		size := shape[0] * shape[1]
+		x := accComplexF64(size, uint64(size))
+		p := NewPlanN(shape...)
+		bound := accBound["c2cN"] * eps64 * math.Log2(float64(size))
+		for _, inv := range []bool{false, true} {
+			got := make([]complex128, size)
+			if inv {
+				p.IFFTNorm(got, x, NormForward)
+			} else {
+				p.FFT(got, x)
+			}
+			want := oFFTN(cddFromC(x), shape, allAxes(len(shape)), inv)
+			if e := errC(got, want); e > bound {
+				t.Errorf("shape %v inverse=%v: relative RMS error %.3g above the bound %.3g", shape, inv, e, bound)
+			}
+		}
 	}
 }

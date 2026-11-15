@@ -23,14 +23,21 @@ GLOBL f256_bfed906bcf328d46<>(SB), RODATA|NOPTR, $8
 DATA f256_bff0000000000000<>+0(SB)/8, $0xbff0000000000000
 GLOBL f256_bff0000000000000<>(SB), RODATA|NOPTR, $8
 
-// func fused256(dst, src, tw *complex128, inv bool) (ok bool)
-TEXT ·fused256(SB), $4160-33
+// func fused256(dst, src *complex128, tw *float64, inv bool) (ok bool)
+TEXT ·fused256(SB), NOSPLIT, $0-33
 	MOVBLZX ·Fused256On(SB), AX
 	TESTL AX, AX
 	JZ no
 	MOVBLZX ·UseStockhamAVX512(SB), AX
 	TESTL AX, AX
 	JZ no
+	JMP ·fused256body(SB)
+no:
+	MOVB $0, ok+32(FP)
+	RET
+
+// func fused256body(dst, src *complex128, tw *float64, inv bool) (ok bool)
+TEXT ·fused256body(SB), $4160-33
 	MOVQ dst+0(FP), DI
 	MOVQ src+8(FP), SI
 	MOVQ tw+16(FP), DX
@@ -1464,6 +1471,7 @@ TEXT ·fused256(SB), $4160-33
 	MOVB $1, ok+32(FP)
 	RET
 inverse:
+	ADDQ $8192, DX
 	VMOVUPD 0(SI), Z0
 	VMOVUPD 256(SI), Z1
 	VMOVUPD 512(SI), Z2
@@ -2886,7 +2894,4 @@ inverse:
 	VMOVUPD Z17, 4032(DI)
 	VZEROUPPER
 	MOVB $1, ok+32(FP)
-	RET
-no:
-	MOVB $0, ok+32(FP)
 	RET
