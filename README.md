@@ -400,8 +400,8 @@ against a double-double oracle at `eps32·log2(N)` times the c2c constant, and
 `Options.Exact`, `Options.NoFMA`, the plans under the N-D, 2-D real, DCT, DST and
 MDCT transforms (golden digests pin their bits) never take it. Ryzen 9 7950X, one
 core, fresh process per row, FFTW 3.3.10 AVX-512 single precision, ns per
-transform (go-fft before, now, FFTW): 64 40.1, 28.2, 22.1; 256 128.4, 82.3,
-76.3; 1,024 563.1, 367.6, 380.3; 4,096 4,578, 2,170, 2,277; 8,192 8,568,
+transform (go-fft before, now, FFTW): 64 40.1, 22.9, 22.2; 256 128.4, 79.5,
+77.0; 1,024 563.1, 367.6, 380.3; 4,096 4,578, 2,170, 2,277; 8,192 8,568,
 5,221, 7,221. On a Cascade Lake it takes 0.43
 to 0.66 of the passes' time (FFTW single precision not measured there). See
 docs/perf-history.md.
