@@ -652,7 +652,7 @@ complex128 1024- and 2048-point kernels with eight complex64 per zmm (so the
 packed-single mnemonics, `VPERMILPS $0xB1` for the re/im swap, 4-byte broadcast
 constants, an 8x8 transpose of 64-bit elements, 24 shuffles per block, between the
 passes). Factorizations, x[B*a+b] with A x B: 64 = 8x8, 128 = 16x8, 256 = 16x16,
-512 = 32x16, 1024 = 32x32, 2048 = 64x32, 4096 = 64x64, 8192 = 128x64; the 32-, 64- and
+512 = 32x16, 1024 = 32x32, 2048 = 32x64, 4096 = 64x64, 8192 = 128x64; the 32-, 64- and
 128-point DFTs spill (Belady) as the complex128 ones.
 The twiddle tables are float32, each entry the 400-bit value rounded once to
 float32 (`gentwiddle.CosSin32`: never float64 first), 64-byte aligned in place in
@@ -712,3 +712,30 @@ Not covered: 16,384 points (it gains, 0.58 of the passes' time and 0.81 to 0.83 
 FFTW, but its table is a 1.5 MiB source file), 32,768 and 65,536 points (tables
 of 0.5 and 1 MB per direction), N-D rows, and still above 1.05 against FFTW: 64 (1.28), 128 (1.12), 256 (1.08),
 2,048 (1.05 to 1.06).
+
+### Complex64: the dispatch chain, and 2,048 as 32x64 (#162)
+
+After the kernels above, 64, 128, 256 and 2,048 points stayed above 1.05 of FFTW
+(1.31, 1.12, 1.02 to 1.07, 1.04 to 1.06; fresh process per row, cpu 9 and 14).
+Called alone, the 64-point kernel takes 17.6 ns, 22.0 ns being FFTW's whole call:
+the 6 ns over were the Go chain around it. `Plan32.FFT` went through `FFTNorm` (the
+norm switch, `checkLen`, `execute`, the scale call), and `execute` called `fusedSRun`, one
+function with a switch over the eight lengths (inline cost 596, as
+`fusedRun` was for complex128 in #165), which called the kernel's wrapper.
+`perf stat` of `c64/64`, per transform, Zen 4: 163 cycles and 367 instructions, with 56 cycles
+of `store_queue_rsrc_stall` (35%: the chain's frames and argument spills), against 122
+cycles for FFTW (438 instructions, no store-queue stall). Now `FFT` is `checkLen`,
+`execute`, and `execute` tests the plan's fused length first and calls one
+inlinable `fusedS<n>Run` per length (cost 72 each, inlined into `execute`): 124
+cycles, 309 instructions, 20 cycles of store-queue stall. Ns per transform before,
+now, FFTW, cpu 9 and 14 (7 rounds): 64 28.9 and 29.6, 22.9 and 23.6, 22.2 and
+23.0 (1.31 to 1.03); 128 43.2 and 44.3, 39.3 and 40.4, 39.0 and 39.8 (1.12 to
+1.01); 256 82.3 and 84.8, 79.5 and 82.4, 78.0 and 80.6 (1.07 and 1.02 to 1.02).
+The 2,048-point kernel is now 32x64 (a 32-point first pass, a 64-point second
+pass that spills, as the complex128 one): 853 ns against 920 to 946 for 64x32 on
+a Zen 4 (-8%), 2,355 against 2,650 on a Cascade Lake (-11%); the other lengths'
+other factorization measured the same or slower (128 as 8x16 42.4 against 39.4,
+512 as 16x32 168.9 against 165, 8192 as 64x128 within noise). Final rows, ratio to
+FFTW on the two cores (64, 128, 256, 1,024, 2,048, 4,096): 1.01 and 1.04, 1.02
+and 1.02, 1.01 and 0.98, 1.01 and 0.98, 0.94 and 0.99, 0.97 and 0.96: none above
+1.05.

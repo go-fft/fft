@@ -41,7 +41,7 @@ func fusedSCases() []fusedSCase {
 		}, kernels.FusedS1024Table, &kernels.FusedS1024On, 32, 32},
 		{2048, func(d, s []complex64, i bool) bool {
 			return kernels.FusedS2048((*[2048]complex64)(d), (*[2048]complex64)(s), i)
-		}, kernels.FusedS2048Table, &kernels.FusedS2048On, 64, 32},
+		}, kernels.FusedS2048Table, &kernels.FusedS2048On, 32, 64},
 		{4096, func(d, s []complex64, i bool) bool {
 			return kernels.FusedS4096((*[4096]complex64)(d), (*[4096]complex64)(s), i)
 		}, kernels.FusedS4096Table, &kernels.FusedS4096On, 64, 64},

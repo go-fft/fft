@@ -1099,7 +1099,7 @@ var cfgsS = []c64Cfg{
 	{"fusedS256", "FusedS256On", 16, 16},
 	{"fusedS512", "FusedS512On", 32, 16},
 	{"fusedS1024", "FusedS1024On", 32, 32},
-	{"fusedS2048", "FusedS2048On", 64, 32},
+	{"fusedS2048", "FusedS2048On", 32, 64},
 	{"fusedS4096", "FusedS4096On", 64, 64},
 	{"fusedS8192", "FusedS8192On", 128, 64},
 }

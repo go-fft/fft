@@ -87,7 +87,9 @@ func (p *Plan32) Len() int { return p.n }
 // FFT writes the forward DFT of src into dst, unnormalized, and returns dst.
 // dst and src must each have at least Len() elements; dst may alias src.
 func (p *Plan32) FFT(dst, src []complex64) []complex64 {
-	return p.FFTNorm(dst, src, NormBackward)
+	p.checkLen(dst, src) // FFTNorm(NormBackward) without its scale (1) and the call
+	p.execute(dst, src, false)
+	return dst
 }
 
 // IFFT writes the inverse DFT of src into dst, normalized by N, and returns
@@ -128,10 +130,33 @@ func (p *Plan32) checkLen(dst, src []complex64) {
 
 // execute leaves the unnormalized transform of src in dst.
 func (p *Plan32) execute(dst, src []complex64, inverse bool) {
+	if fs := p.fs; fs != 0 { // a fused kernel's length: the call is inlined, per length
+		var ok bool
+		switch fs {
+		case 64:
+			ok = fusedS64Run(dst, src, inverse)
+		case 128:
+			ok = fusedS128Run(dst, src, inverse)
+		case 256:
+			ok = fusedS256Run(dst, src, inverse)
+		case 512:
+			ok = fusedS512Run(dst, src, inverse)
+		case 1024:
+			ok = fusedS1024Run(dst, src, inverse)
+		case 2048:
+			ok = fusedS2048Run(dst, src, inverse)
+		case 4096:
+			ok = fusedS4096Run(dst, src, inverse)
+		case 8192:
+			ok = fusedS8192Run(dst, src, inverse)
+		}
+		if ok {
+			return
+		}
+	}
 	switch {
 	case p.n <= 1:
 		copy(dst[:p.n], src[:p.n])
-	case p.fs != 0 && fusedSRun(p.fs, dst, src, inverse):
 	case p.sk != nil:
 		p.sk.transform(dst, src, inverse)
 	case p.rader != nil:
