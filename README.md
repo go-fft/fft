@@ -403,7 +403,13 @@ core, fresh process per row, FFTW 3.3.10 AVX-512 single precision, ns per
 transform (go-fft before, now, FFTW): 64 40.1, 22.9, 22.2; 256 128.4, 79.5,
 77.0; 1,024 563.1, 367.6, 380.3; 4,096 4,578, 2,170, 2,277; 8,192 8,568,
 5,221, 7,221. On a Cascade Lake it takes 0.43
-to 0.66 of the passes' time (FFTW single precision not measured there). See
+to 0.66 of the passes' time (FFTW single precision not measured there). The call
+into the kernel is inlined per length (`Plan32.FFT` goes straight to `execute`,
+which calls one small function per kernel length, instead of one function with a
+switch over the lengths): against FFTW the ratios are 64 1.01 to 1.04, 128 1.02,
+256 0.98 to 1.01 and 2,048 0.94 to 0.99, so no length from 64 to 8,192 is above
+1.05. The 2,048-point kernel is 32×64 (a 32-point first pass, a 64-point second
+pass), 8% faster than 64×32 on a Zen 4 and 11% on a Cascade Lake. See
 docs/perf-history.md.
 
 ## Performance
