@@ -42,9 +42,13 @@ DCT/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 DCT/typ=4/ortho/n=4096	3 digests
 DCTN/typ=1/backward/shape=[64 64]	2 digests
 DCTN/typ=1/ortho/shape=[64 64]	2 digests
+DCTN/typ=2/backward/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 DCTN/typ=2/backward/shape=[8 9]	2 digests
+DCTN/typ=2/ortho/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 DCTN/typ=2/ortho/shape=[8 9]	2 digests
+DCTN/typ=3/backward/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 DCTN/typ=3/backward/shape=[8 9]	2 digests
+DCTN/typ=3/ortho/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 DCTN/typ=3/ortho/shape=[8 9]	2 digests
 DCTN/typ=4/backward/shape=[8 9]	2 digests
 DCTN/typ=4/ortho/shape=[8 9]	2 digests
@@ -228,9 +232,13 @@ IDCT/typ=4/ortho/n=257	3 digests (qemu, CI runner, Rosetta)
 IDCT/typ=4/ortho/n=4096	3 digests
 IDCTN/typ=1/backward/shape=[64 64]	2 digests
 IDCTN/typ=1/ortho/shape=[64 64]	2 digests
+IDCTN/typ=2/backward/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 IDCTN/typ=2/backward/shape=[8 9]	2 digests
+IDCTN/typ=2/ortho/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 IDCTN/typ=2/ortho/shape=[8 9]	2 digests
+IDCTN/typ=3/backward/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 IDCTN/typ=3/backward/shape=[8 9]	2 digests
+IDCTN/typ=3/ortho/shape=[64 64]	2 digests (fused DCT-II/III: the AVX2+FMA kernel of floats.MirrorCombine or its portable loop)
 IDCTN/typ=3/ortho/shape=[8 9]	2 digests
 IDCTN/typ=4/backward/shape=[8 9]	2 digests
 IDCTN/typ=4/ortho/shape=[8 9]	2 digests

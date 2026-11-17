@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/go-simd/floats v0.21.0 // indirect
+	github.com/go-simd/floats v0.26.1-0.20261117124453-7da57b9bbbf2 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 

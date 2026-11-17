@@ -439,6 +439,9 @@ type DCTPlan struct {
 	// Separate from fused, which is the single call: on amd64 the pooled path
 	// beats the scalar kernel, and only the pair kernel gains.
 	pair bool
+
+	// fast: the fused DCT-II/III of length 32, 64 or 128 (dct23.go); nil otherwise.
+	fast *dct23
 }
 
 // NewDCTPlan returns a plan for the DCT of type typ (1, 2, 3 or 4) of length
@@ -446,9 +449,13 @@ type DCTPlan struct {
 // DCT-I, 1 for the others.
 func NewDCTPlan(n, typ int) *DCTPlan {
 	checkR2R(true, typ, n, NormBackward)
-	return &DCTPlan{typ: typ, k: newR2RKernel(true, typ, n),
+	p := &DCTPlan{typ: typ, k: newR2RKernel(true, typ, n),
 		fused: typ == 4 && dct4FusedLen(n) && dct4FusedRoute,
 		pair:  typ == 4 && dct4FusedLen(n) && dct4PairRoute(n)}
+	if (typ == 2 || typ == 3) && dct23Len(n) {
+		p.fast = newDCT23(n)
+	}
+	return p
 }
 
 // Len reports the transform length the plan was built for.
@@ -491,6 +498,18 @@ func (p *DCTPlan) run(dst, src []float64, norm Norm, inverse bool) []float64 {
 	a := 1.0
 	if ortho {
 		a = sqrt2
+	}
+	if p.fast != nil {
+		if typ == 2 {
+			p.fast.forward(dst, src)
+			if ortho {
+				dst[0] /= sqrt2
+			}
+		} else {
+			p.fast.inverse(dst, src, a)
+		}
+		scaleReal(dst[:n], f)
+		return dst[:n]
 	}
 	s := k.pool.get()
 	switch typ {
