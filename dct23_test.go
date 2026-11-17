@@ -136,6 +136,7 @@ func TestDCT23ValidatesBeforeWriting(t *testing.T) {
 			for name, f := range map[string]func(dst, src []float64){
 				"short dst":    func(dst, src []float64) { p.DCT(dst[:n-1], src, NormBackward) },
 				"short src":    func(dst, src []float64) { p.DCT(dst, src[:n-1], NormBackward) },
+				"short src, I": func(dst, src []float64) { p.IDCT(dst, src[:n-1], NormBackward) },
 				"short dst, I": func(dst, src []float64) { p.IDCT(dst[:n-1], src, NormBackward) },
 				"bad norm":     func(dst, src []float64) { p.DCT(dst, src, Norm(99)) },
 			} {

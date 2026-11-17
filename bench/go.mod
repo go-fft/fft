@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/go-fleettools/fleettools v0.81.0 // indirect
-	github.com/go-simd/floats v0.26.1-0.20261117124453-7da57b9bbbf2 // indirect
+	github.com/go-simd/floats v0.26.1-0.20261117130735-eba148f3ce4d // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 
