@@ -224,19 +224,19 @@ DCTN/typ=1/ortho/shape=[64 64]	a4a26e3b050175a732805a2c7669fc7302a5a1559f680e3fb
 DCTN/typ=1/ortho/shape=[8 9]	ee020cbf847d66394789f62ffa7aff049d1a8090f97aa77258acf800f0ca1660
 DCTN/typ=2/backward/shape=[16 17]	93793191826bbb677f42f38bedc71c8101532ca20189e2f0a150333dee70f3c1
 DCTN/typ=2/backward/shape=[5 6 7]	f4c31b3c3802ebcb7cc621a4c872f37f0cff433f7a2bf4190cfdcd7c116a775a
-DCTN/typ=2/backward/shape=[64 64]	064e668272f0b0d67a1f7f8d3b14eb8e64f1a76bbebcdf377f43793b1bf243c9
+DCTN/typ=2/backward/shape=[64 64]	05e52b47dd9f55c3b48f08c83f6e53c6f54e0d16bb6ed08a60586fb86cb9e13f
 DCTN/typ=2/backward/shape=[8 9]	448850ae3628954fa93fb24b7fa918af62e7981bba846cce76a47c684adc2f54
 DCTN/typ=2/ortho/shape=[16 17]	49cbfd20f22c7a485fbf045c61bb2e2a1b7b2a1cd5d44182dc01269b745f1e8e
 DCTN/typ=2/ortho/shape=[5 6 7]	3ef0b494e11020d26b8daeec2d3ef3b0c6859aef19581153ece47a31ef4e32f0
-DCTN/typ=2/ortho/shape=[64 64]	f86cea3330028971b491058955eb58704ed92de3489471546ad3bceaa2b0c4ba
+DCTN/typ=2/ortho/shape=[64 64]	891efa96a14768cd1eac9888d7e71875cccbcab58a0ddc37aeb47c41026a24aa
 DCTN/typ=2/ortho/shape=[8 9]	fbe3037a16048d3d0bd474f6c0efb88d15bf9834924b3c6c66cc5ae6666fd066
 DCTN/typ=3/backward/shape=[16 17]	82a626a794d305a1c1fca83509d051c25108d7830d5e6eac55b40deb479819ed
 DCTN/typ=3/backward/shape=[5 6 7]	3b4a4b940fe605462b856519bb282310c1d09e69fb71e8fcd789fbbce9280dc5
-DCTN/typ=3/backward/shape=[64 64]	ff0ed11a59873bd9fafa9fcd59c7d8ffce53aa081380a3af4abbdfc64a3f2eb1
+DCTN/typ=3/backward/shape=[64 64]	2dac561782427b5883c2e34cc3ae5fbbb06045a6c86efca91023d203109c353b
 DCTN/typ=3/backward/shape=[8 9]	4ac5c57ffef260ce242b3f3544a625c433ab7c77e125b071a88eb9fcb5d9d57c
 DCTN/typ=3/ortho/shape=[16 17]	38557ed6cf22ea668eeec19a164f68ac5b2ef8840d780f98ff08f0f8586d4c42
 DCTN/typ=3/ortho/shape=[5 6 7]	fe260cfd2f665e30a0188663518015c9dd3d438a496c6ff41222a8de98d6351a
-DCTN/typ=3/ortho/shape=[64 64]	ffc4012eb517543e5f396d6263fa8fa5c99abd32275a2f4f89c0b3b827f6049d
+DCTN/typ=3/ortho/shape=[64 64]	f68e3afb6bf27ddea49cc7cd0544d215d1f69fc4ae08a46e034bdc766b929ad1
 DCTN/typ=3/ortho/shape=[8 9]	6fa249573a5e2212a5aa1e40272c767213a4f5782c1a7727f1c8346b6a253643
 DCTN/typ=4/backward/shape=[16 17]	e10379781a5e8dbf7065d993a75955fe29143b23b2fa1e4f8cc7970175b24926
 DCTN/typ=4/backward/shape=[5 6 7]	304deb5026d6bf2fdc92c7f5cf7ca53b87b488f69365965b8179dc4b0ac3ab36
@@ -752,19 +752,19 @@ IDCTN/typ=1/ortho/shape=[64 64]	a4a26e3b050175a732805a2c7669fc7302a5a1559f680e3f
 IDCTN/typ=1/ortho/shape=[8 9]	ee020cbf847d66394789f62ffa7aff049d1a8090f97aa77258acf800f0ca1660
 IDCTN/typ=2/backward/shape=[16 17]	546b793e11f0c668dec917aa271a8280e93e58ade727abc1762cf4829c0ef698
 IDCTN/typ=2/backward/shape=[5 6 7]	c733e64b146ec5eebae27a53d3b9467139667e9237d8a88abec90a7c983ea1e8
-IDCTN/typ=2/backward/shape=[64 64]	c7d1b7815c4814feb8f1ff123526067a9b16a15b148826cc646be05cf3701383
+IDCTN/typ=2/backward/shape=[64 64]	7362f0fda6c21c3027713c3b0a859a5a1b4b0c6d63199c33090b6c58aa8a0066
 IDCTN/typ=2/backward/shape=[8 9]	9c9a5a8605b1b163e8b0441eccb86869bed5279d8404d81b90cabbc1ac708eee
 IDCTN/typ=2/ortho/shape=[16 17]	38557ed6cf22ea668eeec19a164f68ac5b2ef8840d780f98ff08f0f8586d4c42
 IDCTN/typ=2/ortho/shape=[5 6 7]	fe260cfd2f665e30a0188663518015c9dd3d438a496c6ff41222a8de98d6351a
-IDCTN/typ=2/ortho/shape=[64 64]	ffc4012eb517543e5f396d6263fa8fa5c99abd32275a2f4f89c0b3b827f6049d
+IDCTN/typ=2/ortho/shape=[64 64]	f68e3afb6bf27ddea49cc7cd0544d215d1f69fc4ae08a46e034bdc766b929ad1
 IDCTN/typ=2/ortho/shape=[8 9]	6fa249573a5e2212a5aa1e40272c767213a4f5782c1a7727f1c8346b6a253643
 IDCTN/typ=3/backward/shape=[16 17]	1ad8ecb600ef822e78a23189bb63551fc3d24c2b4130406b1f354d2ad7d9082f
 IDCTN/typ=3/backward/shape=[5 6 7]	08a2c8fde8bdcba56bbd538bfa805209c6fdc1107a43fbd5dceb38948b168084
-IDCTN/typ=3/backward/shape=[64 64]	01fee2f02e01034114943e255be8710d6353c023e2a123d863193e187bf21e23
+IDCTN/typ=3/backward/shape=[64 64]	ab6f497c1df785bc721c92b003d513a0f4a473a5dbb25953aeff4faa052909dc
 IDCTN/typ=3/backward/shape=[8 9]	73955c80332609c8518e761ecc2616363b43b6bd43ecf9d064e74a7cb074bf17
 IDCTN/typ=3/ortho/shape=[16 17]	49cbfd20f22c7a485fbf045c61bb2e2a1b7b2a1cd5d44182dc01269b745f1e8e
 IDCTN/typ=3/ortho/shape=[5 6 7]	3ef0b494e11020d26b8daeec2d3ef3b0c6859aef19581153ece47a31ef4e32f0
-IDCTN/typ=3/ortho/shape=[64 64]	f86cea3330028971b491058955eb58704ed92de3489471546ad3bceaa2b0c4ba
+IDCTN/typ=3/ortho/shape=[64 64]	891efa96a14768cd1eac9888d7e71875cccbcab58a0ddc37aeb47c41026a24aa
 IDCTN/typ=3/ortho/shape=[8 9]	fbe3037a16048d3d0bd474f6c0efb88d15bf9834924b3c6c66cc5ae6666fd066
 IDCTN/typ=4/backward/shape=[16 17]	8b68536d99c4c927869408cf52d561f28df49448a7806c6b4348aa56ba9f2896
 IDCTN/typ=4/backward/shape=[5 6 7]	440cc253f0c730f4cf06ad7c1c1d1342f348837035539fbb3de9c252d91eb269
