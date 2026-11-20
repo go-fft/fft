@@ -26,6 +26,7 @@ type dct23 struct {
 	c1, c2, ct, cw  []complex128
 	ones, mt        []complex128
 	c1f, c2f, onesf []float64
+	cwf             []float64
 	mtf             []float64
 	pool            scratchCache[dct23Scratch]
 }
@@ -51,6 +52,7 @@ func newDCT23(n int) *dct23 {
 		d.mt[k] = -d.ct[k]
 	}
 	d.c1f, d.c2f, d.onesf, d.mtf = asFloats(d.c1), asFloats(d.c2), asFloats(d.ones), asFloats(d.mt)
+	d.cwf = asFloats(d.cw)
 	return d
 }
 
@@ -91,11 +93,9 @@ func (d *dct23) inverse(dst, src []float64, a0 float64) {
 	s := d.pool.get()
 	u, z, y := s.u[:h+1], s.z[:h], s.y[:h]
 	u[0] = complex(a0*src[0], 0)
-	for k := 1; k <= h; k++ {
-		xr, xi := src[k], -src[n-k]
-		w := d.cw[k]
-		u[k] = complex(real(w)*xr-imag(w)*xi, real(w)*xi+imag(w)*xr)
-	}
+	// u[k] = conj(w_k)·(src[k] - i·src[n-k]), k = 1 .. h: the real parts are src[1:h+1],
+	// the imaginary ones src[h:n] read from its end.
+	floats.CMulZipRev(asFloats(u[1:h+1]), src[1:h+1], src[h:n], d.cwf[2:2*(h+1)])
 	a, b := u[0], u[h]
 	z[0] = complex(real(a)+real(b)-(imag(a)+imag(b)), imag(a)-imag(b)+(real(a)-real(b)))
 	floats.MirrorCombine(asFloats(z), asFloats(u[:h]), d.onesf, d.mtf)

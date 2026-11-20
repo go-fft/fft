@@ -329,8 +329,8 @@ reorder is written into the half-length FFT's input and one
 `floats.MirrorCombine` / `MirrorCombineSplit` pass (AVX2+FMA on amd64) untangles
 and twiddles at once. On a Ryzen 9 7950X, one pinned core, against FFTW 3.3.10
 AVX-512 `REDFT10` / `REDFT01` (fresh processes, alternating order): DCT-II at 64
-points 1.25x FFTW before, 1.03x after; DCT-III 1.40x before, 1.32x after (the
-scalar gather of the inverse's input is what remains). The results are within
+points 1.25x FFTW before, 1.03x after; DCT-III 1.40x before, 1.15x after (the
+inverse's input is gathered by `floats.CMulZipRev`, also AVX2+FMA). The results are within
 `2·ε·log2 n` of a double-double oracle (`dct23_test.go`), not bit for bit with
 the generic route.
 
