@@ -165,7 +165,7 @@ func TestDCT23ValidatesBeforeWriting(t *testing.T) {
 // TestDCT23Mutation: a flipped table breaks the oracle bound by orders of magnitude,
 // so the oracle tests above can see a wrong kernel.
 func TestDCT23Mutation(t *testing.T) {
-	n := 64
+	n := 128 // 32 and 64 run the generated kernels, whose constants are not tables
 	b64 := 2 * eps64 * math.Log2(float64(n))
 	x := accRealF64(n, 3)
 	for _, typ := range []int{2, 3} {

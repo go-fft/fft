@@ -3,8 +3,11 @@ package fft
 import (
 	"math"
 
+	"github.com/go-fft/fft/internal/kernels"
 	"github.com/go-simd/floats"
 )
+
+//go:generate go run internal/gendct23/main.go internal/kernels
 
 // The fused DCT-II and DCT-III of the lengths 32, 64 and 128 (go-fft/fft#162):
 // Makhoul's algorithm with the steps of the generic route (reorder, n-point real
@@ -64,6 +67,16 @@ func newDCT23(n int) *dct23 {
 // floats.MirrorCombineSplit.
 func (d *dct23) forward(dst, src []float64) {
 	n := d.n
+	if kernels.Dct23On {
+		switch n {
+		case 32:
+			kernels.Dct2x32((*[32]float64)(dst), (*[32]float64)(src))
+			return
+		case 64:
+			kernels.Dct2x64((*[64]float64)(dst), (*[64]float64)(src))
+			return
+		}
+	}
 	h := n / 2
 	s := d.pool.get()
 	z, y := s.z[:h], s.y[:h]
@@ -89,6 +102,16 @@ func (d *dct23) forward(dst, src []float64) {
 // k = 1 .. h-1; k = 0 here), and the h-point inverse FFT gives v[2j] + i·v[2j+1].
 func (d *dct23) inverse(dst, src []float64, a0 float64) {
 	n := d.n
+	if kernels.Dct23On {
+		switch n {
+		case 32:
+			kernels.Dct3x32((*[32]float64)(dst), (*[32]float64)(src), a0)
+			return
+		case 64:
+			kernels.Dct3x64((*[64]float64)(dst), (*[64]float64)(src), a0)
+			return
+		}
+	}
 	h := n / 2
 	s := d.pool.get()
 	u, z, y := s.u[:h+1], s.z[:h], s.y[:h]

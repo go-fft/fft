@@ -334,6 +334,14 @@ inverse's input is gathered by `floats.CMulZipRev`, also AVX2+FMA). The results 
 `2·ε·log2 n` of a double-double oracle (`dct23_test.go`), not bit for bit with
 the generic route.
 
+At 32 and 64 points on Zen 4 (other CPUs keep the route above) the whole
+transform is one generated straight-line kernel (`internal/gendct23`, assembly in
+`internal/kernels/dct23_amd64.s`: reorder, split-radix FFT, untangle and twiddle with
+every constant folded in, 32 vector registers, FMA). Same machine and method,
+ns per call: DCT-II 32 points 57.0 -> 30.6 (FFTW 41.9, 0.73x), 64 points
+84.1 -> 68.7 (FFTW 81.3, 0.85x); DCT-III 32 points 69.3 -> 39.8 (FFTW 43.5,
+0.92x), 64 points 98.0 -> 90.0 (FFTW 84.3, 1.07x). 128 points keeps the route above.
+
 ### Single precision (complex64 / float32)
 
 As `scipy.fft` does for `complex64` input, the 1-D transforms also run in single
