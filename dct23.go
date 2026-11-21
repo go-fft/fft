@@ -6,6 +6,8 @@ import (
 	"github.com/go-simd/floats"
 )
 
+//go:generate go run internal/gendct23/main.go internal/kernels
+
 // The fused DCT-II and DCT-III of the lengths 32, 64 and 128 (go-fft/fft#162):
 // Makhoul's algorithm with the steps of the generic route (reorder, n-point real
 // FFT = n/2-point complex FFT plus untangle, twiddle, scale) folded into three: the
@@ -63,6 +65,13 @@ func newDCT23(n int) *dct23 {
 // Q = -i(Z[k] - conj Z[h-k]), so 2·w_k·V[k] = c1[k]·P + c2[k]·Q, which is
 // floats.MirrorCombineSplit.
 func (d *dct23) forward(dst, src []float64) {
+	if !dct23Run2(dst, src, d.n) {
+		d.forwardTable(dst, src)
+	}
+}
+
+// forwardTable is forward on the table route.
+func (d *dct23) forwardTable(dst, src []float64) {
 	n := d.n
 	h := n / 2
 	s := d.pool.get()
@@ -88,6 +97,13 @@ func (d *dct23) forward(dst, src []float64) {
 // D = U[k] - conj U[h-k] (floats.MirrorCombine with the weights 1 and -exp(+2πik/n),
 // k = 1 .. h-1; k = 0 here), and the h-point inverse FFT gives v[2j] + i·v[2j+1].
 func (d *dct23) inverse(dst, src []float64, a0 float64) {
+	if !dct23Run3(dst, src, d.n, a0) {
+		d.inverseTable(dst, src, a0)
+	}
+}
+
+// inverseTable is inverse on the table route.
+func (d *dct23) inverseTable(dst, src []float64, a0 float64) {
 	n := d.n
 	h := n / 2
 	s := d.pool.get()
