@@ -17,7 +17,8 @@ import (
 
 func kernelLens() []int { return []int{32, 64} }
 
-func withKernel(on bool, f func()) {
+func withKernel(tb testing.TB, on bool, f func()) {
+	isolatePlans(tb)
 	old := kernels.Dct23On
 	kernels.Dct23On = on
 	defer func() { kernels.Dct23On = old }()
@@ -51,8 +52,8 @@ func TestDCT23KernelMatchesRoute(t *testing.T) {
 						d.inverse(dst, x, a0)
 					}
 				}
-				withKernel(true, func() { run(got) })
-				withKernel(false, func() { run(want) })
+				withKernel(t, true, func() { run(got) })
+				withKernel(t, false, func() { run(want) })
 				var big float64
 				for _, v := range want {
 					big = math.Max(big, math.Abs(v))
@@ -187,8 +188,8 @@ func TestDCT23KernelSpecial(t *testing.T) {
 				}
 			}
 			got, want := make([]float64, n), make([]float64, n)
-			withKernel(true, func() { call(got, tiny) })
-			withKernel(false, func() { call(want, tiny) })
+			withKernel(t, true, func() { call(got, tiny) })
+			withKernel(t, false, func() { call(want, tiny) })
 			for i := range got {
 				if math.Abs(got[i]-want[i]) > 1e-300 {
 					t.Errorf("%s n=%d subnormal index %d: kernel %g route %g", typ, n, i, got[i], want[i])
@@ -222,8 +223,8 @@ func FuzzDCT23Kernel(f *testing.F) {
 					d.inverse(dst, x, 1)
 				}
 			}
-			withKernel(true, func() { run(got) })
-			withKernel(false, func() { run(want) })
+			withKernel(t, true, func() { run(got) })
+			withKernel(t, false, func() { run(want) })
 			var big float64
 			for _, v := range want {
 				big = math.Max(big, math.Abs(v))

@@ -26,6 +26,12 @@ var avx512Subset = map[string]string{
 	// the packed-single forms the complex64 kernels use
 	"VADDPS": "F", "VSUBPS": "F", "VMULPS": "F", "VFMADD231PS": "F",
 	"VFMADDSUB231PS": "F", "VFMSUBADD231PS": "F", "VPERMILPS": "F",
+	// the EVEX scalar-double forms of the generated DCT kernels (dct23_amd64.s), which
+	// address X16-X31: scalar instructions are AVX512F alone (vector length ignored,
+	// SDM "CPUID Flag: AVX512F"), see avx512Scalar
+	"VADDSD": "F", "VSUBSD": "F", "VMULSD": "F", "VMOVSD": "F",
+	"VFMADD231SD": "F", "VFMADD132SD": "F", "VFNMADD231SD": "F", "VFNMADD132SD": "F",
+	"VFMSUB231SD": "F", "VFMSUB132SD": "F",
 	// AVX512DQ: the opmask move from a general register, and the bitwise
 	// floating-point ops, which exist on ZMM only with DQ.
 	"KMOVB": "DQ", "VXORPD": "DQ", "VORPD": "DQ", "VANDPD": "DQ", "VANDNPD": "DQ", "VXORPS": "DQ",
@@ -36,6 +42,14 @@ var avx512Subset = map[string]string{
 var avx512EVEXOnly = map[string]bool{
 	"VBLENDMPD": true, "VPORQ": true, "VPXORQ": true, "VSHUFF64X2": true,
 	"VINSERTF32X4": true, "VBROADCASTF64X4": true, "KMOVB": false,
+}
+
+// avx512Scalar lists the scalar mnemonics: their EVEX forms (X16-X31 operands) need
+// AVX512F only, never AVX512VL, so the "128-bit EVEX form" rule does not apply.
+var avx512Scalar = map[string]bool{
+	"VADDSD": true, "VSUBSD": true, "VMULSD": true, "VMOVSD": true,
+	"VFMADD231SD": true, "VFMADD132SD": true, "VFNMADD231SD": true, "VFNMADD132SD": true,
+	"VFMSUB231SD": true, "VFMSUB132SD": true,
 }
 
 // gatedSubsets is what dispatchFor requires (cpuFeatures.avx512): every subset
@@ -100,7 +114,7 @@ func TestAVX512KernelsUseOnlyFandDQ(t *testing.T) {
 				continue
 			}
 			note(sub, mn, where)
-			if xy && (mask || high || avx512EVEXOnly[mn]) {
+			if xy && !avx512Scalar[mn] && (mask || high || avx512EVEXOnly[mn]) {
 				note("VL", mn, where) // a 128/256-bit EVEX form
 			}
 		}
