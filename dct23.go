@@ -3,7 +3,6 @@ package fft
 import (
 	"math"
 
-	"github.com/go-fft/fft/internal/kernels"
 	"github.com/go-simd/floats"
 )
 
@@ -66,17 +65,14 @@ func newDCT23(n int) *dct23 {
 // Q = -i(Z[k] - conj Z[h-k]), so 2·w_k·V[k] = c1[k]·P + c2[k]·Q, which is
 // floats.MirrorCombineSplit.
 func (d *dct23) forward(dst, src []float64) {
-	n := d.n
-	if kernels.Dct23On {
-		switch n {
-		case 32:
-			kernels.Dct2x32((*[32]float64)(dst), (*[32]float64)(src))
-			return
-		case 64:
-			kernels.Dct2x64((*[64]float64)(dst), (*[64]float64)(src))
-			return
-		}
+	if !dct23Run2(dst, src, d.n) {
+		d.forwardTable(dst, src)
 	}
+}
+
+// forwardTable is forward on the table route.
+func (d *dct23) forwardTable(dst, src []float64) {
+	n := d.n
 	h := n / 2
 	s := d.pool.get()
 	z, y := s.z[:h], s.y[:h]
@@ -101,17 +97,14 @@ func (d *dct23) forward(dst, src []float64) {
 // D = U[k] - conj U[h-k] (floats.MirrorCombine with the weights 1 and -exp(+2πik/n),
 // k = 1 .. h-1; k = 0 here), and the h-point inverse FFT gives v[2j] + i·v[2j+1].
 func (d *dct23) inverse(dst, src []float64, a0 float64) {
-	n := d.n
-	if kernels.Dct23On {
-		switch n {
-		case 32:
-			kernels.Dct3x32((*[32]float64)(dst), (*[32]float64)(src), a0)
-			return
-		case 64:
-			kernels.Dct3x64((*[64]float64)(dst), (*[64]float64)(src), a0)
-			return
-		}
+	if !dct23Run3(dst, src, d.n, a0) {
+		d.inverseTable(dst, src, a0)
 	}
+}
+
+// inverseTable is inverse on the table route.
+func (d *dct23) inverseTable(dst, src []float64, a0 float64) {
+	n := d.n
 	h := n / 2
 	s := d.pool.get()
 	u, z, y := s.u[:h+1], s.z[:h], s.y[:h]
