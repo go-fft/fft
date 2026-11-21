@@ -952,6 +952,14 @@ func main() {
 	if len(os.Args) > 1 {
 		dir = os.Args[1]
 	}
+	// Nothing is written unless the dataflow graphs of the kernels' sizes agree
+	// with the naive DCT.
+	for _, n := range []int{32, 64} {
+		if !check(n) {
+			fmt.Fprintf(os.Stderr, "gendct23: the graph of n=%d fails its check, nothing written\n", n)
+			os.Exit(1)
+		}
+	}
 	var body strings.Builder
 	consts := map[uint64]bool{}
 	neg := false

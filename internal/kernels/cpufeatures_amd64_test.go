@@ -144,6 +144,9 @@ func TestFusedGates(t *testing.T) {
 	if want := UseStockhamAVX512 && AMDZen4; Fused1024On != want {
 		t.Errorf("Fused1024On = %v, want %v", Fused1024On, want)
 	}
+	if want := UseStockhamAVX512 && AMDZen4; Dct23On != want {
+		t.Errorf("Dct23On = %v, want %v", Dct23On, want)
+	}
 	t.Logf("signature %#x, cascade lake %v", detectedCPU.Signature, IntelCascadeLake)
 }
 

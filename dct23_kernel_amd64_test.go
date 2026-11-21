@@ -17,6 +17,20 @@ import (
 
 func kernelLens() []int { return []int{32, 64} }
 
+// enableKernel turns the kernels' gate on for a test on any AVX-512 host
+// (kernels.Dct23On is a Zen 4 choice, and CI has none) and restores it, the way
+// enableFused does for the 256-point kernel; production routing stays Zen 4 only.
+func enableKernel(tb testing.TB) {
+	tb.Helper()
+	if !kernels.UseStockhamAVX512 {
+		tb.Skip("no AVX-512 here")
+	}
+	isolatePlans(tb)
+	old := kernels.Dct23On
+	kernels.Dct23On = true
+	tb.Cleanup(func() { kernels.Dct23On = old })
+}
+
 func withKernel(tb testing.TB, on bool, f func()) {
 	isolatePlans(tb)
 	old := kernels.Dct23On
@@ -28,9 +42,7 @@ func withKernel(tb testing.TB, on bool, f func()) {
 // TestDCT23KernelMatchesRoute: on random data both routes agree to a few ulps of the
 // largest output (they are different FMA groupings of the same sums).
 func TestDCT23KernelMatchesRoute(t *testing.T) {
-	if !kernels.Dct23On {
-		t.Skip("the kernels are not routed on this CPU")
-	}
+	enableKernel(t)
 	rng := rand.New(rand.NewSource(1))
 	for _, n := range kernelLens() {
 		d := NewDCTPlan(n, 2).fast
@@ -71,9 +83,7 @@ func TestDCT23KernelMatchesRoute(t *testing.T) {
 // TestDCT23KernelAliasing: dst equal to src, or overlapping it partially, gives the
 // bits of the disjoint call.
 func TestDCT23KernelAliasing(t *testing.T) {
-	if !kernels.Dct23On {
-		t.Skip("the kernels are not routed on this CPU")
-	}
+	enableKernel(t)
 	rng := rand.New(rand.NewSource(2))
 	for _, n := range kernelLens() {
 		d := NewDCTPlan(n, 2).fast
@@ -110,9 +120,7 @@ func TestDCT23KernelAliasing(t *testing.T) {
 
 // TestDCT23KernelWritesOnlyDst: nothing outside dst[:n] changes, src is not modified.
 func TestDCT23KernelWritesOnlyDst(t *testing.T) {
-	if !kernels.Dct23On {
-		t.Skip("the kernels are not routed on this CPU")
-	}
+	enableKernel(t)
 	const canary = 7.25
 	for _, n := range kernelLens() {
 		d := NewDCTPlan(n, 2).fast
@@ -150,8 +158,17 @@ func TestDCT23KernelWritesOnlyDst(t *testing.T) {
 // a fault, a NaN in the input reaches the output, and the finite-but-tiny inputs
 // stay within the absolute floor of the route.
 func TestDCT23KernelSpecial(t *testing.T) {
-	if !kernels.Dct23On {
-		t.Skip("the kernels are not routed on this CPU")
+	enableKernel(t)
+	class := func(v float64) int {
+		switch {
+		case math.IsNaN(v):
+			return 2
+		case math.IsInf(v, 1):
+			return 1
+		case math.IsInf(v, -1):
+			return -1
+		}
+		return 0
 	}
 	for _, n := range kernelLens() {
 		d := NewDCTPlan(n, 2).fast
@@ -163,19 +180,34 @@ func TestDCT23KernelSpecial(t *testing.T) {
 					d.inverse(dst, src, 1)
 				}
 			}
+			// A NaN or an infinity at every position: an output is finite through the
+			// kernel exactly when it is through the table route, so a constant the
+			// generator folded away (x-x, c*0) cannot turn a non-finite output into
+			// a finite one; a NaN stays NaN, and where the route gives an infinity
+			// the kernel gives the same one. (Both FFTs turn an infinity into NaN
+			// at most outputs, Inf-Inf; at a few the kernel keeps the infinity the
+			// route loses, which is the mathematical value.)
 			for _, bad := range []float64{math.NaN(), math.Inf(1), math.Inf(-1)} {
-				for pos := 0; pos < n; pos += 5 {
+				for pos := 0; pos < n; pos++ {
 					src := make([]float64, n)
+					for i := range src {
+						src[i] = float64(i%7) - 3
+					}
 					src[pos] = bad
-					dst := make([]float64, n)
-					call(dst, src)
-					if math.IsNaN(bad) {
-						any := false
-						for _, v := range dst {
-							any = any || math.IsNaN(v)
-						}
-						if !any {
-							t.Errorf("%s n=%d: a NaN at %d vanished", typ, n, pos)
+					got, want := make([]float64, n), make([]float64, n)
+					withKernel(t, true, func() { call(got, src) })
+					withKernel(t, false, func() { call(want, src) })
+					for i := range got {
+						fin := func(v float64) bool { return class(v) == 0 }
+						switch {
+						case fin(got[i]) != fin(want[i]):
+							t.Errorf("%s n=%d %g at %d: output %d is %g, the route gives %g", typ, n, bad, pos, i, got[i], want[i])
+						case class(want[i]) == 1 || class(want[i]) == -1:
+							if got[i] != want[i] {
+								t.Errorf("%s n=%d %g at %d: output %d is %g, the route gives %g", typ, n, bad, pos, i, got[i], want[i])
+							}
+						case math.IsNaN(bad) && !math.IsNaN(got[i]):
+							t.Errorf("%s n=%d NaN at %d: output %d is %g, not NaN", typ, n, pos, i, got[i])
 						}
 					}
 				}
@@ -204,9 +236,7 @@ func FuzzDCT23Kernel(f *testing.F) {
 	f.Add(int64(1), uint8(0))
 	f.Add(int64(77), uint8(1))
 	f.Fuzz(func(t *testing.T, seed int64, which uint8) {
-		if !kernels.Dct23On {
-			t.Skip("the kernels are not routed on this CPU")
-		}
+		enableKernel(t)
 		rng := rand.New(rand.NewSource(seed))
 		n := kernelLens()[int(which)%2]
 		d := NewDCTPlan(n, 2).fast

@@ -1,6 +1,7 @@
 package fft
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
@@ -165,7 +166,15 @@ func TestDCT23ValidatesBeforeWriting(t *testing.T) {
 // TestDCT23Mutation: a flipped table breaks the oracle bound by orders of magnitude,
 // so the oracle tests above can see a wrong kernel.
 func TestDCT23Mutation(t *testing.T) {
-	n := 128 // 32 and 64 run the generated kernels, whose constants are not tables
+	// 64 on the table route (the kernels forced off, their constants are not tables)
+	// and 128, which no kernel serves.
+	for _, n := range []int{64, 128} {
+		t.Run(fmt.Sprint(n), func(t *testing.T) { dct23Mutation(t, n) })
+	}
+}
+
+func dct23Mutation(t *testing.T, n int) {
+	forceTableRoute(t)
 	b64 := 2 * eps64 * math.Log2(float64(n))
 	x := accRealF64(n, 3)
 	for _, typ := range []int{2, 3} {

@@ -18,8 +18,8 @@ func dct2x64(dst, src *float64)
 func dct3x64(dst, src *float64, a0 float64)
 
 // Dct23On is whether the kernels run here: they use the 32 xmm registers of
-// AVX-512 (the probe of UseStockhamAVX512) on an AMD Zen 4 or an Intel Cascade
-// Lake, the CPUs they were measured on. Callers read it at every call.
+// AVX-512 (the probe of UseStockhamAVX512) on an AMD Zen 4, the CPU they were
+// measured on. Callers read it at every call.
 var Dct23On = UseStockhamAVX512 && AMDZen4
 
 // overlaps reports whether the n float64s at a and b share an address.
