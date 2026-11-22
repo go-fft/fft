@@ -163,7 +163,13 @@ r2r lengths 2 to 1,009.
 
 The worst ratios sit at the shortest lengths (2 to 25), where `log2 n` is
 smallest and the error does not shrink with it. Rader and Bluestein lengths
-measure 0.2 to 0.6, the same as the smooth ones. On the qemu architectures
+measure 0.2 to 0.7, the same as the smooth ones. (Bluestein's three pointwise
+products run on `floats.CMulTo`, a stated bound rather than the loop's bits:
+the worst Bluestein ratio moved from 0.598 to 0.674 (c2c, n=23) and the PSD's
+from 0.437 to 0.556. On amd64 the 36 r2r golden cases that reach it, DST-I at
+257, 1,009 and 4,096 and DCT-I at 1,000, are all CPU-dependent, so the default
+path's Bluestein bits are guarded by the tolerance tests and `TestAccuracyBound`,
+not by a golden.) On the qemu architectures
 (s390x, ppc64le, loong64, riscv64) CI caps the sweep at 130 points, one seed
 and 500 points for N-D shapes to fit its timeout; that run keeps 23 and 47
 (Bluestein), 17, 19, 31 and 127 (Rader), smooth lengths, odd real lengths,

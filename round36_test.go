@@ -162,6 +162,9 @@ func testZmBluestein(t *testing.T, opts Options) {
 					}
 				}
 				same := func(a, b complex128) bool {
+						if opts.Exact || opts.NoFMA {
+							return sameBits(a, b) // the same Go loop: the same bits
+						}
 					c := func(u, v float64) bool {
 						return u == v || math.IsNaN(u) && math.IsNaN(v) || math.Abs(u-v) <= 1e-12*scale
 					}

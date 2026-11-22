@@ -4,12 +4,10 @@ package kernels
 // one decimation-in-time pass; they are the stable seam behind which a per-arch
 // SIMD kernel is selected.
 //
-// Unlike CMul (whose scalar default was measured to beat its SIMD kernel at the
-// short Bluestein widths), these stage kernels are routed onto the SIMD path on
-// the arch that was measured to win (amd64, where SSE2 has real packed ADDPD/
-// SUBPD and gc compiles the Go loop to scalar SSE2 without FMA — see
-// UseSIMDButterfly).
-// The bit-identity contract is the same as cmul's — each arch's kernel is
+// These stage kernels are routed onto the SIMD path on the arch that was
+// measured to win (amd64, where SSE2 has real packed ADDPD/SUBPD and gc
+// compiles the Go loop to scalar SSE2 without FMA — see UseSIMDButterfly).
+// The bit-identity contract: each arch's kernel is
 // asserted bit-for-bit identical to the scalar oracle by that arch's CI
 // execution job — so routing here cannot change a transform's result.
 //

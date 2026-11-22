@@ -107,7 +107,7 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
 
 ## Phase 4 — SIMD kernels via go-asmgen — DONE (routed on amd64)
 
-> **Update (go-fft/fft#162):** the pointwise-multiply kernels described below
+> **Update (go-fft/fft#182):** the pointwise-multiply kernels described below
 > (`CMul`, `CMulScalar`, the per-arch `cmulSIMD` wrappers and their generators)
 > were deleted: Bluestein's products now call `floats.CMulTo` from go-simd/floats
 > (AVX2+FMA, NEON, portable), whose contract is a stated error bound. The

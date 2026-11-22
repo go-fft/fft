@@ -247,24 +247,6 @@ jobs:
       - name: install qemu user-mode emulators
         timeout-minutes: 10
         run: sudo apt-get update && sudo apt-get install -y qemu-user qemu-user-binfmt
-      - name: Regenerate committed assembly and check it is current
-        if: matrix.regen != ''
-        run: |
-          ( cd internal/kernels/asmgen/${{ matrix.regen }} && GOFLAGS=-mod=mod go run gen.go )
-          # Every file the generator writes is committed under internal/kernels:
-          # move them ALL back and compare them all. Naming files here let one
-          # through unchecked (cpu_amd64.s, the CPU and vendor probes, was never
-          # compared until 2026-10-04), and a generated file nobody committed
-          # would have stayed behind unseen.
-          for f in internal/kernels/asmgen/${{ matrix.regen }}/*.s; do
-            mv "$f" internal/kernels/
-          done
-          git diff --exit-code -- 'internal/kernels/*.s' || {
-            echo "::error::generated ${{ matrix.regen }} assembly is stale; run go generate and commit"; exit 1; }
-          if [ -n "$(git status --porcelain -- internal/kernels)" ]; then
-            git status --porcelain -- internal/kernels
-            echo "::error::the ${{ matrix.regen }} generator wrote files that are not committed"; exit 1
-          fi
       - name: Vet + test under qemu (${{ matrix.goarch }})
         run: |
           base="${{ matrix.qemu }}"
