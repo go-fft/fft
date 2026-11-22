@@ -2,7 +2,7 @@ package fft
 
 import "unsafe"
 
-//go:generate go run internal/gendct4/main.go internal/gendct4/amd64.go
+//go:generate go run internal/gendct4/main.go internal/gendct4/amd64.go internal/gendct4/amd64f32.go
 
 // The fused DCT-IV of length 64 and 128 (go-fft/fft#132, go-avkit/decode#77:
 // HE-AAC's QMF runs the 64 six times per slot, and the AAC short-block MDCT of 256

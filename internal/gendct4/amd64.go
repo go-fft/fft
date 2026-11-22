@@ -211,6 +211,21 @@ type yalloc struct {
 	uses     [][]int
 	pos      int
 	nslots   int
+	mov, pfx string // spill move and register prefix; "" is VMOVUPD and Y
+}
+
+func (ra *yalloc) movOr() string {
+	if ra.mov == "" {
+		return "VMOVUPD"
+	}
+	return ra.mov
+}
+
+func (ra *yalloc) pfxOr() string {
+	if ra.pfx == "" {
+		return "Y"
+	}
+	return ra.pfx
 }
 
 func (ra *yalloc) nextUse(v int) int {
@@ -250,7 +265,7 @@ func (ra *yalloc) alloc(v int, pinned ...int) int {
 		if bestUse != math.MaxInt && ra.slot[h] < 0 {
 			ra.slot[h] = ra.nslots
 			ra.nslots++
-			fmt.Fprintf(ra.b, "\tVMOVUPD Y%d, %d(SP)\n", best, 32*ra.slot[h])
+			fmt.Fprintf(ra.b, "\t%s %s%d, %d(SP)\n", ra.movOr(), ra.pfxOr(), best, 32*ra.slot[h])
 		}
 		ra.reg[h] = -1
 	}
@@ -264,7 +279,7 @@ func (ra *yalloc) use(v int, pinned ...int) int {
 		return r
 	}
 	r := ra.alloc(v, pinned...)
-	fmt.Fprintf(ra.b, "\tVMOVUPD %d(SP), Y%d\n", 32*ra.slot[v], r)
+	fmt.Fprintf(ra.b, "\t%s %d(SP), %s%d\n", ra.movOr(), 32*ra.slot[v], ra.pfxOr(), r)
 	return r
 }
 

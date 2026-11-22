@@ -201,8 +201,9 @@ func (k *f32ndR2RKernel) dct4(dst, src []float32, s *f32ndR2RScratch) {
 // scipy.fft.dct and scipy.fft.idct on float32 input. It is immutable and safe
 // for concurrent use.
 type DCTPlan32 struct {
-	typ int
-	k   *f32ndR2RKernel
+	typ  int
+	k    *f32ndR2RKernel
+	quad bool // the pair and quad forms run the float32 kernel (dct4_64_f32.go)
 }
 
 // NewDCTPlan32 returns a single-precision plan for the DCT of type typ (1, 2, 3
@@ -210,7 +211,7 @@ type DCTPlan32 struct {
 // minimum: 2 for DCT-I, 1 for the others.
 func NewDCTPlan32(n, typ int) *DCTPlan32 {
 	checkR2R(true, typ, n, NormBackward)
-	return &DCTPlan32{typ: typ, k: f32ndNewR2RKernel(true, typ, n)}
+	return &DCTPlan32{typ: typ, k: f32ndNewR2RKernel(true, typ, n), quad: dct4F32Route(n, typ)}
 }
 
 // Len reports the transform length the plan was built for.

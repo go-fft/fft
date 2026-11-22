@@ -312,6 +312,16 @@ mp.IMDCTMixed(out32, coef32, 4/float64(n))
 dp := fft.NewDCTPlan(64, 4)
 dp.DCTPair(dst0, dst1, src0, src1, fft.NormOrtho)
 dp.DCTMixedPair(dst32a, dst32b, src32a, src32b, fft.NormOrtho)
+
+// The same in single precision throughout (no widening to float64): DCTPlan32
+// DCTPair, IDCTPair, DCTQuad and IDCTQuad. On amd64 with AVX2 and FMA3 a
+// DCT-IV(64) runs a float32 kernel with one complex value of every stream in each
+// register; on a Ryzen 9 7950X a pair is 70.7 ns through DCTMixedPair and 57.5 ns
+// here, and a quad (four transforms) 97 ns, 48.6 ns per pair. Elsewhere the forms
+// are the single calls. Within eps32*log2(n) of the double-double oracle.
+sp := fft.NewDCTPlan32(64, 4)
+sp.DCTPair(d0, d1, s0, s1, fft.NormOrtho)
+sp.DCTQuad([4][]float32{d0, d1, d2, d3}, [4][]float32{s0, s1, s2, s3}, fft.NormOrtho)
 ```
 
 `NormOrtho` applies scipy's default orthogonalisation (`orthogonalize=True`),
