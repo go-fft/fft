@@ -69,6 +69,9 @@ func TestIRFFTLengthOne(t *testing.T) {
 // A steady-state odd inverse allocates nothing: it used to make two length-n
 // slices per call.
 func TestIRFFTOddSteadyStateAllocs(t *testing.T) {
+	if raceEnabled {
+		t.Skip("sync.Pool drops entries at random under -race; pool reuse cannot be asserted")
+	}
 	p := NewRealPlan(1125)
 	src, dst := oddSpectrum(1125, 563), make([]float64, 1125)
 	p.IRFFT(dst, src)
