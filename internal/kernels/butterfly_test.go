@@ -123,7 +123,6 @@ func TestRadix2StageMatchesScalar(t *testing.T) {
 		Radix2Stage(d, n, span, tw)
 		kernelMatchesOracle(t, "dispatch", d, s)
 
-		skipIfNoSIMD(t)
 		k := append([]complex128(nil), a...)
 		radix2StageSIMD(k, n, span, tw)
 		kernelMatchesOracle(t, "simd", k, s)
@@ -187,7 +186,6 @@ func TestRadix4StageMatchesScalar(t *testing.T) {
 			Radix4Stage(d, n, span, w1, w2, w3, inverse)
 			kernelMatchesOracle(t, "dispatch", d, s)
 
-			skipIfNoSIMD(t)
 			k := append([]complex128(nil), a...)
 			radix4StageSIMD(k, n, span, w1, w2, w3, inverse)
 			kernelMatchesOracle(t, "simd", k, s)

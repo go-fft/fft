@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/go-fft/fft/internal/kernels"
+	"github.com/go-simd/floats"
 )
 
 var (
@@ -91,17 +92,21 @@ func TestZmLocate(t *testing.T) {
 				clear(a[n:])
 			},
 			func() { cp.execute(a, a, false) },
-			func() { kernels.CMul(a, bp.bF) },
+			func() {
+				for i := range a {
+					a[i] *= bp.bF[i]
+				}
+			},
 			func() { cp.execute(a, a, true) },
 			func() {
 				for k := 0; k < n; k++ {
 					dst[k] = a[k] * w[k]
 				}
 			},
-			// The same three products through kernels.CMulTo (Round 36).
-			func() { kernels.CMulTo(a[:n], src, w); clear(a[n:]) },
-			func() { kernels.CMulTo(a, a, bp.bF) },
-			func() { kernels.CMulTo(dst, a, w) },
+			// The same three products through floats.CMulTo.
+			func() { floats.CMulTo(a[:n], src, w); clear(a[n:]) },
+			func() { floats.CMulTo(a, a, bp.bF) },
+			func() { floats.CMulTo(dst, a, w) },
 		}
 		times := comp2Rotate(fns, rounds, ms)
 		var f []int
@@ -167,7 +172,7 @@ func TestZmConv(t *testing.T) {
 }
 
 // zmBlueOld is bluesteinPlan.transform before Round 36: the pointwise
-// products as Go loops and kernels.CMul.
+// products as Go loops and floats.CMulTo.
 func zmBlueOld(p *bluesteinPlan, dst, src []complex128) {
 	n, w, bSpec := p.n, p.wF, p.bF
 	bp := p.scratch.Get().(*[]complex128)
@@ -179,7 +184,9 @@ func zmBlueOld(p *bluesteinPlan, dst, src []complex128) {
 	clear(a[n:])
 	plan := cachedPlan(p.m)
 	plan.execute(a, a, false)
-	kernels.CMul(a, bSpec)
+	for i := range a {
+		a[i] *= bSpec[i]
+	}
 	plan.execute(a, a, true)
 	for k := 0; k < n; k++ {
 		dst[k] = a[k] * w[k]

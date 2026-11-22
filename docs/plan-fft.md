@@ -107,6 +107,13 @@ equivalent for Go, with no dependency on the native FFTW3 C library.
 
 ## Phase 4 — SIMD kernels via go-asmgen — DONE (routed on amd64)
 
+> **Update (go-fft/fft#182):** the pointwise-multiply kernels described below
+> (`CMul`, `CMulScalar`, the per-arch `cmulSIMD` wrappers and their generators)
+> were deleted: Bluestein's products now call `floats.CMulTo` from go-simd/floats
+> (AVX2+FMA, NEON, portable), whose contract is a stated error bound. The
+> Exact and NoFMA arithmetics keep the Go loop, so Exact stays v0.28.16's bits.
+> What follows is the history of that round.
+
 The hot kernel chosen first is the **pointwise (Hadamard) complex multiply**,
 `a[i] *= b[i]` over `[]complex128`, which drives Bluestein's spectral product.
 The scalar `CMulScalar` is the portable correctness oracle; `CMul` is the stable

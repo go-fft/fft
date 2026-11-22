@@ -10,7 +10,7 @@ import "testing"
 // every twiddle product: a twiddled output is VLD1, FMUL, FMLS, FMUL, FMLA (4
 // arithmetic instructions, the count of FFTW's FMA complex product, against 6
 // without FMA), because they reproduce the FMSUBD/FMADDD that gc emits for the
-// Go reference (asmgen/arm64/gen.go header; internal/kernels/cmul_arm64.go). The
+// Go reference (asmgen/arm64/gen.go header; internal/kernels/butterfly.go). The
 // radix-2 and radix-4 butterflies contain additions and ±i swaps only. Radix 8
 // contains the one constant product: bfly8's ±45° and ±135° rotations, each a
 // multiply by √2/2 followed by an add and a subtract (fmaPM in fma.go): per step

@@ -2,9 +2,10 @@ package fft
 
 import (
 	"math"
+	"runtime"
 	"sync"
 
-	"github.com/go-fft/fft/internal/kernels"
+	"github.com/go-simd/floats"
 )
 
 // Bluestein chirp-z plan.
@@ -96,17 +97,39 @@ func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
 	bp := p.scratch.Get().(*[]complex128)
 	defer p.scratch.Put(bp)
 	a := *bp
-	// The three pointwise products run on kernels.CMulTo: on Zen 3 the Go
-	// loops took 24% of a 10007-point transform (Round 36).
-	kernels.CMulTo(a[:n], src, w)
+	// The three pointwise products run on floats.CMulTo (on Zen 3 the Go
+	// loops took 24% of a 10007-point transform, Round 36).
+	p.cmul(a[:n], src, w)
 	clear(a[n:]) // the pooled buffer is dirty; the pad must be zero
 
 	// Convolution, in place: a = IFFT(FFT(a) · bSpec); bSpec carries the 1/m.
 	plan := cachedPlanA(p.m, p.ar)
 	plan.execute(a, a, false)
-	kernels.CMulTo(a, a, bSpec)
+	p.cmul(a, a, bSpec)
 	plan.execute(a, a, true)
 
 	// dst[k] = w[k]·conv[k].
-	kernels.CMulTo(dst[:n], a, w)
+	p.cmul(dst[:n], a, w)
+}
+
+// cmulTo is floats.CMulTo, a variable so a test can see which arithmetics call it.
+var cmulTo = floats.CMulTo
+
+// cmul is dst = a·b elementwise (dst may be a). The default and FMA
+// arithmetics take floats.CMulTo, whose contract is a stated error bound, not
+// the loop's bits. Exact and NoFMA do not fuse and Exact promises v0.28.16's
+// bits, so they run the Go loop, which is those bits on every architecture.
+// On amd64 floats fuses where the CPU has FMA3, so the default takes it only
+// where the default fuses (fused: no FMA3, or a test that says so, means the
+// Go loop, as the unfused default has always been); elsewhere floats is the
+// NEON or portable kernel, whose bits are the loop's within its bound.
+func (p *bluesteinPlan) cmul(dst, a, b []complex128) {
+	if p.ar != arithExact && p.ar != arithPlain && (p.ar.fused() || runtime.GOARCH != "amd64") {
+		cmulTo(dst, a, b)
+		return
+	}
+	a, b = a[:len(dst)], b[:len(dst)]
+	for i := range dst {
+		dst[i] = a[i] * b[i]
+	}
 }

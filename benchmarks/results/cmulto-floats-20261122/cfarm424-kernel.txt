@@ -1,0 +1,9 @@
+ 12:53:53 up 13 days,  3:11,  3 users,  load average: 0.02, 0.03, 0.00
+=== RUN   TestZZKernel
+KERNEL n=16      kernels      25.4  scalar      33.0  floats      32.4
+KERNEL n=64      kernels      85.4  scalar     120.0  floats      94.6
+KERNEL n=256     kernels     332.2  scalar     473.0  floats     343.6
+KERNEL n=1024    kernels    1317.2  scalar    1877.2  floats    1318.1
+KERNEL n=65536   kernels  132750.9  scalar  155353.5  floats  132735.0
+--- PASS: TestZZKernel (20.53s)
+PASS

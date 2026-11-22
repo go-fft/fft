@@ -1,0 +1,46 @@
+ 12:54:28 up 13 days,  3:12,  3 users,  load average: 0.23, 0.09, 0.02
+ 13:02:15 up 13 days,  3:19,  3 users,  load average: 1.00, 0.82, 0.42
+=== RUN   TestZmPlace
+ROW C1013   median    27477.4  min    27323.8  max    27708.1  (4 placements)
+ROW C2027   median    59450.8  min    59027.2  max    60068.0  (4 placements)
+ROW C4099   median   169941.0  min   169008.5  max   172093.1  (4 placements)
+ROW C10007  median   414524.3  min   411741.4  max   417430.1  (4 placements)
+ROW C30011  median  1530484.0  min  1512653.0  max  1542574.6  (4 placements)
+ROW C1024   median     4960.5  min     4915.6  max     4993.8  (4 placements)
+ROW C1000   median     6093.2  min     6070.4  max     6116.7  (4 placements)
+ROW C1009   median    21921.5  min    21835.4  max    22005.1  (4 placements)
+--- PASS: TestZmPlace (116.57s)
+PASS
+=== RUN   TestZmPlace
+ROW C1013   median    27844.8  min    27765.5  max    27994.4  (4 placements)
+ROW C2027   median    60206.6  min    60012.5  max    60527.2  (4 placements)
+ROW C4099   median   170941.5  min   168565.6  max   173670.8  (4 placements)
+ROW C10007  median   415259.1  min   410601.1  max   419719.4  (4 placements)
+ROW C30011  median  1552569.6  min  1543049.8  max  1568399.3  (4 placements)
+ROW C1024   median     4925.7  min     4903.6  max     4998.1  (4 placements)
+ROW C1000   median     6052.7  min     6031.6  max     6064.3  (4 placements)
+ROW C1009   median    21833.9  min    21673.9  max    21997.8  (4 placements)
+--- PASS: TestZmPlace (117.05s)
+PASS
+=== RUN   TestZmPlace
+ROW C1013   median    27899.9  min    27841.0  max    28041.1  (4 placements)
+ROW C2027   median    60712.1  min    60435.8  max    60842.1  (4 placements)
+ROW C4099   median   172194.4  min   169896.4  max   174144.1  (4 placements)
+ROW C10007  median   414687.2  min   410610.1  max   419822.7  (4 placements)
+ROW C30011  median  1532464.1  min  1524274.5  max  1557138.0  (4 placements)
+ROW C1024   median     4933.3  min     4923.2  max     4999.4  (4 placements)
+ROW C1000   median     6056.4  min     6051.2  max     6073.7  (4 placements)
+ROW C1009   median    21855.4  min    21825.6  max    21864.8  (4 placements)
+--- PASS: TestZmPlace (117.09s)
+PASS
+=== RUN   TestZmPlace
+ROW C1013   median    27231.6  min    27156.9  max    27353.7  (4 placements)
+ROW C2027   median    59404.6  min    59053.3  max    59779.4  (4 placements)
+ROW C4099   median   169488.6  min   168242.3  max   170339.9  (4 placements)
+ROW C10007  median   415298.8  min   411803.2  max   416371.0  (4 placements)
+ROW C30011  median  1542667.9  min  1536947.5  max  1571512.5  (4 placements)
+ROW C1024   median     4920.8  min     4915.0  max     4933.2  (4 placements)
+ROW C1000   median     6044.9  min     6031.8  max     6080.7  (4 placements)
+ROW C1009   median    21833.0  min    21810.8  max    21848.0  (4 placements)
+--- PASS: TestZmPlace (116.41s)
+PASS
