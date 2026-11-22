@@ -36,10 +36,6 @@ var k = &fft.Kernels{
 var kf = &fft.Kernels{K: k.K, SplitK: k.SplitK, FMA: true}
 
 func main() {
-	fc := emit.NewFile("amd64")
-	fft.CMulSSE2(fc, "cmulSSE2")
-	writeFile("cmul_amd64.s", fc.String())
-
 	fb := emit.NewFile("amd64")
 	fft.Radix2SSE2(fb, "radix2StageSSE2")
 	fft.Radix4SSE2(fb, "radix4StageSSE2Fwd", false)
@@ -189,11 +185,6 @@ func main() {
 	k.Pass(f, "csPass9AVX2", 9)
 	k.Last(f, "csLast9AVX2", 9)
 	writeFile("radix9_amd64.s", f.String())
-
-	// Bluestein's pointwise products (Round 36, kernels.CMulTo).
-	f = emit.NewFile("amd64")
-	fft.CMulAVX2(f, "zmCMulAVX2")
-	writeFile("zmcmul_amd64.s", f.String())
 
 	genFMAFiles()
 	genR32Files()

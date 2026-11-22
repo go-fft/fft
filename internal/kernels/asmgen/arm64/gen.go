@@ -1,7 +1,7 @@
 //go:build ignore
 
 // Command gen writes the arm64 kernels of the kernels package, via go-asmgen:
-// cmul_arm64.s (the NEON pointwise complex product), stockham_arm64.s and
+// stockham_arm64.s and
 // stockham32_arm64.s (the float64 and float32 NEON Stockham passes),
 // batch32_arm64.s, untangle32_arm64.s and untangle_arm64.s. Run with: go run
 // gen.go (or `go generate` from the kernels package).
@@ -31,10 +31,6 @@ func inv(inverse bool) string {
 }
 
 func main() {
-	f := emit.NewFile("arm64")
-	fft.CMulNEON(f, "cmulNEON")
-	write("cmul_arm64.s", f)
-
 	sk := emit.NewFile("arm64")
 	for _, inverse := range []bool{false, true} {
 		for _, r := range radices {
@@ -64,7 +60,7 @@ func main() {
 	}
 	write("stockham_arm64.s", sk)
 
-	f = emit.NewFile("arm64")
+	f := emit.NewFile("arm64")
 	for _, inverse := range []bool{false, true} {
 		for _, r := range radices {
 			fft.Pass32(f, fmt.Sprintf("sk32Pass%dNEON%s", r, inv(inverse)), r, inverse)

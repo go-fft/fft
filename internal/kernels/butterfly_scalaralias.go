@@ -13,7 +13,7 @@ package kernels
 //     every add/sub as a copy plus an FMA-by-one and pay a VLD2/VST2 (or VL/VST +
 //     VMRH/VMRL) deinterleave on each pass. A full stage-level NEON kernel was
 //     built and benchmarked against this loop: it TIED the scalar loop (≈±2%).
-//     (Same as the SIMD complex-multiply round; see cmul.go and BENCHMARKS.md.
+//     (Same as the SIMD complex-multiply round; see BENCHMARKS.md; that round's kernels are gone, the product is floats.CMulTo.
 //     This comment used to credit a gc "autovectorizer"; gc has none, the
 //     scalar loop is simply as fast as that kernel.)
 //   - These stages only serve the iterative pow2 kernel, which arm64 no longer

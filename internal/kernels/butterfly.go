@@ -50,7 +50,7 @@ package kernels
 //
 // It is the portable correctness oracle and the fallback when no SIMD kernel is
 // selected. //go:noinline pins one compiled body so every caller observes the
-// same floating-point form (the same reason CMulScalar is noinline).
+// same floating-point form (the same reason cmul1 is noinline).
 //
 //go:noinline
 func Radix2StageScalar(a []complex128, n, span int, tw []complex128) {
@@ -110,8 +110,8 @@ func Radix4StageScalar(a []complex128, n, span int, w1, w2, w3 []complex128, inv
 	}
 }
 
-// cmul1 is the single-element complex product, written exactly as CMulScalar's
-// body so the radix oracles fuse identically to the pointwise oracle on the
+// cmul1 is the single-element complex product, written as the pointwise loop
+// was (the loop that CMulScalar used to be, now floats.CMulTo) so the radix oracles fuse identically to the pointwise oracle on the
 // fused arches.
 //
 // //go:noinline pins the product as its OWN rounding boundary. Without it the
@@ -120,7 +120,7 @@ func Radix4StageScalar(a []complex128, n, span int, w1, w2, w3 []complex128, inv
 // the fused arches, rounding differently than the SIMD kernel — which computes
 // each product, then each add, as separate roundings. Pinning the product keeps
 // the scalar oracle's rounding structure identical to the kernel's, preserving
-// bit-for-bit identity (the same FMA-contraction hazard CMulScalar documents).
+// bit-for-bit identity (the FMA-contraction hazard of any complex product in Go).
 //
 //go:noinline
 func cmul1(a, b complex128) complex128 {

@@ -3,11 +3,8 @@ package fft
 import (
 	"math"
 	"math/cmplx"
-	"runtime"
 	"slices"
 	"testing"
-
-	"github.com/go-fft/fft/internal/kernels"
 )
 
 // zmRowsByRun is the contiguous axis ax of PlanN.transform as it ran before
@@ -86,7 +83,7 @@ func TestZmRowsMatchRun(t *testing.T) {
 }
 
 // zmBlueLoops is bluesteinPlan.transform as it ran before Round 36: the
-// pointwise products as Go loops and kernels.CMul.
+// pointwise products as Go loops.
 func zmBlueLoops(p *bluesteinPlan, dst, src []complex128, inverse bool) {
 	n, w, bSpec := p.n, p.wF, p.bF
 	if inverse {
@@ -98,7 +95,9 @@ func zmBlueLoops(p *bluesteinPlan, dst, src []complex128, inverse bool) {
 	}
 	plan := cachedPlanA(p.m, p.ar)
 	plan.execute(a, a, false)
-	kernels.CMul(a, bSpec)
+	for i := range a {
+		a[i] *= bSpec[i]
+	}
 	plan.execute(a, a, true)
 	for k := 0; k < n; k++ {
 		dst[k] = a[k] * w[k]
@@ -106,16 +105,21 @@ func zmBlueLoops(p *bluesteinPlan, dst, src []complex128, inverse bool) {
 }
 
 // TestZmBluesteinMatchesLoops holds Bluestein with its products on
-// kernels.CMulTo (Round 36) to the Go loops it replaced, both directions, in
-// place and not, on the pooled buffer's second use too (its pad must be
-// cleared again): bit for bit on amd64, where neither fuses a product into
-// an FMA; elsewhere within 1e-12 of the largest output, because the
-// compiler may fuse the same expression differently in another function
-// (it did on macOS arm64 under -race and -coverpkg, by an ULP).
+// floats.CMulTo to the Go loops it replaced, both directions, in place and
+// not, on the pooled buffer's second use too (its pad must be cleared
+// again): within 1e-12 of the largest output. floats.CMulTo's contract is a
+// stated bound, not the loop's bits (its AVX2 kernel fuses a product into
+// an FMA, and the compiler may fuse the loop's differently on arm64).
 func TestZmBluesteinMatchesLoops(t *testing.T) {
-	exact := runtime.GOARCH == "amd64"
+	// The default takes floats.CMulTo; Exact and NoFMA take the Go loop.
+	for _, opts := range []Options{{}, exactOpts, {NoFMA: true}} {
+		testZmBluestein(t, opts)
+	}
+}
+
+func testZmBluestein(t *testing.T, opts Options) {
 	for _, n := range []int{23, 46, 47, 59, 94, 4099, 10007} {
-		p := NewPlanWith(n, exactOpts)
+		p := NewPlanWith(n, opts)
 		if p.bluestein == nil {
 			t.Fatalf("%d does not run Bluestein", n)
 		}
@@ -130,9 +134,6 @@ func TestZmBluesteinMatchesLoops(t *testing.T) {
 					}
 				}
 				same := func(a, b complex128) bool {
-					if exact {
-						return sameBits(a, b)
-					}
 					c := func(u, v float64) bool {
 						return u == v || math.IsNaN(u) && math.IsNaN(v) || math.Abs(u-v) <= 1e-12*scale
 					}

@@ -87,6 +87,24 @@ func relRMS(got, want []complex128) float64 {
 	return math.Sqrt(e / s)
 }
 
+// sameDefault is whether a default transform a is the Exact one b: bit for bit,
+// except on a Bluestein length, whose products run on floats.CMulTo (a stated
+// error bound, fused wherever the CPU has FMA whatever fmaAvailable says), so
+// there they agree within 1e-12 of the largest output.
+func sameDefault(a, b []complex128, bluestein bool) bool {
+	if !bluestein {
+		return sameAll(a, b)
+	}
+	scale, diff := 0.0, 0.0
+	for i := range b {
+		scale = max(scale, cmplx.Abs(b[i]))
+		if i < len(a) {
+			diff = max(diff, cmplx.Abs(a[i]-b[i]))
+		}
+	}
+	return len(a) == len(b) && diff <= 1e-12*scale
+}
+
 func sameAll(a, b []complex128) bool {
 	for i := range a {
 		if !sameBits(a[i], b[i]) {
@@ -142,11 +160,12 @@ func TestFMAUnavailableIsDefault(t *testing.T) {
 		if p := NewPlanWith(n, o); p.sk != nil && p.sk.fma || p.rader != nil && p.rader.fma || p.bluestein != nil && p.bluestein.fma {
 			t.Fatalf("n=%d: an FMA plan was built without FMA", n)
 		}
-		if !sameAll(FFTWith(x, o), FFTWith(x, exactOpts)) || !sameAll(IFFTWith(x, o), IFFTWith(x, exactOpts)) {
+		blue := NewPlanWith(n, o).bluestein != nil
+		if !sameDefault(FFTWith(x, o), FFTWith(x, exactOpts), blue) || !sameDefault(IFFTWith(x, o), IFFTWith(x, exactOpts), blue) {
 			t.Fatalf("n=%d: FFTWith/IFFTWith with FMA unavailable differ from the exact ones", n)
 		}
 		r := fmaReal(n, 1)
-		if !sameAll(RFFTWith(r, o), RFFTWith(r, exactOpts)) || NewRealPlanWith(n, o).fma {
+		if !sameDefault(RFFTWith(r, o), RFFTWith(r, exactOpts), blue) || NewRealPlanWith(n, o).fma {
 			t.Fatalf("n=%d: RFFTWith with FMA unavailable differs", n)
 		}
 	}

@@ -1,0 +1,74 @@
+package fft_test
+
+import (
+	"flag"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/go-fft/fft/internal/kernels"
+	"github.com/go-simd/floats"
+)
+
+var zzK = flag.String("zz.k", "", "rounds,ms: run TestZZKernel")
+
+// TestZZKernel times dst = a*b three ways in one process, rotated rounds:
+// today's kernels.CMulTo (its default routing on this CPU), the plain Go loop,
+// and floats.CMulTo. Scratch measurement, not committed.
+func TestZZKernel(t *testing.T) {
+	if *zzK == "" {
+		t.Skip("set -zz.k=rounds,ms")
+	}
+	var rounds, ms int
+	if _, err := fmt.Sscanf(*zzK, "%d,%d", &rounds, &ms); err != nil {
+		t.Fatal(err)
+	}
+	for _, n := range []int{16, 64, 256, 1024, 65536} {
+		a := make([]complex128, n)
+		b := make([]complex128, n)
+		d := make([]complex128, n)
+		for i := range a {
+			a[i] = complex(float64(i%13)*0.1+1, float64(i%7)*0.3-1)
+			b[i] = complex(float64(i%11)*0.2-1, float64(i%5)*0.1+0.5)
+		}
+		fns := []struct {
+			name string
+			f    func()
+		}{
+			{"kernels", func() { kernels.CMulTo(d, a, b) }},
+			{"scalar", func() {
+				for i := range d {
+					d[i] = a[i] * b[i]
+				}
+			}},
+			{"floats", func() { floats.CMulTo(d, a, b) }},
+		}
+		k := 1
+		for {
+			t0 := time.Now()
+			for range k {
+				fns[0].f()
+			}
+			if time.Since(t0) > time.Duration(ms)*time.Millisecond/4 {
+				break
+			}
+			k *= 2
+		}
+		times := make([][]float64, len(fns))
+		for r := range rounds {
+			for q := range fns {
+				v := (q + r) % len(fns)
+				t0 := time.Now()
+				for range k {
+					fns[v].f()
+				}
+				times[v] = append(times[v], float64(time.Since(t0).Nanoseconds())/float64(k))
+			}
+		}
+		fmt.Printf("KERNEL n=%-6d", n)
+		for i, f := range fns {
+			fmt.Printf("  %s %9.1f", f.name, znMedian(times[i]))
+		}
+		fmt.Println()
+	}
+}

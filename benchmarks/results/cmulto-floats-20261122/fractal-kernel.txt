@@ -1,0 +1,15 @@
+total 9513
+-rwxr-xr-x 1 next next  4735995 nov.  22 11:53 go-simd-floats-cmulto-ab.test
+-rwxr-xr-x 1 next next  8893952 nov.  22 11:53 go-simd-floats-cmulto.amd64.test
+-rwxr-xr-x 1 next next 10731680 nov.  22 13:43 new.linux.amd64
+-rw-r--r-- 1 next next      405 nov.  22 11:52 np.py
+-rwxr-xr-x 1 next next 10727584 nov.  22 13:43 old.linux.amd64
+ 13:43:22 up 70 days, 23:38,  5 users,  load average: 0,27, 0,13, 0,28
+=== RUN   TestZZKernel
+KERNEL n=16      kernels       7.1  scalar      11.9  floats       7.5
+KERNEL n=64      kernels      17.2  scalar      43.9  floats      16.0
+KERNEL n=256     kernels      50.9  scalar     174.5  floats      48.1
+KERNEL n=1024    kernels     300.9  scalar     693.4  floats     303.2
+KERNEL n=65536   kernels   24310.4  scalar   44893.9  floats   23167.9
+--- PASS: TestZZKernel (21.20s)
+PASS

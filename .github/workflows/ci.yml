@@ -12,66 +12,40 @@ permissions:
 # Split-CI coverage policy (Phase 4, mirroring the go-asmgen org).
 #
 # A single `go test -coverpkg` run cannot reach 100% statement coverage over a
-# SIMD-dispatched package: each arch's cmulSIMD wrapper only exists and runs on
-# that arch — the amd64 SSE2 wrapper (cmul_amd64.go → cmul_amd64.s), the arm64
-# NEON wrapper (cmul_arm64.go → cmul_arm64.s), the riscv64 RVV wrapper
-# (cmul_riscv64.go → cmul_riscv64.s, run-time V-gated), and the scalar-fallback
-# wrapper (cmul_generic.go, loong64/ppc64le). No single build sees more than one
-# of them, so no single run covers them all.
-#
-# The honest fix, used here:
-#   * The pure-Go scalar CORE (CMulScalar, CMul, BitReverse, Radix2, …) is held
-#     to 100% statement coverage by the `test` gate below. That gate runs on the
-#     GitHub-hosted amd64 AND arm64 runners; on each, exactly one cmulSIMD
-#     wrapper is compiled (the amd64 SSE2 wrapper or the arm64 NEON wrapper) and
-#     it IS exercised by the SIMD-vs-scalar test, so the gate legitimately
-#     reaches 100% on every OS it runs on — nothing is excluded that a per-arch
-#     job does not run.
+# package whose kernels are per-arch: each arch's wrappers only exist and run on
+# that arch, so no single run covers them all. The honest fix, used here:
+#   * The pure-Go CORE is held to 100% statement coverage by the `test` gate
+#     below, on the GitHub-hosted amd64 AND arm64 runners; nothing is excluded
+#     that a per-arch job does not run.
 #   * The generated Plan 9 assembly carries no Go statements, so it cannot be
 #     "covered" by the statement gate. It is instead validated by the per-arch
-#     execution jobs (arch-native / arch-qemu): each regenerates the committed
-#     .s with go-asmgen, fails if it is stale, vets it (asmdecl cross-checks
-#     every name+offset(FP)), builds it (cmd/asm encodes/validates the
-#     mnemonics), and RUNS the test suite — whose TestCMul* assert the SIMD
-#     kernel is bit-for-bit identical to the scalar oracle.
+#     execution jobs (arch-native): each regenerates the committed .s with
+#     go-asmgen, fails if it is stale, vets it (asmdecl cross-checks every
+#     name+offset(FP)), builds it (cmd/asm encodes/validates the mnemonics),
+#     and RUNS the test suite.
+#   * The qemu-user jobs (arch-qemu) run the whole suite on the targets with no
+#     hosted runner (riscv64, loong64, ppc64le, s390x), which ship no assembly
+#     of their own here: the endianness and word-size guard.
 #
 # So every line is either statement-covered by the gate or executed by a
 # per-arch job; the gate is never lowered and there is no coverage-gaming knob.
 #
-# Which arches ship a SIMD kernel, and why bit-for-bit identity decides it.
-# amd64 SSE2 (MULPD/ADDPD, separately rounded) matches its non-fused GOAMD64=v1
-# oracle. On arm64 FMA is baseline, so the gc compiler fuses the oracle itself
-# (FMSUBD/FMADDD); the NEON kernel reproduces that exact fusion (VLD2/VST2 +
-# VFMLA/VFMLS) and is therefore bit-identical too — fusion is matched, not
-# avoided. s390x — the only big-endian target — also ships one: its vector
-# facility (VFMDB/VFMSDB/VFMADB, 2-wide double) reproduces the oracle's fused
-# FMSUB/FMADD, and the qemu-s390x job proves it bit-identical with correct
-# big-endian lane order. riscv64 ships an RVV 1.0 kernel (VLSEG2E64V deinterleave
-# + VFMUL.VV/VFNMSAC.VV/VFMACC.VV reproducing the oracle's fused FNMSUBD/FMADDD),
-# HARDWARE-VALIDATED bit-identical on cfarm95 (a SpacemiT X60, RVA22 + RVV 1.0,
-# GCC Compile Farm). Because the V extension is OPTIONAL and ABSENT from this
-# job's default qemu-riscv64 CPU (VSETVLI would SIGILL), cmul_riscv64.go detects
-# V at RUN TIME and runs the SCALAR path here, and the SIMD-vs-scalar test SKIPs
-# its RVV comparison ("no RVV") — so this qemu job stays green while the RVV
-# proof is supplied by cfarm95. loong64/ppc64le keep the validated scalar path
-# (the Go assembler has no loong64 vector FMA, and no ppc64le vector double
-# arithmetic — see cmul_generic.go; a loong64 kernel from separately rounded
-# products is possible and is go-fft/fft#137). See docs/plan-fft.md (Phase 4).
-# These kernels ship and are tested, but none is on the transforms' hot path:
-# the scalar loop measured as fast (README, BENCHMARKS.md).
+# The pointwise complex product of Bluestein's chirp and spectral products is
+# not here: it is go-simd/floats' CMulTo, the one implementation, tested and
+# regenerated in that module.
 jobs:
   # Pure-Go coverage gate: build, vet, race-test, enforce 100% statement
   # coverage of the portable core. Runs on amd64 (ubuntu/windows) and arm64
-  # (macos), so on each host exactly one cmulSIMD wrapper compiles and is
-  # exercised — the gate reaches 100% without excluding any reachable line.
+  # (macos), so each host compiles and exercises its own arch's code — the gate
+  # reaches 100% without excluding any reachable line.
   #
   # Sharding (shard_test.go): the Windows race lane is too slow in one piece (367 s
   # to a 600 s timeout on the same code), so it runs as three deterministic shards
   # of the root package's tests (GOFFT_SHARD=i/N, a name hash), each leaving at
   # least 30% of the timeout. A shard sees a third of the tests, so it cannot hold
   # the 100% gate: the gate runs on the UNSHARDED ubuntu (amd64) and ubuntu-24.04-arm
-  # (arm64) lanes, the two that each compile a different cmulSIMD wrapper, and
-  # Windows (amd64, the same wrapper as ubuntu) and macOS (arm64, the same wrapper
+  # (arm64) lanes, the two that each compile a different arch's code, and
+  # Windows (amd64, the same code as ubuntu) and macOS (arm64, the same code
   # as ubuntu-arm) run their shards under -race without it. macOS was unsharded
   # with the gate and reached its job limit twice (402 s of the suite alone, then
   # a cancellation after the FFTReal change); two shards leave it about half of
@@ -160,7 +134,7 @@ jobs:
   # Native per-arch execution. amd64/arm64 have GitHub-hosted runners, so the
   # generated assembly (where present) runs natively. Each job regenerates the
   # committed .s via go-asmgen and fails if it is stale, then vets/builds/runs
-  # the suite — TestCMul* assert SIMD == scalar bit-for-bit.
+  # the suite.
   arch-native:
     name: arch ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
@@ -225,15 +199,10 @@ jobs:
           echo "::notice::shuffled run; on a failure, reproduce with: go test -count=1 -shuffle=<the seed printed below> ."
           go test -count=1 -shuffle=on .
 
-  # qemu-user execution for the targets without a hosted runner. s390x ships a
-  # vector-facility SIMD kernel (regen-checked below, then the qemu run asserts
-  # SIMD == scalar bit-for-bit on the project's only big-endian target). riscv64
-  # ships an RVV kernel whose .s is regen-checked here too, but its V extension is
-  # absent from this default qemu CPU, so cmul_riscv64.go runs SCALAR and the
-  # SIMD-vs-scalar test SKIPs ("no RVV") — green here; the RVV bit-identity proof
-  # is run on real hardware (cfarm95, RVV 1.0). loong64/ppc64le ship no SIMD
-  # kernel (validated scalar path; see cmul_generic.go), so for them this job is
-  # the endianness/word-size guard and the trivially-scalar==scalar SIMD test.
+  # qemu-user execution for the targets without a hosted runner. None ships
+  # generated assembly here (the portable Go path runs), so this job is the
+  # endianness (s390x is the project's only big-endian target) and word-size
+  # guard.
   arch-qemu:
     name: arch ${{ matrix.goarch }} (qemu${{ matrix.shard != '' && format(', shard {0}', matrix.shard) || '' }})
     # The suite takes 366 to 598 s on ppc64le against the 10-minute go test
@@ -250,15 +219,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { goarch: riscv64, qemu: qemu-riscv64-static, regen: riscv64, shard: '' }
+          - { goarch: riscv64, qemu: qemu-riscv64-static, shard: '' }
           - { goarch: loong64, qemu: qemu-loongarch64-static, shard: '0/2' }
           - { goarch: loong64, qemu: qemu-loongarch64-static, shard: '1/2' }
           - { goarch: ppc64le, qemu: qemu-ppc64le-static, shard: '0/3' }
           - { goarch: ppc64le, qemu: qemu-ppc64le-static, shard: '1/3' }
           - { goarch: ppc64le, qemu: qemu-ppc64le-static, shard: '2/3' }
-          - { goarch: s390x,   qemu: qemu-s390x-static, regen: s390x, shard: '0/3' }
-          - { goarch: s390x,   qemu: qemu-s390x-static, regen: s390x, shard: '1/3' }
-          - { goarch: s390x,   qemu: qemu-s390x-static, regen: s390x, shard: '2/3' }
+          - { goarch: s390x,   qemu: qemu-s390x-static, shard: '0/3' }
+          - { goarch: s390x,   qemu: qemu-s390x-static, shard: '1/3' }
+          - { goarch: s390x,   qemu: qemu-s390x-static, shard: '2/3' }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
