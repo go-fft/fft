@@ -1,0 +1,32 @@
+1,8c1,8
+< n=23 inv=false bcc188eef74a473f
+< n=23 inv=true 253047b6b45034e1
+< n=47 inv=false d98f760b43050d43
+< n=47 inv=true de1fd1bfb01e02fa
+< n=59 inv=false 652750b4c7a41a32
+< n=59 inv=true 3b0ca8b9fea47136
+< n=94 inv=false 26baebc42cf97872
+< n=94 inv=true 1ac0f71b4ea34a7d
+---
+> n=23 inv=false 458dd27f1d228b8b
+> n=23 inv=true dd2cae636f5a6471
+> n=47 inv=false 5030a4845e14efd3
+> n=47 inv=true 20af166f54fe72e3
+> n=59 inv=false d91b4843e8a63ce4
+> n=59 inv=true f62f230db91da5fb
+> n=94 inv=false b91aea2458d5910d
+> n=94 inv=true 16e4877fa4fb918f
+11,16c11,16
+< n=1013 inv=false 27524bca03529516
+< n=1013 inv=true 4d8c7bcad5a7d004
+< n=4099 inv=false 1ccd53a8f502e937
+< n=4099 inv=true 3084e1cc04877a42
+< n=10007 inv=false 403900f9dc3b4163
+< n=10007 inv=true 3a6eac086524e2c1
+---
+> n=1013 inv=false 9615e8c1e70ba336
+> n=1013 inv=true 904af3d5adb755cf
+> n=4099 inv=false f1aec5dc7911fdf2
+> n=4099 inv=true 172c7d7e8ee6adc1
+> n=10007 inv=false 159a25b3f4e6522f
+> n=10007 inv=true 13e02cfda8b3ceca

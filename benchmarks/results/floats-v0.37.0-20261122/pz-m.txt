@@ -1,0 +1,16 @@
+n=23 inv=false bcc188eef74a473f
+n=23 inv=true 253047b6b45034e1
+n=47 inv=false d98f760b43050d43
+n=47 inv=true de1fd1bfb01e02fa
+n=59 inv=false 652750b4c7a41a32
+n=59 inv=true 3b0ca8b9fea47136
+n=94 inv=false 26baebc42cf97872
+n=94 inv=true 1ac0f71b4ea34a7d
+n=641 inv=false 7504a3c0a6d95fb8
+n=641 inv=true fd7a0b1e46f4a464
+n=1013 inv=false 27524bca03529516
+n=1013 inv=true 4d8c7bcad5a7d004
+n=4099 inv=false 1ccd53a8f502e937
+n=4099 inv=true 3084e1cc04877a42
+n=10007 inv=false 403900f9dc3b4163
+n=10007 inv=true 3a6eac086524e2c1
