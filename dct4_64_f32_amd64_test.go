@@ -10,8 +10,15 @@ import (
 // not.
 func TestDCT32KernelRouted(t *testing.T) {
 	isolatePlans(t)
-	if got := NewDCTPlan32(64, 4).quad; got != fmaAvailable {
-		t.Errorf("DCTPlan32(64, 4).quad = %v, fmaAvailable = %v", got, fmaAvailable)
+	// The routing switch, not fmaAvailable: other tests force the latter.
+	if got := NewDCTPlan32(64, 4).quad; got != dct4F32Asm {
+		t.Errorf("DCTPlan32(64, 4).quad = %v, dct4F32Asm = %v", got, dct4F32Asm)
+	}
+	if got := dct4F32Route(64, 4); got != dct4F32Asm {
+		t.Errorf("dct4F32Route(64, 4) = %v, dct4F32Asm = %v", got, dct4F32Asm)
+	}
+	if dct4F32Route(128, 4) || dct4F32Route(64, 2) {
+		t.Error("the kernel is routed for a size or type it does not compute")
 	}
 	old := dct4F32Asm
 	dct4F32Asm = false
