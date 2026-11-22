@@ -62,7 +62,12 @@ type Options struct {
 	// NoFMA asks for the default arithmetic without fused multiply-adds: on
 	// amd64 CPUs with FMA3 the plans the default builds, built unfused; where
 	// the default does not fuse (no FMA3, other architectures) it changes
-	// nothing. Use it for output that must not depend on whether the CPU has
+	// nothing, except on s390x and ppc64le: there the default's Bluestein
+	// pointwise product runs floats.CMulTo (VX, VSX kernels with an error-bound
+	// contract, not the gc loop's bits), whereas NoFMA and Exact keep the Go
+	// loop, so the default's Bluestein bits differ from theirs in the last
+	// places, inside the bound (arm64's NEON kernel reproduces the loop's bits:
+	// no exception there). Use it for output that must not depend on whether the CPU has
 	// FMA3. It is not the reference arithmetic: the default's other choices
 	// (routes, orders) are kept; Exact is the promise of v0.28.16's bits.
 	// NoFMA excludes FMA (both set panics) and is implied by Exact. The

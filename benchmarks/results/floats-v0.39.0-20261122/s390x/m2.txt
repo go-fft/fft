@@ -1,0 +1,24 @@
+goos: linux
+goarch: s390x
+pkg: github.com/go-fft/fft
+BenchmarkZZBlue/n=47         	  729403	      1645 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  731659	      1642 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  728181	      1640 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  731598	      1654 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  732013	      1646 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  307064	      3842 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  314295	      3877 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  313420	      3858 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  312535	      3872 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  311685	      3876 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    5305	    226664 ns/op	      27 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    5264	    225380 ns/op	      28 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    5335	    224452 ns/op	      27 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    5325	    224576 ns/op	      27 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    5346	    224617 ns/op	      27 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1483	    808120 ns/op	     221 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1477	    809453 ns/op	     221 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1488	    807883 ns/op	     220 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1484	    809264 ns/op	     220 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1488	    809612 ns/op	     220 B/op	       0 allocs/op
+PASS

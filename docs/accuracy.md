@@ -164,8 +164,11 @@ r2r lengths 2 to 1,009.
 The worst ratios sit at the shortest lengths (2 to 25), where `log2 n` is
 smallest and the error does not shrink with it. Rader and Bluestein lengths
 measure 0.2 to 0.7, the same as the smooth ones. (Bluestein's three pointwise
-products run on `floats.CMulTo`, a stated bound rather than the loop's bits:
-the worst Bluestein ratio moved from 0.598 to 0.674 (c2c, n=23) and the PSD's
+products run on `floats.CMulTo`, a stated bound rather than the loop's bits
+(on s390x and ppc64le, where the VX and VSX kernels replace the gc loop, the
+default's Bluestein bits therefore differ from Exact and NoFMA); the figures
+below are amd64's, and the bounds asserted are 1.5 for c2c and 2.0 for r2c, the
+0.74 being a measured c2c figure: the worst Bluestein ratio moved from 0.598 to 0.674 (c2c, n=23) and the PSD's
 from 0.437 to 0.556. On amd64 the 36 r2r golden cases that reach it, DST-I at
 257, 1,009 and 4,096 and DCT-I at 1,000, are all CPU-dependent, so the default
 path's Bluestein bits are guarded by the tolerance tests and `TestAccuracyBound`,

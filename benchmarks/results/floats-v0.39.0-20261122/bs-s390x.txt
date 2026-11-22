@@ -1,0 +1,30 @@
+goos: linux
+goarch: s390x
+pkg: github.com/go-fft/fft
+               │    m.txt    │               n.txt                │
+               │   sec/op    │   sec/op     vs base               │
+ZZBlue/n=47      1.644µ ± 0%   1.581µ ± 0%  -3.83% (p=0.000 n=10)
+ZZBlue/n=94      3.863µ ± 0%   3.751µ ± 1%  -2.91% (p=0.000 n=10)
+ZZBlue/n=4099    225.1µ ± 0%   217.5µ ± 1%  -3.37% (p=0.000 n=10)
+ZZBlue/n=10007   809.5µ ± 0%   799.2µ ± 0%  -1.28% (p=0.000 n=10)
+geomean          32.80µ        31.86µ       -2.85%
+
+               │    m.txt     │                n.txt                │
+               │     B/op     │    B/op     vs base                 │
+ZZBlue/n=47      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=94      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=4099    27.00 ± 0%     26.00 ± 0%  -3.70% (p=0.000 n=10)
+ZZBlue/n=10007   221.0 ± 0%     218.0 ± 0%  -1.36% (p=0.000 n=10)
+geomean                     ²               -1.28%                ²
+¹ all samples are equal
+² summaries must be >0 to compute geomean
+
+               │    m.txt     │                n.txt                │
+               │  allocs/op   │ allocs/op   vs base                 │
+ZZBlue/n=47      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=94      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=4099    0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=10007   0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+geomean                     ²               +0.00%                ²
+¹ all samples are equal
+² summaries must be >0 to compute geomean

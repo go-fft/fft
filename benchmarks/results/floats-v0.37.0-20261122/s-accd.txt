@@ -1,0 +1,78 @@
+4,5c4,5
+<     accuracy_test.go:841: ACC default function c2c FFTReal                        worst err/(eps*log2n) =  0.582  at FFTReal [23] seed 1
+<     accuracy_test.go:841: ACC default function c2c FFTRealWith                    worst err/(eps*log2n) =  0.582  at FFTRealWith [23] seed 1
+---
+>     accuracy_test.go:841: ACC default function c2c FFTReal                        worst err/(eps*log2n) =  0.649  at FFTReal [23] seed 1
+>     accuracy_test.go:841: ACC default function c2c FFTRealWith                    worst err/(eps*log2n) =  0.649  at FFTRealWith [23] seed 1
+15c15
+<     accuracy_test.go:841: ACC default function c2c RealPlan.FFTReal               worst err/(eps*log2n) =  0.582  at RealPlan.FFTReal [23] seed 1
+---
+>     accuracy_test.go:841: ACC default function c2c RealPlan.FFTReal               worst err/(eps*log2n) =  0.649  at RealPlan.FFTReal [23] seed 1
+50c50
+<     accuracy_test.go:841: ACC default function r2c IHFFT                          worst err/(eps*log2n) =  0.636  at IHFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC default function r2c IHFFT                          worst err/(eps*log2n) =  0.705  at IHFFT [23] seed 1
+52c52
+<     accuracy_test.go:841: ACC default function r2c RFFT                           worst err/(eps*log2n) =  0.612  at RFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC default function r2c RFFT                           worst err/(eps*log2n) =  0.705  at RFFT [23] seed 1
+57,58c57,58
+<     accuracy_test.go:841: ACC default function r2c RealPlan.RFFT                  worst err/(eps*log2n) =  0.612  at RealPlan.RFFT [23] seed 1
+<     accuracy_test.go:841: ACC default function r2c RealPlan.RFFTNorm              worst err/(eps*log2n) =  0.636  at RealPlan.RFFTNorm [23] seed 1
+---
+>     accuracy_test.go:841: ACC default function r2c RealPlan.RFFT                  worst err/(eps*log2n) =  0.705  at RealPlan.RFFT [23] seed 1
+>     accuracy_test.go:841: ACC default function r2c RealPlan.RFFTNorm              worst err/(eps*log2n) =  0.706  at RealPlan.RFFTNorm [23] seed 1
+115c115
+<     accuracy_test.go:841: ACC default route    c2c bluestein                      worst err/(eps*log2n) =  0.582  at FFTReal [23] seed 1
+---
+>     accuracy_test.go:841: ACC default route    c2c bluestein                      worst err/(eps*log2n) =  0.649  at FFTReal [23] seed 1
+125c125
+<     accuracy_test.go:841: ACC default route    psd bluestein                      worst err/(eps*log2n) =  0.438  at PSD [47] seed 1
+---
+>     accuracy_test.go:841: ACC default route    psd bluestein                      worst err/(eps*log2n) =  0.660  at PSD [23] seed 1
+129c129
+<     accuracy_test.go:841: ACC default route    r2c bluestein                      worst err/(eps*log2n) =  0.636  at IHFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC default route    r2c bluestein                      worst err/(eps*log2n) =  0.706  at RealPlan.RFFTNorm [23] seed 1
+154c154
+<     accuracy_test.go:841: ACC default family   r2c                                worst err/(eps*log2n) =  0.670  at RealPlan.IRFFTNorm [19] seed 1
+---
+>     accuracy_test.go:841: ACC default family   r2c                                worst err/(eps*log2n) =  0.706  at RealPlan.RFFTNorm [23] seed 1
+162c162
+<     accuracy_test.go:841: ACC fma     function c2c FFTRealWith                    worst err/(eps*log2n) =  0.582  at FFTRealWith [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     function c2c FFTRealWith                    worst err/(eps*log2n) =  0.649  at FFTRealWith [23] seed 1
+170c170
+<     accuracy_test.go:841: ACC fma     function c2c RealPlan.FFTReal               worst err/(eps*log2n) =  0.582  at RealPlan.FFTReal [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     function c2c RealPlan.FFTReal               worst err/(eps*log2n) =  0.649  at RealPlan.FFTReal [23] seed 1
+181c181
+<     accuracy_test.go:841: ACC fma     function r2c IHFFT                          worst err/(eps*log2n) =  0.636  at IHFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     function r2c IHFFT                          worst err/(eps*log2n) =  0.705  at IHFFT [23] seed 1
+183c183
+<     accuracy_test.go:841: ACC fma     function r2c RFFT                           worst err/(eps*log2n) =  0.612  at RFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     function r2c RFFT                           worst err/(eps*log2n) =  0.705  at RFFT [23] seed 1
+187c187
+<     accuracy_test.go:841: ACC fma     function r2c RealPlan.RFFT                  worst err/(eps*log2n) =  0.612  at RealPlan.RFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     function r2c RealPlan.RFFT                  worst err/(eps*log2n) =  0.705  at RealPlan.RFFT [23] seed 1
+194c194
+<     accuracy_test.go:841: ACC fma     route    c2c bluestein                      worst err/(eps*log2n) =  0.582  at FFTRealWith [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     route    c2c bluestein                      worst err/(eps*log2n) =  0.649  at FFTRealWith [23] seed 1
+199c199
+<     accuracy_test.go:841: ACC fma     route    r2c bluestein                      worst err/(eps*log2n) =  0.636  at IHFFT [23] seed 1
+---
+>     accuracy_test.go:841: ACC fma     route    r2c bluestein                      worst err/(eps*log2n) =  0.705  at IHFFT [23] seed 1
+206c206
+<     accuracy_test.go:841: ACC fma     family   r2c                                worst err/(eps*log2n) =  0.690  at RFFTWith N pad Norm [12] seed 1
+---
+>     accuracy_test.go:841: ACC fma     family   r2c                                worst err/(eps*log2n) =  0.705  at IHFFT [23] seed 1
+209,210c209,210
+<     --- PASS: TestAccuracyBound/default (0.25s)
+<     --- PASS: TestAccuracyBound/fma (0.00s)
+---
+>     --- PASS: TestAccuracyBound/default (0.24s)
+>     --- PASS: TestAccuracyBound/fma (0.01s)

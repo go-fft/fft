@@ -1,0 +1,50 @@
+package fft
+
+import (
+	"crypto/sha256"
+	"encoding/binary"
+	"fmt"
+	"math"
+	"os"
+	"testing"
+)
+
+// TestZZBits2 writes digests of Exact and NoFMA Bluestein outputs to $ZZBITS2.
+func TestZZBits2(t *testing.T) {
+	path := os.Getenv("ZZBITS2")
+	if path == "" {
+		t.Skip()
+	}
+	out := ""
+	for _, c := range []struct {
+		name string
+		opt  Options
+	}{{"exact", Options{Exact: true}}, {"nofma", Options{NoFMA: true}}} {
+		name, opt := c.name, c.opt
+		for _, n := range []int{23, 47, 59, 94, 641, 1013, 4099, 10007} {
+			p := NewPlanWith(n, opt)
+			x := make([]complex128, n)
+			for i := range x {
+				x[i] = complex(float64(i%13)-6+0.1*float64(i%5), float64(i%7)-3)
+			}
+			for _, inv := range []bool{false, true} {
+				d := make([]complex128, n)
+				if inv {
+					p.IFFT(d, x)
+				} else {
+					p.FFT(d, x)
+				}
+				h := sha256.New()
+				var b [8]byte
+				for _, v := range d {
+					binary.LittleEndian.PutUint64(b[:], math.Float64bits(real(v)))
+					h.Write(b[:])
+					binary.LittleEndian.PutUint64(b[:], math.Float64bits(imag(v)))
+					h.Write(b[:])
+				}
+				out += fmt.Sprintf("%s n=%d inv=%v %x\n", name, n, inv, h.Sum(nil)[:8])
+			}
+		}
+	}
+	os.WriteFile(path, []byte(out), 0o644)
+}

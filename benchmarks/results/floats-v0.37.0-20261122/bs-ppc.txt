@@ -1,0 +1,31 @@
+goos: linux
+goarch: ppc64le
+pkg: github.com/go-fft/fft
+cpu: POWER9
+               │   pm.txt    │               pn.txt               │
+               │   sec/op    │   sec/op     vs base               │
+ZZBlue/n=47      2.106µ ± 0%   2.126µ ± 1%  +0.97% (p=0.000 n=10)
+ZZBlue/n=94      4.759µ ± 0%   4.815µ ± 0%  +1.18% (p=0.000 n=10)
+ZZBlue/n=4099    277.7µ ± 0%   278.0µ ± 0%  +0.11% (p=0.005 n=10)
+ZZBlue/n=10007   672.7µ ± 0%   673.1µ ± 0%       ~ (p=0.123 n=10)
+geomean          36.99µ        37.20µ       +0.58%
+
+               │    pm.txt    │               pn.txt                │
+               │     B/op     │    B/op     vs base                 │
+ZZBlue/n=47      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=94      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=4099    113.0 ± 1%     114.0 ± 0%  +0.88% (p=0.003 n=10)
+ZZBlue/n=10007   613.0 ± 0%     613.0 ± 0%       ~ (p=0.638 n=10)
+geomean                     ²               +0.22%                ²
+¹ all samples are equal
+² summaries must be >0 to compute geomean
+
+               │    pm.txt    │               pn.txt                │
+               │  allocs/op   │ allocs/op   vs base                 │
+ZZBlue/n=47      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=94      0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=4099    0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+ZZBlue/n=10007   0.000 ± 0%     0.000 ± 0%       ~ (p=1.000 n=10) ¹
+geomean                     ²               +0.00%                ²
+¹ all samples are equal
+² summaries must be >0 to compute geomean

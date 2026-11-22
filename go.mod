@@ -2,6 +2,6 @@ module github.com/go-fft/fft
 
 go 1.27.1
 
-require github.com/go-simd/floats v0.36.0
+require github.com/go-simd/floats v0.39.0
 
 require golang.org/x/sys v0.49.0 // indirect
