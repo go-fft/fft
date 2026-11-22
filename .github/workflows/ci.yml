@@ -272,9 +272,10 @@ jobs:
 
   # A 32-bit lane for the length guards: math.MaxInt is 2^31-1 there, so the
   # guard's bound and the size arithmetic behind it are different numbers. The
-  # root package's own tests assume a 64-bit int and do not compile for 386;
-  # internal/guardtest is the black-box suite that does. linux/386 binaries run
-  # natively on the amd64 runner.
+  # root package's own tests compile for 386 (their absurd sizes are big32,
+  # big40 and big62, bigint_test.go) and run here too, next to
+  # internal/guardtest, the black-box suite. linux/386 binaries run natively on
+  # the amd64 runner.
   arch-386:
     name: arch 386 (32-bit guards)
     runs-on: ubuntu-latest
@@ -288,6 +289,10 @@ jobs:
           GOARCH=386 go build ./...
           GOARCH=386 go vet ./internal/guardtest/
           GOARCH=386 go test -count=1 -v ./internal/guardtest/
+      - name: Vet + test the root package on 386
+        run: |
+          GOARCH=386 go vet .
+          GOARCH=386 go test -count=1 .
 
   # refbench CI mode (go-scikit/roadmap#27, W3): the allocation count of every
   # case equals docs/perf.json, docs/perf-table.md is what perf.json generates,

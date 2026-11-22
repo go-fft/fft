@@ -505,6 +505,21 @@ func TestF32NDPanics(t *testing.T) {
 	for name, f := range cases {
 		mustPanicWith(t, name, want, f)
 	}
+	// The overflow entries must be stopped by the product guard itself, not by a
+	// later allocation check that also starts with "fft: " (on a 32-bit int, with
+	// the guard off, the wrapped product reaches checkAlloc's "too large").
+	const overflow = "fft: shape product overflows int"
+	for name, f := range map[string]func(){
+		"NewPlanN32":      func() { NewPlanN32(big62, 4) },
+		"FFTN32":          func() { FFTN32(nil, huge) },
+		"IRFFTN32":        func() { IRFFTN32(nil, huge) },
+		"FFT2_32":         func() { FFT2_32(nil, [2]int{big32, big32}) },
+		"RFFT2_32":        func() { RFFT2_32(nil, [2]int{big32, big32}) },
+		"IRFFT2_32":       func() { IRFFT2_32(nil, [2]int{big32, big32}) },
+		"NewRealPlan2_32": func() { NewRealPlan2_32(big62, 4) },
+	} {
+		mustPanicWith(t, name+" overflow", overflow, f)
+	}
 }
 
 // TestF32NDLongerSlices: the 1-D plans accept longer slices and leave what
