@@ -104,6 +104,15 @@ bound are 0.56 (MDCT) and 0.84 (DCT-IV). On the same inputs the float32 MDCT
 plan's worst error is 1.9e-7, three times the float32 rounding alone (6e-8): it
 accumulates `log2 N` float32 stages, which is what these methods avoid.
 
+**The float32 pair and quad methods.** `DCTPlan32.DCTPair`, `IDCTPair`,
+`DCTQuad` and `IDCTQuad` (DCT-IV of length 64 on amd64 with AVX2 and FMA3: a
+kernel in single precision throughout) are held to `ε32·log2 n` of the
+double-double oracle, relative to its 2-norm (`TestDCT32PairQuadOracle`: worst
+measured 0.18 of the bound, every norm, both directions); `FuzzDCT32PairQuadKernel`
+holds them within twice that of the generic float32 plan on arbitrary finite
+data, and `TestDCT32KernelGuardPages` shows they touch exactly 64 elements per
+stream. They are not bit-identical to `DCTPlan32.DCT`.
+
 **The pair methods (v0.33.0).** `DCTPlan.DCTPair`, `IDCTPair`, `DCTMixedPair`
 and `IDCTMixedPair` run two DCT-IV transforms in one call. At 64 points on
 arm64 they take a fused NEON kernel, one transform per vector lane. They are

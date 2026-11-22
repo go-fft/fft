@@ -571,6 +571,7 @@ func main() {
 	// The AVX2 kernels exist for 64 only.
 	n, h = 64, 32
 	amd64Gen()
+	amd64Gen32()
 }
 
 // gen writes the three files of one length. Constants and table rows start over
