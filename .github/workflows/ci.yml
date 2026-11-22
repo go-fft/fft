@@ -126,6 +126,15 @@ jobs:
           echo "coverage: ${cov}%"
           awk -v t="$cov" 'BEGIN { exit !(t+0 >= 100.0) }' || {
             echo "::error::coverage ${cov}% < 100%"; exit 1; }
+      # When the gate fails, name the blocks it missed: the percentage alone says
+      # a runner's CPU left code uncovered, not which code (go-fft/fft#177).
+      - name: Name the uncovered blocks
+        if: failure() && matrix.shard == ''
+        continue-on-error: true
+        shell: bash
+        run: |
+          GOBIN="$RUNNER_TEMP/bin" go install github.com/go-fleettools/fleettools/cmd/covblocks@v0.138.0
+          "$RUNNER_TEMP/bin/covblocks" cover.out
 
   # Security: known vulnerabilities reachable from this module (govulncheck,
   # pinned; it fails only when vulnerable code is actually called), and a short

@@ -78,6 +78,7 @@ func TestDCT23KernelMatchesRoute(t *testing.T) {
 			}
 		}
 	}
+	t.Logf("the real assembly kernels ran: dct2 and dct3 at n=%v, 200 inputs each, Dct23On forced %v", kernelLens(), kernels.Dct23On)
 }
 
 // TestDCT23KernelAliasing: dst equal to src, or overlapping it partially, gives the
