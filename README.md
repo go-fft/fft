@@ -379,6 +379,13 @@ hosts, Zen 4 n=47 -2.7%, Cascade Lake n=47 -5.5% and n=94 -3.9%, Neoverse N1 n=4
 Accuracy is unchanged (complex Bluestein worst 0.674, family worst 0.718, under the
 0.74 bound).
 
+Since v0.48.0 (a MINOR release, go-fft#186) go-fft requires go-simd/floats
+v0.39.0, which brings `CMulTo` kernels on s390x (VX) and ppc64le (VSX) to
+Bluestein's pointwise product. Whole Bluestein against v0.47.1, on real hardware:
+IBM z17 (s390x) n=47 -3.8%, n=94 -2.9%, n=4099 -3.4%, n=10007 -1.3%; POWER9
+-0.7%, -0.4%, -0.6%, -0.9% at the same lengths. Exact and NoFMA bits are
+unchanged everywhere, and amd64 and arm64 are unchanged.
+
 Exception to "the default equals Exact where it does not fuse": on s390x and
 ppc64le the default Bluestein product runs `floats.CMulTo` (VX and VSX kernels,
 go-simd/floats v0.39.0), whose contract is an error bound, not the Go loop's bits,
