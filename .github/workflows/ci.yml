@@ -115,6 +115,10 @@ jobs:
       - name: Test + 100% coverage gate
         if: matrix.shard == ''
         shell: bash
+        env:
+          # TestDCT23Generated regenerates the DCT kernels (about a minute of CPU):
+          # one lane does it, the others skip it with a logged reason.
+          GOFFT_GEN_TEST: ${{ matrix.os == 'ubuntu-latest' && '1' || '' }}
         run: |
           COVERPKG=$(go list ./... | paste -sd, -)
           # The gates run without -race: with it the arm64 lane took 577 s and the
