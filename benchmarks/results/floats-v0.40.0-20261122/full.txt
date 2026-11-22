@@ -1,0 +1,1475 @@
+=== RUN   TestAccuracyCoversEveryRoute
+--- PASS: TestAccuracyCoversEveryRoute (0.00s)
+=== RUN   TestAccuracyBound
+=== RUN   TestAccuracyBound/default
+=== RUN   TestAccuracyBound/fma
+--- PASS: TestAccuracyBound (0.43s)
+    --- PASS: TestAccuracyBound/default (0.42s)
+    --- PASS: TestAccuracyBound/fma (0.01s)
+=== RUN   TestAccuracyMutation
+    accuracy_test.go:874: n=8     twiddle 1     perturbed by 1 ulp: relative RMS error 2.23e-17 = 0.0223·bound
+    accuracy_test.go:874: n=8     twiddle 1     perturbed by 1e-10: relative RMS error 2.01e-11 = 2.01e+04·bound
+    accuracy_test.go:874: n=8     twiddle 1     perturbed by 1 ulp: relative RMS error 2.23e-17 = 0.0223·bound
+    accuracy_test.go:874: n=8     twiddle 1     perturbed by 1e-10: relative RMS error 2.01e-11 = 2.01e+04·bound
+    accuracy_test.go:874: n=8     twiddle 3     perturbed by 1 ulp: relative RMS error 5.24e-18 = 0.00525·bound
+    accuracy_test.go:874: n=8     twiddle 3     perturbed by 1e-10: relative RMS error 4.72e-12 = 4.72e+03·bound
+    accuracy_test.go:874: n=16    twiddle 1     perturbed by 1 ulp: relative RMS error 2.94e-17 = 0.0221·bound
+    accuracy_test.go:874: n=16    twiddle 1     perturbed by 1e-10: relative RMS error 2.65e-11 = 1.99e+04·bound
+    accuracy_test.go:874: n=16    twiddle 2     perturbed by 1 ulp: relative RMS error 3.56e-17 = 0.0267·bound
+    accuracy_test.go:874: n=16    twiddle 2     perturbed by 1e-10: relative RMS error 3.2e-11 = 2.41e+04·bound
+    accuracy_test.go:874: n=16    twiddle 7     perturbed by 1 ulp: relative RMS error 1.39e-17 = 0.0104·bound
+    accuracy_test.go:874: n=16    twiddle 7     perturbed by 1e-10: relative RMS error 1.25e-11 = 9.38e+03·bound
+    accuracy_test.go:874: n=64    twiddle 1     perturbed by 1 ulp: relative RMS error 3.31e-18 = 0.00166·bound
+    accuracy_test.go:874: n=64    twiddle 1     perturbed by 1e-10: relative RMS error 2.98e-12 = 1.49e+03·bound
+    accuracy_test.go:874: n=64    twiddle 8     perturbed by 1 ulp: relative RMS error 2.67e-17 = 0.0133·bound
+    accuracy_test.go:874: n=64    twiddle 8     perturbed by 1e-10: relative RMS error 2.4e-11 = 1.2e+04·bound
+    accuracy_test.go:874: n=64    twiddle 31    perturbed by 1 ulp: relative RMS error 1.52e-17 = 0.00759·bound
+    accuracy_test.go:874: n=64    twiddle 31    perturbed by 1e-10: relative RMS error 1.37e-11 = 6.84e+03·bound
+    accuracy_test.go:874: n=360   twiddle 1     perturbed by 1 ulp: relative RMS error 8.24e-18 = 0.00291·bound
+    accuracy_test.go:874: n=360   twiddle 1     perturbed by 1e-10: relative RMS error 7.42e-12 = 2.62e+03·bound
+    accuracy_test.go:874: n=360   twiddle 45    perturbed by 1 ulp: relative RMS error 4.68e-18 = 0.00165·bound
+    accuracy_test.go:874: n=360   twiddle 45    perturbed by 1e-10: relative RMS error 4.21e-12 = 1.49e+03·bound
+    accuracy_test.go:874: n=360   twiddle 179   perturbed by 1 ulp: relative RMS error 3.93e-18 = 0.00139·bound
+    accuracy_test.go:874: n=360   twiddle 179   perturbed by 1e-10: relative RMS error 3.54e-12 = 1.25e+03·bound
+    accuracy_test.go:874: n=1000  twiddle 1     perturbed by 1 ulp: relative RMS error 2.04e-18 = 0.000615·bound
+    accuracy_test.go:874: n=1000  twiddle 1     perturbed by 1e-10: relative RMS error 1.84e-12 = 554·bound
+    accuracy_test.go:874: n=1000  twiddle 125   perturbed by 1 ulp: relative RMS error 8.47e-19 = 0.000255·bound
+    accuracy_test.go:874: n=1000  twiddle 125   perturbed by 1e-10: relative RMS error 7.63e-13 = 230·bound
+    accuracy_test.go:874: n=1000  twiddle 499   perturbed by 1 ulp: relative RMS error 2.18e-18 = 0.000657·bound
+    accuracy_test.go:874: n=1000  twiddle 499   perturbed by 1e-10: relative RMS error 1.96e-12 = 591·bound
+    accuracy_test.go:874: n=1009  twiddle 1     perturbed by 1 ulp: relative RMS error 3.49e-18 = 0.00105·bound
+    accuracy_test.go:874: n=1009  twiddle 1     perturbed by 1e-10: relative RMS error 3.15e-12 = 947·bound
+    accuracy_test.go:874: n=1009  twiddle 126   perturbed by 1 ulp: relative RMS error 3.49e-18 = 0.00105·bound
+    accuracy_test.go:874: n=1009  twiddle 126   perturbed by 1e-10: relative RMS error 3.15e-12 = 947·bound
+    accuracy_test.go:874: n=1009  twiddle 503   perturbed by 1 ulp: relative RMS error 3.49e-18 = 0.00105·bound
+    accuracy_test.go:874: n=1009  twiddle 503   perturbed by 1e-10: relative RMS error 3.15e-12 = 947·bound
+    accuracy_test.go:874: n=1024  twiddle 1     perturbed by 1 ulp: relative RMS error 2.79e-18 = 0.000837·bound
+    accuracy_test.go:874: n=1024  twiddle 1     perturbed by 1e-10: relative RMS error 2.51e-12 = 754·bound
+    accuracy_test.go:874: n=1024  twiddle 128   perturbed by 1 ulp: relative RMS error 4.15e-17 = 0.0125·bound
+    accuracy_test.go:874: n=1024  twiddle 128   perturbed by 1e-10: relative RMS error 3.74e-11 = 1.12e+04·bound
+    accuracy_test.go:874: n=1024  twiddle 511   perturbed by 1 ulp: relative RMS error 3.84e-18 = 0.00115·bound
+    accuracy_test.go:874: n=1024  twiddle 511   perturbed by 1e-10: relative RMS error 3.45e-12 = 1.04e+03·bound
+--- PASS: TestAccuracyMutation (0.52s)
+=== RUN   TestNoFMACallsTouchOnlyPlainCaches
+--- PASS: TestNoFMACallsTouchOnlyPlainCaches (0.01s)
+=== RUN   TestExactCallsTouchOnlyExactCaches
+--- PASS: TestExactCallsTouchOnlyExactCaches (0.01s)
+=== RUN   TestArithPlansAreDistinct
+--- PASS: TestArithPlansAreDistinct (0.01s)
+=== RUN   TestArithRowPlans
+--- PASS: TestArithRowPlans (0.00s)
+=== RUN   TestRotateMatchesLines
+--- PASS: TestRotateMatchesLines (0.02s)
+=== RUN   TestRotateAgainstOldPath
+--- PASS: TestRotateAgainstOldPath (0.00s)
+=== RUN   TestRotateWhen
+--- PASS: TestRotateWhen (0.00s)
+=== RUN   TestCascadeShape
+--- PASS: TestCascadeShape (0.10s)
+=== RUN   TestCascadePairs
+--- PASS: TestCascadePairs (0.02s)
+=== RUN   TestCascadeIsBitIdentical
+--- PASS: TestCascadeIsBitIdentical (1.00s)
+=== RUN   TestCascadeThroughThePlan
+--- PASS: TestCascadeThroughThePlan (0.00s)
+=== RUN   TestChaosSharedPlans
+--- PASS: TestChaosSharedPlans (0.47s)
+=== RUN   TestChaosNonFinite
+--- PASS: TestChaosNonFinite (0.07s)
+=== RUN   TestChaosLengths
+chaos n = -4611686018427387904
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = -2147483648
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = -2
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = -1
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = 0
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = 1
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = 4611686018427387904
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+chaos n = 9223372036854775807
+chaos: NewPlan
+chaos: NewPlan32
+chaos: NewRealPlan
+chaos: NewRealPlan32
+chaos: NewRealPlan2
+chaos: NewRealPlan2_32
+chaos: NewPlanN
+chaos: NewPlanN32
+chaos: FFTN
+chaos: RFFT
+chaos: DCT
+chaos: NextFastLen
+chaos: FFTFreq
+chaos: FFTShiftN
+--- PASS: TestChaosLengths (0.00s)
+=== RUN   TestChaosPartialOverlap
+--- PASS: TestChaosPartialOverlap (0.01s)
+=== RUN   TestMDCTFusedLenGate
+--- PASS: TestMDCTFusedLenGate (0.00s)
+=== RUN   TestScaleComplexIdentityAndFactor
+--- PASS: TestScaleComplexIdentityAndFactor (0.00s)
+=== RUN   TestDCT23Generated
+    dct23_gen_test.go:22: regenerating takes about a minute of CPU: set GOFFT_GEN_TEST=1 (the ubuntu-latest test lane does)
+--- SKIP: TestDCT23Generated (0.00s)
+=== RUN   TestDCT23Routed
+--- PASS: TestDCT23Routed (0.00s)
+=== RUN   TestDCT23Oracle
+    dct23_test.go:67: n=32 type 2: worst error 2.06e-16 (bound 2.22e-15)
+    dct23_test.go:67: n=32 type 3: worst error 2.06e-16 (bound 2.22e-15)
+    dct23_test.go:67: n=64 type 2: worst error 2.84e-16 (bound 2.66e-15)
+    dct23_test.go:67: n=64 type 3: worst error 2.84e-16 (bound 2.66e-15)
+    dct23_test.go:67: n=128 type 2: worst error 2.73e-16 (bound 3.11e-15)
+    dct23_test.go:67: n=128 type 3: worst error 2.73e-16 (bound 3.11e-15)
+--- PASS: TestDCT23Oracle (0.04s)
+=== RUN   TestDCT23Impulses
+--- PASS: TestDCT23Impulses (0.34s)
+=== RUN   TestDCT23AgainstPooled
+--- PASS: TestDCT23AgainstPooled (0.00s)
+=== RUN   TestDCT23ValidatesBeforeWriting
+--- PASS: TestDCT23ValidatesBeforeWriting (0.00s)
+=== RUN   TestDCT23Mutation
+=== RUN   TestDCT23Mutation/64
+=== RUN   TestDCT23Mutation/128
+--- PASS: TestDCT23Mutation (0.02s)
+    --- PASS: TestDCT23Mutation/64 (0.00s)
+    --- PASS: TestDCT23Mutation/128 (0.01s)
+=== RUN   TestDCT32RoutePairQuad
+--- PASS: TestDCT32RoutePairQuad (0.00s)
+=== RUN   TestDCT32RouteScaled
+--- PASS: TestDCT32RouteScaled (0.00s)
+=== RUN   TestDCT32PairQuadOracle
+    dct4_64_f32_test.go:80: worst relative error 1.38e-07 = 0.193 of the bound 7.15e-07 (quad route false)
+--- PASS: TestDCT32PairQuadOracle (0.02s)
+=== RUN   TestDCT32PairQuadInPlace
+--- PASS: TestDCT32PairQuadInPlace (0.00s)
+=== RUN   TestDCT32PairQuadValidatesBeforeWriting
+--- PASS: TestDCT32PairQuadValidatesBeforeWriting (0.00s)
+=== RUN   TestDCT32PairQuadOtherPlans
+--- PASS: TestDCT32PairQuadOtherPlans (0.00s)
+=== RUN   TestDCT4FusedOracle
+--- PASS: TestDCT4FusedOracle (0.06s)
+=== RUN   TestDCT4FusedAgainstPooled
+--- PASS: TestDCT4FusedAgainstPooled (0.00s)
+=== RUN   TestDCT4FusedPair
+--- PASS: TestDCT4FusedPair (0.12s)
+=== RUN   TestDCT4FusedShortPanics
+--- PASS: TestDCT4FusedShortPanics (0.00s)
+=== RUN   TestDCT4FusedImpulses
+    dct4_fused_test.go:279: n=64 plan 0: worst impulse error float64 3.38e-16, Mixed 2.63e-08 (bound 5e-16, float32 half ulp 5.96e-08)
+    dct4_fused_test.go:280: n=64 plan 0: worst absolute error 1.26e-15 (bound 3e-15)
+    dct4_fused_test.go:279: n=64 plan 1: worst impulse error float64 2.12e-16, Mixed 2.63e-08 (bound 5e-16, float32 half ulp 5.96e-08)
+    dct4_fused_test.go:280: n=64 plan 1: worst absolute error 6.86e-16 (bound 3e-15)
+    dct4_fused_test.go:279: n=128 plan 0: worst impulse error float64 3.94e-16, Mixed 2.11e-08 (bound 5.83e-16, float32 half ulp 5.96e-08)
+    dct4_fused_test.go:280: n=128 plan 0: worst absolute error 1.4e-15 (bound 3e-15)
+    dct4_fused_test.go:279: n=128 plan 1: worst impulse error float64 2.22e-16, Mixed 2.11e-08 (bound 5.83e-16, float32 half ulp 5.96e-08)
+    dct4_fused_test.go:280: n=128 plan 1: worst absolute error 7.19e-16 (bound 3e-15)
+--- PASS: TestDCT4FusedImpulses (0.56s)
+=== RUN   TestDCT4FusedMixedIsFloat32OfFloat64
+--- PASS: TestDCT4FusedMixedIsFloat32OfFloat64 (0.50s)
+=== RUN   TestDCT4FusedPairValidatesBeforeWriting
+--- PASS: TestDCT4FusedPairValidatesBeforeWriting (0.00s)
+=== RUN   TestMDCTFused
+--- PASS: TestMDCTFused (0.32s)
+=== RUN   TestExactGolden
+    exact_golden_test.go:74: no golden digests for ppc64le
+--- SKIP: TestExactGolden (0.00s)
+=== RUN   TestExactGoldenAfterDefault
+    exact_golden_test.go:89: no golden digests for ppc64le
+--- SKIP: TestExactGoldenAfterDefault (0.00s)
+=== RUN   TestExactIsTheDefaultWhereItDoesNotFuse
+--- PASS: TestExactIsTheDefaultWhereItDoesNotFuse (0.01s)
+=== RUN   TestDefaultFusesWhereItCan
+--- PASS: TestDefaultFusesWhereItCan (0.01s)
+=== RUN   TestExactIgnoresFMAAvailability
+--- PASS: TestExactIgnoresFMAAvailability (0.01s)
+=== RUN   TestExactAndFMARefused
+--- PASS: TestExactAndFMARefused (0.00s)
+=== RUN   TestNoFMAAndFMARefused
+--- PASS: TestNoFMAAndFMARefused (0.00s)
+=== RUN   TestMixedIsFloat32OfFloat64
+--- PASS: TestMixedIsFloat32OfFloat64 (0.00s)
+=== RUN   TestMixedAccuracy
+    f32io_test.go:102: worst error / bound: MDCT 0.555, DCT-IV 0.840; the float32 MDCT plan's worst error is 1.14e-07 (the float32 rounding alone is 5.96e-08)
+--- PASS: TestMixedAccuracy (0.01s)
+=== RUN   TestMixedPanicsAndAliasing
+--- PASS: TestMixedPanicsAndAliasing (0.00s)
+=== RUN   TestMixedAllocs
+--- PASS: TestMixedAllocs (0.03s)
+=== RUN   TestFFTN32AgainstFloat64
+    f32nd_test.go:177: worst error 0.339 of eps32·log2(n) (shape [2 3 4 5] axes [0] ortho workers 1 FFTN32With)
+--- PASS: TestFFTN32AgainstFloat64 (0.56s)
+=== RUN   TestRFFTN32AgainstFloat64
+    f32nd_test.go:233: worst error 0.378 of eps32·log2(n) (shape [2 3 4 5] axes [0] ortho workers 1 RFFTN32With)
+--- PASS: TestRFFTN32AgainstFloat64 (0.48s)
+=== RUN   TestIRFFT32NDSpectrumLength
+--- PASS: TestIRFFT32NDSpectrumLength (0.00s)
+=== RUN   TestOptions32_1D
+    f32nd_test.go:291: worst error 0.530 of eps32·log2(n) (len 1 N 2 ortho RFFT32With)
+--- PASS: TestOptions32_1D (0.02s)
+=== RUN   TestR2R32AgainstFloat64
+    f32nd_test.go:393: worst error 0.557 of eps32·log2(n) (idct2/ortho/n=1)
+--- PASS: TestR2R32AgainstFloat64 (0.12s)
+=== RUN   TestF32NDNoMutation
+--- PASS: TestF32NDNoMutation (0.00s)
+=== RUN   TestF32NDEmpty
+--- PASS: TestF32NDEmpty (0.00s)
+=== RUN   TestF32NDPanics
+--- PASS: TestF32NDPanics (0.00s)
+=== RUN   TestF32NDLongerSlices
+--- PASS: TestF32NDLongerSlices (0.00s)
+=== RUN   TestF32NDConcurrent
+--- PASS: TestF32NDConcurrent (0.00s)
+=== RUN   TestF32NDSwapNorm
+--- PASS: TestF32NDSwapNorm (0.00s)
+=== RUN   TestFFTAgainstNaiveDFT
+--- PASS: TestFFTAgainstNaiveDFT (0.00s)
+=== RUN   TestRoundTrip
+--- PASS: TestRoundTrip (0.00s)
+=== RUN   TestImpulseGivesFlatSpectrum
+--- PASS: TestImpulseGivesFlatSpectrum (0.00s)
+=== RUN   TestConstantGivesDCSpike
+--- PASS: TestConstantGivesDCSpike (0.00s)
+=== RUN   TestSinusoidSpike
+--- PASS: TestSinusoidSpike (0.00s)
+=== RUN   TestLinearity
+--- PASS: TestLinearity (0.00s)
+=== RUN   TestFFTReal
+--- PASS: TestFFTReal (0.00s)
+=== RUN   TestEdgeCases
+--- PASS: TestEdgeCases (0.00s)
+=== RUN   TestNoMutation
+--- PASS: TestNoMutation (0.00s)
+=== RUN   TestFMAOn
+--- PASS: TestFMAOn (0.00s)
+=== RUN   TestFMAPlanOptionsRefused
+--- PASS: TestFMAPlanOptionsRefused (0.00s)
+=== RUN   TestFMAUnavailableIsDefault
+--- PASS: TestFMAUnavailableIsDefault (0.02s)
+=== RUN   TestFMAPlansCachedApart
+--- PASS: TestFMAPlansCachedApart (0.01s)
+=== RUN   TestFMAMatchesNaive
+--- PASS: TestFMAMatchesNaive (0.19s)
+=== RUN   TestFMAEveryEntryPoint
+--- PASS: TestFMAEveryEntryPoint (0.06s)
+=== RUN   TestFMAStripsMatchLines
+--- PASS: TestFMAStripsMatchLines (0.25s)
+=== RUN   TestFMAEveryRadix
+--- PASS: TestFMAEveryRadix (0.00s)
+=== RUN   TestFMACascade
+--- PASS: TestFMACascade (0.15s)
+=== RUN   TestFMARowsAndRotations
+--- PASS: TestFMARowsAndRotations (0.00s)
+=== RUN   TestFMASubPlansAreFMA
+--- PASS: TestFMASubPlansAreFMA (0.01s)
+=== RUN   TestFMARealAndSubsetComposition
+--- PASS: TestFMARealAndSubsetComposition (0.00s)
+=== RUN   TestFFTFreqExact
+--- PASS: TestFFTFreqExact (0.00s)
+=== RUN   TestRFFTFreqExact
+--- PASS: TestRFFTFreqExact (0.00s)
+=== RUN   TestFreqEdgeCases
+--- PASS: TestFreqEdgeCases (0.00s)
+=== RUN   TestFFTFreqMatchesReference
+--- PASS: TestFFTFreqMatchesReference (0.00s)
+=== RUN   TestPSDParseval
+--- PASS: TestPSDParseval (0.00s)
+=== RUN   TestPSDOddParseval
+--- PASS: TestPSDOddParseval (0.00s)
+=== RUN   TestPSDEmpty
+--- PASS: TestPSDEmpty (0.00s)
+=== RUN   TestPSDNoMutation
+--- PASS: TestPSDNoMutation (0.00s)
+=== RUN   TestSpectrogramFrames
+--- PASS: TestSpectrogramFrames (0.00s)
+=== RUN   TestSpectrogramNoFullSegment
+--- PASS: TestSpectrogramNoFullSegment (0.00s)
+=== RUN   TestSpectrogramPanics
+--- PASS: TestSpectrogramPanics (0.00s)
+=== RUN   TestFused256RewritePresent
+    fused256_gen_test.go:25: the generated assembly is not alongside the test binary
+--- SKIP: TestFused256RewritePresent (0.00s)
+=== RUN   TestFused256Generated
+    fused256_gen_test.go:60: the generator runs 30 to 100 times slower under qemu (8 minutes of the 10 allowed); the native lanes check the files
+--- SKIP: TestFused256Generated (0.00s)
+=== RUN   TestFused256NotHere
+--- PASS: TestFused256NotHere (0.00s)
+=== RUN   TestFusedSForcedRoute
+--- PASS: TestFusedSForcedRoute (0.34s)
+=== RUN   TestFusedComplex128RoutesPrepare
+--- PASS: TestFusedComplex128RoutesPrepare (0.00s)
+=== RUN   TestParWorkersFollowsGOMAXPROCS
+--- PASS: TestParWorkersFollowsGOMAXPROCS (0.00s)
+=== RUN   TestPlanNOneCoreAllocatesNothing
+--- PASS: TestPlanNOneCoreAllocatesNothing (0.02s)
+=== RUN   TestIRFFTOddPooledBufferBitIdentical
+--- PASS: TestIRFFTOddPooledBufferBitIdentical (0.01s)
+=== RUN   TestIRFFTLengthOne
+--- PASS: TestIRFFTLengthOne (0.00s)
+=== RUN   TestIRFFTOddSteadyStateAllocs
+--- PASS: TestIRFFTOddSteadyStateAllocs (0.00s)
+=== RUN   TestIterativeAgainstNaive
+--- PASS: TestIterativeAgainstNaive (0.01s)
+=== RUN   TestIterativeVsSplitRadix
+--- PASS: TestIterativeVsSplitRadix (0.05s)
+=== RUN   TestIterativeRoundTrip
+--- PASS: TestIterativeRoundTrip (0.02s)
+=== RUN   TestCacheBlockingIsBitIdentical
+--- PASS: TestCacheBlockingIsBitIdentical (0.08s)
+=== RUN   TestCheckAllocBoundary
+--- PASS: TestCheckAllocBoundary (0.00s)
+=== RUN   TestBluesteinConvolutionBound
+--- PASS: TestBluesteinConvolutionBound (0.00s)
+=== RUN   TestMDCTBothPaths
+--- PASS: TestMDCTBothPaths (0.26s)
+=== RUN   TestMDCTAccuracy
+    mdct_test.go:106: worst err/(ε·log2 N) nfft/64: 0.865
+    mdct_test.go:106: worst err/(ε·log2 N) nfft/32: 0.317
+    mdct_test.go:106: worst err/(ε·log2 N) dct4/64: 0.336
+    mdct_test.go:106: worst err/(ε·log2 N) dct4/32: 0.326
+--- PASS: TestMDCTAccuracy (0.00s)
+=== RUN   TestMDCTOracle
+--- PASS: TestMDCTOracle (0.00s)
+=== RUN   TestMDCTPerfectReconstruction
+--- PASS: TestMDCTPerfectReconstruction (0.00s)
+=== RUN   TestMDCTWindows
+--- PASS: TestMDCTWindows (0.00s)
+=== RUN   TestMDCTAlias
+--- PASS: TestMDCTAlias (0.00s)
+=== RUN   TestMDCTPanics
+--- PASS: TestMDCTPanics (0.00s)
+=== RUN   TestMDCTAllocs
+--- PASS: TestMDCTAllocs (0.13s)
+=== RUN   TestFFTNAgainstNaive
+--- PASS: TestFFTNAgainstNaive (0.00s)
+=== RUN   TestFFTNRoundTrip
+--- PASS: TestFFTNRoundTrip (0.00s)
+=== RUN   TestFFT2MatchesFFTN
+--- PASS: TestFFT2MatchesFFTN (0.00s)
+=== RUN   TestFFT2Separable
+--- PASS: TestFFT2Separable (0.00s)
+=== RUN   TestFFTNConstantGivesDCSpike
+--- PASS: TestFFTNConstantGivesDCSpike (0.00s)
+=== RUN   TestFFTNImpulseGivesFlat
+--- PASS: TestFFTNImpulseGivesFlat (0.00s)
+=== RUN   TestFFTNLinearity
+--- PASS: TestFFTNLinearity (0.00s)
+=== RUN   TestFFTNEmptyShape
+--- PASS: TestFFTNEmptyShape (0.00s)
+=== RUN   TestFFTNNoMutation
+--- PASS: TestFFTNNoMutation (0.00s)
+=== RUN   TestFFTNPanicsBadShape
+--- PASS: TestFFTNPanicsBadShape (0.00s)
+=== RUN   TestNDStripAxisEveryLength
+--- PASS: TestNDStripAxisEveryLength (0.89s)
+=== RUN   TestCachedPlanNo16RefusesAPartialFactorization
+--- PASS: TestCachedPlanNo16RefusesAPartialFactorization (0.00s)
+=== RUN   TestNormString
+--- PASS: TestNormString (0.00s)
+=== RUN   TestNormScale
+--- PASS: TestNormScale (0.00s)
+=== RUN   TestNormScaleUnknownPanics
+--- PASS: TestNormScaleUnknownPanics (0.00s)
+=== RUN   TestNoScalarRadix32
+--- PASS: TestNoScalarRadix32 (0.03s)
+=== RUN   TestFFTWithAgainstDefinition
+--- PASS: TestFFTWithAgainstDefinition (0.00s)
+=== RUN   TestRFFTWithAgainstDefinition
+--- PASS: TestRFFTWithAgainstDefinition (0.00s)
+=== RUN   TestIRFFTWithAgainstDefinition
+--- PASS: TestIRFFTWithAgainstDefinition (0.00s)
+=== RUN   TestHFFTAgainstDefinition
+--- PASS: TestHFFTAgainstDefinition (0.00s)
+=== RUN   TestIHFFTAgainstDefinition
+--- PASS: TestIHFFTAgainstDefinition (0.00s)
+=== RUN   TestFFTNWithAgainstDefinition
+--- PASS: TestFFTNWithAgainstDefinition (0.00s)
+=== RUN   TestRFFTNWithAgainstDefinition
+--- PASS: TestRFFTNWithAgainstDefinition (0.00s)
+=== RUN   TestBatchedTransforms
+--- PASS: TestBatchedTransforms (0.01s)
+=== RUN   TestFFTShiftAgainstDefinition
+--- PASS: TestFFTShiftAgainstDefinition (0.00s)
+=== RUN   TestFFTShiftNAgainstDefinition
+--- PASS: TestFFTShiftNAgainstDefinition (0.00s)
+=== RUN   TestNextFastLen
+--- PASS: TestNextFastLen (0.02s)
+=== RUN   TestPlanNormMethods
+--- PASS: TestPlanNormMethods (0.00s)
+=== RUN   TestOptionsValidation
+--- PASS: TestOptionsValidation (0.00s)
+=== RUN   TestPlanNForSharesPlans
+--- PASS: TestPlanNForSharesPlans (0.00s)
+=== RUN   TestOracleRoots
+--- PASS: TestOracleRoots (0.01s)
+=== RUN   TestOracleDFT
+--- PASS: TestOracleDFT (0.07s)
+=== RUN   TestOracleR2R
+--- PASS: TestOracleR2R (0.00s)
+=== RUN   TestParChunksCoversRange
+--- PASS: TestParChunksCoversRange (0.00s)
+=== RUN   TestParChunksCapsWorkersByWork
+--- PASS: TestParChunksCapsWorkersByWork (0.00s)
+=== RUN   TestParallelizeLinesThreshold
+--- PASS: TestParallelizeLinesThreshold (0.00s)
+=== RUN   TestNDParallelMatchesSerial
+--- PASS: TestNDParallelMatchesSerial (0.02s)
+=== RUN   TestPlan32AgainstTheDefinition
+    plan32_test.go:165: worst error 0.485 of eps32·log2(n) (n=2, ortho forward); 0.148 for n >= 1024
+--- PASS: TestPlan32AgainstTheDefinition (1.35s)
+=== RUN   TestRealPlan32AgainstTheDefinition
+    plan32_test.go:236: worst error 0.295 of eps32·log2(n) (n=23, ortho RFFT); 0.146 for n >= 1024
+--- PASS: TestRealPlan32AgainstTheDefinition (0.83s)
+=== RUN   TestPlan32RoundTrip
+--- PASS: TestPlan32RoundTrip (0.00s)
+=== RUN   TestPlan32SmallExact
+--- PASS: TestPlan32SmallExact (0.00s)
+=== RUN   TestPlan32Empty
+--- PASS: TestPlan32Empty (0.00s)
+=== RUN   TestPlan32Panics
+--- PASS: TestPlan32Panics (0.00s)
+=== RUN   TestPlan32LongerSlices
+--- PASS: TestPlan32LongerSlices (0.00s)
+=== RUN   TestIRFFT32ShortSpectrum
+--- PASS: TestIRFFT32ShortSpectrum (0.00s)
+=== RUN   TestPlan32NoMutation
+--- PASS: TestPlan32NoMutation (0.00s)
+=== RUN   TestPlan32Cache
+--- PASS: TestPlan32Cache (0.00s)
+=== RUN   TestPlan32Concurrent
+--- PASS: TestPlan32Concurrent (0.00s)
+=== RUN   TestPlan32Engines
+--- PASS: TestPlan32Engines (0.00s)
+=== RUN   TestAsComplex64Layout
+--- PASS: TestAsComplex64Layout (0.00s)
+=== RUN   TestPlan32RadicesHaveKernels
+--- PASS: TestPlan32RadicesHaveKernels (0.04s)
+=== RUN   TestMixedRadixAgainstNaive
+--- PASS: TestMixedRadixAgainstNaive (0.08s)
+=== RUN   TestMixedRadixRoundTrip
+--- PASS: TestMixedRadixRoundTrip (0.00s)
+=== RUN   TestPlanReuse
+--- PASS: TestPlanReuse (0.07s)
+=== RUN   TestPlanAlias
+--- PASS: TestPlanAlias (0.05s)
+=== RUN   TestPlanTrivial
+--- PASS: TestPlanTrivial (0.00s)
+=== RUN   TestFactorize
+--- PASS: TestFactorize (0.00s)
+=== RUN   TestImpulseAllPaths
+--- PASS: TestImpulseAllPaths (0.00s)
+=== RUN   TestCachedPlanKeepsTheFirstStored
+--- PASS: TestCachedPlanKeepsTheFirstStored (0.00s)
+=== RUN   TestForgetAllPlans
+--- PASS: TestForgetAllPlans (0.00s)
+=== RUN   TestPlanNAgainstNaive
+--- PASS: TestPlanNAgainstNaive (0.02s)
+=== RUN   TestPlanNParallelMatchesSerial
+--- PASS: TestPlanNParallelMatchesSerial (0.03s)
+=== RUN   TestPlanNAllocatesNothing
+--- PASS: TestPlanNAllocatesNothing (0.02s)
+=== RUN   TestPlanNConcurrent
+--- PASS: TestPlanNConcurrent (0.00s)
+=== RUN   TestPlanNPanics
+--- PASS: TestPlanNPanics (0.00s)
+=== RUN   TestBlockWidth
+--- PASS: TestBlockWidth (0.00s)
+=== RUN   TestInPlacePow2KernelAllocatesNothing
+--- PASS: TestInPlacePow2KernelAllocatesNothing (0.01s)
+=== RUN   TestPSDKernelRuns
+--- PASS: TestPSDKernelRuns (0.00s)
+=== RUN   TestRealPackedWindowed
+--- PASS: TestRealPackedWindowed (0.00s)
+=== RUN   TestSpectrogramWindowPaths
+--- PASS: TestSpectrogramWindowPaths (0.24s)
+=== RUN   TestR2RGolden
+    r2r_golden_test.go:78: no golden digests for ppc64le
+--- SKIP: TestR2RGolden (0.00s)
+=== RUN   TestR2RCPUDependentFloor
+    r2r_golden_test.go:114: no floor for ppc64le
+--- SKIP: TestR2RCPUDependentFloor (0.00s)
+=== RUN   TestR2RMatchesOracle
+--- PASS: TestR2RMatchesOracle (2.52s)
+=== RUN   TestR2RRoundTrip
+--- PASS: TestR2RRoundTrip (0.02s)
+=== RUN   TestR2RIdentities
+--- PASS: TestR2RIdentities (0.00s)
+=== RUN   TestR2RAgainstScipy
+--- PASS: TestR2RAgainstScipy (0.01s)
+=== RUN   TestR2RNDMatchesAxes
+--- PASS: TestR2RNDMatchesAxes (0.00s)
+=== RUN   TestR2RLongerSlices
+--- PASS: TestR2RLongerSlices (0.00s)
+=== RUN   TestR2RConcurrent
+--- PASS: TestR2RConcurrent (0.00s)
+=== RUN   TestR2RPanics
+--- PASS: TestR2RPanics (0.00s)
+=== RUN   TestR2RScaleReal
+--- PASS: TestR2RScaleReal (0.00s)
+=== RUN   TestRaderEngineAgainstNaive
+--- PASS: TestRaderEngineAgainstNaive (0.09s)
+=== RUN   TestRaderMatchesBluestein
+--- PASS: TestRaderMatchesBluestein (0.04s)
+=== RUN   TestRaderRoundTrip
+--- PASS: TestRaderRoundTrip (0.02s)
+=== RUN   TestRaderAlias
+--- PASS: TestRaderAlias (0.00s)
+=== RUN   TestPrimitiveRoot
+--- PASS: TestPrimitiveRoot (0.00s)
+=== RUN   TestIsPrime
+--- PASS: TestIsPrime (0.00s)
+=== RUN   TestPrimeRouting
+--- PASS: TestPrimeRouting (0.01s)
+=== RUN   TestComp12AgainstNaive
+--- PASS: TestComp12AgainstNaive (0.13s)
+=== RUN   TestRadix16AgainstNaive
+--- PASS: TestRadix16AgainstNaive (0.40s)
+=== RUN   TestRadix16GoPass
+--- PASS: TestRadix16GoPass (0.00s)
+=== RUN   TestRadix16Table
+--- PASS: TestRadix16Table (0.00s)
+=== RUN   TestRadix16Columns
+--- PASS: TestRadix16Columns (0.01s)
+=== RUN   TestComp2Maps
+--- PASS: TestComp2Maps (0.00s)
+=== RUN   TestComp2AgainstNaive
+--- PASS: TestComp2AgainstNaive (0.49s)
+=== RUN   TestCachedPlanConcurrentBuild
+--- PASS: TestCachedPlanConcurrentBuild (0.01s)
+=== RUN   TestRadix7Butterfly
+--- PASS: TestRadix7Butterfly (0.01s)
+=== RUN   TestFFTCacheRaderPrime
+--- PASS: TestFFTCacheRaderPrime (0.01s)
+=== RUN   TestNextSmoothConv
+--- PASS: TestNextSmoothConv (0.00s)
+=== RUN   TestConvCost
+--- PASS: TestConvCost (0.00s)
+=== RUN   TestBestConvLen
+--- PASS: TestBestConvLen (0.01s)
+=== RUN   TestCs9AgainstNaive
+--- PASS: TestCs9AgainstNaive (0.31s)
+=== RUN   TestCs9Constants
+--- PASS: TestCs9Constants (0.00s)
+=== RUN   TestFFTRealBitIdenticalToPromotedFFT
+--- PASS: TestFFTRealBitIdenticalToPromotedFFT (0.02s)
+=== RUN   TestRealPlanFFTReal
+--- PASS: TestRealPlanFFTReal (0.01s)
+=== RUN   TestFFTRealWith
+--- PASS: TestFFTRealWith (0.00s)
+=== RUN   TestRealPlanOddBitIdenticalToFullTransform
+--- PASS: TestRealPlanOddBitIdenticalToFullTransform (0.00s)
+=== RUN   TestRealPlanOddConcurrent
+--- PASS: TestRealPlanOddConcurrent (0.01s)
+=== RUN   TestRealAllocs
+--- PASS: TestRealAllocs (0.01s)
+=== RUN   TestRealPlan2AgainstComplex
+--- PASS: TestRealPlan2AgainstComplex (0.00s)
+=== RUN   TestRealPlan2ParallelMatchesSerial
+--- PASS: TestRealPlan2ParallelMatchesSerial (0.02s)
+=== RUN   TestRealPlan2AllocatesNothing
+--- PASS: TestRealPlan2AllocatesNothing (0.01s)
+=== RUN   TestRealPlan2Panics
+--- PASS: TestRealPlan2Panics (0.00s)
+=== RUN   TestRealPlanOverlappingSlices
+--- PASS: TestRealPlanOverlappingSlices (0.00s)
+=== RUN   TestRealOverlap
+--- PASS: TestRealOverlap (0.00s)
+=== RUN   TestRealPlanReuse
+--- PASS: TestRealPlanReuse (0.00s)
+=== RUN   TestRealPlanTrivial
+--- PASS: TestRealPlanTrivial (0.00s)
+=== RUN   TestRFFT2MatchesFFT2
+--- PASS: TestRFFT2MatchesFFT2 (0.00s)
+=== RUN   TestRFFT2RoundTrip
+--- PASS: TestRFFT2RoundTrip (0.00s)
+=== RUN   TestRFFT2ConstantDC
+--- PASS: TestRFFT2ConstantDC (0.00s)
+=== RUN   TestIRFFT2ShortSpectrumZeroPads
+--- PASS: TestIRFFT2ShortSpectrumZeroPads (0.00s)
+=== RUN   TestRFFT2NoMutation
+--- PASS: TestRFFT2NoMutation (0.00s)
+=== RUN   TestRFFT2PanicsBadShape
+--- PASS: TestRFFT2PanicsBadShape (0.00s)
+=== RUN   TestRFFTMatchesFullSpectrum
+--- PASS: TestRFFTMatchesFullSpectrum (0.00s)
+=== RUN   TestRFFTConjugateSymmetry
+--- PASS: TestRFFTConjugateSymmetry (0.00s)
+=== RUN   TestRFFTDCAndNyquistAreReal
+--- PASS: TestRFFTDCAndNyquistAreReal (0.00s)
+=== RUN   TestIRFFTRoundTrip
+--- PASS: TestIRFFTRoundTrip (0.00s)
+=== RUN   TestRFFTKnownSinusoid
+--- PASS: TestRFFTKnownSinusoid (0.00s)
+=== RUN   TestIRFFTHermitianMirror
+--- PASS: TestIRFFTHermitianMirror (0.00s)
+=== RUN   TestIRFFTPackedMatchesFullInverse
+--- PASS: TestIRFFTPackedMatchesFullInverse (0.00s)
+=== RUN   TestRFFTEdgeCases
+--- PASS: TestRFFTEdgeCases (0.00s)
+=== RUN   TestRFFTNoMutation
+--- PASS: TestRFFTNoMutation (0.00s)
+=== RUN   TestIRFFTIgnoresBinsPastHalf
+--- PASS: TestIRFFTIgnoresBinsPastHalf (0.00s)
+=== RUN   TestR30Real
+    round30_bench_test.go:25: set -r30.ab=rounds,ms
+--- SKIP: TestR30Real (0.00s)
+=== RUN   TestR30Orders
+    round30_bench_test.go:25: set -r30.ab=rounds,ms
+--- SKIP: TestR30Orders (0.00s)
+=== RUN   TestR30Pow2Sweep
+    round30_bench_test.go:25: set -r30.ab=rounds,ms
+--- SKIP: TestR30Pow2Sweep (0.00s)
+=== RUN   TestR30Offsets
+    round30_bench_test.go:25: set -r30.ab=rounds,ms
+--- SKIP: TestR30Offsets (0.00s)
+=== RUN   TestZnFrame
+    round32_bench_test.go:28: set -zn.ab=rounds,ms
+--- SKIP: TestZnFrame (0.00s)
+=== RUN   TestZnFrameLengths
+    round32_bench_test.go:28: set -zn.ab=rounds,ms
+--- SKIP: TestZnFrameLengths (0.00s)
+=== RUN   TestZnExport
+    round32_bench_test.go:110: set -zn.export=DIR
+--- SKIP: TestZnExport (0.00s)
+=== RUN   TestZmRowsMatchRun
+    round36_test.go:85: 76 of 76 shapes ran axis by axis, 0 with their last axis on the frame kernels
+--- PASS: TestZmRowsMatchRun (0.34s)
+=== RUN   TestZmBluesteinMatchesLoops
+--- PASS: TestZmBluesteinMatchesLoops (0.30s)
+=== RUN   TestZmBluesteinRouting
+--- PASS: TestZmBluesteinRouting (0.00s)
+=== RUN   TestHwParts
+    round37_bench_test.go:35: set -hw.parts=rounds,ms
+--- SKIP: TestHwParts (0.00s)
+=== RUN   TestHwExport
+    round37_bench_test.go:80: set -hw.export=dir
+--- SKIP: TestHwExport (0.00s)
+=== RUN   TestCl3StripWidth
+--- PASS: TestCl3StripWidth (0.00s)
+=== RUN   TestCl3WideStripsPlans
+    round39_test.go:55: no batched kernels here
+--- SKIP: TestCl3WideStripsPlans (0.00s)
+=== RUN   TestCl3WideStripsMatch
+    round39_test.go:83: no batched kernels here
+--- SKIP: TestCl3WideStripsMatch (0.00s)
+=== RUN   TestR41AB
+    round41_bench_test.go:138: set -r41.ab=rounds,ms,placements
+--- SKIP: TestR41AB (0.00s)
+=== RUN   TestR41Export
+    round41_export_test.go:44: set -r41.export=DIR
+--- SKIP: TestR41Export (0.00s)
+=== RUN   TestR42Masks
+    round42_bench_test.go:144: set -r42.ab=rounds,ms,placements
+--- SKIP: TestR42Masks (0.00s)
+=== RUN   TestR42Passes
+    round42_bench_test.go:206: set -r42.passes=rounds,ms
+--- SKIP: TestR42Passes (0.00s)
+=== RUN   TestR42Vars
+    round42_bench_test.go:298: set -r42.ab=rounds,ms,placements and -r42.vars
+--- SKIP: TestR42Vars (0.00s)
+=== RUN   TestR42Overhead
+    round42_bench_test.go:355: set -r42.over=rounds,ms
+--- SKIP: TestR42Overhead (0.00s)
+=== RUN   TestR42R32AgainstNaive
+--- PASS: TestR42R32AgainstNaive (0.02s)
+=== RUN   TestR42DefaultRefusesRadix32
+--- PASS: TestR42DefaultRefusesRadix32 (0.00s)
+=== RUN   TestR42FMATable
+--- PASS: TestR42FMATable (0.00s)
+=== RUN   TestR43Gap
+    round30_bench_test.go:25: set -r30.ab=rounds,ms
+--- SKIP: TestR43Gap (0.00s)
+=== RUN   TestRouteSample
+    routes_test.go:145: 169 of 2099 lengths to 2,100 keep all 239 routes
+--- PASS: TestRouteSample (0.00s)
+=== RUN   TestRoutingStateIsolated
+    routing_audit_test.go:59: the package's source is not here (a test binary run on another machine)
+--- SKIP: TestRoutingStateIsolated (0.00s)
+=== RUN   TestScaleComplexA
+--- PASS: TestScaleComplexA (0.00s)
+=== RUN   TestScaleComplexAIEEE
+--- PASS: TestScaleComplexAIEEE (0.00s)
+=== RUN   TestScaleComplexAExactZerosAndInf
+--- PASS: TestScaleComplexAExactZerosAndInf (0.00s)
+=== RUN   TestIFFTScaleMatchesLoop
+--- PASS: TestIFFTScaleMatchesLoop (0.00s)
+=== RUN   TestF32NDAgainstScipy
+    scipy32_test.go:136: scipy 1.18.1, numpy 2.5.3: ours vs scipy float32, worst 0.454 of 2·eps32·log2(n)
+    scipy32_test.go:137: scipy's own float32 error, worst 0.801 of eps32·log2(n) (scipy 1.18.1 dct ortho type 1 n 0 shape [] axes [] (scipy vs float64))
+--- PASS: TestF32NDAgainstScipy (0.01s)
+=== RUN   TestScratchCacheSlotThenPool
+--- PASS: TestScratchCacheSlotThenPool (0.00s)
+=== RUN   TestCheckR2RRefusesHugeLengths
+--- PASS: TestCheckR2RRefusesHugeLengths (0.00s)
+=== RUN   TestPlansAreSafeForConcurrentUse
+--- PASS: TestPlansAreSafeForConcurrentUse (0.01s)
+=== RUN   TestShardsPartitionEveryTest
+--- PASS: TestShardsPartitionEveryTest (0.03s)
+=== RUN   TestShardRegexIsExactAndQuoted
+--- PASS: TestShardRegexIsExactAndQuoted (0.00s)
+=== RUN   TestParseShard
+--- PASS: TestParseShard (0.00s)
+=== RUN   TestInPlaceDCT4NeverReachesKernelsAliased
+--- PASS: TestInPlaceDCT4NeverReachesKernelsAliased (0.00s)
+=== RUN   TestInPlaceMDCTNeverReachesKernelsAliased
+--- PASS: TestInPlaceMDCTNeverReachesKernelsAliased (0.00s)
+=== RUN   TestUntangleInPlace
+--- PASS: TestUntangleInPlace (0.05s)
+=== RUN   TestRealPlanInPlaceMatchesBuffered
+--- PASS: TestRealPlanInPlaceMatchesBuffered (0.09s)
+=== RUN   TestIRFFTInPlaceWhen
+--- PASS: TestIRFFTInPlaceWhen (0.00s)
+=== RUN   TestSpectrogramBitIdenticalToPSDFrames
+--- PASS: TestSpectrogramBitIdenticalToPSDFrames (0.13s)
+=== RUN   TestSpectrogramAllocs
+--- PASS: TestSpectrogramAllocs (0.03s)
+=== RUN   TestSplitPow2Factors
+--- PASS: TestSplitPow2Factors (0.00s)
+=== RUN   TestSplitTable
+--- PASS: TestSplitTable (0.00s)
+=== RUN   TestIntelStripOrder
+--- PASS: TestIntelStripOrder (0.00s)
+=== RUN   TestHswSplitKept
+--- PASS: TestHswSplitKept (0.00s)
+=== RUN   TestZen3RouteMax
+--- PASS: TestZen3RouteMax (0.00s)
+=== RUN   TestClRowPlan
+--- PASS: TestClRowPlan (0.05s)
+=== RUN   TestSplitRadixAgainstNaive
+--- PASS: TestSplitRadixAgainstNaive (0.01s)
+=== RUN   TestSplitRadixVsMixedRadix
+--- PASS: TestSplitRadixVsMixedRadix (0.01s)
+=== RUN   TestSplitRadixRoundTrip
+--- PASS: TestSplitRadixRoundTrip (0.01s)
+=== RUN   TestStockhamMatchesMixedRadix
+--- PASS: TestStockhamMatchesMixedRadix (0.23s)
+=== RUN   TestPooledConvolutionBufferIsCleared
+--- PASS: TestPooledConvolutionBufferIsCleared (0.01s)
+=== RUN   TestPow2RoutesAgree
+--- PASS: TestPow2RoutesAgree (0.05s)
+=== RUN   TestAsComplexLayout
+--- PASS: TestAsComplexLayout (0.00s)
+=== RUN   TestPow2Radices
+--- PASS: TestPow2Radices (0.00s)
+=== RUN   TestWide512
+--- PASS: TestWide512 (0.00s)
+=== RUN   TestScratchSitsOffTheSets
+--- PASS: TestScratchSitsOffTheSets (0.00s)
+=== RUN   TestSkFactorizeAroundR8Max
+--- PASS: TestSkFactorizeAroundR8Max (0.00s)
+=== RUN   TestSkFactorizeOrder
+--- PASS: TestSkFactorizeOrder (0.00s)
+=== RUN   TestTakesGap
+--- PASS: TestTakesGap (0.00s)
+=== RUN   TestStrips32MatchLines
+--- PASS: TestStrips32MatchLines (0.11s)
+=== RUN   TestStrips32MatchLinesReal
+--- PASS: TestStrips32MatchLinesReal (0.00s)
+=== RUN   TestStrips32AcrossGoroutines
+--- PASS: TestStrips32AcrossGoroutines (0.00s)
+=== RUN   TestBatchTwiddles32Layout
+--- PASS: TestBatchTwiddles32Layout (0.00s)
+=== RUN   TestStrips32Fit
+--- PASS: TestStrips32Fit (0.01s)
+=== RUN   TestBatchPass32MatchesGo
+    strip32_test.go:250: no float32 batched kernels on this CPU
+--- SKIP: TestBatchPass32MatchesGo (0.00s)
+=== RUN   TestStripsMatchLines
+--- PASS: TestStripsMatchLines (0.11s)
+=== RUN   TestStripsMatchLinesReal
+--- PASS: TestStripsMatchLinesReal (0.00s)
+=== RUN   TestStripsAcrossGoroutines
+--- PASS: TestStripsAcrossGoroutines (0.00s)
+=== RUN   TestBatchTwiddlesLayout
+--- PASS: TestBatchTwiddlesLayout (0.00s)
+=== RUN   TestShapeOverflowPanics
+--- PASS: TestShapeOverflowPanics (0.00s)
+=== RUN   TestShortSlicesPanicWithAMessage
+--- PASS: TestShortSlicesPanicWithAMessage (0.00s)
+=== RUN   TestLongerSlicesStillWork
+--- PASS: TestLongerSlicesStillWork (0.00s)
+=== RUN   TestWindowEdgeCases
+--- PASS: TestWindowEdgeCases (0.00s)
+=== RUN   TestHannExact
+--- PASS: TestHannExact (0.00s)
+=== RUN   TestHammingExact
+--- PASS: TestHammingExact (0.00s)
+=== RUN   TestBlackmanExact
+--- PASS: TestBlackmanExact (0.00s)
+=== RUN   TestBlackmanHarrisExact
+--- PASS: TestBlackmanHarrisExact (0.00s)
+=== RUN   TestBartlettExact
+--- PASS: TestBartlettExact (0.00s)
+=== RUN   TestWindowSymmetry
+--- PASS: TestWindowSymmetry (0.00s)
+=== RUN   TestZnFrameMatchesPool
+--- PASS: TestZnFrameMatchesPool (0.14s)
+=== RUN   TestZZBits2
+    zzbits2_test.go:16: 
+--- SKIP: TestZZBits2 (0.00s)
+=== RUN   TestZZBits
+    zzbits_test.go:16: 
+--- SKIP: TestZZBits (0.00s)
+=== RUN   TestZZLen
+    zzlen_test.go:14: 
+--- SKIP: TestZZLen (0.00s)
+=== RUN   TestZnPlace
+    round32_place_test.go:61: set -zn.place=rounds,ms,placements
+--- SKIP: TestZnPlace (0.00s)
+=== RUN   TestZmPlace
+    round36_place_test.go:28: set -zm.place=rounds,ms,placements
+--- SKIP: TestZmPlace (0.00s)
+=== RUN   FuzzMDCT
+=== RUN   FuzzMDCT/seed#0
+=== RUN   FuzzMDCT/seed#1
+=== RUN   FuzzMDCT/seed#2
+=== RUN   FuzzMDCT/seed#3
+=== RUN   FuzzMDCT/seed#4
+=== RUN   FuzzMDCT/seed-n120-empty
+=== RUN   FuzzMDCT/seed-n2-odd-route
+=== RUN   FuzzMDCT/seed-n62-odd-route
+=== RUN   FuzzMDCT/seed-negative-k
+--- PASS: FuzzMDCT (0.02s)
+    --- PASS: FuzzMDCT/seed#0 (0.00s)
+    --- PASS: FuzzMDCT/seed#1 (0.00s)
+    --- PASS: FuzzMDCT/seed#2 (0.00s)
+    --- PASS: FuzzMDCT/seed#3 (0.00s)
+    --- PASS: FuzzMDCT/seed#4 (0.01s)
+    --- PASS: FuzzMDCT/seed-n120-empty (0.00s)
+    --- PASS: FuzzMDCT/seed-n2-odd-route (0.00s)
+    --- PASS: FuzzMDCT/seed-n62-odd-route (0.00s)
+    --- PASS: FuzzMDCT/seed-negative-k (0.00s)
+=== RUN   FuzzPublicAPI
+=== RUN   FuzzPublicAPI/seed#0
+=== RUN   FuzzPublicAPI/seed#1
+=== RUN   FuzzPublicAPI/seed#2
+=== RUN   FuzzPublicAPI/seed#3
+=== RUN   FuzzPublicAPI/seed#4
+=== RUN   FuzzPublicAPI/seed#5
+=== RUN   FuzzPublicAPI/seed#6
+=== RUN   FuzzPublicAPI/seed#7
+=== RUN   FuzzPublicAPI/seed#8
+=== RUN   FuzzPublicAPI/seed#9
+=== RUN   FuzzPublicAPI/01e7c97dcd642927
+=== RUN   FuzzPublicAPI/020d1ca8c0456ff6
+=== RUN   FuzzPublicAPI/021697c76397e757
+=== RUN   FuzzPublicAPI/0440282fccb37f32
+=== RUN   FuzzPublicAPI/06712b71627c00b4
+=== RUN   FuzzPublicAPI/0887233c65731097
+=== RUN   FuzzPublicAPI/09a5d61823d497e3
+=== RUN   FuzzPublicAPI/0e93c067749f9658
+=== RUN   FuzzPublicAPI/0f29bf03dd6bd31a
+=== RUN   FuzzPublicAPI/1161e7527acec4c2
+=== RUN   FuzzPublicAPI/1192b1572028fe79
+=== RUN   FuzzPublicAPI/175c99cbdffa41c8
+=== RUN   FuzzPublicAPI/18ebc8e459749fe9
+=== RUN   FuzzPublicAPI/1ae6b13d99600d59
+=== RUN   FuzzPublicAPI/1af3d0e32aca43f9
+=== RUN   FuzzPublicAPI/1cd6a3dd388169e7
+=== RUN   FuzzPublicAPI/22059b96f8c31760
+=== RUN   FuzzPublicAPI/2217c4758f251be8
+=== RUN   FuzzPublicAPI/22917914b1182466
+=== RUN   FuzzPublicAPI/23159236fc6aa1dd
+=== RUN   FuzzPublicAPI/252427ed45c19e84
+=== RUN   FuzzPublicAPI/2533dbf1f316b4ef
+=== RUN   FuzzPublicAPI/2cdfef100f1fd519
+=== RUN   FuzzPublicAPI/2ceb9cb232f46d4c
+=== RUN   FuzzPublicAPI/2e088ab8a542be23
+=== RUN   FuzzPublicAPI/2ecee9834a4404be
+=== RUN   FuzzPublicAPI/31013abf02959ee1
+=== RUN   FuzzPublicAPI/3173b3c21a4c3aac
+=== RUN   FuzzPublicAPI/31aa812a2803ccbf
+=== RUN   FuzzPublicAPI/32f06e5a8eb25967
+=== RUN   FuzzPublicAPI/3545f8d0f401b002
+=== RUN   FuzzPublicAPI/36af8ffd15ae41b8
+=== RUN   FuzzPublicAPI/37fe4ed6a03a5a6e
+=== RUN   FuzzPublicAPI/38c3234bd5f36e24
+=== RUN   FuzzPublicAPI/38cd8703d8efbb4c
+=== RUN   FuzzPublicAPI/38f12062c108d415
+=== RUN   FuzzPublicAPI/405698b7061b5f37
+=== RUN   FuzzPublicAPI/40de16b44fec1865
+=== RUN   FuzzPublicAPI/417ad45bf0374d39
+=== RUN   FuzzPublicAPI/420dfcf9e95d9847
+=== RUN   FuzzPublicAPI/42453e9bf94f0866
+=== RUN   FuzzPublicAPI/4a72b2ab6c9de159
+=== RUN   FuzzPublicAPI/4a8ebd17a3803a53
+=== RUN   FuzzPublicAPI/4ed3124aaa15414a
+=== RUN   FuzzPublicAPI/55c137bee9aa82d5
+=== RUN   FuzzPublicAPI/55f2f692308d47c5
+=== RUN   FuzzPublicAPI/56e53761ca52d6da
+=== RUN   FuzzPublicAPI/5796c413ab0f209f
+=== RUN   FuzzPublicAPI/57f4cb04d3452abb
+=== RUN   FuzzPublicAPI/5a290dda068a7c01
+=== RUN   FuzzPublicAPI/5aa6f0ab76b17d29
+=== RUN   FuzzPublicAPI/5ab4327c80868788
+=== RUN   FuzzPublicAPI/5b81177e43d14a87
+=== RUN   FuzzPublicAPI/5fb1aef5bcf88b75
+=== RUN   FuzzPublicAPI/64b8b2d201f416af
+=== RUN   FuzzPublicAPI/655632e8f7bd53ae
+=== RUN   FuzzPublicAPI/669f1d6dc6fe1b92
+=== RUN   FuzzPublicAPI/6a2f4bd036116ee1
+=== RUN   FuzzPublicAPI/6cd71affca379bb7
+=== RUN   FuzzPublicAPI/6d0759cca45af8ab
+=== RUN   FuzzPublicAPI/6d72735ed9ecd1b3
+=== RUN   FuzzPublicAPI/70d8f48f88c2045f
+=== RUN   FuzzPublicAPI/74edd840d677f083
+=== RUN   FuzzPublicAPI/773ebfdb177ba82f
+=== RUN   FuzzPublicAPI/77e0a34ff9fb04dc
+=== RUN   FuzzPublicAPI/7838230949293ae6
+=== RUN   FuzzPublicAPI/7d015510a723a5b2
+=== RUN   FuzzPublicAPI/7d0788d30fa69b74
+=== RUN   FuzzPublicAPI/7d36e3f00c39e566
+=== RUN   FuzzPublicAPI/7ed6e5eb57662e27
+=== RUN   FuzzPublicAPI/7f018e72e6722838
+=== RUN   FuzzPublicAPI/8157ed2b5da47523
+=== RUN   FuzzPublicAPI/851844bcffc8eb5f
+=== RUN   FuzzPublicAPI/85bcb56ddd09284d
+=== RUN   FuzzPublicAPI/8707b684ed8d1643
+=== RUN   FuzzPublicAPI/8a161126a6140dd4
+=== RUN   FuzzPublicAPI/8aeaa45502e6e218
+=== RUN   FuzzPublicAPI/8c547372dea920d3
+=== RUN   FuzzPublicAPI/8dc4ab7fe65cc1d1
+=== RUN   FuzzPublicAPI/8fcf12819c8fd6e6
+=== RUN   FuzzPublicAPI/93e8f538620ae014
+=== RUN   FuzzPublicAPI/941aa7eb769bedcf
+=== RUN   FuzzPublicAPI/990279c20528a15a
+=== RUN   FuzzPublicAPI/a20135082630a5e9
+=== RUN   FuzzPublicAPI/af992112df3a20b6
+=== RUN   FuzzPublicAPI/b003b5a9fea6c2bc
+=== RUN   FuzzPublicAPI/b69db5e19a7e8941
+=== RUN   FuzzPublicAPI/b8a94d0ec40aa2ec
+=== RUN   FuzzPublicAPI/d3736b8976be11e9
+=== RUN   FuzzPublicAPI/d5c8f1ed478a70ca
+=== RUN   FuzzPublicAPI/d727341cba1abba7
+=== RUN   FuzzPublicAPI/de1a15b000b65a93
+=== RUN   FuzzPublicAPI/e6c1a001260c6863
+=== RUN   FuzzPublicAPI/ec6cfa953b559bf2
+=== RUN   FuzzPublicAPI/f1a758bfadd998a8
+=== RUN   FuzzPublicAPI/f31e363d4ca95427
+=== RUN   FuzzPublicAPI/f6e78a39e4833f7f
+=== RUN   FuzzPublicAPI/f8d9fa45d684aca4
+=== RUN   FuzzPublicAPI/f92099fe0c37ec1d
+=== RUN   FuzzPublicAPI/fb9d5226a2811bd3
+--- PASS: FuzzPublicAPI (0.15s)
+    --- PASS: FuzzPublicAPI/seed#0 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#1 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#2 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#3 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#4 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#5 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#6 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#7 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#8 (0.00s)
+    --- PASS: FuzzPublicAPI/seed#9 (0.00s)
+    --- PASS: FuzzPublicAPI/01e7c97dcd642927 (0.00s)
+    --- PASS: FuzzPublicAPI/020d1ca8c0456ff6 (0.00s)
+    --- PASS: FuzzPublicAPI/021697c76397e757 (0.00s)
+    --- PASS: FuzzPublicAPI/0440282fccb37f32 (0.00s)
+    --- PASS: FuzzPublicAPI/06712b71627c00b4 (0.00s)
+    --- PASS: FuzzPublicAPI/0887233c65731097 (0.00s)
+    --- PASS: FuzzPublicAPI/09a5d61823d497e3 (0.00s)
+    --- PASS: FuzzPublicAPI/0e93c067749f9658 (0.00s)
+    --- PASS: FuzzPublicAPI/0f29bf03dd6bd31a (0.00s)
+    --- PASS: FuzzPublicAPI/1161e7527acec4c2 (0.00s)
+    --- PASS: FuzzPublicAPI/1192b1572028fe79 (0.00s)
+    --- PASS: FuzzPublicAPI/175c99cbdffa41c8 (0.01s)
+    --- PASS: FuzzPublicAPI/18ebc8e459749fe9 (0.00s)
+    --- PASS: FuzzPublicAPI/1ae6b13d99600d59 (0.00s)
+    --- PASS: FuzzPublicAPI/1af3d0e32aca43f9 (0.00s)
+    --- PASS: FuzzPublicAPI/1cd6a3dd388169e7 (0.00s)
+    --- PASS: FuzzPublicAPI/22059b96f8c31760 (0.01s)
+    --- PASS: FuzzPublicAPI/2217c4758f251be8 (0.00s)
+    --- PASS: FuzzPublicAPI/22917914b1182466 (0.00s)
+    --- PASS: FuzzPublicAPI/23159236fc6aa1dd (0.00s)
+    --- PASS: FuzzPublicAPI/252427ed45c19e84 (0.01s)
+    --- PASS: FuzzPublicAPI/2533dbf1f316b4ef (0.00s)
+    --- PASS: FuzzPublicAPI/2cdfef100f1fd519 (0.00s)
+    --- PASS: FuzzPublicAPI/2ceb9cb232f46d4c (0.00s)
+    --- PASS: FuzzPublicAPI/2e088ab8a542be23 (0.00s)
+    --- PASS: FuzzPublicAPI/2ecee9834a4404be (0.01s)
+    --- PASS: FuzzPublicAPI/31013abf02959ee1 (0.00s)
+    --- PASS: FuzzPublicAPI/3173b3c21a4c3aac (0.00s)
+    --- PASS: FuzzPublicAPI/31aa812a2803ccbf (0.00s)
+    --- PASS: FuzzPublicAPI/32f06e5a8eb25967 (0.00s)
+    --- PASS: FuzzPublicAPI/3545f8d0f401b002 (0.00s)
+    --- PASS: FuzzPublicAPI/36af8ffd15ae41b8 (0.00s)
+    --- PASS: FuzzPublicAPI/37fe4ed6a03a5a6e (0.00s)
+    --- PASS: FuzzPublicAPI/38c3234bd5f36e24 (0.00s)
+    --- PASS: FuzzPublicAPI/38cd8703d8efbb4c (0.00s)
+    --- PASS: FuzzPublicAPI/38f12062c108d415 (0.00s)
+    --- PASS: FuzzPublicAPI/405698b7061b5f37 (0.00s)
+    --- PASS: FuzzPublicAPI/40de16b44fec1865 (0.00s)
+    --- PASS: FuzzPublicAPI/417ad45bf0374d39 (0.00s)
+    --- PASS: FuzzPublicAPI/420dfcf9e95d9847 (0.00s)
+    --- PASS: FuzzPublicAPI/42453e9bf94f0866 (0.00s)
+    --- PASS: FuzzPublicAPI/4a72b2ab6c9de159 (0.00s)
+    --- PASS: FuzzPublicAPI/4a8ebd17a3803a53 (0.00s)
+    --- PASS: FuzzPublicAPI/4ed3124aaa15414a (0.00s)
+    --- PASS: FuzzPublicAPI/55c137bee9aa82d5 (0.01s)
+    --- PASS: FuzzPublicAPI/55f2f692308d47c5 (0.00s)
+    --- PASS: FuzzPublicAPI/56e53761ca52d6da (0.00s)
+    --- PASS: FuzzPublicAPI/5796c413ab0f209f (0.00s)
+    --- PASS: FuzzPublicAPI/57f4cb04d3452abb (0.00s)
+    --- PASS: FuzzPublicAPI/5a290dda068a7c01 (0.00s)
+    --- PASS: FuzzPublicAPI/5aa6f0ab76b17d29 (0.00s)
+    --- PASS: FuzzPublicAPI/5ab4327c80868788 (0.00s)
+    --- PASS: FuzzPublicAPI/5b81177e43d14a87 (0.00s)
+    --- PASS: FuzzPublicAPI/5fb1aef5bcf88b75 (0.00s)
+    --- PASS: FuzzPublicAPI/64b8b2d201f416af (0.00s)
+    --- PASS: FuzzPublicAPI/655632e8f7bd53ae (0.00s)
+    --- PASS: FuzzPublicAPI/669f1d6dc6fe1b92 (0.00s)
+    --- PASS: FuzzPublicAPI/6a2f4bd036116ee1 (0.00s)
+    --- PASS: FuzzPublicAPI/6cd71affca379bb7 (0.02s)
+    --- PASS: FuzzPublicAPI/6d0759cca45af8ab (0.00s)
+    --- PASS: FuzzPublicAPI/6d72735ed9ecd1b3 (0.00s)
+    --- PASS: FuzzPublicAPI/70d8f48f88c2045f (0.00s)
+    --- PASS: FuzzPublicAPI/74edd840d677f083 (0.00s)
+    --- PASS: FuzzPublicAPI/773ebfdb177ba82f (0.00s)
+    --- PASS: FuzzPublicAPI/77e0a34ff9fb04dc (0.00s)
+    --- PASS: FuzzPublicAPI/7838230949293ae6 (0.01s)
+    --- PASS: FuzzPublicAPI/7d015510a723a5b2 (0.00s)
+    --- PASS: FuzzPublicAPI/7d0788d30fa69b74 (0.00s)
+    --- PASS: FuzzPublicAPI/7d36e3f00c39e566 (0.00s)
+    --- PASS: FuzzPublicAPI/7ed6e5eb57662e27 (0.00s)
+    --- PASS: FuzzPublicAPI/7f018e72e6722838 (0.01s)
+    --- PASS: FuzzPublicAPI/8157ed2b5da47523 (0.00s)
+    --- PASS: FuzzPublicAPI/851844bcffc8eb5f (0.00s)
+    --- PASS: FuzzPublicAPI/85bcb56ddd09284d (0.00s)
+    --- PASS: FuzzPublicAPI/8707b684ed8d1643 (0.00s)
+    --- PASS: FuzzPublicAPI/8a161126a6140dd4 (0.00s)
+    --- PASS: FuzzPublicAPI/8aeaa45502e6e218 (0.00s)
+    --- PASS: FuzzPublicAPI/8c547372dea920d3 (0.00s)
+    --- PASS: FuzzPublicAPI/8dc4ab7fe65cc1d1 (0.00s)
+    --- PASS: FuzzPublicAPI/8fcf12819c8fd6e6 (0.00s)
+    --- PASS: FuzzPublicAPI/93e8f538620ae014 (0.00s)
+    --- PASS: FuzzPublicAPI/941aa7eb769bedcf (0.00s)
+    --- PASS: FuzzPublicAPI/990279c20528a15a (0.00s)
+    --- PASS: FuzzPublicAPI/a20135082630a5e9 (0.00s)
+    --- PASS: FuzzPublicAPI/af992112df3a20b6 (0.00s)
+    --- PASS: FuzzPublicAPI/b003b5a9fea6c2bc (0.00s)
+    --- PASS: FuzzPublicAPI/b69db5e19a7e8941 (0.00s)
+    --- PASS: FuzzPublicAPI/b8a94d0ec40aa2ec (0.00s)
+    --- PASS: FuzzPublicAPI/d3736b8976be11e9 (0.00s)
+    --- PASS: FuzzPublicAPI/d5c8f1ed478a70ca (0.00s)
+    --- PASS: FuzzPublicAPI/d727341cba1abba7 (0.00s)
+    --- PASS: FuzzPublicAPI/de1a15b000b65a93 (0.00s)
+    --- PASS: FuzzPublicAPI/e6c1a001260c6863 (0.00s)
+    --- PASS: FuzzPublicAPI/ec6cfa953b559bf2 (0.00s)
+    --- PASS: FuzzPublicAPI/f1a758bfadd998a8 (0.00s)
+    --- PASS: FuzzPublicAPI/f31e363d4ca95427 (0.00s)
+    --- PASS: FuzzPublicAPI/f6e78a39e4833f7f (0.00s)
+    --- PASS: FuzzPublicAPI/f8d9fa45d684aca4 (0.00s)
+    --- PASS: FuzzPublicAPI/f92099fe0c37ec1d (0.00s)
+    --- PASS: FuzzPublicAPI/fb9d5226a2811bd3 (0.00s)
+=== RUN   FuzzPublicAPIFMA
+=== RUN   FuzzPublicAPIFMA/seed#0
+=== RUN   FuzzPublicAPIFMA/seed#1
+=== RUN   FuzzPublicAPIFMA/seed#2
+=== RUN   FuzzPublicAPIFMA/seed#3
+=== RUN   FuzzPublicAPIFMA/seed#4
+=== RUN   FuzzPublicAPIFMA/seed#5
+=== RUN   FuzzPublicAPIFMA/seed#6
+=== RUN   FuzzPublicAPIFMA/seed#7
+=== RUN   FuzzPublicAPIFMA/seed#8
+=== RUN   FuzzPublicAPIFMA/seed#9
+=== RUN   FuzzPublicAPIFMA/0035bcd514cd3b9b
+=== RUN   FuzzPublicAPIFMA/02b6eb05b5e368d6
+=== RUN   FuzzPublicAPIFMA/055569eda6624de9
+=== RUN   FuzzPublicAPIFMA/07e5900f00e80911
+=== RUN   FuzzPublicAPIFMA/0831c48e94fcfba4
+=== RUN   FuzzPublicAPIFMA/089d88de892b5655
+=== RUN   FuzzPublicAPIFMA/0b1805eef0acfefd
+=== RUN   FuzzPublicAPIFMA/0bdc320b415533ec
+=== RUN   FuzzPublicAPIFMA/0ff868c9bd4b7844
+=== RUN   FuzzPublicAPIFMA/10b96d599ed04483
+=== RUN   FuzzPublicAPIFMA/12bd17c00fefcce3
+=== RUN   FuzzPublicAPIFMA/185e616e34016c38
+=== RUN   FuzzPublicAPIFMA/198d941b5b8d295a
+=== RUN   FuzzPublicAPIFMA/1a887d44d4983b8f
+=== RUN   FuzzPublicAPIFMA/1f11de1c247ade71
+=== RUN   FuzzPublicAPIFMA/20a553b5f576ca07
+=== RUN   FuzzPublicAPIFMA/22d0da0445090fc4
+=== RUN   FuzzPublicAPIFMA/237b385b91b01e76
+=== RUN   FuzzPublicAPIFMA/259acceda58d9534
+=== RUN   FuzzPublicAPIFMA/2f7cce2c338b8ca0
+=== RUN   FuzzPublicAPIFMA/2f9b2cb64c6b0839
+=== RUN   FuzzPublicAPIFMA/2fd514a820016aa5
+=== RUN   FuzzPublicAPIFMA/325452da22ea9f9e
+=== RUN   FuzzPublicAPIFMA/328fb75fc3234059
+=== RUN   FuzzPublicAPIFMA/359e4613d1d18b6d
+=== RUN   FuzzPublicAPIFMA/36f38a6a0fa2da06
+=== RUN   FuzzPublicAPIFMA/390e587e8e293e40
+=== RUN   FuzzPublicAPIFMA/3ae7e65d5e9733d4
+=== RUN   FuzzPublicAPIFMA/3b782d7f511da166
+=== RUN   FuzzPublicAPIFMA/3b8535b25a70d737
+=== RUN   FuzzPublicAPIFMA/3ca21594512e90d8
+=== RUN   FuzzPublicAPIFMA/41c7abd55d3d1e77
+=== RUN   FuzzPublicAPIFMA/42bb13f376289f22
+=== RUN   FuzzPublicAPIFMA/43e5dfb9861c4bad
+=== RUN   FuzzPublicAPIFMA/44b998f0712edb85
+=== RUN   FuzzPublicAPIFMA/44e74606416cb8b4
+=== RUN   FuzzPublicAPIFMA/4696ff22ab70a4d3
+=== RUN   FuzzPublicAPIFMA/471fc55c2b56af06
+=== RUN   FuzzPublicAPIFMA/484a5f7f63266803
+=== RUN   FuzzPublicAPIFMA/48c38cf35779587f
+=== RUN   FuzzPublicAPIFMA/4cf09e74a16cc874
+=== RUN   FuzzPublicAPIFMA/4daf99b41a323caa
+=== RUN   FuzzPublicAPIFMA/4de2092e3b48aa4e
+=== RUN   FuzzPublicAPIFMA/50058acddeb07436
+=== RUN   FuzzPublicAPIFMA/5302488f1e35ea8c
+=== RUN   FuzzPublicAPIFMA/53b53e9d560f8a1c
+=== RUN   FuzzPublicAPIFMA/54db29ca141248ca
+=== RUN   FuzzPublicAPIFMA/556aff7e2e51dc64
+=== RUN   FuzzPublicAPIFMA/5678bcc0e741f76b
+=== RUN   FuzzPublicAPIFMA/5a825a8a4b9a5015
+=== RUN   FuzzPublicAPIFMA/5c890874217b76e3
+=== RUN   FuzzPublicAPIFMA/5d469025c371fb7f
+=== RUN   FuzzPublicAPIFMA/5dd675e3282242c6
+=== RUN   FuzzPublicAPIFMA/5f4cfbecd53659dd
+=== RUN   FuzzPublicAPIFMA/5faa0ce4c57063d8
+=== RUN   FuzzPublicAPIFMA/60980e982991ad5a
+=== RUN   FuzzPublicAPIFMA/64c91475b9a5d890
+=== RUN   FuzzPublicAPIFMA/64f027e982a87b5b
+=== RUN   FuzzPublicAPIFMA/66e5bc55e4cde21a
+=== RUN   FuzzPublicAPIFMA/6ba3e76488b773aa
+=== RUN   FuzzPublicAPIFMA/6d0bf13e6aab9504
+=== RUN   FuzzPublicAPIFMA/6d72735ed9ecd1b3
+=== RUN   FuzzPublicAPIFMA/721477466d259c25
+=== RUN   FuzzPublicAPIFMA/72ac98864ef8e787
+=== RUN   FuzzPublicAPIFMA/77da9714bf8acb78
+=== RUN   FuzzPublicAPIFMA/7870b4817ac39fd7
+=== RUN   FuzzPublicAPIFMA/78cc3a1d7913e655
+=== RUN   FuzzPublicAPIFMA/79fa79f4414bb872
+=== RUN   FuzzPublicAPIFMA/7a4cd45a7eaebfe0
+=== RUN   FuzzPublicAPIFMA/7c894a412dadf5b3
+=== RUN   FuzzPublicAPIFMA/81d7bfb7d70d6ac1
+=== RUN   FuzzPublicAPIFMA/81e0f0d00ba0e679
+=== RUN   FuzzPublicAPIFMA/82e341c9417f7914
+=== RUN   FuzzPublicAPIFMA/82f58360ffc28a0b
+=== RUN   FuzzPublicAPIFMA/874d1bd928edcf0e
+=== RUN   FuzzPublicAPIFMA/89edf1ec031c2dd3
+=== RUN   FuzzPublicAPIFMA/8a8dd57394ba9fc3
+=== RUN   FuzzPublicAPIFMA/8e52b4733b0e58dc
+=== RUN   FuzzPublicAPIFMA/8eba960e7eb2c7c8
+=== RUN   FuzzPublicAPIFMA/91218c3f2280f1b6
+=== RUN   FuzzPublicAPIFMA/922dd99c04431b8f
+=== RUN   FuzzPublicAPIFMA/958f81b43fe16a5c
+=== RUN   FuzzPublicAPIFMA/99442aec1375cea1
+=== RUN   FuzzPublicAPIFMA/9a402d767ce23899
+=== RUN   FuzzPublicAPIFMA/9a730b36d54e3ea0
+=== RUN   FuzzPublicAPIFMA/9c6db84c5102a5ce
+=== RUN   FuzzPublicAPIFMA/9e78c7dedf90daed
+=== RUN   FuzzPublicAPIFMA/9ffc791401300060
+=== RUN   FuzzPublicAPIFMA/b40444666297be72
+=== RUN   FuzzPublicAPIFMA/b989caebb39972e3
+=== RUN   FuzzPublicAPIFMA/bf988486e96eb876
+=== RUN   FuzzPublicAPIFMA/d1baebc96504bacc
+=== RUN   FuzzPublicAPIFMA/d259011efa9f22fa
+=== RUN   FuzzPublicAPIFMA/d2faa898d0fabc51
+=== RUN   FuzzPublicAPIFMA/d910fae5b52c77d6
+=== RUN   FuzzPublicAPIFMA/d99d987908cf5212
+=== RUN   FuzzPublicAPIFMA/df76f85b0d2292b9
+=== RUN   FuzzPublicAPIFMA/dfc88a4bb70bff94
+=== RUN   FuzzPublicAPIFMA/e70bd1f15483d89b
+=== RUN   FuzzPublicAPIFMA/ed5115f3caf7c441
+--- PASS: FuzzPublicAPIFMA (0.16s)
+    --- PASS: FuzzPublicAPIFMA/seed#0 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#1 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#2 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#4 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#5 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#6 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#7 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#8 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/seed#9 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/0035bcd514cd3b9b (0.00s)
+    --- PASS: FuzzPublicAPIFMA/02b6eb05b5e368d6 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/055569eda6624de9 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/07e5900f00e80911 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/0831c48e94fcfba4 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/089d88de892b5655 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/0b1805eef0acfefd (0.00s)
+    --- PASS: FuzzPublicAPIFMA/0bdc320b415533ec (0.00s)
+    --- PASS: FuzzPublicAPIFMA/0ff868c9bd4b7844 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/10b96d599ed04483 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/12bd17c00fefcce3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/185e616e34016c38 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/198d941b5b8d295a (0.00s)
+    --- PASS: FuzzPublicAPIFMA/1a887d44d4983b8f (0.00s)
+    --- PASS: FuzzPublicAPIFMA/1f11de1c247ade71 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/20a553b5f576ca07 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/22d0da0445090fc4 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/237b385b91b01e76 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/259acceda58d9534 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/2f7cce2c338b8ca0 (0.01s)
+    --- PASS: FuzzPublicAPIFMA/2f9b2cb64c6b0839 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/2fd514a820016aa5 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/325452da22ea9f9e (0.00s)
+    --- PASS: FuzzPublicAPIFMA/328fb75fc3234059 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/359e4613d1d18b6d (0.00s)
+    --- PASS: FuzzPublicAPIFMA/36f38a6a0fa2da06 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/390e587e8e293e40 (0.01s)
+    --- PASS: FuzzPublicAPIFMA/3ae7e65d5e9733d4 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/3b782d7f511da166 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/3b8535b25a70d737 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/3ca21594512e90d8 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/41c7abd55d3d1e77 (0.02s)
+    --- PASS: FuzzPublicAPIFMA/42bb13f376289f22 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/43e5dfb9861c4bad (0.00s)
+    --- PASS: FuzzPublicAPIFMA/44b998f0712edb85 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/44e74606416cb8b4 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/4696ff22ab70a4d3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/471fc55c2b56af06 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/484a5f7f63266803 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/48c38cf35779587f (0.00s)
+    --- PASS: FuzzPublicAPIFMA/4cf09e74a16cc874 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/4daf99b41a323caa (0.00s)
+    --- PASS: FuzzPublicAPIFMA/4de2092e3b48aa4e (0.00s)
+    --- PASS: FuzzPublicAPIFMA/50058acddeb07436 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5302488f1e35ea8c (0.00s)
+    --- PASS: FuzzPublicAPIFMA/53b53e9d560f8a1c (0.00s)
+    --- PASS: FuzzPublicAPIFMA/54db29ca141248ca (0.00s)
+    --- PASS: FuzzPublicAPIFMA/556aff7e2e51dc64 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5678bcc0e741f76b (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5a825a8a4b9a5015 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5c890874217b76e3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5d469025c371fb7f (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5dd675e3282242c6 (0.01s)
+    --- PASS: FuzzPublicAPIFMA/5f4cfbecd53659dd (0.00s)
+    --- PASS: FuzzPublicAPIFMA/5faa0ce4c57063d8 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/60980e982991ad5a (0.00s)
+    --- PASS: FuzzPublicAPIFMA/64c91475b9a5d890 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/64f027e982a87b5b (0.00s)
+    --- PASS: FuzzPublicAPIFMA/66e5bc55e4cde21a (0.00s)
+    --- PASS: FuzzPublicAPIFMA/6ba3e76488b773aa (0.00s)
+    --- PASS: FuzzPublicAPIFMA/6d0bf13e6aab9504 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/6d72735ed9ecd1b3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/721477466d259c25 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/72ac98864ef8e787 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/77da9714bf8acb78 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/7870b4817ac39fd7 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/78cc3a1d7913e655 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/79fa79f4414bb872 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/7a4cd45a7eaebfe0 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/7c894a412dadf5b3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/81d7bfb7d70d6ac1 (0.01s)
+    --- PASS: FuzzPublicAPIFMA/81e0f0d00ba0e679 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/82e341c9417f7914 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/82f58360ffc28a0b (0.00s)
+    --- PASS: FuzzPublicAPIFMA/874d1bd928edcf0e (0.00s)
+    --- PASS: FuzzPublicAPIFMA/89edf1ec031c2dd3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/8a8dd57394ba9fc3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/8e52b4733b0e58dc (0.00s)
+    --- PASS: FuzzPublicAPIFMA/8eba960e7eb2c7c8 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/91218c3f2280f1b6 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/922dd99c04431b8f (0.00s)
+    --- PASS: FuzzPublicAPIFMA/958f81b43fe16a5c (0.00s)
+    --- PASS: FuzzPublicAPIFMA/99442aec1375cea1 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/9a402d767ce23899 (0.01s)
+    --- PASS: FuzzPublicAPIFMA/9a730b36d54e3ea0 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/9c6db84c5102a5ce (0.00s)
+    --- PASS: FuzzPublicAPIFMA/9e78c7dedf90daed (0.00s)
+    --- PASS: FuzzPublicAPIFMA/9ffc791401300060 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/b40444666297be72 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/b989caebb39972e3 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/bf988486e96eb876 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/d1baebc96504bacc (0.00s)
+    --- PASS: FuzzPublicAPIFMA/d259011efa9f22fa (0.00s)
+    --- PASS: FuzzPublicAPIFMA/d2faa898d0fabc51 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/d910fae5b52c77d6 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/d99d987908cf5212 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/df76f85b0d2292b9 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/dfc88a4bb70bff94 (0.00s)
+    --- PASS: FuzzPublicAPIFMA/e70bd1f15483d89b (0.00s)
+    --- PASS: FuzzPublicAPIFMA/ed5115f3caf7c441 (0.00s)
+=== RUN   ExampleFFT32
+--- PASS: ExampleFFT32 (0.00s)
+=== RUN   ExampleRFFT32
+--- PASS: ExampleRFFT32 (0.00s)
+=== RUN   ExamplePlan32_FFTNorm
+--- PASS: ExamplePlan32_FFTNorm (0.00s)
+=== RUN   ExampleRealPlan32
+--- PASS: ExampleRealPlan32 (0.00s)
+=== RUN   ExampleFFTN32
+--- PASS: ExampleFFTN32 (0.00s)
+=== RUN   Example_rfft2_32
+--- PASS: Example_rfft2_32 (0.00s)
+=== RUN   ExampleFFT32With
+--- PASS: ExampleFFT32With (0.00s)
+=== RUN   ExampleRFFTN32With
+--- PASS: ExampleRFFTN32With (0.00s)
+=== RUN   ExampleDCT32
+--- PASS: ExampleDCT32 (0.00s)
+=== RUN   ExamplePlanN32
+--- PASS: ExamplePlanN32 (0.00s)
+=== RUN   Example_realPlan2_32
+--- PASS: Example_realPlan2_32 (0.00s)
+=== RUN   ExampleOptions
+--- PASS: ExampleOptions (0.00s)
+=== RUN   ExampleFFTWith
+--- PASS: ExampleFFTWith (0.00s)
+=== RUN   ExampleIFFTWith
+--- PASS: ExampleIFFTWith (0.00s)
+=== RUN   ExampleRFFTWith
+--- PASS: ExampleRFFTWith (0.00s)
+=== RUN   ExampleIRFFTWith
+--- PASS: ExampleIRFFTWith (0.00s)
+=== RUN   ExampleHFFT
+--- PASS: ExampleHFFT (0.00s)
+=== RUN   ExampleHFFTWith
+--- PASS: ExampleHFFTWith (0.00s)
+=== RUN   ExampleIHFFT
+--- PASS: ExampleIHFFT (0.00s)
+=== RUN   ExampleIHFFTWith
+--- PASS: ExampleIHFFTWith (0.00s)
+=== RUN   ExampleFFTNWith
+--- PASS: ExampleFFTNWith (0.00s)
+=== RUN   ExampleIFFTNWith
+--- PASS: ExampleIFFTNWith (0.00s)
+=== RUN   ExampleFFT2With
+--- PASS: ExampleFFT2With (0.00s)
+=== RUN   ExampleIFFT2With
+--- PASS: ExampleIFFT2With (0.00s)
+=== RUN   ExampleRFFTN
+--- PASS: ExampleRFFTN (0.00s)
+=== RUN   ExampleRFFTNWith
+--- PASS: ExampleRFFTNWith (0.00s)
+=== RUN   ExampleIRFFTN
+--- PASS: ExampleIRFFTN (0.00s)
+=== RUN   ExampleIRFFTNWith
+--- PASS: ExampleIRFFTNWith (0.00s)
+=== RUN   ExampleRFFT2With
+--- PASS: ExampleRFFT2With (0.00s)
+=== RUN   ExampleIRFFT2With
+--- PASS: ExampleIRFFT2With (0.00s)
+=== RUN   ExampleFFTShift
+--- PASS: ExampleFFTShift (0.00s)
+=== RUN   ExampleIFFTShift
+--- PASS: ExampleIFFTShift (0.00s)
+=== RUN   ExampleFFTShiftN
+--- PASS: ExampleFFTShiftN (0.00s)
+=== RUN   ExampleIFFTShiftN
+--- PASS: ExampleIFFTShiftN (0.00s)
+=== RUN   ExampleNextFastLen
+--- PASS: ExampleNextFastLen (0.00s)
+=== RUN   ExamplePlan_FFTNorm
+--- PASS: ExamplePlan_FFTNorm (0.00s)
+=== RUN   ExamplePlan_IFFTNorm
+--- PASS: ExamplePlan_IFFTNorm (0.00s)
+=== RUN   ExampleRealPlan_RFFTNorm
+--- PASS: ExampleRealPlan_RFFTNorm (0.00s)
+=== RUN   ExampleRealPlan_IRFFTNorm
+--- PASS: ExampleRealPlan_IRFFTNorm (0.00s)
+=== RUN   ExamplePlanN_FFTNorm
+--- PASS: ExamplePlanN_FFTNorm (0.00s)
+=== RUN   ExamplePlanN_IFFTNorm
+--- PASS: ExamplePlanN_IFFTNorm (0.00s)
+=== RUN   ExampleRealPlan2_RFFTNorm
+--- PASS: ExampleRealPlan2_RFFTNorm (0.00s)
+=== RUN   ExampleRealPlan2_IRFFTNorm
+--- PASS: ExampleRealPlan2_IRFFTNorm (0.00s)
+=== RUN   ExampleDCT
+--- PASS: ExampleDCT (0.00s)
+=== RUN   ExampleNewDCTPlan
+--- PASS: ExampleNewDCTPlan (0.00s)
+=== RUN   ExampleDST
+--- PASS: ExampleDST (0.00s)
+=== RUN   ExampleDCTN
+--- PASS: ExampleDCTN (0.00s)
+PASS

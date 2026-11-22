@@ -1,0 +1,44 @@
+package fft
+
+import (
+	"crypto/sha256"
+	"encoding/binary"
+	"fmt"
+	"math"
+	"os"
+	"testing"
+)
+
+// TestZZBits writes a digest of default-path Bluestein outputs to $ZZBITS.
+func TestZZBits(t *testing.T) {
+	path := os.Getenv("ZZBITS")
+	if path == "" {
+		t.Skip()
+	}
+	out := ""
+	for _, n := range []int{23, 33, 34, 35, 36, 37, 38, 39, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 94, 97, 101, 103, 107, 109, 113, 127, 131, 641, 1013, 4099, 10007} {
+		p := NewPlan(n)
+		x := make([]complex128, n)
+		for i := range x {
+			x[i] = complex(float64(i%13)-6+0.1*float64(i%5), float64(i%7)-3)
+		}
+		for _, inv := range []bool{false, true} {
+			d := make([]complex128, n)
+			if inv {
+				p.IFFT(d, x)
+			} else {
+				p.FFT(d, x)
+			}
+			h := sha256.New()
+			var b [8]byte
+			for _, v := range d {
+				binary.LittleEndian.PutUint64(b[:], math.Float64bits(real(v)))
+				h.Write(b[:])
+				binary.LittleEndian.PutUint64(b[:], math.Float64bits(imag(v)))
+				h.Write(b[:])
+			}
+			out += fmt.Sprintf("n=%d inv=%v %x\n", n, inv, h.Sum(nil)[:8])
+		}
+	}
+	os.WriteFile(path, []byte(out), 0o644)
+}

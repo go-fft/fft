@@ -1,0 +1,44 @@
+package fft
+
+import (
+	"fmt"
+	"os"
+	"sort"
+	"testing"
+)
+
+// TestZZLen lists the CMulTo lengths every transform length 2..300 reaches.
+func TestZZLen(t *testing.T) {
+	path := os.Getenv("ZZLEN")
+	if path == "" {
+		t.Skip()
+	}
+	seen := map[int]map[int]bool{}
+	cur := 0
+	old := cmulTo
+	defer func() { cmulTo = old }()
+	cmulTo = func(dst, a, b []complex128) {
+		if seen[cur] == nil {
+			seen[cur] = map[int]bool{}
+		}
+		seen[cur][len(dst)] = true
+		old(dst, a, b)
+	}
+	out := ""
+	for n := 2; n <= 300; n++ {
+		cur = n
+		p := NewPlan(n)
+		x := make([]complex128, n)
+		p.FFT(make([]complex128, n), x)
+		if len(seen[n]) == 0 {
+			continue
+		}
+		var ls []int
+		for l := range seen[n] {
+			ls = append(ls, l)
+		}
+		sort.Ints(ls)
+		out += fmt.Sprintf("n=%d cmul lens %v\n", n, ls)
+	}
+	os.WriteFile(path, []byte(out), 0o644)
+}
