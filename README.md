@@ -381,7 +381,7 @@ Accuracy is unchanged (complex Bluestein worst 0.674, family worst 0.718, under 
 
 Exception to "the default equals Exact where it does not fuse": on s390x and
 ppc64le the default Bluestein product runs `floats.CMulTo` (VX and VSX kernels,
-go-simd/floats v0.39.0), whose contract is an error bound, not the Go loop's bits,
+go-simd/floats v0.40.0), whose contract is an error bound, not the Go loop's bits,
 so the default's Bluestein bits differ there from `Exact` and `NoFMA`, which keep
 the loop; arm64's NEON kernel gives the loop's bits (asserted bounds: 1.5 for c2c,
 2.0 for r2c).

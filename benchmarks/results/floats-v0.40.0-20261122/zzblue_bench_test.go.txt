@@ -1,0 +1,23 @@
+package fft
+
+import (
+	"fmt"
+	"testing"
+)
+
+func BenchmarkZZBlue(b *testing.B) {
+	for _, n := range []int{47, 94, 4099, 10007} {
+		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
+			p := NewPlan(n)
+			x := make([]complex128, n)
+			for i := range x {
+				x[i] = complex(float64(i%13)-6, float64(i%7)-3)
+			}
+			d := make([]complex128, n)
+			b.ReportAllocs()
+			for b.Loop() {
+				p.FFT(d, x)
+			}
+		})
+	}
+}
