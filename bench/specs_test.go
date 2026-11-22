@@ -329,6 +329,43 @@ func specs() []spec {
 		)
 	}
 
+	// The float32 pair and quad forms of DCTPlan32 at 64 points (two and four
+	// transforms per call), timed against scipy.fft on a 2x64 and a 4x64 array.
+	{
+		const n = 64
+		er2, x2 := r32(2*n, 2, n)
+		er4, x4 := r32(4*n, 4, n)
+		in2, in4 := []any{x2}, []any{x4}
+		p := fft.NewDCTPlan32(n, 4)
+		dst2, dst4 := make([]float32, 2*n), make([]float32, 4*n)
+		no := fft.NormOrtho
+		rows := func(s []float32) (r [4][]float32) {
+			for i := range r {
+				r[i] = s[i*n : (i+1)*n]
+			}
+			return
+		}
+		d4, s4 := rows(dst4), rows(x4)
+		add(
+			mk("DCTPlan32.DCTPair", "DCTPlan32.DCTPair", list(er2), py("lambda x: F.dct(x, type=4, norm='ortho')"), tol32, in2, func() []float32 {
+				p.DCTPair(dst2[:n], dst2[n:], x2[:n], x2[n:], no)
+				return dst2
+			}),
+			mk("DCTPlan32.IDCTPair", "DCTPlan32.IDCTPair", list(er2), py("lambda x: F.idct(x, type=4, norm='ortho')"), tol32, in2, func() []float32 {
+				p.IDCTPair(dst2[:n], dst2[n:], x2[:n], x2[n:], no)
+				return dst2
+			}),
+			mk("DCTPlan32.DCTQuad", "DCTPlan32.DCTQuad", list(er4), py("lambda x: F.dct(x, type=4, norm='ortho')"), tol32, in4, func() []float32 {
+				p.DCTQuad(d4, s4, no)
+				return dst4
+			}),
+			mk("DCTPlan32.IDCTQuad", "DCTPlan32.IDCTQuad", list(er4), py("lambda x: F.idct(x, type=4, norm='ortho')"), tol32, in4, func() []float32 {
+				p.IDCTQuad(d4, s4, no)
+				return dst4
+			}),
+		)
+	}
+
 	// Frequencies, shifts, windows, spectra.
 	{
 		er, x := r64(nPow)

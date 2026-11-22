@@ -196,8 +196,8 @@ jobs:
           fi
       - name: Regenerate the fused DCT-IV(64) kernels and check they are current
         run: |
-          go run internal/gendct4/main.go internal/gendct4/amd64.go
-          git diff --exit-code -- dct4_64_gen.go dct4_64_gen_arm64.go dct4_64_arm64.s dct4_128_gen.go dct4_128_gen_arm64.go dct4_128_arm64.s dct4_64_gen_amd64.go dct4_64_amd64.s || {
+          go run internal/gendct4/main.go internal/gendct4/amd64.go internal/gendct4/amd64f32.go
+          git diff --exit-code -- dct4_64_gen.go dct4_64_gen_arm64.go dct4_64_arm64.s dct4_128_gen.go dct4_128_gen_arm64.go dct4_128_arm64.s dct4_64_gen_amd64.go dct4_64_amd64.s dct4_64_gen32_amd64.go dct4_64_f32_amd64.s || {
             echo "::error::the fused DCT-IV(64) kernels are stale; run go generate and commit"; exit 1; }
           if [ -n "$(git status --porcelain -- 'dct4_*_gen*.go' 'dct4_*_arm64.s')" ]; then
             git status --porcelain -- 'dct4_*_gen*.go' 'dct4_*_arm64.s'
