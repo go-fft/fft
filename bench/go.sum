@@ -2,7 +2,7 @@ github.com/go-fleettools/fleettools v0.81.0 h1:UnMflmNw5b82Z+7Ums7UVaW5RrGuACCVm
 github.com/go-fleettools/fleettools v0.81.0/go.mod h1:y/o3p2HZAvto9J5G5gtPxhN45zgvaYFAXCY9RCK/lQw=
 github.com/go-scikit/refbench v0.4.1 h1:aqij6OTpP+yrLClggS7eRRyggW0zEgjhlwfzGhcP5BI=
 github.com/go-scikit/refbench v0.4.1/go.mod h1:PhJxvLwXiQeKLP2f5ndcb9k5k4PTvU1rSFJ/MKRCrU0=
-github.com/go-simd/floats v0.32.0 h1:tiXW+WECTGFzq6glJ3x9zJYMev81UsTZjXmIfVr954Q=
-github.com/go-simd/floats v0.32.0/go.mod h1:Aq5a6oY5pUqm9Hpi+iV2nrNmaaUb0rwHvUHIerXWSvA=
+github.com/go-simd/floats v0.36.0 h1:HMSauI5XPu05yRKM+IX898Hm7Wq/+ACSOJ3SoXgjMfw=
+github.com/go-simd/floats v0.36.0/go.mod h1:Aq5a6oY5pUqm9Hpi+iV2nrNmaaUb0rwHvUHIerXWSvA=
 golang.org/x/sys v0.49.0 h1:XbzkgYJHdqh/8m2Uu0W/dQv8nktxx4BFHp1M0gROTXA=
 golang.org/x/sys v0.49.0/go.mod h1:hNLxWAXmnKAxqDtdwIYC4bM9oQPEecfsnNMuSxOs3og=
