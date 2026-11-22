@@ -526,10 +526,6 @@ func plan(b *builder, order []*node) []item {
 	}
 	fused := map[*node]bool{}
 	var items []item
-	pos := map[*node]int{}
-	for i, n := range order {
-		pos[n] = i
-	}
 	for _, n := range order {
 		if fused[n] {
 			continue
@@ -539,8 +535,10 @@ func plan(b *builder, order []*node) []item {
 			cx, cy := n.x.op == 'm' && uses[n.x] == 1 && !fused[n.x], n.y.op == 'm' && uses[n.y] == 1 && !fused[n.y]
 			switch {
 			case cx && cy:
-				// materialise the earlier one, fuse the later
-				if pos[n.x] < pos[n.y] {
+				// materialise the earlier one, fuse the later: by CREATION position
+				// (node id), never by the schedule's order, which would change which
+				// product is rounded and so the result's bits
+				if n.x.id < n.y.id {
 					it.m, it.macc = n.y, n.x
 				} else {
 					it.m, it.macc = n.x, n.y
@@ -674,7 +672,13 @@ func (lw *lowering) ensure(n *node) int {
 	if n.op == 'l' {
 		lw.emit("VMOVSD %s, X%d", n.mem, r)
 	} else {
-		lw.emit("VMOVSD %d(SP), X%d", 8*lw.slot[n], r)
+		s, ok := lw.slot[n]
+		if !ok {
+			// a value read before it was computed (or never spilled): a slot that
+			// was never written would reload garbage
+			panic(fmt.Sprintf("gendct23: node %d (op %c) is read before it is computed: its spill slot was never written", n.id, n.op))
+		}
+		lw.emit("VMOVSD %d(SP), X%d", 8*s, r)
 		lw.reloads++
 	}
 	lw.reg[n] = r
@@ -1105,6 +1109,218 @@ func (g *sgraph) climb(units []*node, cost func([]*node) int, iters int, rng *ra
 	return cur
 }
 
+// ---- the lowered program, interpreted ----
+
+// refEval evaluates the graph as the lowering rounds it: a fused product is one
+// FMA, every other operation one rounding. It does not depend on the schedule
+// (plan fuses by creation position), so a lowered program must equal it bit for
+// bit, whatever order it was emitted in.
+func refEval(b *builder, src []float64, a0 float64) []float64 {
+	items := plan(b, strip(liveOrder(b, false)))
+	byNode := map[*node]item{}
+	for _, it := range items {
+		byNode[it.n] = it
+	}
+	memo := map[*node]float64{}
+	var ev func(n *node) float64
+	ev = func(n *node) float64 {
+		if v, ok := memo[n]; ok {
+			return v
+		}
+		var v float64
+		it := byNode[n]
+		switch {
+		case n.op == 'l' && n.idx < 0:
+			v = a0
+		case n.op == 'l':
+			v = src[n.idx]
+		case it.m != nil:
+			acc, x := ev(it.macc), ev(it.m.x)
+			switch {
+			case n.op == 'a':
+				v = math.FMA(x, it.m.c, acc)
+			case n.y == it.m:
+				v = math.FMA(-x, it.m.c, acc)
+			default:
+				v = math.FMA(x, it.m.c, -acc)
+			}
+		case n.op == 'a':
+			v = ev(n.x) + ev(n.y)
+		case n.op == 's':
+			v = ev(n.x) - ev(n.y)
+		case n.op == 'm':
+			v = ev(n.x) * n.c
+		case n.op == 'n':
+			v = -ev(n.x)
+		case n.op == 'M':
+			v = ev(n.x) * ev(n.y)
+		}
+		memo[n] = v
+		return v
+	}
+	dst := make([]float64, len(src))
+	for _, s := range b.outs {
+		dst[s.idx] = ev(s.x)
+	}
+	return dst
+}
+
+// interpret runs the lowered text (registers X0-X31, the spill slots, the
+// constants) on src. A register or a slot read before it is written is an error:
+// that is a value the schedule used before computing it.
+func interpret(text string, src []float64, a0 float64, n int) ([]float64, error) {
+	var reg [32]float64
+	var regOK [32]bool
+	slot := map[int]float64{}
+	dst := make([]float64, n)
+	dstOK := make([]bool, n)
+	offset := func(s string) int {
+		var o int
+		fmt.Sscanf(s, "%d(", &o)
+		return o / 8
+	}
+	get := func(s string) (float64, error) {
+		switch {
+		case strings.HasPrefix(s, "X"):
+			var r int
+			fmt.Sscanf(s, "X%d", &r)
+			if !regOK[r] {
+				return 0, fmt.Errorf("reads X%d before it is written", r)
+			}
+			return reg[r], nil
+		case strings.HasSuffix(s, "(SI)"):
+			return src[offset(s)], nil
+		case strings.HasSuffix(s, "(SP)"):
+			v, ok := slot[offset(s)]
+			if !ok {
+				return 0, fmt.Errorf("reloads spill slot %d that was never written", offset(s))
+			}
+			return v, nil
+		case strings.HasPrefix(s, "a0+"):
+			return a0, nil
+		case strings.HasPrefix(s, "d23_"):
+			var bits uint64
+			if _, err := fmt.Sscanf(s, "d23_%016x<>(SB)", &bits); err != nil {
+				return 0, fmt.Errorf("operand %q", s)
+			}
+			return math.Float64frombits(bits), nil
+		}
+		return 0, fmt.Errorf("operand %q", s)
+	}
+	putReg := func(s string, v float64) {
+		var r int
+		fmt.Sscanf(s, "X%d", &r)
+		reg[r], regOK[r] = v, true
+	}
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "V") {
+			continue
+		}
+		mn, rest, _ := strings.Cut(line, " ")
+		ops := strings.Split(rest, ", ")
+		var v [3]float64
+		d := ops[len(ops)-1]
+		if mn != "VMOVSD" && mn != "VMOVAPD" {
+			for i := 0; i < len(ops)-1; i++ {
+				if ops[i] == "d23_sign<>(SB)" {
+					continue // the sign mask: VXORPD negates its other operand
+				}
+				x, err := get(ops[i])
+				if err != nil {
+					return nil, fmt.Errorf("%s: %v", line, err)
+				}
+				v[i] = x
+			}
+		}
+		switch mn {
+		case "VMOVSD":
+			x, err := get(ops[0])
+			if err != nil {
+				return nil, fmt.Errorf("%s: %v", line, err)
+			}
+			switch {
+			case strings.HasSuffix(d, "(SP)"):
+				slot[offset(d)] = x
+			case strings.HasSuffix(d, "(DI)"):
+				dst[offset(d)], dstOK[offset(d)] = x, true
+			default:
+				putReg(d, x)
+			}
+		case "VMOVAPD":
+			x, err := get(ops[0])
+			if err != nil {
+				return nil, fmt.Errorf("%s: %v", line, err)
+			}
+			putReg(d, x)
+		case "VADDSD":
+			putReg(d, v[1]+v[0])
+		case "VSUBSD":
+			putReg(d, v[1]-v[0])
+		case "VMULSD":
+			putReg(d, v[1]*v[0])
+		case "VXORPD":
+			putReg(d, -v[1])
+		case "VFMADD231SD", "VFNMADD231SD", "VFMSUB231SD", "VFMADD132SD", "VFNMADD132SD", "VFMSUB132SD":
+			dv, err := get(d)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %v", line, err)
+			}
+			s3, s2 := v[0], v[1]
+			var r float64
+			switch mn {
+			case "VFMADD231SD":
+				r = math.FMA(s2, s3, dv)
+			case "VFNMADD231SD":
+				r = math.FMA(-s2, s3, dv)
+			case "VFMSUB231SD":
+				r = math.FMA(s2, s3, -dv)
+			case "VFMADD132SD":
+				r = math.FMA(dv, s3, s2)
+			case "VFNMADD132SD":
+				r = math.FMA(-dv, s3, s2)
+			default:
+				r = math.FMA(dv, s3, -s2)
+			}
+			putReg(d, r)
+		default:
+			return nil, fmt.Errorf("unknown instruction %q", line)
+		}
+	}
+	for i, ok := range dstOK {
+		if !ok {
+			return nil, fmt.Errorf("output %d is never stored", i)
+		}
+	}
+	return dst, nil
+}
+
+// verifyLowered runs the lowered program of a kernel against refEval, bit for
+// bit, on random inputs, and refuses (panics) on the first difference.
+func verifyLowered(name string, b *builder, text string, n int, seed int64) {
+	rng := rand.New(rand.NewSource(seed))
+	for t := 0; t < 16; t++ {
+		src := make([]float64, n)
+		for i := range src {
+			src[i] = rng.NormFloat64() * math.Pow(2, float64(rng.Intn(9)-4))
+		}
+		a0 := 1.0
+		if t%2 == 1 {
+			a0 = math.Sqrt2
+		}
+		got, err := interpret(text, src, a0, n)
+		if err != nil {
+			panic(fmt.Sprintf("gendct23: %s: the lowered program is broken: %v", name, err))
+		}
+		want := refEval(b, src, a0)
+		for i := range got {
+			if math.Float64bits(got[i]) != math.Float64bits(want[i]) {
+				panic(fmt.Sprintf("gendct23: %s: the lowered program differs from its dataflow graph: output %d is %x, the graph gives %x", name, i, math.Float64bits(got[i]), math.Float64bits(want[i])))
+			}
+		}
+	}
+}
+
 // schedTrials is how many randomised schedules each direction tries per kernel,
 // climbIters how many moves the local search makes from the best of them.
 const (
@@ -1162,6 +1378,9 @@ func gen(name string, n int, fwd bool) (text string, consts map[uint64]bool, neg
 	bestUnits = g.climb(bestUnits, cost, climbIters, rng)
 	try(g.flat(bestUnits), "list+climb")
 	lw := best
+	// the lowered program (registers, spill slots, FMA forms) is what ships, so it
+	// is what is verified, against the graph, bit for bit, before anything is written
+	verifyLowered(name, b, lw.sb.String(), n, int64(n)*2+map[bool]int64{false: 0, true: 1}[fwd])
 	var sb strings.Builder
 	frame := 8 * lw.nslot
 	if frame%16 != 0 {
