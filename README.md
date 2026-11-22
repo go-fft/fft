@@ -386,6 +386,13 @@ IBM z17 (s390x) n=47 -3.8%, n=94 -2.9%, n=4099 -3.4%, n=10007 -1.3%; POWER9
 -0.7%, -0.4%, -0.6%, -0.9% at the same lengths. Exact and NoFMA bits are
 unchanged everywhere, and amd64 and arm64 are unchanged.
 
+Since v0.49.0 (a MINOR release, go-fft#190) go-fft requires go-simd/floats
+v0.40.0: the ppc64le `CMulTo` loop counts on CTR (no exit mispredict from n=96)
+and its minimum length drops from 40 to 35. Whole Bluestein on POWER9 against
+v0.48.0: n=47 -1.4%, n=94 -0.6%, n=4099 no change, n=10007 -0.4%. The default
+path's bits change on ppc64le only at n=38; Exact and NoFMA are unchanged, and
+nothing changes on other architectures.
+
 Exception to "the default equals Exact where it does not fuse": on s390x and
 ppc64le the default Bluestein product runs `floats.CMulTo` (VX and VSX kernels,
 go-simd/floats v0.40.0), whose contract is an error bound, not the Go loop's bits,
