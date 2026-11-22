@@ -129,19 +129,30 @@ func TestZmBluesteinRouting(t *testing.T) {
 	defer func(f func(dst, a, b []complex128)) { cmulTo = f }(cmulTo)
 	calls := 0
 	cmulTo = func(dst, a, b []complex128) { calls++; floats.CMulTo(dst, a, b) }
-	for _, c := range []struct {
-		name  string
-		opts  Options
-		calls int
-	}{{"default", Options{}, 3}, {"FMA", Options{FMA: true}, 3}, {"Exact", exactOpts, 0}, {"NoFMA", Options{NoFMA: true}, 0}} {
-		p := NewPlanWith(47, c.opts)
-		if p.bluestein == nil {
-			t.Fatal("47 does not run Bluestein")
+	defer func(v bool) { fmaAvailable = v; forgetAllPlans() }(fmaAvailable)
+	// On amd64 floats fuses where the CPU has FMA3, so the default and FMA
+	// arithmetics take it only there; elsewhere always.
+	for _, fma := range []bool{true, false} {
+		fmaAvailable = fma
+		forgetAllPlans()
+		floatsCalls := 0
+		if fma || runtime.GOARCH != "amd64" {
+			floatsCalls = 3
 		}
-		calls = 0
-		p.bluestein.transform(make([]complex128, 47), make([]complex128, 47), false)
-		if calls != c.calls {
-			t.Errorf("%s: %d calls to floats.CMulTo per transform, want %d", c.name, calls, c.calls)
+		for _, c := range []struct {
+			name  string
+			opts  Options
+			calls int
+		}{{"default", Options{}, floatsCalls}, {"FMA", Options{FMA: true}, floatsCalls}, {"Exact", exactOpts, 0}, {"NoFMA", Options{NoFMA: true}, 0}} {
+			p := NewPlanWith(47, c.opts)
+			if p.bluestein == nil {
+				t.Fatal("47 does not run Bluestein")
+			}
+			calls = 0
+			p.bluestein.transform(make([]complex128, 47), make([]complex128, 47), false)
+			if calls != c.calls {
+				t.Errorf("FMA3 %v, %s: %d calls to floats.CMulTo per transform, want %d", fma, c.name, calls, c.calls)
+			}
 		}
 	}
 }

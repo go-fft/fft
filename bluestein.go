@@ -2,6 +2,7 @@ package fft
 
 import (
 	"math"
+	"runtime"
 	"sync"
 
 	"github.com/go-simd/floats"
@@ -118,8 +119,12 @@ var cmulTo = floats.CMulTo
 // arithmetics take floats.CMulTo, whose contract is a stated error bound, not
 // the loop's bits. Exact and NoFMA do not fuse and Exact promises v0.28.16's
 // bits, so they run the Go loop, which is those bits on every architecture.
+// On amd64 floats fuses where the CPU has FMA3, so the default takes it only
+// where the default fuses (fused: no FMA3, or a test that says so, means the
+// Go loop, as the unfused default has always been); elsewhere floats is the
+// NEON or portable kernel, whose bits are the loop's within its bound.
 func (p *bluesteinPlan) cmul(dst, a, b []complex128) {
-	if p.ar != arithExact && p.ar != arithPlain {
+	if p.ar != arithExact && p.ar != arithPlain && (p.ar.fused() || runtime.GOARCH != "amd64") {
 		cmulTo(dst, a, b)
 		return
 	}
