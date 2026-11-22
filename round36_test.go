@@ -5,6 +5,8 @@ import (
 	"math/cmplx"
 	"slices"
 	"testing"
+
+	"github.com/go-simd/floats"
 )
 
 // zmRowsByRun is the contiguous axis ax of PlanN.transform as it ran before
@@ -114,6 +116,31 @@ func TestZmBluesteinMatchesLoops(t *testing.T) {
 	// The default takes floats.CMulTo; Exact and NoFMA take the Go loop.
 	for _, opts := range []Options{{}, exactOpts, {NoFMA: true}} {
 		testZmBluestein(t, opts)
+	}
+}
+
+// TestZmBluesteinRouting: the default and FMA arithmetics run the three
+// products of a transform on floats.CMulTo, Exact and NoFMA run none of them
+// there (Exact promises v0.28.16's bits). Counted through a fake, so it holds
+// on every CPU.
+func TestZmBluesteinRouting(t *testing.T) {
+	defer func(f func(dst, a, b []complex128)) { cmulTo = f }(cmulTo)
+	calls := 0
+	cmulTo = func(dst, a, b []complex128) { calls++; floats.CMulTo(dst, a, b) }
+	for _, c := range []struct {
+		name  string
+		opts  Options
+		calls int
+	}{{"default", Options{}, 3}, {"FMA", Options{FMA: true}, 3}, {"Exact", exactOpts, 0}, {"NoFMA", Options{NoFMA: true}, 0}} {
+		p := NewPlanWith(47, c.opts)
+		if p.bluestein == nil {
+			t.Fatal("47 does not run Bluestein")
+		}
+		calls = 0
+		p.bluestein.transform(make([]complex128, 47), make([]complex128, 47), false)
+		if calls != c.calls {
+			t.Errorf("%s: %d calls to floats.CMulTo per transform, want %d", c.name, calls, c.calls)
+		}
 	}
 }
 

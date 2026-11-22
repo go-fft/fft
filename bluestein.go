@@ -111,13 +111,16 @@ func (p *bluesteinPlan) transform(dst, src []complex128, inverse bool) {
 	p.cmul(dst[:n], a, w)
 }
 
+// cmulTo is floats.CMulTo, a variable so a test can see which arithmetics call it.
+var cmulTo = floats.CMulTo
+
 // cmul is dst = a·b elementwise (dst may be a). The default and FMA
 // arithmetics take floats.CMulTo, whose contract is a stated error bound, not
 // the loop's bits. Exact and NoFMA do not fuse and Exact promises v0.28.16's
 // bits, so they run the Go loop, which is those bits on every architecture.
 func (p *bluesteinPlan) cmul(dst, a, b []complex128) {
 	if p.ar != arithExact && p.ar != arithPlain {
-		floats.CMulTo(dst, a, b)
+		cmulTo(dst, a, b)
 		return
 	}
 	a, b = a[:len(dst)], b[:len(dst)]
