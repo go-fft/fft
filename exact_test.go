@@ -1,6 +1,7 @@
 package fft
 
 import (
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -19,6 +20,25 @@ func fusedSCase32(name string) bool {
 	}
 	n, err := strconv.Atoi(name[i+2:])
 	return err == nil && (fusedSEnabled[n] || fusedSEnabled[n/2])
+}
+
+// floatsBluesteinCase reports whether the exactCases case name is a padded
+// transform whose length n+7 runs Bluestein, on an architecture whose
+// floats.CMulTo kernel (s390x VX, ppc64le VSX, v0.37.0) is not the Go loop's
+// bits: the gc loop and the kernel fuse differently there, so the default
+// agrees with Exact within the kernel's bound, not bit for bit (arm64's NEON
+// and the portable kernel are the loop's bits, so those still compare).
+// TestZmBluesteinMatchesLoops holds these to the bound.
+func floatsBluesteinCase(name string) bool {
+	if runtime.GOARCH != "s390x" && runtime.GOARCH != "ppc64le" {
+		return false
+	}
+	i := strings.LastIndex(name, "n=")
+	if i < 0 || !strings.Contains(name, "/pad/") {
+		return false
+	}
+	n, err := strconv.Atoi(name[i+2:])
+	return err == nil && NewPlan(n+7).bluestein != nil
 }
 
 // exact returns o with Options.Exact set: the reference arithmetic. (The copy
@@ -59,6 +79,9 @@ func TestExactIsTheDefaultWhereItDoesNotFuse(t *testing.T) {
 			// it by default, whatever the arithmetic of the float64 plans: the kernel
 			// is not the passes' bits, and Exact is (TestFusedSExactAndInternalPlans
 			// KeepTheirBits).
+			continue
+		}
+		if floatsBluesteinCase(c.name) {
 			continue
 		}
 		if digestCase(c.name, c.def()) != digestCase(c.name, c.exact()) { // two cases up to a zero's sign (zeroSignCase)
