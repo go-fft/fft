@@ -139,8 +139,8 @@ GLOBL d23_3ffd906bcf328d46<>(SB), RODATA|NOPTR, $8
 DATA d23_4000000000000000<>+0(SB)/8, $0x4000000000000000
 GLOBL d23_4000000000000000<>(SB), RODATA|NOPTR, $8
 
-// func dct2x32(dst, src *float64)
-TEXT ·dct2x32(SB), NOSPLIT, $64-16
+// func Dct2x32(dst, src *float64)
+TEXT ·Dct2x32(SB), NOSPLIT, $64-16
 	MOVQ dst+0(FP), DI
 	MOVQ src+8(FP), SI
 	VMOVSD 0(SI), X0
@@ -543,8 +543,8 @@ TEXT ·dct2x32(SB), NOSPLIT, $64-16
 	VMOVSD X0, 136(DI)
 	RET
 
-// func dct3x32(dst, src *float64, a0 float64)
-TEXT ·dct3x32(SB), NOSPLIT, $192-24
+// func Dct3x32(dst, src *float64, a0 float64)
+TEXT ·Dct3x32(SB), NOSPLIT, $192-24
 	MOVQ dst+0(FP), DI
 	MOVQ src+8(FP), SI
 	VMOVSD a0+16(FP), X0
@@ -1002,8 +1002,8 @@ TEXT ·dct3x32(SB), NOSPLIT, $192-24
 	VMOVSD X7, 8(DI)
 	RET
 
-// func dct2x64(dst, src *float64)
-TEXT ·dct2x64(SB), 0, $784-16
+// func Dct2x64(dst, src *float64)
+TEXT ·Dct2x64(SB), 0, $784-16
 	MOVQ dst+0(FP), DI
 	MOVQ src+8(FP), SI
 	VMOVSD 0(SI), X0
@@ -2099,8 +2099,8 @@ TEXT ·dct2x64(SB), 0, $784-16
 	VMOVSD X1, 264(DI)
 	RET
 
-// func dct3x64(dst, src *float64, a0 float64)
-TEXT ·dct3x64(SB), 0, $1456-24
+// func Dct3x64(dst, src *float64, a0 float64)
+TEXT ·Dct3x64(SB), 0, $1456-24
 	MOVQ dst+0(FP), DI
 	MOVQ src+8(FP), SI
 	VMOVSD a0+16(FP), X0
