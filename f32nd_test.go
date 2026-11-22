@@ -440,30 +440,30 @@ func TestF32NDEmpty(t *testing.T) {
 // TestF32NDPanics: every invalid argument panics with the package's message.
 func TestF32NDPanics(t *testing.T) {
 	const want = "fft: "
-	huge := []int{1 << 32, 1 << 32}
+	huge := []int{big32, big32}
 	c := make([]complex64, 12)
 	r := make([]float32, 12)
 	cases := map[string]func(){
-		"NewPlanN32 overflow":       func() { NewPlanN32(1<<62, 4) },
+		"NewPlanN32 overflow":       func() { NewPlanN32(big62, 4) },
 		"NewPlanN32 zero":           func() { NewPlanN32(3, 0) },
 		"FFTN32 overflow":           func() { FFTN32(nil, huge) },
 		"FFTN32 mismatch":           func() { FFTN32(c, []int{5, 2}) },
 		"IFFTN32 mismatch":          func() { IFFTN32(c, []int{5}) },
-		"FFT2_32 overflow":          func() { FFT2_32(nil, [2]int{1 << 32, 1 << 32}) },
+		"FFT2_32 overflow":          func() { FFT2_32(nil, [2]int{big32, big32}) },
 		"IFFT2_32 zero":             func() { IFFT2_32(nil, [2]int{0, 3}) },
 		"PlanN32.FFT short":         func() { NewPlanN32(3, 4).FFT(c[:11], c) },
 		"PlanN32.IFFT long src":     func() { NewPlanN32(3, 4).IFFT(c, make([]complex64, 13)) },
 		"PlanN32.FFTNorm bad norm":  func() { NewPlanN32(3, 4).FFTNorm(c, c, Norm(3)) },
 		"PlanN32.IFFTNorm bad norm": func() { NewPlanN32(3, 4).IFFTNorm(c, c, Norm(-1)) },
-		"NewRealPlan2_32 overflow":  func() { NewRealPlan2_32(1<<62, 4) },
+		"NewRealPlan2_32 overflow":  func() { NewRealPlan2_32(big62, 4) },
 		"RealPlan2_32.RFFT short":   func() { NewRealPlan2_32(3, 4).RFFT(make([]complex64, 9), r[:11]) },
 		"RealPlan2_32.RFFT dst":     func() { NewRealPlan2_32(3, 4).RFFT(make([]complex64, 8), r) },
 		"RealPlan2_32.IRFFT dst":    func() { NewRealPlan2_32(3, 4).IRFFT(r[:5], make([]complex64, 9)) },
 		"RealPlan2_32.IRFFT src":    func() { NewRealPlan2_32(3, 4).IRFFT(r, make([]complex64, 10)) },
 		"RealPlan2_32 bad norm":     func() { NewRealPlan2_32(3, 4).IRFFTNorm(r, make([]complex64, 9), Norm(7)) },
 		"RFFT2_32 mismatch":         func() { RFFT2_32(r, [2]int{5, 2}) },
-		"RFFT2_32 overflow":         func() { RFFT2_32(nil, [2]int{1 << 32, 1 << 32}) },
-		"IRFFT2_32 overflow":        func() { IRFFT2_32(nil, [2]int{1 << 32, 1 << 32}) },
+		"RFFT2_32 overflow":         func() { RFFT2_32(nil, [2]int{big32, big32}) },
+		"IRFFT2_32 overflow":        func() { IRFFT2_32(nil, [2]int{big32, big32}) },
 		"RFFTN32 empty shape":       func() { RFFTN32([]float32{1}, []int{}) },
 		"RFFTN32 mismatch":          func() { RFFTN32(r, []int{5}) },
 		"IRFFTN32 empty shape":      func() { IRFFTN32(c, []int{}) },

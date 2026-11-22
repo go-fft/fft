@@ -26,15 +26,15 @@ func mustPanicWith(t *testing.T, name, prefix string, f func()) {
 // an ordinary panic, before anything is allocated.
 func TestShapeOverflowPanics(t *testing.T) {
 	const want = "fft: shape product overflows int"
-	huge := []int{1 << 32, 1 << 32}
+	huge := []int{big32, big32}
 	mustPanicWith(t, "FFTN", want, func() { FFTN(nil, huge) })
 	mustPanicWith(t, "IFFTN", want, func() { IFFTN(nil, huge) })
-	mustPanicWith(t, "FFT2", want, func() { FFT2(nil, [2]int{1 << 32, 1 << 32}) })
-	mustPanicWith(t, "IFFT2", want, func() { IFFT2(nil, [2]int{1 << 32, 1 << 32}) })
-	mustPanicWith(t, "RFFT2", want, func() { RFFT2(nil, [2]int{1 << 32, 1 << 32}) })
-	mustPanicWith(t, "IRFFT2", want, func() { IRFFT2(nil, [2]int{1 << 32, 1 << 32}) })
-	mustPanicWith(t, "NewPlanN", want, func() { NewPlanN(1<<62, 4) })
-	mustPanicWith(t, "NewRealPlan2", want, func() { NewRealPlan2(1<<62, 4) })
+	mustPanicWith(t, "FFT2", want, func() { FFT2(nil, [2]int{big32, big32}) })
+	mustPanicWith(t, "IFFT2", want, func() { IFFT2(nil, [2]int{big32, big32}) })
+	mustPanicWith(t, "RFFT2", want, func() { RFFT2(nil, [2]int{big32, big32}) })
+	mustPanicWith(t, "IRFFT2", want, func() { IRFFT2(nil, [2]int{big32, big32}) })
+	mustPanicWith(t, "NewPlanN", want, func() { NewPlanN(big62, 4) })
+	mustPanicWith(t, "NewRealPlan2", want, func() { NewRealPlan2(big62, 4) })
 	mustPanicWith(t, "FFTN three axes", want, func() { FFTN(nil, []int{1 << 21, 1 << 21, 1 << 21}) })
 	mustPanicWith(t, "FFTN zero", "fft: shape lengths must be positive", func() { FFTN(nil, []int{4, 0}) })
 }

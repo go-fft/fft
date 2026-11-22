@@ -155,7 +155,9 @@ func complex64Of(x []complex128) []complex64 {
 // with the package's own message; they never allocate their way into a fatal
 // error or run an index out of range.
 func TestChaosLengths(t *testing.T) {
-	lens := []int{-1 << 62, -1 << 31, -2, -1, 0, 1, 1 << 62, math.MaxInt}
+	// Half the int range on each side (2^62 on 64-bit, 2^30 on 32-bit, where
+	// -1<<62 does not fit an int).
+	lens := []int{math.MinInt / 2, -1 << 31, -2, -1, 0, 1, math.MaxInt/2 + 1, math.MaxInt}
 	try := func(name string, f func()) {
 		if testing.Verbose() {
 			println("chaos:", name)

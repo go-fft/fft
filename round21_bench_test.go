@@ -17,10 +17,10 @@ func BenchmarkR21Fanout(b *testing.B) {
 		p := NewPlanN(n, n)
 		src := benchComplex(n * n)
 		dst := make([]complex128, n*n)
-		for _, m := range []int{8192, 16384, 32768, 65536, 131072, 1 << 40} {
+		for _, m := range []int{8192, 16384, 32768, 65536, 131072, big40} {
 			parMinChunk = m
 			name := "m" + strconv.Itoa(m)
-			if m == 1<<40 {
+			if m == big40 {
 				name = "serial"
 			}
 			b.Run(strconv.Itoa(n)+"/"+name, func(b *testing.B) {
