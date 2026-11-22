@@ -1,0 +1,48 @@
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkZZBlue/n=47         	  294540	      1171 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  311623	      1173 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  300511	      1158 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  312037	      1155 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  304089	      1158 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  164980	      2214 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  159298	      2246 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  160370	      2214 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  163596	      2204 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  163999	      2196 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2052	    173241 ns/op	      71 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2125	    168805 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2103	    168854 ns/op	      70 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2120	    168709 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2131	    169563 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     870	    412661 ns/op	     376 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     870	    415222 ns/op	     376 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     878	    411719 ns/op	     373 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     868	    417413 ns/op	     377 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     873	    413322 ns/op	     375 B/op	       0 allocs/op
+PASS
+goos: linux
+goarch: arm64
+pkg: github.com/go-fft/fft
+BenchmarkZZBlue/n=47         	  303782	      1154 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  313531	      1157 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  314830	      1158 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  313683	      1163 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  304916	      1160 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  164632	      2195 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  162835	      2203 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  164587	      2178 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  164296	      2187 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  165418	      2173 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2126	    168469 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2136	    170324 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2089	    171878 ns/op	      70 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2138	    168262 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    2121	    169480 ns/op	      69 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     872	    411544 ns/op	     375 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     864	    408159 ns/op	     379 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     888	    406572 ns/op	     369 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     877	    405886 ns/op	     373 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	     895	    407269 ns/op	     366 B/op	       0 allocs/op
+PASS

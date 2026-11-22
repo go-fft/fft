@@ -1,0 +1,50 @@
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD Ryzen 9 7950X 16-Core Processor            
+BenchmarkZZBlue/n=47         	 1904026	       189.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1918854	       187.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1853908	       194.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1929955	       186.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1915209	       188.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  933633	       380.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       351.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       353.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       345.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       353.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31846 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31750 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31635 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31725 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     32757 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4062	     86723 ns/op	      80 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4084	     87101 ns/op	      80 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4141	     86845 ns/op	      79 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4137	     86963 ns/op	      79 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4142	     86813 ns/op	      79 B/op	       0 allocs/op
+PASS
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: AMD Ryzen 9 7950X 16-Core Processor            
+BenchmarkZZBlue/n=47         	 1903027	       189.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1923625	       187.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1873201	       192.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1927992	       186.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	 1924122	       187.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       350.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       353.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  994896	       361.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	 1000000	       346.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  993996	       361.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31514 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31486 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31584 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31380 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	   10000	     31700 ns/op	      14 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4088	     86939 ns/op	      80 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4076	     87293 ns/op	      80 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4138	     86967 ns/op	      79 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4125	     87261 ns/op	      79 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    4130	     86952 ns/op	      79 B/op	       0 allocs/op
+PASS

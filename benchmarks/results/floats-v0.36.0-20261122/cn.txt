@@ -1,0 +1,50 @@
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkZZBlue/n=47         	  679390	       522.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  699001	       524.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  667297	       541.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  689326	       524.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  701992	       515.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  362054	       978.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  367818	       977.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  372360	       974.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  341334	       976.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  369570	       983.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4154	     86679 ns/op	      35 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4232	     84733 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4166	     85056 ns/op	      35 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4113	     84771 ns/op	      35 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4225	     85024 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1192	    299273 ns/op	     275 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1161	    302820 ns/op	     282 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1154	    304542 ns/op	     284 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1180	    303828 ns/op	     277 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1190	    303785 ns/op	     275 B/op	       0 allocs/op
+PASS
+goos: linux
+goarch: amd64
+pkg: github.com/go-fft/fft
+cpu: Intel Xeon Processor (Cascadelake)
+BenchmarkZZBlue/n=47         	  590000	       522.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  684024	       525.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  658250	       544.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  686674	       522.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  697850	       516.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  361362	       984.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  367218	       980.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  367420	       984.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  365431	       977.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  368140	       986.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4228	     84915 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4294	     84558 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4282	     85086 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4233	     84632 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4251	     84945 ns/op	      34 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1165	    307745 ns/op	     281 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1174	    305804 ns/op	     279 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1189	    303581 ns/op	     275 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1176	    306183 ns/op	     278 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1179	    305680 ns/op	     278 B/op	       0 allocs/op
+PASS
