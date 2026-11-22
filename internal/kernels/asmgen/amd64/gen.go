@@ -153,6 +153,12 @@ func main() {
 	}
 	writeFile("comp2_amd64.s", f.String())
 
+	// The radix-20 final pass with its stage-1 values in ymm16..31 (EVEX-256,
+	// AVX-512VL): no stack frame (go-fft/fft#162, audit proposal 3).
+	f = emit.NewFile("amd64")
+	k.LastEVEX(f, "skLast20EVEX", 20)
+	writeFile("comp2evex_amd64.s", f.String())
+
 	// The 512-bit split-layout pass kernels (Round 28, Cascade Lake): radix 4
 	// and 8, every pair of layouts, both directions.
 	f = emit.NewFile("amd64")

@@ -23,3 +23,19 @@ func skPass20AVX2(cc, ch, tw *complex128, k *float64, ido, l1 int)
 
 //go:noescape
 func skLast20AVX2(cc, ch *complex128, k *float64, l1 int)
+
+// skLast20EVEX is skLast20AVX2 with the stage-1 values in ymm16..31
+// (comp2evex_amd64.s, AVX-512VL): the same operations in the same order, so the
+// same bits, with no stack frame. Zen 4 runs it (see init in stockham_amd64.go).
+//
+//go:noescape
+func skLast20EVEX(cc, ch *complex128, k *float64, l1 int)
+
+// useLast20EVEX routes the radix-20 final pass to skLast20EVEX. Zen 4 only: it
+// has AVX-512VL (the F and DQ gate of dispatchFor is Zen 4's own), and it is
+// the CPU whose 16-register spills the twin removes (go-fft/fft#162).
+func init() {
+	if detectedDispatch.Zen4 {
+		skLast256[20] = skLast20EVEX
+	}
+}
