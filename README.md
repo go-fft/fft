@@ -366,8 +366,18 @@ loop (Exact is still bit-identical to v0.28.16). The default-path Bluestein bits
 change on Zen 4 and other FMA CPUs, within the bound: the worst Bluestein error
 ratio is 0.674 (complex n=23, it was 0.598) and the worst of the family 0.718,
 under the 0.74 bound. Whole Bluestein transform: -8 to -30% on Cascade Lake, which
-ran the scalar loop before; +1 to 2% on Zen 4 and Neoverse N1, tracked in
-go-simd/floats#82 and go-simd/floats#81.
+ran the scalar loop before; +1 to 2% on Zen 4 and Neoverse N1, whose small-n part
+is recovered in v0.47.0 (below).
+
+Since v0.47.0 (a MINOR release: the default-path Bluestein bits change on amd64,
+arm64 stays bit-identical, Exact and NoFMA are unchanged) go-fft requires
+go-simd/floats v0.36.0, whose `CMulTo` finishes its own tail
+(go-simd/floats#83, which fixes go-simd/floats#81 and go-simd/floats#82). Whole
+Bluestein against v0.46.0 (benchstat, p < 0.01): small n is faster on all three
+hosts, Zen 4 n=47 -2.7%, Cascade Lake n=47 -5.5% and n=94 -3.9%, Neoverse N1 n=47
+-5.0%, n=94 -5.2% and n=10007 -2.5%; large n on amd64 shows no measurable change.
+Accuracy is unchanged (complex Bluestein worst 0.674, family worst 0.718, under the
+0.74 bound).
 
 ### Single precision (complex64 / float32)
 
