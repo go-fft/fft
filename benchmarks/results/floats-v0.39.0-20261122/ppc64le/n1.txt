@@ -1,0 +1,25 @@
+goos: linux
+goarch: ppc64le
+pkg: github.com/go-fft/fft
+cpu: POWER9
+BenchmarkZZBlue/n=47         	  534357	      2094 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  573303	      2090 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  572095	      2090 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  572910	      2086 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=47         	  571328	      2094 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  252913	      4740 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  252703	      4746 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  252969	      4739 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  252750	      4748 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=94         	  253148	      4739 ns/op	       0 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4352	    275617 ns/op	      33 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4350	    275792 ns/op	      33 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4348	    275671 ns/op	      33 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4342	    275831 ns/op	      33 B/op	       0 allocs/op
+BenchmarkZZBlue/n=4099       	    4352	    275685 ns/op	      33 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1792	    668302 ns/op	     183 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1794	    667126 ns/op	     182 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1798	    667135 ns/op	     182 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1797	    667466 ns/op	     182 B/op	       0 allocs/op
+BenchmarkZZBlue/n=10007      	    1796	    667527 ns/op	     182 B/op	       0 allocs/op
+PASS
