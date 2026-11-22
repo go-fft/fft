@@ -124,6 +124,7 @@ func TestZmBluesteinMatchesLoops(t *testing.T) {
 // there (Exact promises v0.28.16's bits). Counted through a fake, so it holds
 // on every CPU.
 func TestZmBluesteinRouting(t *testing.T) {
+	isolatePlans(t)
 	defer func(f func(dst, a, b []complex128)) { cmulTo = f }(cmulTo)
 	calls := 0
 	cmulTo = func(dst, a, b []complex128) { calls++; floats.CMulTo(dst, a, b) }
