@@ -379,6 +379,13 @@ hosts, Zen 4 n=47 -2.7%, Cascade Lake n=47 -5.5% and n=94 -3.9%, Neoverse N1 n=4
 Accuracy is unchanged (complex Bluestein worst 0.674, family worst 0.718, under the
 0.74 bound).
 
+Exception to "the default equals Exact where it does not fuse": on s390x and
+ppc64le the default Bluestein product runs `floats.CMulTo` (VX and VSX kernels,
+go-simd/floats v0.39.0), whose contract is an error bound, not the Go loop's bits,
+so the default's Bluestein bits differ there from `Exact` and `NoFMA`, which keep
+the loop; arm64's NEON kernel gives the loop's bits (asserted bounds: 1.5 for c2c,
+2.0 for r2c).
+
 ### Single precision (complex64 / float32)
 
 As `scipy.fft` does for `complex64` input, the 1-D transforms also run in single

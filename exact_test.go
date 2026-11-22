@@ -68,7 +68,11 @@ var exactOpts = exact(Options{})
 // and 2-D). Where the default fuses (amd64 with FMA3) the two differ in the
 // last bits, inside the bound, and TestDefaultFusesWhereItCan says so. The
 // golden digests of v0.28.16 (exact_golden_test.go) tie Exact to the released
-// bits either way.
+// bits either way. One exception: on s390x and ppc64le the default's Bluestein
+// pointwise product runs floats.CMulTo (VX, VSX kernels: an error-bound
+// contract, not the gc loop's bits) while Exact keeps the Go loop, so the
+// padded Bluestein cases are skipped there (floatsBluesteinCase). arm64's NEON
+// kernel gives the loop's bits and keeps the promise (checked on darwin/arm64).
 func TestExactIsTheDefaultWhereItDoesNotFuse(t *testing.T) {
 	if arithDefault.fused() {
 		t.Skip("the default fuses on this CPU: see TestDefaultFusesWhereItCan")
