@@ -763,7 +763,11 @@ func TestNextFastLen(t *testing.T) {
 			evens = append(evens, m)
 		}
 	}
-	targets := []int{1 << 40, 1<<40 + 1, 999_999_999_989, top - 1, top, evens[len(evens)-1]}
+	targets := []int{top - 1, top, evens[len(evens)-1]}
+	if int64(math.MaxInt) > 1<<40 { // 1<<40 and a 12-digit prime need a 64-bit int
+		prime := int64(999_999_999_989)
+		targets = append(targets, big40, big40+1, int(prime))
+	}
 	for v := 12345; v < math.MaxInt/3; v *= 3 {
 		targets = append(targets, v, v+1)
 	}
@@ -906,13 +910,13 @@ func TestOptionsValidation(t *testing.T) {
 	mustPanicWith(t, "RFFT2With mismatch", mismatch, func() { RFFT2With(rg, [2]int{3, 4}, Options{}) })
 	mustPanicWith(t, "FFTShiftN mismatch", mismatch, func() { FFTShiftN(rg, []int{3, 4}, nil) })
 	const overflow = "fft: shape product overflows int"
-	huge := []int{1 << 32, 1 << 32}
+	huge := []int{big32, big32}
 	mustPanicWith(t, "FFTNWith overflow", overflow, func() { FFTNWith(nil, huge, Options{}) })
 	mustPanicWith(t, "IFFTNWith overflow", overflow, func() { IFFTNWith(nil, huge, Options{Axes: []int{0}}) })
 	mustPanicWith(t, "RFFTN overflow", overflow, func() { RFFTN(nil, huge) })
 	mustPanicWith(t, "IRFFTN overflow", overflow, func() { IRFFTN(nil, huge) })
-	mustPanicWith(t, "RFFT2With overflow", overflow, func() { RFFT2With(nil, [2]int{1 << 32, 1 << 32}, Options{}) })
-	mustPanicWith(t, "IRFFT2With overflow", overflow, func() { IRFFT2With(nil, [2]int{1 << 32, 1 << 32}, Options{}) })
+	mustPanicWith(t, "RFFT2With overflow", overflow, func() { RFFT2With(nil, [2]int{big32, big32}, Options{}) })
+	mustPanicWith(t, "IRFFT2With overflow", overflow, func() { IRFFT2With(nil, [2]int{big32, big32}, Options{}) })
 	mustPanicWith(t, "IFFTShiftN overflow", overflow, func() { IFFTShiftN([]int(nil), huge, nil) })
 	const positive = "fft: shape lengths must be positive"
 	mustPanicWith(t, "IRFFTN zero", positive, func() { IRFFTN(nil, []int{4, 0}) })

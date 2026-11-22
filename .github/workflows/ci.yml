@@ -157,7 +157,7 @@ jobs:
       - name: Regenerate committed assembly and check it is current
         if: matrix.regen != ''
         run: |
-          ( cd internal/kernels/asmgen/${{ matrix.regen }} && GOFLAGS=-mod=mod go run gen.go )
+          GOFLAGS=-mod=mod go -C internal/kernels/asmgen/${{ matrix.regen }} run gen.go
           # Every file the generator writes is committed under internal/kernels:
           # move them ALL back and compare them all. Naming files here let one
           # through unchecked (cpu_amd64.s, the CPU and vendor probes, was never
@@ -272,9 +272,10 @@ jobs:
 
   # A 32-bit lane for the length guards: math.MaxInt is 2^31-1 there, so the
   # guard's bound and the size arithmetic behind it are different numbers. The
-  # root package's own tests assume a 64-bit int and do not compile for 386;
-  # internal/guardtest is the black-box suite that does. linux/386 binaries run
-  # natively on the amd64 runner.
+  # root package's own tests compile for 386 (their absurd sizes are big32,
+  # big40 and big62, bigint_test.go) and run here too, next to
+  # internal/guardtest, the black-box suite. linux/386 binaries run natively on
+  # the amd64 runner.
   arch-386:
     name: arch 386 (32-bit guards)
     runs-on: ubuntu-latest
@@ -288,6 +289,10 @@ jobs:
           GOARCH=386 go build ./...
           GOARCH=386 go vet ./internal/guardtest/
           GOARCH=386 go test -count=1 -v ./internal/guardtest/
+      - name: Vet + test the root package on 386
+        run: |
+          GOARCH=386 go vet .
+          GOARCH=386 go test -count=1 .
 
   # refbench CI mode (go-scikit/roadmap#27, W3): the allocation count of every
   # case equals docs/perf.json, docs/perf-table.md is what perf.json generates,
@@ -309,3 +314,35 @@ jobs:
         env:
           GOMAXPROCS: '1'
         run: go test -count=1 -run TestPerf -cpu 1 .
+
+  # The modules no other job compiles: the by-hand measurement harness
+  # (benchmarks), the archived measurement scripts of the results directories,
+  # and the generator modules (asmgen, whose tools.go carries the `tools` tag,
+  # and asmgen/amd64). They are run by hand, so this only keeps them
+  # compiling and vetted.
+  modules:
+    name: vet the by-hand modules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.3'
+      - name: benchmarks
+        working-directory: benchmarks
+        run: go vet ./...
+      - name: archived probe script (round 20)
+        working-directory: benchmarks/results/round20-cascade-large-20261005/scripts/probe
+        run: go vet ./...
+      - name: archived znan script (round 32)
+        working-directory: benchmarks/results/round32-zen3-small-20261009/scripts/znan
+        run: go vet ./...
+      - name: archived znparity script (round 32)
+        working-directory: benchmarks/results/round32-zen3-small-20261009/scripts/znparity
+        run: go vet ./...
+      - name: asmgen module (with its tools pin)
+        working-directory: internal/kernels/asmgen
+        run: go vet -tags tools ./...
+      - name: asmgen amd64 generator module
+        working-directory: internal/kernels/asmgen/amd64
+        run: go vet ./...

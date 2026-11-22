@@ -138,9 +138,9 @@ func BenchmarkR25Fanout32(b *testing.B) {
 			src[i] = complex64(v)
 		}
 		dst := make([]complex64, n*n)
-		for _, m := range []int{def, 1 << 40} {
+		for _, m := range []int{def, big40} {
 			name := "rule"
-			if m == 1<<40 {
+			if m == big40 {
 				name = "serial"
 			}
 			b.Run(strconv.Itoa(n)+"/"+name, func(b *testing.B) {
