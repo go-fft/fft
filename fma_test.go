@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/cmplx"
 	"math/rand/v2"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -88,11 +89,12 @@ func relRMS(got, want []complex128) float64 {
 }
 
 // sameDefault is whether a default transform a is the Exact one b: bit for bit,
-// except on a Bluestein length, whose products run on floats.CMulTo (a stated
-// error bound, fused wherever the CPU has FMA whatever fmaAvailable says), so
-// there they agree within 1e-12 of the largest output.
+// except on a Bluestein length off amd64, whose products run on floats.CMulTo
+// (a stated error bound), so there they agree within 1e-12 of the largest
+// output. On amd64 an unfused default (no FMA3, as these tests say) runs the
+// Go loop: bit for bit, which also fails a routing that sends it to floats.
 func sameDefault(a, b []complex128, bluestein bool) bool {
-	if !bluestein {
+	if !bluestein || runtime.GOARCH == "amd64" {
 		return sameAll(a, b)
 	}
 	scale, diff := 0.0, 0.0
