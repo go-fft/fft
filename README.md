@@ -350,7 +350,24 @@ transform is one generated straight-line kernel (`internal/gendct23`, assembly i
 every constant folded in, 32 vector registers, FMA). Same machine and method,
 ns per call: DCT-II 32 points 57.0 -> 30.6 (FFTW 41.9, 0.73x), 64 points
 84.1 -> 68.7 (FFTW 81.3, 0.85x); DCT-III 32 points 69.3 -> 39.8 (FFTW 43.5,
-0.92x), 64 points 98.0 -> 90.0 (FFTW 84.3, 1.07x). 128 points keeps the route above.
+0.91x), 64 points 98.0 -> 90.0 (FFTW 84.3, 1.07x). 128 points keeps the route above.
+
+Since v0.45.1 (bit-identical) the generator schedules the kernels with a
+register-pressure list scheduler: spills fall from 182 to 104 in `Dct3x64` (frame
+1,456 to 832 bytes), 98 to 70 in `Dct2x64`, 23 to 7 in `Dct3x32` and 7 to 2 in
+`Dct2x32`; the DCT-III kernel at 64 points, called directly, takes 77.2 -> 62.0 ns
+on Zen 4, about 0.91x FFTW's time (it was 1.07x). A SHA-256 test pins the kernel
+bits.
+
+Since v0.46.0 Bluestein's pointwise complex multiply on the default (FMA) path
+calls `floats.CMulTo` of go-simd/floats v0.32.0; the package's own multiply
+kernels are gone. `Options{Exact: true}` and `Options{NoFMA: true}` keep the Go
+loop (Exact is still bit-identical to v0.28.16). The default-path Bluestein bits
+change on Zen 4 and other FMA CPUs, within the bound: the worst Bluestein error
+ratio is 0.674 (complex n=23, it was 0.598) and the worst of the family 0.718,
+under the 0.74 bound. Whole Bluestein transform: -8 to -30% on Cascade Lake, which
+ran the scalar loop before; +1 to 2% on Zen 4 and Neoverse N1, tracked in
+go-simd/floats#82 and go-simd/floats#81.
 
 ### Single precision (complex64 / float32)
 
