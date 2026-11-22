@@ -24,7 +24,7 @@ func fusedSCase32(name string) bool {
 
 // floatsBluesteinCase reports whether the exactCases case name is a padded
 // transform whose length n+7 runs Bluestein, on an architecture whose
-// floats.CMulTo kernel (s390x VX, ppc64le VSX, v0.37.0) is not the Go loop's
+// floats.CMulTo kernel (s390x VX, ppc64le VSX, floats v0.39.0) is not the Go loop's
 // bits: the gc loop and the kernel fuse differently there, so the default
 // agrees with Exact within the kernel's bound, not bit for bit (arm64's NEON
 // and the portable kernel are the loop's bits, so those still compare).
