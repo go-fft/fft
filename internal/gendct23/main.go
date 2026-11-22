@@ -36,6 +36,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/go-fft/fft/internal/gentwiddle"
 )
@@ -885,6 +886,232 @@ func strip(order []*node) []*node {
 	return o
 }
 
+// schedule is a register-pressure-aware list scheduler. Forward, it emits the
+// ready operation that adds the fewest live values (a result, minus the operands
+// it is the last reader of); backward (the transpose of the same graph: walk from
+// the stores toward the loads, as the DCT-III is the transpose of the DCT-II) it
+// emits last the operation that brings the fewest new values live. A load costs
+// nothing (it is a memory operand or an on-demand load) and a multiplication used
+// once is transparent (plan fuses it into its consumer). Ties and, with
+// probability eps, the choice itself are random, from a fixed seed, so a run of
+// the generator is reproducible.
+type sgraph struct {
+	sched []*node // the units: every live node that is not a load or a transparent product
+	ops   map[*node][]*node
+	pre   map[*node][]*node // the transparent products emitted just before a unit
+	cons  map[*node][]*node
+}
+
+func newSG(b *builder) *sgraph {
+	creation := liveOrder(b, false)
+	uses := map[*node]int{}
+	for _, n := range creation {
+		for _, o := range []*node{n.x, n.y} {
+			if o != nil {
+				uses[o]++
+			}
+		}
+	}
+	transparent := func(n *node) bool { return n.op == 'm' && uses[n] == 1 }
+	// ops is the distinct non-load operands that n reads, through transparent products
+	ops := map[*node][]*node{}
+	pre := map[*node][]*node{} // the transparent products emitted just before n
+	var sched []*node
+	for _, n := range creation {
+		if n.op == 'l' || transparent(n) {
+			continue
+		}
+		sched = append(sched, n)
+		var os []*node
+		add := func(v *node) {
+			if v.op == 'l' {
+				return
+			}
+			for _, w := range os {
+				if w == v {
+					return
+				}
+			}
+			os = append(os, v)
+		}
+		for _, o := range []*node{n.x, n.y} {
+			if o == nil {
+				continue
+			}
+			if transparent(o) {
+				pre[n] = append(pre[n], o)
+				add(o.x)
+			} else {
+				add(o)
+			}
+		}
+		ops[n] = os
+	}
+	cons := map[*node][]*node{}
+	for _, n := range sched {
+		for _, v := range ops[n] {
+			cons[v] = append(cons[v], n)
+		}
+	}
+	return &sgraph{sched: sched, ops: ops, pre: pre, cons: cons}
+}
+
+// flat is the order of an arrangement of the units, products included.
+func (g *sgraph) flat(units []*node) []*node {
+	var out []*node
+	for _, n := range units {
+		out = append(out, g.pre[n]...)
+		out = append(out, n)
+	}
+	return out
+}
+
+func (g *sgraph) schedule(backward bool, rng *rand.Rand, eps float64) []*node {
+	sched, ops, cons := g.sched, g.ops, g.cons
+	emit := func(out *[]*node, n *node) { *out = append(*out, n) }
+	var out []*node
+	pend := map[*node]int{}
+	var ready []*node
+	for _, n := range sched {
+		if backward {
+			pend[n] = len(cons[n])
+		} else {
+			pend[n] = len(ops[n])
+		}
+		if pend[n] == 0 {
+			ready = append(ready, n)
+		}
+	}
+	left := map[*node]int{} // forward: consumers not yet scheduled
+	for _, n := range sched {
+		left[n] = len(cons[n])
+	}
+	live := map[*node]bool{} // backward: a consumer is already scheduled
+	delta := func(n *node) int {
+		d := 0
+		if backward {
+			for _, v := range ops[n] {
+				if !live[v] {
+					d++
+				}
+			}
+			if live[n] {
+				d--
+			}
+			return d
+		}
+		if n.op != 'S' {
+			d++
+		}
+		for _, v := range ops[n] {
+			if left[v] == 1 {
+				d--
+			}
+		}
+		return d
+	}
+	for len(ready) > 0 {
+		pick := rng.Intn(len(ready))
+		if rng.Float64() >= eps {
+			best, nb := 1<<30, 0
+			for i, n := range ready {
+				switch d := delta(n); {
+				case d < best:
+					best, nb, pick = d, 1, i
+				case d == best:
+					nb++
+					if rng.Intn(nb) == 0 {
+						pick = i
+					}
+				}
+			}
+		}
+		n := ready[pick]
+		ready[pick] = ready[len(ready)-1]
+		ready = ready[:len(ready)-1]
+		emit(&out, n)
+		if backward {
+			for _, v := range ops[n] {
+				live[v] = true
+			}
+			// a producer becomes ready once all its consumers are scheduled
+			for _, v := range ops[n] {
+				if pend[v]--; pend[v] == 0 {
+					ready = append(ready, v)
+				}
+			}
+			continue
+		}
+		for _, v := range ops[n] {
+			left[v]--
+		}
+		for _, c := range cons[n] {
+			if pend[c]--; pend[c] == 0 {
+				ready = append(ready, c)
+			}
+		}
+	}
+	if backward {
+		for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+			out[i], out[j] = out[j], out[i]
+		}
+	}
+	return out
+}
+
+// climb improves an arrangement of the units by moving one unit at a time to
+// another place between its last operand and its first consumer, keeping the
+// move when the cost does not rise (a plateau move is kept).
+func (g *sgraph) climb(units []*node, cost func([]*node) int, iters int, rng *rand.Rand) []*node {
+	cur := append([]*node(nil), units...)
+	curCost := cost(g.flat(cur))
+	pos := map[*node]int{}
+	for it := 0; it < iters; it++ {
+		for i, n := range cur {
+			pos[n] = i
+		}
+		i := rng.Intn(len(cur))
+		n := cur[i]
+		lo, hi := 0, len(cur)-1
+		for _, o := range g.ops[n] {
+			lo = max(lo, pos[o]+1)
+		}
+		for _, c := range g.cons[n] {
+			hi = min(hi, pos[c]-1)
+		}
+		if lo >= hi {
+			continue
+		}
+		var j int
+		if rng.Intn(2) == 0 {
+			j = max(lo, min(hi, i+rng.Intn(17)-8))
+		} else {
+			j = lo + rng.Intn(hi-lo+1)
+		}
+		if j == i {
+			continue
+		}
+		next := append([]*node(nil), cur...)
+		if j > i {
+			copy(next[i:j], cur[i+1:j+1])
+		} else {
+			copy(next[j+1:i+1], cur[j:i])
+		}
+		next[j] = n
+		if c := cost(g.flat(next)); c <= curCost {
+			cur, curCost = next, c
+		}
+	}
+	return cur
+}
+
+// schedTrials is how many randomised schedules each direction tries per kernel,
+// climbIters how many moves the local search makes from the best of them.
+const (
+	schedTrials = 200
+	climbIters  = 40000
+)
+
 func gen(name string, n int, fwd bool) (text string, consts map[uint64]bool, negMask bool, summary string) {
 	b := newBuilder()
 	if fwd {
@@ -898,18 +1125,42 @@ func gen(name string, n int, fwd bool) (text string, consts map[uint64]bool, neg
 	}
 	var best *lowering
 	var bestLabel string
-	for _, dfs := range []bool{false, true} {
-		order := strip(liveOrder(b, dfs))
+	try := func(order []*node, label string) {
 		items := plan(b, order)
 		lw, _ := lower(b, items)
-		label := "creation"
-		if dfs {
-			label = "dfs"
-		}
 		if best == nil || lw.spills+lw.reloads < best.spills+best.reloads || (lw.spills+lw.reloads == best.spills+best.reloads && lw.ops < best.ops) {
 			best, bestLabel = lw, label
 		}
 	}
+	for _, dfs := range []bool{false, true} {
+		label := "creation"
+		if dfs {
+			label = "dfs"
+		}
+		try(strip(liveOrder(b, dfs)), label)
+	}
+	rng := rand.New(rand.NewSource(int64(n)*2 + map[bool]int64{false: 0, true: 1}[fwd]))
+	g := newSG(b)
+	cost := func(order []*node) int {
+		lw, _ := lower(b, plan(b, order))
+		return (lw.spills+lw.reloads)*1<<16 + lw.ops
+	}
+	var bestUnits []*node
+	bestCost := 1 << 62
+	for _, backward := range []bool{false, true} {
+		for t := 0; t < schedTrials; t++ {
+			eps := 0.0
+			if t > 0 {
+				eps = 0.02 * float64(t%8)
+			}
+			units := g.schedule(backward, rng, eps)
+			if c := cost(g.flat(units)); c < bestCost {
+				bestUnits, bestCost = units, c
+			}
+		}
+	}
+	bestUnits = g.climb(bestUnits, cost, climbIters, rng)
+	try(g.flat(bestUnits), "list+climb")
 	lw := best
 	var sb strings.Builder
 	frame := 8 * lw.nslot
@@ -963,6 +1214,14 @@ func main() {
 	var body strings.Builder
 	consts := map[uint64]bool{}
 	neg := false
+	type result struct {
+		text   string
+		consts map[uint64]bool
+		neg    bool
+		sum    string
+	}
+	var results []*result
+	var wg sync.WaitGroup
 	for _, n := range []int{32, 64} {
 		for _, fwd := range []bool{true, false} {
 			// exported: a function declared without a body has no statement for the
@@ -972,14 +1231,24 @@ func main() {
 			if fwd {
 				name = fmt.Sprintf("Dct2x%d", n)
 			}
-			t, c, nm, sum := gen(name, n, fwd)
-			body.WriteString(t)
-			for k := range c {
-				consts[k] = true
-			}
-			neg = neg || nm
-			fmt.Fprintln(os.Stderr, sum)
+			r := &result{}
+			results = append(results, r)
+			wg.Add(1)
+			// the four kernels are independent searches, each from its own seed
+			go func() {
+				defer wg.Done()
+				r.text, r.consts, r.neg, r.sum = gen(name, n, fwd)
+			}()
 		}
+	}
+	wg.Wait()
+	for _, r := range results {
+		body.WriteString(r.text)
+		for k := range r.consts {
+			consts[k] = true
+		}
+		neg = neg || r.neg
+		fmt.Fprintln(os.Stderr, r.sum)
 	}
 	var hdr strings.Builder
 	hdr.WriteString("// Code generated by internal/gendct23/main.go; DO NOT EDIT.\n\n//go:build amd64\n\n#include \"textflag.h\"\n\n")
