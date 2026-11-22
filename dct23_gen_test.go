@@ -16,6 +16,11 @@ func TestDCT23Generated(t *testing.T) {
 	if testing.Short() {
 		t.Skip("runs the generator")
 	}
+	// The generator searches for its schedule (about a minute of CPU), so only one
+	// CI lane regenerates and compares; the other lanes say why they skip.
+	if os.Getenv("GOFFT_GEN_TEST") == "" {
+		t.Skip("regenerating takes about a minute of CPU: set GOFFT_GEN_TEST=1 (the ubuntu-latest test lane does)")
+	}
 	switch runtime.GOARCH {
 	case "s390x", "ppc64le", "loong64", "riscv64":
 		t.Skip("the generator is slow under qemu; the native lanes check the file")
