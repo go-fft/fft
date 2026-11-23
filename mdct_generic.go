@@ -9,14 +9,11 @@ type floatT interface{ ~float32 | ~float64 }
 
 // The MDCT's fold and the IMDCT's unfold run on go-simd/floats kernels for the block
 // lengths N from the Min to the Max (inclusive) and on the fused Go loops
-// otherwise: the kernels cost what the loops do below the window (a pass the more
-// over a short block) and lose above it (the folded block no longer fits the cache
-// with the data). Variables so the tests and the benchmark can force either path.
-// Measured with BenchmarkMDCTFoldPath on an Apple M4 Max; the amd64 AVX2 kernels
-// share the window until a measurement says otherwise.
+// otherwise. The default window is measured on an Apple M4 Max; Intel AVX2/FMA
+// without AVX-512 uses the wider window measured on both core types of an
+// i5-14600K. Variables let the tests and benchmark force either path.
 var (
-	mdctFoldMin, mdctFoldMax     = 512, 4096
-	mdctUnfoldMin, mdctUnfoldMax = 256, 4096
+	mdctFoldMin, mdctFoldMax, mdctUnfoldMin, mdctUnfoldMax = mdctKernelWindowDefault()
 )
 
 // mdctForward is MDCTPlan.MDCT and MDCTPlan.MDCTMixed: the arithmetic is float64

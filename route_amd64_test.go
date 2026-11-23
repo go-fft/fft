@@ -8,6 +8,24 @@ import (
 	"github.com/go-fft/fft/internal/kernels"
 )
 
+func TestMDCTKernelWindowAMD64(t *testing.T) {
+	for _, c := range []struct {
+		name                   string
+		intel, avx2FMA, avx512 bool
+		want                   [4]int
+	}{
+		{"Intel AVX2/FMA", true, true, false, [4]int{128, 16384, 128, 16384}},
+		{"other vendor", false, true, false, [4]int{512, 4096, 256, 4096}},
+		{"without AVX2/FMA", true, false, false, [4]int{512, 4096, 256, 4096}},
+		{"Intel AVX-512", true, true, true, [4]int{512, 4096, 256, 4096}},
+	} {
+		a, b, d, e := mdctKernelWindowAMD64(c.intel, c.avx2FMA, c.avx512)
+		if got := [4]int{a, b, d, e}; got != c.want {
+			t.Errorf("%s: window %v, want %v", c.name, got, c.want)
+		}
+	}
+}
+
 func TestPow2StockhamMaxAMD64(t *testing.T) {
 	for _, c := range []struct {
 		avx2, avx512 bool
