@@ -39,7 +39,7 @@ var groups = [][]string{
 	{"cycles", "de_dis_dispatch_token_stalls1.fp_sch_rsrc_stall", "de_dis_dispatch_token_stalls1.fp_reg_file_rsrc_stall",
 		"de_dis_dispatch_token_stalls1.load_queue_rsrc_stall", "de_dis_dispatch_token_stalls1.store_queue_rsrc_stall",
 		"de_dis_dispatch_token_stalls2.retire_token_stall"},
-	{"cycles", "ex_ret_ops", "fp_ret_sse_avx_ops.all", "ls_any_fills_from_sys.local_l2", "all_l1_data_cache_fills"},
+	{"cycles", "ex_ret_ops", "fp_ret_sse_avx_ops.all", "ls_any_fills_from_sys.local_l2", "ls_any_fills_from_sys.local_ccx"},
 }
 
 var resRe = regexp.MustCompile(`ns/op=([0-9.]+)`)
@@ -186,7 +186,7 @@ func main() {
 			}
 		}
 		fmt.Printf("\n=== n=%d  sum-of-passes %.1f ns, whole plan %.1f ns\n", n, sum, tot)
-		keys := []string{"cycles", "instructions", "ex_ret_ops", "L1-dcache-load-misses", "all_l1_data_cache_fills", "ls_any_fills_from_sys.local_l2",
+		keys := []string{"cycles", "instructions", "ex_ret_ops", "L1-dcache-load-misses", "ls_any_fills_from_sys.local_ccx", "ls_any_fills_from_sys.local_l2",
 			"ls_stlf", "ex_ret_brn_misp", "fp_ret_sse_avx_ops.all",
 			"de_dis_dispatch_token_stalls1.fp_sch_rsrc_stall", "de_dis_dispatch_token_stalls1.fp_reg_file_rsrc_stall",
 			"de_dis_dispatch_token_stalls1.load_queue_rsrc_stall", "de_dis_dispatch_token_stalls1.store_queue_rsrc_stall",
