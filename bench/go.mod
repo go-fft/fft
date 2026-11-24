@@ -3,7 +3,7 @@ module github.com/go-fft/fft/bench
 go 1.27.3
 
 require (
-	github.com/go-fft/fft v0.42.0
+	github.com/go-fft/fft v0.49.0
 	github.com/go-scikit/refbench v0.4.1
 )
 
